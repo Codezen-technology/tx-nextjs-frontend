@@ -8,6 +8,7 @@
  *  - Throws `ServerFetchError` on non-2xx so RSC can call `notFound()` or `error.tsx`.
  */
 
+import { coursePath } from "@/lib/api/endpoints";
 import { getServerWpJsonBase, env } from "@/lib/env";
 import type { FooterData } from "@/types/settings";
 import type { CourseSections } from "@/types/course";
@@ -375,32 +376,32 @@ export const serverApi = {
       }),
 
     detail: (slug: string) =>
-      serverFetch<ApiCourse>(`${lms}/courses/${encodeURIComponent(slug)}`, {
+      serverFetch<ApiCourse>(coursePath(slug), {
         revalidate: 600,
         tags: [`course:${slug}`, "courses:list"],
       }),
 
     curriculum: (slug: string) =>
-      serverFetch<ApiCurriculumItem[]>(`${lms}/courses/${encodeURIComponent(slug)}/curriculum`, {
+      serverFetch<ApiCurriculumItem[]>(coursePath(slug, "curriculum"), {
         revalidate: 600,
         tags: [`course:${slug}:curriculum`],
       }),
 
     richDetail: (slug: string) =>
-      serverFetch<Record<string, unknown>>(`${lms}/courses/${encodeURIComponent(slug)}`, {
+      serverFetch<Record<string, unknown>>(coursePath(slug), {
         revalidate: 600,
         tags: [`course:${slug}`, "courses:list"],
       }),
 
     sections: (slug: string) =>
-      serverFetch<CourseSections>(`${lms}/courses/${encodeURIComponent(slug)}/sections`, {
+      serverFetch<CourseSections>(coursePath(slug, "sections"), {
         revalidate: 600,
         tags: [`course:${slug}:sections`],
       }),
 
     related: (slug: string, perPage = 6) =>
       serverFetch<ApiPaginated<ApiCourse>>(
-        `${lms}/courses/${encodeURIComponent(slug)}/related${qs({ per_page: perPage })}`,
+        `${coursePath(slug, "related")}${qs({ per_page: perPage })}`,
         { revalidate: 300, tags: [`course:${slug}:related`] },
       ),
 
@@ -445,7 +446,7 @@ export const serverApi = {
 
   reviews: {
     forCourse: (courseId: string | number) =>
-      serverFetch<ApiCourseReviews>(`${lms}/courses/${courseId}/reviews`, {
+      serverFetch<ApiCourseReviews>(coursePath(courseId, "reviews"), {
         revalidate: 300,
         tags: [`course:${courseId}:reviews`],
       }),

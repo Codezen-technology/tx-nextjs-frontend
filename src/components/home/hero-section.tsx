@@ -1,10 +1,22 @@
 import Link from "next/link";
-import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { HeroCarousel } from "./hero-carousel";
 import { CourseCard } from "@/components/courses/course-card";
+import { SafeImage } from "@/components/ui/safe-image";
 import { coursesService } from "@/lib/services/courses";
+import { publicImageExists } from "@/lib/utils/public-image.server";
 import type { Course } from "@/types/course";
+
+const HERO_ACCREDITATIONS = [
+  { src: "/images/cpd-logo.png", alt: "CPD Certified", width: 56, height: 56, label: "CPD Certified" },
+  {
+    src: "/images/ukrlp-logo.png",
+    alt: "UKRLP Registered",
+    width: 75,
+    height: 20,
+    label: "UKRLP Registered",
+  },
+] as const;
 
 const POPULAR_CATEGORIES = [
   "Discount courses",
@@ -29,9 +41,7 @@ export async function HeroSection() {
   return (
     <section className="relative overflow-x-clip bg-[#e6f8fe]">
       <div className="mx-auto flex max-w-[1400px] flex-col items-start gap-12 px-6 py-[60px] lg:flex-row lg:items-center lg:px-10 lg:py-[160px]">
-        {/* Left panel */}
         <div className="flex w-full min-w-0 flex-col gap-6 lg:max-w-[636px]">
-          {/* Headline + subtitle */}
           <div className="flex flex-col gap-4">
             <h1 className="font-suse text-[40px] font-bold leading-[1.2] text-[#00204a] md:text-[48px] lg:text-[56px]">
               UK&apos;s Leading eLearning Hub for Growth
@@ -43,29 +53,29 @@ export async function HeroSection() {
             </p>
           </div>
 
-          {/* Accreditation logos */}
           <div className="flex items-center gap-4">
-            <div className="flex h-[80px] w-[100px] items-center justify-center overflow-hidden rounded-[8px] border border-[#eaecee] bg-white">
-              <Image
-                src="/images/cpd-logo.png"
-                alt="CPD Certified"
-                width={56}
-                height={56}
-                className="object-contain"
-              />
-            </div>
-            <div className="flex h-[80px] w-[100px] items-center justify-center overflow-hidden rounded-[10px] border border-[#eaecee] bg-white px-3">
-              <Image
-                src="/images/ukrlp-logo.png"
-                alt="UKRLP Registered"
-                width={75}
-                height={20}
-                className="object-contain"
-              />
-            </div>
+            {HERO_ACCREDITATIONS.map((badge) => (
+              <div
+                key={badge.src}
+                className="flex h-[80px] w-[100px] items-center justify-center overflow-hidden rounded-[8px] border border-[#eaecee] bg-white px-2"
+              >
+                {publicImageExists(badge.src) ? (
+                  <SafeImage
+                    src={badge.src}
+                    alt={badge.alt}
+                    width={badge.width}
+                    height={badge.height}
+                    className="object-contain"
+                  />
+                ) : (
+                  <span className="text-center font-open-sans text-[11px] font-semibold leading-tight text-[#00204a]">
+                    {badge.label}
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
 
-          {/* Search box */}
           <div className="overflow-hidden rounded-[4px] bg-[rgba(0,32,74,0.4)] backdrop-blur-[8px]">
             <form action="/courses" method="get" className="flex items-center gap-6 p-6">
               <input
@@ -82,7 +92,6 @@ export async function HeroSection() {
               </button>
             </form>
 
-            {/* Quick category links */}
             <div className="flex items-center gap-2 overflow-hidden px-6 pb-6">
               <ChevronLeft className="h-4 w-4 shrink-0 text-white" />
               <div className="flex min-w-0 flex-1 items-center overflow-x-auto">
@@ -105,7 +114,6 @@ export async function HeroSection() {
           </div>
         </div>
 
-        {/* Right panel — stacked course carousel */}
         {courses.length > 0 && (
           <>
             <HeroCarousel courses={courses} />

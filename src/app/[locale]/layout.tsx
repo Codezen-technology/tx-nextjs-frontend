@@ -1,27 +1,25 @@
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getLocale, getMessages, setRequestLocale } from "next-intl/server";
+import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
-
-const SUPPORTED_LOCALES = ["en"] as const;
-type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
-
-function isSupportedLocale(locale: string): locale is SupportedLocale {
-  return SUPPORTED_LOCALES.includes(locale as SupportedLocale);
-}
+import { routing } from "@/i18n/routing";
 
 interface LocaleLayoutProps {
   children: React.ReactNode;
-  params: { locale: string };
 }
 
-export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
-  const { locale } = params;
+export default async function LocaleLayout({ children }: LocaleLayoutProps) {
+  // Use middleware-resolved locale (header), not the first URL segment — avoids
+  // treating `/course/[slug]` as locale=course when localePrefix is `as-needed`.
+  const locale = await getLocale();
 
-  if (!isSupportedLocale(locale)) {
+  if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
 
-  const messages = await getMessages({ locale });
+  setRequestLocale(locale);
+
+  const messages = await getMessages();
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
@@ -31,5 +29,5 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 }
 
 export function generateStaticParams() {
-  return SUPPORTED_LOCALES.map((locale) => ({ locale }));
+  return routing.locales.map((locale) => ({ locale }));
 }

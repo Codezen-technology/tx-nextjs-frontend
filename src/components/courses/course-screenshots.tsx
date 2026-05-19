@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
+import { isRenderableImageSrc } from "@/lib/utils/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CourseScreenshotsProps {
@@ -21,13 +22,15 @@ export function CourseScreenshots({ screenshots }: CourseScreenshotsProps) {
       <h2 className="text-xl font-bold text-neutral-900">Course in Action</h2>
       <div className="relative overflow-hidden rounded-xl border border-[#ebedf1] bg-neutral-100">
         <div className="relative aspect-video w-full">
-          <Image
-            src={screenshots[index]}
-            alt={`Screenshot ${index + 1}`}
-            fill
-            sizes="(max-width: 768px) 100vw, 80vw"
-            className="object-contain"
-          />
+          {isRenderableImageSrc(screenshots[index]) ? (
+            <SafeImage
+              src={screenshots[index]}
+              alt={`Screenshot ${index + 1}`}
+              fill
+              sizes="(max-width: 768px) 100vw, 80vw"
+              className="object-contain"
+            />
+          ) : null}
         </div>
         {screenshots.length > 1 ? (
           <>
@@ -66,7 +69,9 @@ export function CourseScreenshots({ screenshots }: CourseScreenshotsProps) {
               onClick={() => setIndex(i)}
               className={`relative h-16 w-24 shrink-0 overflow-hidden rounded border-2 transition-colors ${i === index ? "border-secondary-500" : "border-transparent"}`}
             >
-              <Image src={src} alt={`Thumbnail ${i + 1}`} fill sizes="96px" className="object-cover" />
+              {isRenderableImageSrc(src) ? (
+                <SafeImage src={src} alt={`Thumbnail ${i + 1}`} fill sizes="96px" className="object-cover" />
+              ) : null}
             </button>
           ))}
         </div>

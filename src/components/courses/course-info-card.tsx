@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
+import { isRenderableImageSrc } from "@/lib/utils/image";
 import Link from "next/link";
 import {
   Check,
@@ -183,9 +184,9 @@ export function CourseInfoCard({ course }: CourseInfoCardProps) {
           <div className="grid grid-cols-2 gap-4">
             {course.accreditations!.map((acc) => (
               <div key={acc.slug} className="flex flex-col items-center gap-1.5 text-center">
-                {acc.logo ? (
+                {isRenderableImageSrc(acc.logo) ? (
                   <div className="relative h-12 w-24">
-                    <Image
+                    <SafeImage
                       src={acc.logo}
                       alt={acc.label}
                       fill

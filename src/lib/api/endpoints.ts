@@ -4,6 +4,16 @@ const lms = `/${env.LMS_NAMESPACE}`;
 const wp = `/wp/v2`;
 const swca = `/swca/v1`;
 
+/** REST path segment for a course by numeric ID or post slug. */
+export function coursePath(idOrSlug: string | number, subpath?: string): string {
+  const segment = encodeURIComponent(String(idOrSlug));
+  const base =
+    typeof idOrSlug === "number" || /^\d+$/.test(String(idOrSlug))
+      ? `${lms}/courses/${segment}`
+      : `${lms}/courses/slug/${segment}`;
+  return subpath ? `${base}/${subpath.replace(/^\//, "")}` : base;
+}
+
 export const endpoints = {
   auth: {
     login: `${lms}/auth/login`,
@@ -26,14 +36,14 @@ export const endpoints = {
   },
   courses: {
     list: `${lms}/courses`,
-    detail: (idOrSlug: string | number) => `${lms}/courses/${idOrSlug}`,
+    detail: (idOrSlug: string | number) => coursePath(idOrSlug),
     search: `${lms}/courses/search`,
     featured: `${lms}/courses/featured`,
     popular: `${lms}/courses/popular`,
     free: `${lms}/courses/free`,
-    curriculum: (idOrSlug: string | number) => `${lms}/courses/${idOrSlug}/curriculum`,
-    sections: (idOrSlug: string | number) => `${lms}/courses/${idOrSlug}/sections`,
-    related: (idOrSlug: string | number) => `${lms}/courses/${idOrSlug}/related`,
+    curriculum: (idOrSlug: string | number) => coursePath(idOrSlug, "curriculum"),
+    sections: (idOrSlug: string | number) => coursePath(idOrSlug, "sections"),
+    related: (idOrSlug: string | number) => coursePath(idOrSlug, "related"),
     instructors: (id: number) => `${lms}/courses/${id}/instructors`,
     enroll: (courseId: number) => `${lms}/courses/${courseId}/enroll`,
   },
@@ -68,7 +78,7 @@ export const endpoints = {
   },
   reviews: {
     list: `${lms}/reviews`,
-    courseReviews: (courseId: number) => `${lms}/courses/${courseId}/reviews`,
+    courseReviews: (idOrSlug: string | number) => coursePath(idOrSlug, "reviews"),
     mine: `${lms}/reviews/my-reviews`,
     update: (id: number) => `${lms}/reviews/${id}`,
     delete: (id: number) => `${lms}/reviews/${id}`,

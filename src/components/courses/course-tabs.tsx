@@ -37,8 +37,6 @@ export function CourseTabs({
   curriculum,
   sections,
 }: CourseTabsProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("accreditations");
-
   const visibleTabs = TABS.filter((tab) => {
     if (tab.id === "accreditations" && !accreditations.length) return false;
     if (tab.id === "content" && !curriculum.length) return false;
@@ -46,6 +44,8 @@ export function CourseTabs({
     if (tab.id === "suitable" && !sections?.who_should_take?.items?.length) return false;
     return true;
   });
+
+  const [activeTab, setActiveTab] = useState<TabId>(visibleTabs[0]?.id ?? "reviews");
 
   return (
     <div className="space-y-6">

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
+import { isRenderableImageSrc } from "@/lib/utils/image";
 import { Star } from "lucide-react";
 import { useCourseReviews } from "@/lib/hooks/useCourses";
 import { formatDate, truncate } from "@/lib/utils/format";
@@ -47,8 +48,8 @@ function ReviewCard({ review }: { review: CourseReviewItem }) {
     <div className="rounded-lg border border-[#ebedf1] bg-white p-4 shadow-sm">
       <div className="flex items-start gap-3">
         <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-neutral-100">
-          {review.avatar ? (
-            <Image src={review.avatar} alt={review.author} fill sizes="40px" className="object-cover" />
+          {isRenderableImageSrc(review.avatar) ? (
+            <SafeImage src={review.avatar} alt={review.author} fill sizes="40px" className="object-cover" />
           ) : (
             <span className="flex h-full w-full items-center justify-center text-sm font-bold text-neutral-500">
               {review.author.charAt(0).toUpperCase()}

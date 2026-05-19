@@ -23,6 +23,27 @@ function stripLocale(pathname: string): string {
   return pathname.replace(localeSegmentRe, "") || "/";
 }
 
+function hasLocalePrefix(pathname: string): boolean {
+  const first = pathname.split("/").filter(Boolean)[0];
+  return Boolean(first && routing.locales.includes(first as (typeof routing.locales)[number]));
+}
+
+/**
+ * Rewrite `/course/foo` → `/en/course/foo` so `[locale]` is not bound to `course`.
+ * next-intl sets the locale header; this aligns App Router dynamic segments.
+ */
+function rewriteWithDefaultLocale(req: NextRequest): NextResponse | null {
+  const { pathname } = req.nextUrl;
+  if (pathname === "/" || hasLocalePrefix(pathname)) {
+    return null;
+  }
+  const url = req.nextUrl.clone();
+  url.pathname = `/${routing.defaultLocale}${pathname}`;
+  const response = NextResponse.rewrite(url);
+  response.headers.set("x-next-intl-locale", routing.defaultLocale);
+  return response;
+}
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const strippedPathname = stripLocale(pathname);
@@ -46,10 +67,14 @@ export function middleware(req: NextRequest) {
       url.searchParams.set("next", next.startsWith("/") ? next : "/dashboard");
       return NextResponse.redirect(url);
     }
-    return NextResponse.next();
+    return intlMiddleware(req);
   }
 
-  // Let next-intl handle locale routing for all other paths
+  const localeRewrite = rewriteWithDefaultLocale(req);
+  if (localeRewrite) {
+    return localeRewrite;
+  }
+
   return intlMiddleware(req);
 }
 

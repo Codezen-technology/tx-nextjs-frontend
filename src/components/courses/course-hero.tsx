@@ -1,4 +1,5 @@
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
+import { isRenderableImageSrc } from "@/lib/utils/image";
 import Link from "next/link";
 import { Clock, Star, Users } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -20,9 +21,9 @@ export function CourseHero({ course }: CourseHeroProps) {
 
   return (
     <section className="relative min-h-[420px] bg-neutral-900 text-white">
-      {course.featuredImage ? (
+      {isRenderableImageSrc(course.featuredImage) ? (
         <>
-          <Image
+          <SafeImage
             src={course.featuredImage}
             alt={course.title}
             fill

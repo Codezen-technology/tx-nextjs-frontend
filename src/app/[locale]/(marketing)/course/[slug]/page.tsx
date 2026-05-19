@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getLocale, setRequestLocale } from "next-intl/server";
 import { serverApi } from "@/lib/api/server";
 import { normalizeRichCourse } from "@/lib/services/courses";
 import { truncate, stripHtml } from "@/lib/utils/format";
@@ -15,13 +16,13 @@ import { CourseRelated } from "@/components/courses/course-related";
 import type { CourseFlatCurriculumItem, CourseSections } from "@/types/course";
 
 interface PageProps {
-  params: { slug: string };
+  params: { locale: string; slug: string };
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  setRequestLocale(await getLocale());
   try {
     const raw = await serverApi.courses.richDetail(params.slug);
-    console.log({ raw });
     const course = normalizeRichCourse(raw);
     const description = truncate(stripHtml(course.excerpt ?? course.content), 160);
     return {
@@ -39,11 +40,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function CourseDetailPage({ params }: PageProps) {
+  setRequestLocale(await getLocale());
   let rawCourse: Record<string, unknown>;
 
   try {
     rawCourse = await serverApi.courses.richDetail(params.slug);
-    console.log({ rawCourse });
   } catch {
     notFound();
   }
@@ -57,7 +58,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
     serverApi.courses.sections(params.slug),
     serverApi.courses.curriculum(params.slug),
   ]);
-  console.log({ sectionsResult, curriculumResult });
+
   if (sectionsResult.status === "fulfilled") {
     sections = sectionsResult.value;
   }

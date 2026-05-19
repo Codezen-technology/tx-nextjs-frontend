@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
+import { isRenderableImageSrc } from "@/lib/utils/image";
 import Link from "next/link";
 import { Linkedin } from "lucide-react";
 import type { CourseExpert } from "@/types/course";
@@ -17,9 +18,9 @@ function ExpertCard({ expert }: { expert: CourseExpert }) {
     <div className="rounded-xl border border-[#ebedf1] bg-white p-6 shadow-sm">
       <div className="flex items-start gap-4">
         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-neutral-100">
-          {expert.image?.full ? (
-            <Image
-              src={expert.image.full}
+          {isRenderableImageSrc(expert.image?.full) ? (
+            <SafeImage
+              src={expert.image!.full}
               alt={expert.title}
               fill
               sizes="80px"
