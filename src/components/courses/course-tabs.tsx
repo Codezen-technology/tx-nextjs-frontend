@@ -48,19 +48,19 @@ export function CourseTabs({
   const [activeTab, setActiveTab] = useState<TabId>(visibleTabs[0]?.id ?? "reviews");
 
   return (
-    <div className="space-y-6">
-      {/* Tab bar */}
-      <div className="border-b border-[#ebedf1]">
-        <nav className="-mb-px flex overflow-x-auto gap-0">
+    <div className="space-y-8">
+      <div className="sticky top-[72px] z-30 -mx-4 border-b border-neutral-30 bg-white px-4 sm:top-20 lg:top-24">
+        <nav className="flex gap-8 overflow-x-auto">
           {visibleTabs.map((tab) => (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "shrink-0 border-b-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap",
+                "shrink-0 py-4 font-open-sans text-[15px] font-medium uppercase tracking-wide transition-colors",
                 activeTab === tab.id
-                  ? "border-secondary-500 text-secondary-600"
-                  : "border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300",
+                  ? "border-b-2 border-secondary-500 text-secondary-600"
+                  : "border-b-2 border-transparent text-neutral-500 hover:text-neutral-800",
               )}
             >
               {tab.label}
@@ -69,17 +69,13 @@ export function CourseTabs({
         </nav>
       </div>
 
-      {/* Tab content */}
       <div>
         {activeTab === "accreditations" && (
           <CourseAccreditations accreditations={accreditations} />
         )}
         {activeTab === "content" && <CourseFlatCurriculum items={curriculum} />}
         {activeTab === "faq" && (
-          <CourseFaq
-            heading={sections?.faq_heading}
-            items={sections?.faq ?? []}
-          />
+          <CourseFaq heading={sections?.faq_heading} items={sections?.faq ?? []} />
         )}
         {activeTab === "reviews" && <CourseReviews courseId={courseId} />}
         {activeTab === "suitable" && (

@@ -5,12 +5,12 @@ interface CourseAboutProps {
 
 export function CourseAbout({ heading, html }: CourseAboutProps) {
   return (
-    <section className="rounded-lg border border-[#ebedf1] bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-xl font-bold text-neutral-900">
-        {heading ?? "About This Course"}
+    <section>
+      <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900 sm:text-[38px]">
+        {heading ?? "About course"}
       </h2>
       <div
-        className="prose prose-neutral max-w-none text-sm leading-relaxed"
+        className="prose prose-neutral mt-6 max-w-none font-open-sans text-base leading-[1.5] text-neutral-700 prose-p:my-0"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </section>

@@ -19,7 +19,9 @@ export function CourseScreenshots({ screenshots }: CourseScreenshotsProps) {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-xl font-bold text-neutral-900">Course in Action</h2>
+      <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900 sm:text-[38px]">
+        Course in action
+      </h2>
       <div className="relative overflow-hidden rounded-xl border border-[#ebedf1] bg-neutral-100">
         <div className="relative aspect-video w-full">
           {isRenderableImageSrc(screenshots[index]) ? (

@@ -18,35 +18,40 @@ export function CourseFaq({ heading, items }: CourseFaqProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   if (!items.length) {
-    return <p className="text-sm text-muted-foreground">No FAQs available.</p>;
+    return <p className="font-open-sans text-sm text-neutral-500">No FAQs available.</p>;
   }
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-bold text-neutral-900">
+    <div className="space-y-8">
+      <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900 sm:text-[38px]">
         {heading ?? "Frequently Asked Questions"}
-      </h3>
-      <div className="divide-y rounded-lg border border-[#ebedf1] bg-white shadow-sm">
+      </h2>
+      <div className="overflow-hidden rounded-lg border border-neutral-30 bg-white">
         {items.map((faq, i) => (
-          <div key={i}>
+          <div key={i} className="border-b border-neutral-30 last:border-b-0">
             <button
+              type="button"
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
-              className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+              className="flex w-full items-center justify-between gap-4 px-6 py-6 text-left"
               aria-expanded={openIndex === i}
             >
-              <span className="font-medium text-neutral-900 text-sm">{faq.question}</span>
+              <span className="font-open-sans text-base font-medium text-neutral-900">
+                {faq.question}
+              </span>
               <ChevronDown
                 className={cn(
-                  "h-4 w-4 shrink-0 text-neutral-500 transition-transform duration-200",
+                  "h-5 w-5 shrink-0 text-neutral-500 transition-transform duration-200",
                   openIndex === i && "rotate-180",
                 )}
               />
             </button>
             {openIndex === i ? (
-              <div
-                className="px-5 pb-5 prose prose-sm prose-neutral max-w-none text-neutral-700"
-                dangerouslySetInnerHTML={{ __html: faq.answer }}
-              />
+              <div className="border-t border-neutral-30 bg-neutral-10 px-6 py-6">
+                <div
+                  className="prose prose-neutral max-w-none font-open-sans text-sm leading-relaxed text-neutral-700"
+                  dangerouslySetInnerHTML={{ __html: faq.answer }}
+                />
+              </div>
             ) : null}
           </div>
         ))}

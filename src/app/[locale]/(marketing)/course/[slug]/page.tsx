@@ -5,8 +5,11 @@ import { serverApi } from "@/lib/api/server";
 import { normalizeRichCourse } from "@/lib/services/courses";
 import { truncate, stripHtml } from "@/lib/utils/format";
 import { CourseAnnouncement } from "@/components/courses/course-announcement";
-import { CourseHero } from "@/components/courses/course-hero";
-import { CourseInfoCard } from "@/components/courses/course-info-card";
+import { CourseBreadcrumb } from "@/components/courses/course-breadcrumb";
+import { CourseTrustedStrip } from "@/components/courses/course-trusted-strip";
+import { CourseBanner } from "@/components/courses/course-banner";
+import { CourseOverview } from "@/components/courses/course-overview";
+import { CoursePurchaseCard } from "@/components/courses/course-purchase-card";
 import { CourseWhatYouLearn } from "@/components/courses/course-what-you-learn";
 import { CourseAbout } from "@/components/courses/course-about";
 import { CourseTabs } from "@/components/courses/course-tabs";
@@ -72,47 +75,61 @@ export default async function CourseDetailPage({ params }: PageProps) {
   const whatYouLearn = sections?.what_you_will_learn ?? [];
 
   return (
-    <div className="min-h-screen bg-[#f9fafb]">
+    <div className="min-h-screen bg-white">
+      <CourseBreadcrumb course={course} />
+      <CourseTrustedStrip />
+
       {course.announcement ? (
         <CourseAnnouncement message={course.announcement} />
       ) : null}
 
-      <CourseHero course={course} />
+      <CourseBanner src={course.featuredImage} alt={course.title} />
 
-      <div className="container relative z-10 -mt-8 pb-6">
-        <CourseInfoCard course={course} />
-      </div>
+      <div className="container mx-auto max-w-[1296px] px-4 pb-16">
+        <div className="-mt-10 flex flex-col gap-8 lg:-mt-16 lg:flex-row lg:items-start lg:gap-6">
+          <div className="min-w-0 flex-1 space-y-10 lg:max-w-[966px]">
+            <CourseOverview course={course} />
 
-      <div className="container space-y-8 pb-16">
-        {whatYouLearn.length > 0 ? (
-          <CourseWhatYouLearn items={whatYouLearn} />
-        ) : null}
+            <div className="space-y-10 lg:hidden">
+              <CoursePurchaseCard course={course} />
+            </div>
 
-        {sections?.at_a_glance ? (
-          <CourseAbout
-            heading={sections.description_heading}
-            html={sections.at_a_glance}
-          />
-        ) : null}
+            {(whatYouLearn.length > 0 || sections?.at_a_glance) && (
+              <div className="space-y-10">
+                {whatYouLearn.length > 0 ? (
+                  <CourseWhatYouLearn items={whatYouLearn} />
+                ) : null}
+                {sections?.at_a_glance ? (
+                  <CourseAbout
+                    heading={sections.description_heading}
+                    html={sections.at_a_glance}
+                  />
+                ) : null}
+              </div>
+            )}
 
-        <div className="rounded-xl border border-[#ebedf1] bg-white p-6 shadow-sm">
-          <CourseTabs
-            courseId={course.id}
-            accreditations={accreditations}
-            curriculum={curriculum}
-            sections={sections}
-          />
+            <CourseTabs
+              courseId={course.id}
+              accreditations={accreditations}
+              curriculum={curriculum}
+              sections={sections}
+            />
+
+            {screenshots.length > 0 ? (
+              <CourseScreenshots screenshots={screenshots} />
+            ) : null}
+
+            {experts.length > 0 ? <CourseExperts experts={experts} /> : null}
+
+            <CourseRelated courseId={course.id} />
+          </div>
+
+          <aside className="hidden shrink-0 lg:block lg:w-[307px]">
+            <div className="sticky top-24">
+              <CoursePurchaseCard course={course} />
+            </div>
+          </aside>
         </div>
-
-        {screenshots.length > 0 ? (
-          <CourseScreenshots screenshots={screenshots} />
-        ) : null}
-
-        {experts.length > 0 ? (
-          <CourseExperts experts={experts} />
-        ) : null}
-
-        <CourseRelated courseId={course.id} />
       </div>
     </div>
   );

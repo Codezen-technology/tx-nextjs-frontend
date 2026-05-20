@@ -14,6 +14,12 @@ export function coursePath(idOrSlug: string | number, subpath?: string): string 
   return subpath ? `${base}/${subpath.replace(/^\//, "")}` : base;
 }
 
+/** REST path for a course by post slug only — use on `/course/[slug]` pages. */
+export function courseSlugPath(slug: string, subpath?: string): string {
+  const base = `${lms}/courses/slug/${encodeURIComponent(slug)}`;
+  return subpath ? `${base}/${subpath.replace(/^\//, "")}` : base;
+}
+
 export const endpoints = {
   auth: {
     login: `${lms}/auth/login`,

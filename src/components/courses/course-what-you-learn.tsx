@@ -1,5 +1,3 @@
-import { Check } from "lucide-react";
-
 interface CourseWhatYouLearnProps {
   items: string[];
 }
@@ -8,16 +6,13 @@ export function CourseWhatYouLearn({ items }: CourseWhatYouLearnProps) {
   if (!items.length) return null;
 
   return (
-    <section className="rounded-lg border border-[#ebedf1] bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-xl font-bold text-neutral-900">What You&apos;ll Learn</h2>
-      <ul className="grid gap-3 sm:grid-cols-2">
+    <section>
+      <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900 sm:text-[38px]">
+        What you&apos;ll learn
+      </h2>
+      <ul className="mt-6 list-disc space-y-2 pl-5 font-open-sans text-base leading-[1.5] text-neutral-700">
         {items.map((item, i) => (
-          <li key={i} className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-secondary-100">
-              <Check className="h-3 w-3 text-secondary-600" />
-            </span>
-            <span className="text-sm text-neutral-700">{item}</span>
-          </li>
+          <li key={i}>{item}</li>
         ))}
       </ul>
     </section>

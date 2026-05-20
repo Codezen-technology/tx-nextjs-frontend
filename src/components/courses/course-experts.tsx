@@ -69,9 +69,15 @@ export function CourseExperts({ experts }: CourseExpertsProps) {
 
   return (
     <section className="space-y-6">
-      <h2 className="text-xl font-bold text-neutral-900">
-        {experts.length === 1 ? "Your Expert" : "Your Experts"}
-      </h2>
+      <div>
+        <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900 sm:text-[38px]">
+          Empower and Engage
+        </h2>
+        <p className="mt-4 font-open-sans text-base leading-[1.5] text-neutral-600">
+          Our expert Learning Designers craft every course to provide your learners with the most
+          engaging and impactful training experience.
+        </p>
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         {experts.map((expert) => (
           <ExpertCard key={expert.id} expert={expert} />

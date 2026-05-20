@@ -8,7 +8,7 @@
  *  - Throws `ServerFetchError` on non-2xx so RSC can call `notFound()` or `error.tsx`.
  */
 
-import { coursePath } from "@/lib/api/endpoints";
+import { coursePath, courseSlugPath } from "@/lib/api/endpoints";
 import { getServerWpJsonBase, env } from "@/lib/env";
 import type { FooterData } from "@/types/settings";
 import type { CourseSections } from "@/types/course";
@@ -376,32 +376,32 @@ export const serverApi = {
       }),
 
     detail: (slug: string) =>
-      serverFetch<ApiCourse>(coursePath(slug), {
+      serverFetch<ApiCourse>(courseSlugPath(slug), {
         revalidate: 600,
         tags: [`course:${slug}`, "courses:list"],
       }),
 
     curriculum: (slug: string) =>
-      serverFetch<ApiCurriculumItem[]>(coursePath(slug, "curriculum"), {
+      serverFetch<ApiCurriculumItem[]>(courseSlugPath(slug, "curriculum"), {
         revalidate: 600,
         tags: [`course:${slug}:curriculum`],
       }),
 
     richDetail: (slug: string) =>
-      serverFetch<Record<string, unknown>>(coursePath(slug), {
+      serverFetch<Record<string, unknown>>(courseSlugPath(slug), {
         revalidate: 600,
         tags: [`course:${slug}`, "courses:list"],
       }),
 
     sections: (slug: string) =>
-      serverFetch<CourseSections>(coursePath(slug, "sections"), {
+      serverFetch<CourseSections>(courseSlugPath(slug, "sections"), {
         revalidate: 600,
         tags: [`course:${slug}:sections`],
       }),
 
     related: (slug: string, perPage = 6) =>
       serverFetch<ApiPaginated<ApiCourse>>(
-        `${coursePath(slug, "related")}${qs({ per_page: perPage })}`,
+        `${courseSlugPath(slug, "related")}${qs({ per_page: perPage })}`,
         { revalidate: 300, tags: [`course:${slug}:related`] },
       ),
 

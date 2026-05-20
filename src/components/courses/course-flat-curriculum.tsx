@@ -73,8 +73,10 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Meta row */}
+    <div className="space-y-6">
+      <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900 sm:text-[38px]">
+        Course Curriculum
+      </h2>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-neutral-600">
           {sectionCount} {sectionCount === 1 ? "section" : "sections"} &bull; {unitCount}{" "}
