@@ -3,6 +3,8 @@ import { env } from "@/lib/env";
 const lms = `/${env.LMS_NAMESPACE}`;
 const wp = `/wp/v2`;
 const swca = `/swca/v1`;
+const wcStore = `/wc/store/v1`;
+const wcRest = `/wc/v3`;
 
 /** REST path segment for a course by numeric ID or post slug. */
 export function coursePath(idOrSlug: string | number, subpath?: string): string {
@@ -95,24 +97,22 @@ export const endpoints = {
     levels: `${lms}/levels`,
   },
   cart: {
-    get: `${lms}/cart`,
-    addItem: `${lms}/cart/items`,
-    updateItem: (key: string) => `${lms}/cart/items/${key}`,
-    removeItem: (key: string) => `${lms}/cart/items/${key}`,
-    applyCoupon: `${lms}/cart/coupon`,
-    removeCoupon: (code: string) => `${lms}/cart/coupon/${code}`,
-    empty: `${lms}/cart`,
+    get: `${wcStore}/cart`,
+    addItem: `${wcStore}/cart/add-item`,
+    updateItem: (key: string) => `${wcStore}/cart/items/${key}`,
+    removeItem: (key: string) => `${wcStore}/cart/items/${key}`,
+    applyCoupon: `${wcStore}/cart/apply-coupon`,
+    removeCoupon: `${wcStore}/cart/remove-coupon`,
+    empty: `${wcStore}/cart/items`,
   },
   orders: {
-    create: `${lms}/orders`,
-    list: `${lms}/orders`,
-    detail: (id: number) => `${lms}/orders/${id}`,
-    items: (id: number) => `${lms}/orders/${id}/items`,
-    pay: (id: number) => `${lms}/orders/${id}/pay`,
+    create: `${wcRest}/orders`,
+    list: `${wcRest}/orders`,
+    detail: (id: number) => `${wcRest}/orders/${id}`,
+    pay: (id: number) => `${wcRest}/orders/${id}`,
   },
   payment: {
-    methods: `${lms}/payment/methods`,
-    intent: `${lms}/payment/intent`,
+    gateways: `${wcRest}/payment_gateways`,
   },
   bundles: {
     list: `${lms}/bundles`,

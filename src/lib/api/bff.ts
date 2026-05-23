@@ -2,6 +2,144 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { env, getServerWpJsonBase } from "@/lib/env";
 
+// ─── URL builders ─────────────────────────────────────────────────────────────
+
+function wcStoreUrl(path: string): string {
+  const base = getServerWpJsonBase();
+  if (!base) throw new Error("WP API URL not configured");
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return `${base}/wc/store/v1${p}`.replace(/([^:]\/)\/+/g, "$1");
+}
+
+function wcRestUrl(path: string): string {
+  const base = getServerWpJsonBase();
+  if (!base) throw new Error("WP API URL not configured");
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return `${base}/wc/v3${p}`.replace(/([^:]\/)\/+/g, "$1");
+}
+
+function wcBasicAuth(): string {
+  const creds = `${env.WC_CONSUMER_KEY}:${env.WC_CONSUMER_SECRET}`;
+  return `Basic ${Buffer.from(creds).toString("base64")}`;
+}
+
+/** Decode JWT payload without verification (WP already verified it). */
+export function getUserIdFromToken(token: string): number | null {
+  try {
+    const payload = JSON.parse(
+      Buffer.from(token.split(".")[1], "base64url").toString(),
+    ) as { data?: { user?: { id?: number } } };
+    return payload.data?.user?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// ─── WC Store API proxy (cart operations) ─────────────────────────────────────
+
+type WCStoreOptions = {
+  method?: string;
+  body?: unknown;
+  /** Incoming Next.js Request — used to forward Cart-Token / Nonce. */
+  request?: Request;
+};
+
+export async function proxyToWCStore(
+  wcPath: string,
+  options: WCStoreOptions = {},
+): Promise<NextResponse> {
+  const { method = "GET", body, request } = options;
+
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+  // Forward Cart-Token + Nonce sent by the browser.
+  if (request) {
+    const cartToken = request.headers.get("x-cart-token");
+    const nonce = request.headers.get("x-wc-store-api-nonce");
+    if (cartToken) headers["Cart-Token"] = cartToken;
+    if (nonce) headers["Nonce"] = nonce;
+  }
+
+  // Attach JWT for logged-in user cart association.
+  const cookieStore = cookies();
+  const jwt = cookieStore.get("access_token")?.value;
+  if (jwt) headers["Authorization"] = `Bearer ${jwt}`;
+
+  const url = wcStoreUrl(wcPath);
+  const fetchBody = body !== undefined ? JSON.stringify(body) : undefined;
+
+  const res = await fetch(url, { method, headers, body: fetchBody });
+
+  const text = await res.text();
+  let json: unknown;
+  try {
+    json = text ? JSON.parse(text) : {};
+  } catch {
+    return NextResponse.json({ error: "Invalid response from WooCommerce" }, { status: 502 });
+  }
+
+  const nextRes = NextResponse.json(json, { status: res.status });
+
+  // Echo Cart-Token + Nonce back so the browser can persist them.
+  const newCartToken = res.headers.get("cart-token");
+  const newNonce = res.headers.get("nonce");
+  if (newCartToken) nextRes.headers.set("x-cart-token", newCartToken);
+  if (newNonce) nextRes.headers.set("x-wc-store-api-nonce", newNonce);
+
+  return nextRes;
+}
+
+// ─── WC REST API v3 proxy (orders, payment gateways) ──────────────────────────
+
+type WCRestOptions = {
+  method?: string;
+  body?: unknown;
+  query?: Record<string, string | number | undefined>;
+};
+
+export async function proxyToWCRest(
+  wcPath: string,
+  options: WCRestOptions = {},
+): Promise<NextResponse> {
+  const { method = "GET", body, query } = options;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Authorization: wcBasicAuth(),
+  };
+
+  let url = wcRestUrl(wcPath);
+  if (query) {
+    const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(query)) {
+      if (v !== undefined) params.set(k, String(v));
+    }
+    const qs = params.toString();
+    if (qs) url = `${url}?${qs}`;
+  }
+
+  const fetchBody = body !== undefined ? JSON.stringify(body) : undefined;
+  const res = await fetch(url, { method, headers, body: fetchBody });
+
+  const text = await res.text();
+  let json: unknown;
+  try {
+    json = text ? JSON.parse(text) : {};
+  } catch {
+    return NextResponse.json({ error: "Invalid response from WooCommerce" }, { status: 502 });
+  }
+
+  const nextRes = NextResponse.json(json, { status: res.status });
+
+  // Forward WP pagination headers.
+  const total = res.headers.get("x-wp-total");
+  const totalPages = res.headers.get("x-wp-totalpages");
+  if (total) nextRes.headers.set("x-wp-total", total);
+  if (totalPages) nextRes.headers.set("x-wp-totalpages", totalPages);
+
+  return nextRes;
+}
+
 type ProxyOptions = {
   method?: string;
   body?: unknown;

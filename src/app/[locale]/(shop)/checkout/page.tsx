@@ -19,8 +19,11 @@ export default function CheckoutPage() {
   // Pre-fetch cart so CheckoutOrderSummary has data.
   useCartQuery();
 
-  const handleOrderSuccess = (orderId: number) => {
-    router.push(`/order-confirmation/${orderId}`);
+  const handleOrderSuccess = (orderId: number, orderKey: string) => {
+    const params = new URLSearchParams();
+    if (orderKey) params.set("key", orderKey);
+    const qs = params.toString();
+    router.push(`/order-confirmation/${orderId}${qs ? `?${qs}` : ""}`);
   };
 
   return (

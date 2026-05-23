@@ -29,6 +29,7 @@ interface RawInstructor {
 
 interface RawCourse {
   id: number;
+  product_id?: number | null;
   slug?: string;
   name?: string;
   title?: string | WpRendered;
@@ -149,8 +150,12 @@ export function normalizeCourse(raw: RawCourse): Course {
   const instructorRaw =
     raw?.primary_instructor ?? raw?.instructors?.[0] ?? raw?.instructor ?? raw?.author;
 
+  const productId =
+    raw?.product_id != null && Number(raw.product_id) > 0 ? Number(raw.product_id) : null;
+
   return {
     id: raw?.id,
+    product_id: productId,
     slug: raw?.slug ?? String(raw?.id),
     title: renderedOrString(raw?.title) || raw?.name || "Untitled",
     excerpt: renderedOrString(raw?.excerpt) || raw?.description,

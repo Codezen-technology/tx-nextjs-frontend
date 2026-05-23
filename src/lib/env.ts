@@ -18,6 +18,13 @@ export const env = {
   // On-demand ISR
   WP_REVALIDATE_SECRET: process.env.WP_REVALIDATE_SECRET ?? "",
 
+  // WooCommerce REST API v3 Consumer Keys (server-only — never NEXT_PUBLIC_)
+  WC_CONSUMER_KEY: process.env.WC_CONSUMER_KEY ?? "",
+  WC_CONSUMER_SECRET: process.env.WC_CONSUMER_SECRET ?? "",
+
+  // Stripe server-side secret key (server-only)
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ?? "",
+
   // Newsletter integration
   NEWSLETTER_PROVIDER_API_KEY: process.env.NEWSLETTER_PROVIDER_API_KEY ?? "",
 

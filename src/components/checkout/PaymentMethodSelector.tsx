@@ -4,32 +4,44 @@ import { useState } from "react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { cn } from "@/lib/utils/cn";
 import { useCreateOrder, usePayOrder } from "@/lib/hooks/useCheckout";
+import { cartService } from "@/lib/services/cart";
 import { useCartStore } from "@/lib/stores/cart.store";
+import { useBuyNowStore } from "@/lib/stores/buy-now.store";
 import { SecurePaymentBadge } from "./SecurePaymentBadge";
-import type { BillingDetails } from "@/lib/services/checkout";
+import type { CreateOrderResponse } from "@/lib/services/checkout";
 import type { BillingFormHandle } from "./BillingForm";
-
-interface PendingOrder {
-  orderId: number;
-  clientSecret: string;
-}
 
 interface PaymentMethodSelectorProps {
   billingRef: React.RefObject<BillingFormHandle>;
-  onSuccess: (orderId: number) => void;
+  onSuccess: (orderId: number, orderKey: string) => void;
 }
 
 export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSelectorProps) {
-  const [method, setMethod] = useState<"stripe" | "paypal">("stripe");
+  const [method, setMethod] = useState<"stripe">("stripe");
   const [stripeError, setStripeError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [pendingOrder, setPendingOrder] = useState<PendingOrder | null>(null);
+  const [pendingOrder, setPendingOrder] = useState<CreateOrderResponse | null>(null);
 
   const stripe = useStripe();
   const elements = useElements();
   const { mutateAsync: createOrder } = useCreateOrder();
   const { mutateAsync: payOrder } = usePayOrder();
+  const cartItems = useCartStore((s) => s.items);
+  const cartTotals = useCartStore((s) => s.totals);
   const clearCart = useCartStore((s) => s.clearCart);
+  const buyNowItem = useBuyNowStore((s) => s.item);
+  const clearBuyNow = useBuyNowStore((s) => s.clear);
+
+  // Buy Now mode uses a single item; otherwise use cart.
+  const lineItems = buyNowItem
+    ? [{ product_id: buyNowItem.product_id, quantity: buyNowItem.quantity }]
+    : cartItems.map((i) => ({ product_id: i.product_id, quantity: i.quantity }));
+
+  const couponLines = buyNowItem
+    ? []
+    : cartTotals?.coupon_code
+      ? [{ code: cartTotals.coupon_code }]
+      : [];
 
   const handleSubmit = async () => {
     if (!billingRef.current) return;
@@ -41,52 +53,56 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
     setIsSubmitting(true);
 
     try {
-      // On retry after a Stripe failure, reuse the existing WC order instead of creating a duplicate.
-      let orderId: number;
-      let clientSecret: string;
+      let order: CreateOrderResponse;
 
       if (pendingOrder) {
-        orderId = pendingOrder.orderId;
-        clientSecret = pendingOrder.clientSecret;
+        // Reuse existing WC order on retry to avoid duplicate orders.
+        order = pendingOrder;
       } else {
-        const billing: BillingDetails = {
-          ...billingRef.current.getValues(),
+        order = await createOrder({
+          billing: billingRef.current.getValues(),
           payment_method: method,
-        };
-        const order = await createOrder(billing);
-
-        if (!order.client_secret) {
-          throw new Error(order.stripe_error ?? "Could not initiate payment.");
-        }
-
-        orderId = order.order_id;
-        clientSecret = order.client_secret;
-        setPendingOrder({ orderId, clientSecret });
-      }
-
-      if (method === "stripe") {
-        if (!stripe || !elements) throw new Error("Stripe is not loaded.");
-
-        const cardElement = elements.getElement(CardElement);
-        if (!cardElement) throw new Error("Card element not found.");
-
-        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-          payment_method: { card: cardElement },
+          line_items: lineItems,
+          coupon_lines: couponLines,
         });
 
-        if (error) {
-          // Keep pendingOrder set so the next attempt reuses this WC order.
-          setStripeError(error.message ?? "Payment failed.");
-          return;
+        if (!order.client_secret) {
+          throw new Error("Payment setup failed — no client secret returned.");
         }
 
-        // Confirm server-side: marks WC order as processing and empties the cart on PHP side.
-        await payOrder({ orderId, payment_intent_id: paymentIntent!.id });
+        setPendingOrder(order);
       }
+
+      if (!stripe || !elements) throw new Error("Stripe is not loaded.");
+
+      const cardElement = elements.getElement(CardElement);
+      if (!cardElement) throw new Error("Card element not found.");
+
+      const { error, paymentIntent } = await stripe.confirmCardPayment(order.client_secret!, {
+        payment_method: { card: cardElement },
+      });
+
+      if (error) {
+        setStripeError(error.message ?? "Payment failed.");
+        return;
+      }
+
+      // Confirm server-side: marks WC order as processing after Stripe verification.
+      await payOrder({
+        orderId: order.order_id,
+        payment_intent_id: paymentIntent!.id,
+        order_key: order.order_key,
+      });
 
       setPendingOrder(null);
       clearCart();
-      onSuccess(orderId);
+      clearBuyNow();
+      try {
+        await cartService.emptyCart();
+      } catch {
+        // Cart may already be empty; checkout line_items are authoritative.
+      }
+      onSuccess(order.order_id, order.order_key);
     } catch (err) {
       setStripeError((err as Error).message ?? "Something went wrong.");
     } finally {
@@ -157,7 +173,7 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
           )}
         </div>
 
-        {/* PayPal */}
+        {/* PayPal — coming soon */}
         <div className="bg-white px-4 py-3.5 opacity-50">
           <div className="flex items-center gap-3">
             <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-gray-300 bg-white" />
@@ -169,12 +185,10 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
         </div>
       </div>
 
-      {/* Stripe error */}
       {stripeError && (
         <p className="rounded bg-red-50 px-4 py-2.5 text-sm text-red-600">{stripeError}</p>
       )}
 
-      {/* Submit */}
       <button
         type="button"
         onClick={handleSubmit}

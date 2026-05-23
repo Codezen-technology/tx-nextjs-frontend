@@ -21,6 +21,8 @@ export type CourseLevel = "beginner" | "intermediate" | "advanced" | "all";
 
 export interface Course {
   id: number;
+  /** WooCommerce product ID (`vibe_product` meta). Required for cart/checkout. */
+  product_id?: number | null;
   slug: string;
   title: string;
   excerpt?: string;

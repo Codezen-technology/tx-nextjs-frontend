@@ -1,6 +1,8 @@
-import { proxyToWP } from "@/lib/api/bff";
+import { proxyToWCStore } from "@/lib/api/bff";
 
 export async function POST(req: Request) {
-  const body = await req.json().catch(() => ({}));
-  return proxyToWP("/cart/items", { method: "POST", body, requiresAuth: false, wcSession: true, request: req });
+  const raw = await req.json().catch(() => ({})) as { product_id?: number; id?: number; quantity?: number };
+  // WC Store API uses 'id'; service layer sends 'product_id'.
+  const body = { id: raw.id ?? raw.product_id, quantity: raw.quantity ?? 1 };
+  return proxyToWCStore("/cart/add-item", { method: "POST", body, request: req });
 }

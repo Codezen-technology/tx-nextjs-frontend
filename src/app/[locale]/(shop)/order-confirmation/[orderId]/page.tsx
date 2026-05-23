@@ -1,14 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { CheckCircle } from "lucide-react";
 import { useOrderDetail } from "@/lib/hooks/useCheckout";
 
 export default function OrderConfirmationPage() {
   const { orderId } = useParams<{ orderId: string }>();
+  const searchParams = useSearchParams();
   const id = Number(orderId);
-  const { data: order, isLoading } = useOrderDetail(id);
+  const orderKey = searchParams.get("key");
+  const { data: order, isLoading, isError } = useOrderDetail(id, orderKey);
+
+  if (isError) {
+    return (
+      <div className="container py-20 text-center">
+        <p className="text-[#3b5374]">We could not load your order. Check your confirmation email or log in to view orders.</p>
+        <Link href="/login" className="mt-4 inline-block text-[#9e6f21] underline">
+          Log in
+        </Link>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -37,19 +50,36 @@ export default function OrderConfirmationPage() {
           )}
         </div>
 
-        {/* Order items */}
         {order?.items && order.items.length > 0 && (
           <div className="mx-auto mt-10 max-w-lg rounded-lg bg-white p-6 shadow-sm">
             <h2 className="mb-4 font-suse text-lg font-medium text-[#00204a]">What you ordered</h2>
             <div className="space-y-3">
               {order.items.map((item, i) => (
-                <div key={i} className="flex items-start justify-between gap-4 text-sm text-[#3b5374]">
+                <div
+                  key={i}
+                  className="flex items-start justify-between gap-4 text-sm text-[#3b5374]"
+                >
                   <span className="flex-1">
                     {item.name} <span className="text-[#00204a]">× {item.quantity}</span>
                   </span>
                   <span className="font-medium text-[#00204a]">£{item.total.toFixed(2)}</span>
                 </div>
               ))}
+
+              {order.discount > 0 && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Discount</span>
+                  <span>−£{order.discount.toFixed(2)}</span>
+                </div>
+              )}
+
+              {order.tax > 0 && (
+                <div className="flex justify-between text-sm text-[#3b5374]">
+                  <span>VAT</span>
+                  <span>£{order.tax.toFixed(2)}</span>
+                </div>
+              )}
+
               <div className="border-t border-gray-200 pt-3">
                 <div className="flex justify-between font-semibold text-[#00204a]">
                   <span>Total paid</span>
@@ -60,7 +90,6 @@ export default function OrderConfirmationPage() {
           </div>
         )}
 
-        {/* CTAs */}
         <div className="mx-auto mt-8 flex max-w-lg flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <Link
             href="/dashboard"

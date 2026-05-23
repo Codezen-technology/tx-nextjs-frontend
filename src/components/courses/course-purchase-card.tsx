@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Check, Facebook, Linkedin, Share2, Twitter } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useAddToCart } from "@/lib/hooks/useCart";
+import { useBuyNowStore } from "@/lib/stores/buy-now.store";
 import type { CourseRichData } from "@/types/course";
 
 type PurchaseTab = "me" | "teams";
@@ -20,17 +21,24 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
   const [addedFeedback, setAddedFeedback] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const router = useRouter();
-  const { mutate: addToCart, mutateAsync: addToCartAsync, isPending } = useAddToCart();
+  const { mutate: addToCart, isPending } = useAddToCart();
+  const setBuyNow = useBuyNowStore((s) => s.set);
   const { pricing } = course;
 
   const durationLabel = course.duration
     ? `Duration ${(course.duration as { value: number; unit: string }).value} ${(course.duration as { value: number; unit: string }).unit}`
     : null;
 
+  const wcProductId = course.product_id != null && course.product_id > 0 ? course.product_id : null;
+
   const handleAddToBasket = () => {
+    if (!wcProductId) {
+      setAddError("This course is not available for purchase.");
+      return;
+    }
     setAddError(null);
     addToCart(
-      { product_id: course.id },
+      { product_id: wcProductId },
       {
         onSuccess: () => {
           setAddedFeedback(true);
@@ -43,13 +51,19 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
     );
   };
 
-  const handleBuyNow = async () => {
-    setAddError(null);
-    try {
-      await addToCartAsync({ product_id: course.id });
-    } catch {
-      // If add fails (e.g. already in cart), proceed to checkout anyway.
+  const handleBuyNow = () => {
+    if (!wcProductId) {
+      setAddError("This course is not available for purchase.");
+      return;
     }
+    setAddError(null);
+    // Direct checkout: bypass WC Store API cart, create order on checkout page.
+    setBuyNow({
+      product_id: wcProductId,
+      name: course.title ?? "",
+      price: pricing?.price ?? 0,
+      quantity: 1,
+    });
     router.push("/checkout");
   };
 

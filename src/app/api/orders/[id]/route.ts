@@ -1,12 +1,52 @@
 import { NextResponse } from "next/server";
-import { proxyToWP } from "@/lib/api/bff";
+import { proxyToWCRest } from "@/lib/api/bff";
+import {
+  canAccessOrder,
+  fetchWCOrder,
+  getAuthenticatedUserId,
+  getGuestOrderKeyFromCookies,
+} from "@/lib/api/wc-orders";
 
 interface RouteContext {
   params: { id: string };
 }
 
-export async function GET(_req: Request, { params }: RouteContext) {
-  const { id } = params;
-  if (!id) return NextResponse.json({ error: "Missing order id" }, { status: 400 });
-  return proxyToWP(`/orders/${encodeURIComponent(id)}`, { requiresAuth: false });
+function parseOrderId(id: string): number | null {
+  const n = Number(id);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function resolveOrderKey(req: Request, orderId: number): string | null {
+  const fromQuery = new URL(req.url).searchParams.get("key");
+  if (fromQuery) return fromQuery;
+  return getGuestOrderKeyFromCookies(orderId);
+}
+
+export async function GET(req: Request, { params }: RouteContext) {
+  const orderId = parseOrderId(params.id);
+  if (!orderId) {
+    return NextResponse.json({ error: "Invalid order id" }, { status: 400 });
+  }
+
+  const order = await fetchWCOrder(orderId);
+  if (!order) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+
+  const userId = getAuthenticatedUserId();
+  const orderKey = resolveOrderKey(req, orderId);
+
+  if (!canAccessOrder(order, userId, orderKey)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  return proxyToWCRest(`/orders/${orderId}`);
+}
+
+/** Status updates are not exposed to the browser — use POST /api/orders/{id}/pay after Stripe confirms. */
+export async function PUT() {
+  return NextResponse.json(
+    { error: "Order status cannot be updated from the client" },
+    { status: 403 },
+  );
 }

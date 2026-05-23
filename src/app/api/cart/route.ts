@@ -1,9 +1,10 @@
-import { proxyToWP } from "@/lib/api/bff";
+import { proxyToWCStore } from "@/lib/api/bff";
 
 export async function GET(req: Request) {
-  return proxyToWP("/cart", { requiresAuth: false, wcSession: true, request: req });
+  return proxyToWCStore("/cart", { request: req });
 }
 
 export async function DELETE(req: Request) {
-  return proxyToWP("/cart", { method: "DELETE", requiresAuth: false, wcSession: true, request: req });
+  // DELETE /wc/store/v1/cart/items clears all items from the cart.
+  return proxyToWCStore("/cart/items", { method: "DELETE", request: req });
 }

@@ -39,17 +39,14 @@ export const BillingForm = forwardRef<BillingFormHandle, BillingFormProps>(
       trigger,
       formState: { errors },
     } = useForm<BillingDetails>({
-      defaultValues: {
-        country: "GB",
-        payment_method: "stripe",
-        ...defaultValues,
-      },
+      defaultValues: { country: "GB", ...defaultValues },
     });
 
     useImperativeHandle(ref, () => ({ getValues, trigger }));
 
     return (
       <div className="space-y-6">
+        {/* Name row */}
         <div className="flex gap-6">
           <div className="flex-1">
             <input
@@ -69,6 +66,77 @@ export const BillingForm = forwardRef<BillingFormHandle, BillingFormProps>(
           </div>
         </div>
 
+        {/* Company (optional) */}
+        <div>
+          <input
+            {...register("company")}
+            placeholder="Company (optional)"
+            className={inputClass}
+          />
+        </div>
+
+        {/* Address row */}
+        <div>
+          <input
+            {...register("address_1", { required: "Address is required" })}
+            placeholder="Street Address *"
+            className={cn(inputClass, errors.address_1 && "border-[#dc3545]")}
+          />
+          {errors.address_1 && <p className={errorClass}>{errors.address_1.message}</p>}
+        </div>
+        <div>
+          <input
+            {...register("address_2")}
+            placeholder="Apartment, suite, etc. (optional)"
+            className={inputClass}
+          />
+        </div>
+
+        {/* City + Postcode */}
+        <div className="flex gap-6">
+          <div className="flex-1">
+            <input
+              {...register("city", { required: "City is required" })}
+              placeholder="City *"
+              className={cn(inputClass, errors.city && "border-[#dc3545]")}
+            />
+            {errors.city && <p className={errorClass}>{errors.city.message}</p>}
+          </div>
+          <div className="flex-1">
+            <input
+              {...register("postcode", { required: "Postcode is required" })}
+              placeholder="Postcode *"
+              className={cn(inputClass, errors.postcode && "border-[#dc3545]")}
+            />
+            {errors.postcode && <p className={errorClass}>{errors.postcode.message}</p>}
+          </div>
+        </div>
+
+        {/* Country + State */}
+        <div className="flex gap-6">
+          <div className="flex-1">
+            <select
+              {...register("country", { required: "Country is required" })}
+              className={cn(inputClass, "cursor-pointer", errors.country && "border-[#dc3545]")}
+            >
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            {errors.country && <p className={errorClass}>{errors.country.message}</p>}
+          </div>
+          <div className="flex-1">
+            <input
+              {...register("state")}
+              placeholder="State / County (optional)"
+              className={inputClass}
+            />
+          </div>
+        </div>
+
+        {/* Email + Phone */}
         <div className="flex gap-6">
           <div className="flex-1">
             <input
@@ -83,17 +151,12 @@ export const BillingForm = forwardRef<BillingFormHandle, BillingFormProps>(
             {errors.email && <p className={errorClass}>{errors.email.message}</p>}
           </div>
           <div className="flex-1">
-            <select
-              {...register("country", { required: "Country is required" })}
-              className={cn(inputClass, "cursor-pointer", errors.country && "border-[#dc3545]")}
-            >
-              {COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            {errors.country && <p className={errorClass}>{errors.country.message}</p>}
+            <input
+              {...register("phone")}
+              type="tel"
+              placeholder="Phone (optional)"
+              className={inputClass}
+            />
           </div>
         </div>
       </div>
