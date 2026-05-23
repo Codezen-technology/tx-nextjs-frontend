@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { decodeEntities } from "@/lib/api/parsers";
 
 // ─── Domain types (internal) ──────────────────────────────────────────────────
 
@@ -76,7 +77,7 @@ export function normalizeWCCart(wc: WCStoreCart): Cart {
   const items: CartItem[] = wc.items.map((item) => ({
     key: item.key,
     product_id: item.id,
-    name: item.name,
+    name: decodeEntities(item.name),
     thumbnail: item.images?.[0]?.src ?? "",
     price: parseInt(item.prices.price, 10) / div,
     quantity: item.quantity,

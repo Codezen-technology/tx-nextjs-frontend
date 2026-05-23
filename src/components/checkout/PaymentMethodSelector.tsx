@@ -37,11 +37,10 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
     ? [{ product_id: buyNowItem.product_id, quantity: buyNowItem.quantity }]
     : cartItems.map((i) => ({ product_id: i.product_id, quantity: i.quantity }));
 
-  const couponLines = buyNowItem
-    ? []
-    : cartTotals?.coupon_code
-      ? [{ code: cartTotals.coupon_code }]
-      : [];
+  const cartCoupon =
+    !buyNowItem && cartTotals?.coupon_code && cartTotals.discount > 0
+      ? { coupon_code: cartTotals.coupon_code, discount_total: cartTotals.discount }
+      : null;
 
   const handleSubmit = async () => {
     if (!billingRef.current) return;
@@ -63,7 +62,7 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
           billing: billingRef.current.getValues(),
           payment_method: method,
           line_items: lineItems,
-          coupon_lines: couponLines,
+          ...(cartCoupon ?? {}),
         });
 
         if (!order.client_secret) {

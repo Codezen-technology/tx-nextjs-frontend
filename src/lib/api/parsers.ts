@@ -55,18 +55,38 @@ export function paginate<T>(
   };
 }
 
-/** Decode common HTML entities returned by WP rendered fields. */
+/** Decode HTML entities returned by WordPress / WooCommerce REST APIs. */
 export function decodeEntities(s: string | undefined | null): string {
   if (!s) return "";
-  return s
+
+  let out = s
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => {
+      const code = parseInt(hex, 16);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : "";
+    })
+    .replace(/&#(\d+);/g, (_, dec) => {
+      const code = parseInt(dec, 10);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : "";
+    });
+
+  out = out
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#039;/g, "'")
+    .replace(/&apos;/g, "'")
     .replace(/&#8217;/g, "\u2019")
     .replace(/&#8216;/g, "\u2018")
+    .replace(/&#8211;/g, "\u2013")
+    .replace(/&#8212;/g, "\u2014")
+    .replace(/&#038;/g, "&")
+    .replace(/&#036;/g, "$")
     .replace(/&#8230;/g, "\u2026")
     .replace(/&hellip;/g, "\u2026")
+    .replace(/&ndash;/g, "\u2013")
+    .replace(/&mdash;/g, "\u2014")
     .replace(/&nbsp;/g, " ");
+
+  return out;
 }

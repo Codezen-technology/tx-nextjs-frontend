@@ -4,6 +4,7 @@ import {
   createWCOrder,
   getAuthenticatedUserId,
   setGuestOrderKeyCookie,
+  validateCouponCode,
   validateLineItems,
   wcBasicAuthHeader,
 } from "@/lib/api/wc-orders";
@@ -15,7 +16,11 @@ interface CreateOrderBody {
   billing?: Record<string, string>;
   shipping?: Record<string, string>;
   line_items?: Array<{ product_id: number; quantity: number }>;
+  /** @deprecated Use coupon_code + discount_total — WC REST coupon_lines returns an empty body. */
   coupon_lines?: Array<{ code: string }>;
+  coupon_code?: string;
+  /** Cart discount total (from Store API), applied via fee_lines on the WC order. */
+  discount_total?: number;
   customer_note?: string;
 }
 
@@ -41,8 +46,13 @@ async function createStripePaymentIntent(
     cache: "no-store",
   });
 
-  if (!res.ok) return null;
-  return res.json() as Promise<{ id: string; client_secret: string }>;
+  const text = await res.text();
+  if (!text.trim()) return null;
+  try {
+    return JSON.parse(text) as { id: string; client_secret: string };
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(req: Request) {
@@ -77,6 +87,20 @@ export async function POST(req: Request) {
 
   const userId = getAuthenticatedUserId();
 
+  const couponCode =
+    body.coupon_code?.trim() || body.coupon_lines?.[0]?.code?.trim() || "";
+  const discountTotal =
+    typeof body.discount_total === "number" && body.discount_total > 0
+      ? body.discount_total
+      : 0;
+
+  if (couponCode) {
+    const couponError = await validateCouponCode(couponCode);
+    if (couponError) {
+      return NextResponse.json({ error: couponError }, { status: 400 });
+    }
+  }
+
   const wcPayload: Record<string, unknown> = {
     set_paid: false,
     status: "pending",
@@ -85,18 +109,29 @@ export async function POST(req: Request) {
     billing: body.billing,
     shipping: body.shipping ?? body.billing,
     line_items: lineItems,
-    coupon_lines: body.coupon_lines ?? [],
     customer_note: body.customer_note ?? "",
   };
+
+  // WC REST coupon_lines triggers a plugin bug: HTTP 200 with an empty body.
+  if (couponCode && discountTotal > 0) {
+    wcPayload.fee_lines = [
+      {
+        name: `Discount (${couponCode})`,
+        total: `-${discountTotal.toFixed(2)}`,
+        tax_status: "none",
+      },
+    ];
+  }
 
   if (userId) {
     wcPayload.customer_id = userId;
   }
 
-  const wcOrder = await createWCOrder(wcPayload);
-  if (!wcOrder) {
-    return NextResponse.json({ error: "Failed to create order" }, { status: 502 });
+  const wcResult = await createWCOrder(wcPayload);
+  if (!wcResult.ok) {
+    return NextResponse.json({ error: wcResult.error }, { status: 502 });
   }
+  const wcOrder = wcResult.order;
 
   if (!userId && wcOrder.order_key) {
     setGuestOrderKeyCookie(wcOrder.id, wcOrder.order_key);
@@ -104,6 +139,13 @@ export async function POST(req: Request) {
 
   const amountPence = Math.round(parseFloat(wcOrder.total) * 100);
   const intent = await createStripePaymentIntent(amountPence, wcOrder.currency, wcOrder.id);
+
+  if (!intent?.client_secret) {
+    return NextResponse.json(
+      { error: "Stripe is not configured on the server" },
+      { status: 503 },
+    );
+  }
 
   return NextResponse.json({
     order_id: wcOrder.id,

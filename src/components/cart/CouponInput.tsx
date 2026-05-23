@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useApplyCoupon, useRemoveCoupon, useCartQuery } from "@/lib/hooks/useCart";
 import { cn } from "@/lib/utils/cn";
+import { ParsedHtml } from "@/components/ui/parsed-html";
 
 export function CouponInput() {
   const [code, setCode] = useState("");
@@ -56,9 +57,11 @@ export function CouponInput() {
         </button>
       </div>
       {applyError && (
-        <p className="text-xs text-red-500">
-          {(applyError as Error).message ?? "Invalid coupon code"}
-        </p>
+        <ParsedHtml
+          as="p"
+          className="text-xs text-red-500"
+          content={(applyError as Error).message ?? "Invalid coupon code"}
+        />
       )}
     </div>
   );

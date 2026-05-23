@@ -1,4 +1,5 @@
 import { ApiError } from "@/lib/api/error";
+import { decodeEntities } from "@/lib/api/parsers";
 
 export async function bffJson<T>(path: string, init?: RequestInit): Promise<T> {
   const extraHeaders = (init?.headers ?? {}) as Record<string, string>;
@@ -22,12 +23,12 @@ export async function bffJson<T>(path: string, init?: RequestInit): Promise<T> {
     }
   }
   if (!res.ok) {
-    const message =
+    const rawMessage =
       (typeof data.error === "string" ? data.error : null) ??
       (typeof data.message === "string" ? data.message : null) ??
       "Request failed";
     const code = typeof data.code === "string" ? data.code : "request_failed";
-    throw new ApiError({ status: res.status, code, message, raw: data });
+    throw new ApiError({ status: res.status, code, message: decodeEntities(rawMessage), raw: data });
   }
   return data as T;
 }
@@ -103,12 +104,12 @@ export async function cartFetch<T>(path: string, init?: RequestInit): Promise<T>
     }
   }
   if (!res.ok) {
-    const message =
+    const rawMessage =
       (typeof data.error === "string" ? data.error : null) ??
       (typeof data.message === "string" ? data.message : null) ??
       "Cart request failed";
     const code = typeof data.code === "string" ? data.code : "cart_error";
-    throw new ApiError({ status: res.status, code, message, raw: data });
+    throw new ApiError({ status: res.status, code, message: decodeEntities(rawMessage), raw: data });
   }
   return data as T;
 }

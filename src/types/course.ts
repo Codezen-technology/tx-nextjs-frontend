@@ -63,6 +63,7 @@ export interface CourseDetail extends Course {
 }
 
 export interface CoursePricing {
+  product_id?: number | null;
   regular_price: number;
   sale_price: number;
   price: number;

@@ -28,13 +28,38 @@ export function wcBasicAuthHeader(): string {
   return `Basic ${Buffer.from(creds).toString("base64")}`;
 }
 
+type WcJsonResult<T> = { ok: true; data: T } | { ok: false; error: string };
+
+async function parseWcJsonBody<T>(res: Response): Promise<WcJsonResult<T>> {
+  const text = await res.text();
+  if (!text.trim()) {
+    return {
+      ok: false,
+      error: res.ok ? "Empty response from WooCommerce" : `WooCommerce error (${res.status})`,
+    };
+  }
+  try {
+    const data = JSON.parse(text) as T;
+    if (!res.ok) {
+      const err = data as { message?: string; code?: string };
+      return {
+        ok: false,
+        error: err.message ?? err.code ?? `WooCommerce error (${res.status})`,
+      };
+    }
+    return { ok: true, data };
+  } catch {
+    return { ok: false, error: "Invalid response from WooCommerce" };
+  }
+}
+
 export async function fetchWCOrder(orderId: number): Promise<WCOrderRecord | null> {
   const res = await fetch(wcRestUrl(`/orders/${orderId}`), {
     headers: { Authorization: wcBasicAuthHeader() },
     cache: "no-store",
   });
-  if (!res.ok) return null;
-  return res.json() as Promise<WCOrderRecord>;
+  const parsed = await parseWcJsonBody<WCOrderRecord>(res);
+  return parsed.ok ? parsed.data : null;
 }
 
 export function getAuthenticatedUserId(): number | null {
@@ -70,10 +95,11 @@ export async function validateLineItems(
       headers: { Authorization: wcBasicAuthHeader() },
       cache: "no-store",
     });
-    if (!res.ok) {
+    const parsed = await parseWcJsonBody<{ purchasable?: boolean; status?: string }>(res);
+    if (!parsed.ok) {
       return `Invalid product ID: ${product_id}`;
     }
-    const product = (await res.json()) as { purchasable?: boolean; status?: string };
+    const product = parsed.data;
     if (product.status !== "publish" || product.purchasable === false) {
       return `Product ${product_id} is not available for purchase`;
     }
@@ -81,7 +107,27 @@ export async function validateLineItems(
   return null;
 }
 
-export async function createWCOrder(payload: unknown): Promise<WCOrderRecord | null> {
+/** WC REST coupon_lines breaks order creation (200 + empty body). Validate code only. */
+export async function validateCouponCode(code: string): Promise<string | null> {
+  const trimmed = code.trim();
+  if (!trimmed) return "Coupon code is required";
+
+  const res = await fetch(wcRestUrl(`/coupons?code=${encodeURIComponent(trimmed)}`), {
+    headers: { Authorization: wcBasicAuthHeader() },
+    cache: "no-store",
+  });
+  const parsed = await parseWcJsonBody<Array<{ status?: string }>>(res);
+  if (!parsed.ok) return parsed.error;
+  if (!parsed.data.length) return `Invalid coupon: ${trimmed}`;
+  if (parsed.data[0].status !== "publish") return `Coupon is not active: ${trimmed}`;
+  return null;
+}
+
+export type CreateWCOrderResult =
+  | { ok: true; order: WCOrderRecord }
+  | { ok: false; error: string };
+
+export async function createWCOrder(payload: unknown): Promise<CreateWCOrderResult> {
   const res = await fetch(wcRestUrl("/orders"), {
     method: "POST",
     headers: {
@@ -91,8 +137,9 @@ export async function createWCOrder(payload: unknown): Promise<WCOrderRecord | n
     body: JSON.stringify(payload),
     cache: "no-store",
   });
-  if (!res.ok) return null;
-  return res.json() as Promise<WCOrderRecord>;
+  const parsed = await parseWcJsonBody<WCOrderRecord>(res);
+  if (!parsed.ok) return { ok: false, error: parsed.error };
+  return { ok: true, order: parsed.data };
 }
 
 export async function updateWCOrder(
@@ -108,8 +155,8 @@ export async function updateWCOrder(
     body: JSON.stringify(body),
     cache: "no-store",
   });
-  if (!res.ok) return null;
-  return res.json() as Promise<WCOrderRecord>;
+  const parsed = await parseWcJsonBody<WCOrderRecord>(res);
+  return parsed.ok ? parsed.data : null;
 }
 
 export async function verifyStripePaymentForOrder(
@@ -128,16 +175,16 @@ export async function verifyStripePaymentForOrder(
     },
   );
 
-  if (!res.ok) {
-    return { ok: false, reason: "Payment intent not found" };
-  }
-
-  const pi = (await res.json()) as {
+  const parsed = await parseWcJsonBody<{
     status: string;
     amount: number;
     currency: string;
     metadata?: { wc_order_id?: string };
-  };
+  }>(res);
+  if (!parsed.ok) {
+    return { ok: false, reason: "Payment intent not found" };
+  }
+  const pi = parsed.data;
 
   if (pi.status !== "succeeded") {
     return { ok: false, reason: "Payment not completed" };

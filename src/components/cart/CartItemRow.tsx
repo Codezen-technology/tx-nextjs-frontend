@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Minus, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { ParsedHtml } from "@/components/ui/parsed-html";
 import type { CartItem } from "@/lib/stores/cart.store";
 import { useUpdateCartItem, useRemoveCartItem } from "@/lib/hooks/useCart";
 
@@ -47,7 +48,11 @@ export function CartItemRow({ item }: CartItemRowProps) {
           )}
         </div>
         <div className="min-w-0">
-          <p className="line-clamp-2 max-w-[24rem] font-medium text-[#00204a]">{item.name}</p>
+          <ParsedHtml
+            as="p"
+            content={item.name}
+            className="line-clamp-2 max-w-[24rem] font-medium text-[#00204a]"
+          />
           <p className="mt-1 text-sm text-[#3b5374]">Price: £{item.price.toFixed(2)}</p>
         </div>
       </div>

@@ -26,7 +26,10 @@ export interface CreateOrderPayload {
   shipping?: Partial<BillingAddress>;
   payment_method: string;
   line_items: Array<{ product_id: number; quantity: number }>;
+  /** @deprecated Prefer coupon_code + discount_total */
   coupon_lines?: Array<{ code: string }>;
+  coupon_code?: string;
+  discount_total?: number;
   customer_note?: string;
 }
 

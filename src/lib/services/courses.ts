@@ -184,6 +184,20 @@ export function normalizeCourse(raw: RawCourse): Course {
   };
 }
 
+/** WooCommerce product ID for cart/checkout — from API root or nested pricing. */
+export function resolveCourseProductId(
+  course: Pick<CourseRichData, "product_id" | "pricing">,
+): number | null {
+  if (course.product_id != null && course.product_id > 0) {
+    return course.product_id;
+  }
+  const fromPricing = course.pricing?.product_id;
+  if (fromPricing != null && fromPricing > 0) {
+    return fromPricing;
+  }
+  return null;
+}
+
 export function normalizeRichCourse(raw: Record<string, unknown>): CourseRichData {
   const base = normalizeCourse(raw as unknown as RawCourse);
 
@@ -194,8 +208,14 @@ export function normalizeRichCourse(raw: Record<string, unknown>): CourseRichDat
       : null;
 
   const rawPricing = raw.pricing as Record<string, unknown> | null | undefined;
+  const pricingProductId =
+    rawPricing?.product_id != null && Number(rawPricing.product_id) > 0
+      ? Number(rawPricing.product_id)
+      : null;
+
   const pricing = rawPricing
     ? {
+        product_id: pricingProductId,
         regular_price: Number(rawPricing.regular_price ?? 0),
         sale_price: Number(rawPricing.sale_price ?? 0),
         price: Number(rawPricing.price ?? 0),
@@ -206,8 +226,11 @@ export function normalizeRichCourse(raw: Record<string, unknown>): CourseRichDat
       }
     : null;
 
+  const productId = base.product_id ?? pricingProductId ?? null;
+
   return {
     ...base,
+    product_id: productId,
     duration,
     pricing,
     accreditations: Array.isArray(raw.accreditations)

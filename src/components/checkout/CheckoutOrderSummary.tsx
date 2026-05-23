@@ -3,6 +3,7 @@
 import { useCartQuery } from "@/lib/hooks/useCart";
 import { useCartStore } from "@/lib/stores/cart.store";
 import { useBuyNowStore } from "@/lib/stores/buy-now.store";
+import { ParsedHtml } from "@/components/ui/parsed-html";
 
 export function CheckoutOrderSummary() {
   const { data: cart } = useCartQuery();
@@ -21,7 +22,8 @@ export function CheckoutOrderSummary() {
         </div>
         <div className="flex items-start justify-between gap-4 text-sm text-[#3b5374]">
           <span className="flex-1">
-            {buyNowItem.name} <span className="text-[#00204a]">× {buyNowItem.quantity}</span>
+            <ParsedHtml as="span" content={buyNowItem.name} />{" "}
+            <span className="text-[#00204a]">× {buyNowItem.quantity}</span>
           </span>
           <span className="shrink-0 font-medium">£{lineTotal.toFixed(2)}</span>
         </div>
@@ -49,7 +51,8 @@ export function CheckoutOrderSummary() {
         {items.map((item) => (
           <div key={item.key} className="flex items-start justify-between gap-4 text-sm text-[#3b5374]">
             <span className="flex-1">
-              {item.name} <span className="text-[#00204a]">× {item.quantity}</span>
+              <ParsedHtml as="span" content={item.name} />{" "}
+              <span className="text-[#00204a]">× {item.quantity}</span>
             </span>
             <span className="shrink-0 font-medium">£{item.line_total.toFixed(2)}</span>
           </div>

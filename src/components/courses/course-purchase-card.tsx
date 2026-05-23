@@ -6,8 +6,17 @@ import { useRouter } from "next/navigation";
 import { Check, Facebook, Linkedin, Share2, Twitter } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useAddToCart } from "@/lib/hooks/useCart";
+import { resolveCourseProductId } from "@/lib/services/courses";
 import { useBuyNowStore } from "@/lib/stores/buy-now.store";
 import type { CourseRichData } from "@/types/course";
+
+function formatCoursePrice(amount: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(amount);
+  } catch {
+    return `£${amount.toFixed(2)}`;
+  }
+}
 
 type PurchaseTab = "me" | "teams";
 
@@ -29,7 +38,8 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
     ? `Duration ${(course.duration as { value: number; unit: string }).value} ${(course.duration as { value: number; unit: string }).unit}`
     : null;
 
-  const wcProductId = course.product_id != null && course.product_id > 0 ? course.product_id : null;
+  const wcProductId = resolveCourseProductId(course);
+  const canPurchase = wcProductId != null;
 
   const handleAddToBasket = () => {
     if (!wcProductId) {
@@ -93,16 +103,15 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
             <>
               {pricing ? (
                 <div className="flex items-center gap-4">
-                  <span
-                    className="font-suse text-[32px] font-bold leading-none text-neutral-900"
-                    dangerouslySetInnerHTML={{ __html: pricing.price_html }}
-                  />
+                  <span className="font-suse text-[32px] font-bold leading-none text-neutral-900">
+                    {formatCoursePrice(pricing.price, pricing.currency)}
+                  </span>
                   <span className="h-10 w-px bg-neutral-30" aria-hidden />
                   <div className="font-open-sans text-sm">
                     <p className="text-neutral-500">Regular price</p>
                     {pricing.is_on_sale && pricing.regular_price > pricing.price ? (
                       <p className="font-medium text-neutral-700 line-through">
-                        £{pricing.regular_price.toFixed(2)}
+                        {formatCoursePrice(pricing.regular_price, pricing.currency)}
                       </p>
                     ) : null}
                   </div>
@@ -112,7 +121,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
               )}
 
               <div className="space-y-3">
-                {pricing ? (
+                {pricing && canPurchase ? (
                   <button
                     type="button"
                     onClick={handleBuyNow}
@@ -134,7 +143,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                   <button
                     type="button"
                     onClick={handleAddToBasket}
-                    disabled={isPending || addedFeedback}
+                    disabled={isPending || addedFeedback || !canPurchase}
                     className={cn(
                       "block w-full rounded border py-2.5 text-center font-open-sans text-sm font-semibold transition-colors disabled:cursor-not-allowed",
                       addedFeedback
