@@ -6,6 +6,10 @@ type ProxyOptions = {
   method?: string;
   body?: unknown;
   requiresAuth?: boolean;
+  /** Forward WooCommerce guest session cookie through the BFF. */
+  wcSession?: boolean;
+  /** Incoming Request — required when wcSession is true. */
+  request?: Request;
 };
 
 function wpJsonUrl(path: string): string {
@@ -63,7 +67,7 @@ async function tryRefresh(): Promise<string | null> {
 }
 
 export async function proxyToWP(wpPath: string, options: ProxyOptions = {}): Promise<NextResponse> {
-  const { method = "GET", body, requiresAuth = true } = options;
+  const { method = "GET", body, requiresAuth = true, wcSession = false, request } = options;
   const cookieStore = cookies();
 
   const accessFromCookie = cookieStore.get("access_token")?.value;
@@ -77,23 +81,26 @@ export async function proxyToWP(wpPath: string, options: ProxyOptions = {}): Pro
   };
   if (accessFromCookie) headers.Authorization = `Bearer ${accessFromCookie}`;
 
-  const url = wpJsonUrl(wpPath.startsWith("/") ? wpPath : `/${wpPath}`);
+  // Forward the WooCommerce guest session cookie so PHP session state persists across requests.
+  if (wcSession && request) {
+    const incoming = request.headers.get("cookie") ?? "";
+    const wcCookie = incoming
+      .split(";")
+      .map((s) => s.trim())
+      .find((s) => /^woocommerce_session_/.test(s));
+    if (wcCookie) headers["Cookie"] = wcCookie;
+  }
 
-  let res = await fetch(url, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  const url = wpJsonUrl(wpPath.startsWith("/") ? wpPath : `/${wpPath}`);
+  const fetchBody = body !== undefined ? JSON.stringify(body) : undefined;
+
+  let res = await fetch(url, { method, headers, body: fetchBody });
 
   if (res.status === 401 && requiresAuth) {
     const refreshed = await tryRefresh();
     if (refreshed) {
       headers.Authorization = `Bearer ${refreshed}`;
-      res = await fetch(url, {
-        method,
-        headers,
-        body: body !== undefined ? JSON.stringify(body) : undefined,
-      });
+      res = await fetch(url, { method, headers, body: fetchBody });
     }
   }
 
@@ -113,15 +120,23 @@ export async function proxyToWP(wpPath: string, options: ProxyOptions = {}): Pro
     error?: { message?: string; code?: string };
   };
 
-  if (envelope.success === true) {
-    return NextResponse.json(envelope.data ?? null, { status: res.status });
-  }
+  let nextRes: NextResponse;
 
-  if (envelope.success === false) {
+  if (envelope.success === true) {
+    nextRes = NextResponse.json(envelope.data ?? null, { status: res.status });
+  } else if (envelope.success === false) {
     const msg = envelope.message ?? envelope.error?.message ?? "Request failed";
     const code = envelope.code ?? envelope.error?.code ?? "error";
-    return NextResponse.json({ error: msg, code }, { status: res.status });
+    nextRes = NextResponse.json({ error: msg, code }, { status: res.status });
+  } else {
+    nextRes = NextResponse.json(json, { status: res.status });
   }
 
-  return NextResponse.json(json, { status: res.status });
+  // Echo the WooCommerce session cookie back to the browser (guest cart persistence).
+  if (wcSession) {
+    const setCookie = res.headers.get("set-cookie");
+    if (setCookie) nextRes.headers.set("set-cookie", setCookie);
+  }
+
+  return nextRes;
 }

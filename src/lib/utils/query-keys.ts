@@ -30,4 +30,14 @@ export const queryKeys = {
   blog: {
     posts: (perPage?: number) => ["blog", "posts", perPage] as const,
   },
+  cart: {
+    detail: ["cart"] as const,
+  },
+  orders: {
+    list: ["orders"] as const,
+    detail: (id: number) => ["orders", "detail", id] as const,
+  },
+  payment: {
+    methods: ["payment", "methods"] as const,
+  },
 } as const;

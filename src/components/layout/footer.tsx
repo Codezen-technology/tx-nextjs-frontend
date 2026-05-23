@@ -91,12 +91,24 @@ const FALLBACK_NAV_LINKS: FooterNavLink[] = [
   { href: "/policies", label: "Policies and terms of use" },
 ];
 
-function normalizeNav(nav: FooterData["nav"] | undefined): FooterNavLink[] {
-  if (!nav) return FALLBACK_NAV_LINKS;
-  if (Array.isArray(nav)) {
-    return (nav as WpNavItem[]).map((item) => ({ label: item.title, href: item.url }));
+type NavCol = { header?: string; links: FooterNavLink[] };
+
+function buildNavColumns(nav: FooterData["nav"] | undefined): NavCol[] {
+  if (!nav) {
+    return [
+      { header: "About", links: FALLBACK_NAV_LINKS.slice(0, 5) },
+      { header: "Support", links: FALLBACK_NAV_LINKS.slice(5) },
+    ];
   }
-  return [...(nav.about ?? []), ...(nav.support ?? [])];
+  if (Array.isArray(nav)) {
+    const items = (nav as WpNavItem[]).map((item) => ({ label: item.title, href: item.url }));
+    const mid = Math.ceil(items.length / 2);
+    return [{ links: items.slice(0, mid) }, { links: items.slice(mid) }];
+  }
+  return [
+    { header: "About", links: nav.about ?? [] },
+    { header: "Support", links: nav.support ?? [] },
+  ];
 }
 
 const FALLBACK_SOCIAL: FooterData["social"] = {
@@ -112,10 +124,7 @@ export async function SiteFooter() {
     serverApi.footer.get().catch(() => null),
     fetchSettings().catch(() => null),
   ]);
-  const navLinks = normalizeNav(footerData?.nav);
-  const mid = Math.ceil(navLinks.length / 2);
-  const col1 = navLinks.slice(0, mid);
-  const col2 = navLinks.slice(mid);
+  const navCols = buildNavColumns(footerData?.nav);
   const social = footerData?.social ?? FALLBACK_SOCIAL;
   const contact = footerData?.contact ?? {};
 
@@ -238,44 +247,32 @@ export async function SiteFooter() {
           <div className="flex flex-1 flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:pl-8">
             {/* Nav columns */}
             <div className="flex gap-8 lg:w-[320px] lg:shrink-0">
-              <div className="flex flex-1 flex-col gap-3">
-                <ul className="flex flex-col gap-3">
-                  {col1.map(({ href, label, badge }) => (
-                    <li key={href} className="flex items-center gap-2">
-                      <a
-                        href={href}
-                        className="font-suse text-[16px] font-medium leading-[1.2] text-neutral-30 transition-colors hover:text-primary-400"
-                      >
-                        {label}
-                      </a>
-                      {badge && (
-                        <span className="rounded-full border border-white/30 bg-white/10 px-2 py-0.5 font-open-sans text-[12px] font-medium leading-[18px] text-white">
-                          {badge}
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="flex flex-1 flex-col gap-3">
-                <ul className="flex flex-col gap-3">
-                  {col2.map(({ href, label, badge }) => (
-                    <li key={href} className="flex items-center gap-2">
-                      <a
-                        href={href}
-                        className="font-suse text-[16px] font-medium leading-[1.2] text-neutral-30 transition-colors hover:text-primary-400"
-                      >
-                        {label}
-                      </a>
-                      {badge && (
-                        <span className="rounded-full border border-white/30 bg-white/10 px-2 py-0.5 font-open-sans text-[12px] font-medium leading-[18px] text-white">
-                          {badge}
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {navCols.map((col, i) => (
+                <div key={i} className="flex flex-1 flex-col gap-3">
+                  {col.header && (
+                    <p className="font-open-sans text-[12px] font-medium uppercase tracking-wide text-[#d0d5dd]">
+                      {col.header}
+                    </p>
+                  )}
+                  <ul className="flex flex-col gap-3">
+                    {col.links.map(({ href, label, badge }) => (
+                      <li key={href} className="flex items-center gap-2">
+                        <a
+                          href={href}
+                          className="font-suse text-[16px] font-medium leading-[1.2] text-neutral-30 transition-colors hover:text-primary-400"
+                        >
+                          {label}
+                        </a>
+                        {badge && (
+                          <span className="rounded-full border border-white/30 bg-white/10 px-2 py-0.5 font-open-sans text-[12px] font-medium leading-[18px] text-white">
+                            {badge}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
 
             {/* Certificate validator */}
