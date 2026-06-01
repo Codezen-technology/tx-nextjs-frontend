@@ -66,7 +66,7 @@ export function useRegister() {
 
   return useMutation({
     mutationFn: async (input: RegisterInput) => {
-      const { confirmPassword: _c, ...payload } = input;
+      const { terms: _t, ...payload } = input;
       return authService.register(payload);
     },
     onSuccess: ({ user }) => {
@@ -82,7 +82,7 @@ export function useRegister() {
       }
     },
     onError: (err: ApiError) => {
-      toast.error(err.message || "Could not register. Try a different username or email.");
+      toast.error(err.message || "Could not register. Try a different email.");
     },
   });
 }
@@ -104,6 +104,25 @@ export function useLogout() {
       router.replace("/");
     })();
   };
+}
+
+export function useLogoutAll() {
+  const logoutStore = useAuthStore((s) => s.logout);
+  const router = useRouter();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => authService.logoutAll(),
+    onSuccess: () => {
+      logoutStore();
+      qc.clear();
+      toast.success("All sessions signed out");
+      router.replace("/login");
+    },
+    onError: () => {
+      toast.error("Could not revoke sessions. Try again.");
+    },
+  });
 }
 
 export function useMe(enabled = true) {

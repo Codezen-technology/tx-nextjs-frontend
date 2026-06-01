@@ -2,7 +2,7 @@ import { bffJson } from "@/lib/api/bff-client";
 import type { AuthUser, WpUser } from "@/types/user";
 
 interface RegisterPayload {
-  username: string;
+  name: string;
   email: string;
   password: string;
 }
@@ -17,6 +17,10 @@ export const authService = {
 
   async logout(): Promise<void> {
     await bffJson<{ ok: boolean }>("/api/auth/logout", { method: "POST" });
+  },
+
+  async logoutAll(): Promise<void> {
+    await bffJson<{ ok: boolean }>("/api/auth/logout-all", { method: "POST" });
   },
 
   async register(payload: RegisterPayload): Promise<{ user: AuthUser }> {

@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth, useMe } from "@/lib/hooks/useAuth";
+import { useAuth, useMe, useLogoutAll } from "@/lib/hooks/useAuth";
 import { profileSchema, type ProfileInput } from "@/lib/schemas/profile";
 import { userService } from "@/lib/services/user";
 import { useAuthStore } from "@/lib/stores/auth.store";
@@ -21,6 +21,7 @@ import type { ApiError } from "@/lib/api/error";
 export default function ProfilePage() {
   const { user: authUser } = useAuth();
   const { data: me, isLoading } = useMe();
+  const logoutAll = useLogoutAll();
   const qc = useQueryClient();
   const setUser = useAuthStore((s) => s.setUser);
 
@@ -61,7 +62,9 @@ export default function ProfilePage() {
         setUser({
           ...authUser,
           displayName:
-            updated.name || `${updated.first_name ?? ""} ${updated.last_name ?? ""}`.trim() || authUser.displayName,
+            updated.name ||
+            `${updated.first_name ?? ""} ${updated.last_name ?? ""}`.trim() ||
+            authUser.displayName,
           email: updated.email ?? authUser.email,
         });
       }
@@ -147,6 +150,24 @@ export default function ProfilePage() {
               </div>
             </form>
           )}
+        </CardContent>
+      </Card>
+      <Card className="border-red-100">
+        <CardHeader>
+          <CardTitle className="text-base">Security</CardTitle>
+          <CardDescription>
+            Sign out of all devices. Use this if you suspect unauthorized access.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="destructive"
+            disabled={logoutAll.isPending}
+            onClick={() => logoutAll.mutate()}
+          >
+            {logoutAll.isPending ? <Loader2 className="animate-spin" /> : null}
+            Sign out all devices
+          </Button>
         </CardContent>
       </Card>
     </div>

@@ -27,6 +27,7 @@ export const endpoints = {
     login: `${lms}/auth/login`,
     register: `${lms}/auth/register`,
     logout: `${lms}/auth/logout`,
+    logoutAll: `${lms}/auth/logout-all`,
     refresh: `${lms}/auth/refresh`,
     forgotPassword: `${lms}/auth/forgot-password`,
     resetPassword: `${lms}/auth/reset-password`,
