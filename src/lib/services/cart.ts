@@ -22,10 +22,15 @@ export const cartService = {
       body: JSON.stringify({ quantity }),
     }),
 
-  removeItem: (key: string) =>
-    fetchCartNormalized(`/api/cart/items/${encodeURIComponent(key)}`, { method: "DELETE" }),
+  removeItem: async (key: string): Promise<Cart> => {
+    await cartFetch<unknown>(`/api/cart/items/${encodeURIComponent(key)}`, { method: "DELETE" });
+    return fetchCartNormalized("/api/cart");
+  },
 
-  emptyCart: () => fetchCartNormalized("/api/cart", { method: "DELETE" }),
+  emptyCart: async (): Promise<Cart> => {
+    await cartFetch<unknown>("/api/cart", { method: "DELETE" });
+    return fetchCartNormalized("/api/cart");
+  },
 
   applyCoupon: (code: string) =>
     fetchCartNormalized("/api/cart/coupon", {
@@ -33,6 +38,8 @@ export const cartService = {
       body: JSON.stringify({ code }),
     }),
 
-  removeCoupon: (code: string) =>
-    fetchCartNormalized(`/api/cart/coupon/${encodeURIComponent(code)}`, { method: "DELETE" }),
+  removeCoupon: async (code: string): Promise<Cart> => {
+    await cartFetch<unknown>(`/api/cart/coupon/${encodeURIComponent(code)}`, { method: "DELETE" });
+    return fetchCartNormalized("/api/cart");
+  },
 };

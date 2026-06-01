@@ -13,13 +13,11 @@ export function useCartQuery() {
   const query = useQuery({
     queryKey: queryKeys.cart.detail,
     queryFn: () => cartService.fetchCart(),
-    staleTime: 30_000,
   });
 
   useEffect(() => {
     if (query.data) setCart(query.data);
   }, [query.data, setCart]);
-
   return query;
 }
 
@@ -40,31 +38,19 @@ export function useAddToCart() {
 export function useUpdateCartItem() {
   const qc = useQueryClient();
   const setCart = useCartStore((s) => s.setCart);
-  const optimisticUpdateQty = useCartStore((s) => s.optimisticUpdateQty);
 
   return useMutation({
     mutationFn: ({ key, quantity }: { key: string; quantity: number }) =>
       cartService.updateItem(key, quantity),
-    onMutate: async ({ key, quantity }) => {
-      await qc.cancelQueries({ queryKey: queryKeys.cart.detail });
-      const snapshot = qc.getQueryData<Cart>(queryKeys.cart.detail);
-      optimisticUpdateQty(key, quantity);
-      return { snapshot };
-    },
     onSuccess: (cart: Cart) => {
       setCart(cart);
       qc.setQueryData(queryKeys.cart.detail, cart);
     },
-    onError: (_err, _vars, context) => {
-      if (context?.snapshot) {
-        setCart(context.snapshot);
-        qc.setQueryData(queryKeys.cart.detail, context.snapshot);
-      } else {
-        qc.invalidateQueries({ queryKey: queryKeys.cart.detail });
-      }
+    onError: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.cart.detail });
     },
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.cart.detail });
+      qc.invalidateQueries({ queryKey: queryKeys.cart.detail, refetchType: "none" });
     },
   });
 }
@@ -95,7 +81,7 @@ export function useRemoveCartItem() {
       }
     },
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.cart.detail });
+      qc.invalidateQueries({ queryKey: queryKeys.cart.detail, refetchType: "none" });
     },
   });
 }

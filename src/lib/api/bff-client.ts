@@ -28,7 +28,12 @@ export async function bffJson<T>(path: string, init?: RequestInit): Promise<T> {
       (typeof data.message === "string" ? data.message : null) ??
       "Request failed";
     const code = typeof data.code === "string" ? data.code : "request_failed";
-    throw new ApiError({ status: res.status, code, message: decodeEntities(rawMessage), raw: data });
+    throw new ApiError({
+      status: res.status,
+      code,
+      message: decodeEntities(rawMessage),
+      raw: data,
+    });
   }
   return data as T;
 }
@@ -104,12 +109,27 @@ export async function cartFetch<T>(path: string, init?: RequestInit): Promise<T>
     }
   }
   if (!res.ok) {
+    // WC Store API embeds the authoritative current cart in data.cart on operation errors
+    // (e.g. woocommerce_rest_cart_invalid_key when session/key is stale).
+    // Use it directly so the client syncs to real server state instead of rolling back to a snapshot.
+    const embedded = (data as { data?: { cart?: unknown } }).data?.cart;
+    if (embedded) {
+      // Stale session — drop the cached token so the next write bootstraps a fresh one
+      if (data.code === "woocommerce_rest_cart_invalid_key") clearCartToken();
+      return embedded as T;
+    }
+
     const rawMessage =
       (typeof data.error === "string" ? data.error : null) ??
       (typeof data.message === "string" ? data.message : null) ??
       "Cart request failed";
     const code = typeof data.code === "string" ? data.code : "cart_error";
-    throw new ApiError({ status: res.status, code, message: decodeEntities(rawMessage), raw: data });
+    throw new ApiError({
+      status: res.status,
+      code,
+      message: decodeEntities(rawMessage),
+      raw: data,
+    });
   }
   return data as T;
 }

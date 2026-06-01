@@ -26,9 +26,9 @@ function wcBasicAuth(): string {
 /** Decode JWT payload without verification (WP already verified it). */
 export function getUserIdFromToken(token: string): number | null {
   try {
-    const payload = JSON.parse(
-      Buffer.from(token.split(".")[1], "base64url").toString(),
-    ) as { data?: { user?: { id?: number } } };
+    const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString()) as {
+      data?: { user?: { id?: number } };
+    };
     return payload.data?.user?.id ?? null;
   } catch {
     return null;
@@ -78,7 +78,10 @@ export async function proxyToWCStore(
     return NextResponse.json({ error: "Invalid response from WooCommerce" }, { status: 502 });
   }
 
-  const nextRes = NextResponse.json(json, { status: res.status });
+  const nextRes =
+    res.status === 204
+      ? new NextResponse(null, { status: 204 })
+      : NextResponse.json(json, { status: res.status });
 
   // Echo Cart-Token + Nonce back so the browser can persist them.
   const newCartToken = res.headers.get("cart-token");
