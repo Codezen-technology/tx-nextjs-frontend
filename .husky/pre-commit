@@ -1,1 +1,2 @@
-npm test
+. ~/.nvm/nvm.sh
+pnpm lint-staged

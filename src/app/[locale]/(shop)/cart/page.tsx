@@ -25,7 +25,9 @@ export default function CartPage() {
       <div className="bg-[#00204a] py-2.5">
         <div className="container">
           <p className="text-sm text-white">
-            <Link href="/" className="font-bold underline">Home</Link>
+            <Link href="/" className="font-bold underline">
+              Home
+            </Link>
             <span className="mx-1">›</span>
             <span>Cart</span>
           </p>
@@ -88,8 +90,6 @@ export default function CartPage() {
         {!isLoading && (
           <div className="mt-12 space-y-10">
             <UpsellBanner variant="cart" />
-
-            <RelatedCourses />
           </div>
         )}
       </div>
