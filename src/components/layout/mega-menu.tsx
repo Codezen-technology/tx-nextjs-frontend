@@ -59,7 +59,7 @@ function CategoryCard({ category }: { category: CourseCategory }) {
 
   return (
     <Link
-      href={`/courses?category=${category.slug}`}
+      href={`/course-cat/${category.slug}`}
       className={[
         "group flex items-center gap-4 rounded-lg border p-4 transition-all",
         isHighlighted
@@ -74,10 +74,7 @@ function CategoryCard({ category }: { category: CourseCategory }) {
         ].join(" ")}
       >
         <Icon
-          className={[
-            "h-5 w-5",
-            isHighlighted ? "text-white" : "text-neutral-500",
-          ].join(" ")}
+          className={["h-5 w-5", isHighlighted ? "text-white" : "text-neutral-500"].join(" ")}
         />
       </div>
       <span
@@ -180,7 +177,7 @@ export function MegaMenu({ onClose, categories }: MegaMenuProps) {
               </p>
             </div>
             <Link
-              href="/courses"
+              href="/all-courses"
               className="ml-6 flex shrink-0 items-center justify-center rounded-full bg-secondary-500 px-6 py-4 font-open-sans text-base font-semibold text-white shadow-sm transition-colors hover:bg-secondary-600"
             >
               See All Courses
