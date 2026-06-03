@@ -12,7 +12,7 @@ interface CoursesByCategorySectionProps {
 export function CoursesByCategorySection({ category, courses }: CoursesByCategorySectionProps) {
   if (courses.length === 0) return null;
 
-  const viewAllHref = `/courses?category=${category.slug}`;
+  const viewAllHref = `/course-cat/${category.slug}`;
 
   return (
     <section className="flex flex-col gap-6">
