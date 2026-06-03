@@ -1,4 +1,4 @@
-import { bffJson } from "@/lib/api/bff-client";
+import { bffJson, cartFetch } from "@/lib/api/bff-client";
 
 // ─── Billing / Shipping ───────────────────────────────────────────────────────
 
@@ -153,7 +153,39 @@ export interface PaymentGateway {
 
 // ─── Service ──────────────────────────────────────────────────────────────────
 
+// ─── WC Store API checkout ────────────────────────────────────────────────────
+
+export interface WCStoreCheckoutPayload {
+  billing_address: BillingAddress;
+  shipping_address?: Partial<BillingAddress>;
+  payment_method: string;
+  payment_data?: Array<{ key: string; value: string | boolean }>;
+  customer_note?: string;
+}
+
+export interface WCStoreCheckoutResponse {
+  order_id: number;
+  status: string;
+  order_key: string;
+  payment_method: string;
+  payment_result: {
+    payment_status: "success" | "pending" | "failure" | "requires_action";
+    payment_details: Array<{ key: string; value: string }>;
+    redirect_url: string;
+  };
+}
+
+// ─── Service ──────────────────────────────────────────────────────────────────
+
 export const checkoutService = {
+  /** WC Store API checkout — uses WC cart session (Cart-Token). For standard cart flow. */
+  wcStoreCheckout: (payload: WCStoreCheckoutPayload) =>
+    cartFetch<WCStoreCheckoutResponse>("/api/cart/checkout", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  /** REST v3 order creation — used for Buy Now flow only. */
   createOrder: (payload: CreateOrderPayload) =>
     bffJson<CreateOrderResponse>("/api/orders", {
       method: "POST",

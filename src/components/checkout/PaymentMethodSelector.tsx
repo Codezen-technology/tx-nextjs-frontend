@@ -3,12 +3,11 @@
 import { useState } from "react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { cn } from "@/lib/utils/cn";
-import { useCreateOrder, usePayOrder } from "@/lib/hooks/useCheckout";
-import { cartService } from "@/lib/services/cart";
+import { useCreateOrder, usePayOrder, useWcStoreCheckout } from "@/lib/hooks/useCheckout";
 import { useCartStore } from "@/lib/stores/cart.store";
 import { useBuyNowStore } from "@/lib/stores/buy-now.store";
 import { SecurePaymentBadge } from "./SecurePaymentBadge";
-import type { CreateOrderResponse } from "@/lib/services/checkout";
+import type { CreateOrderResponse, WCStoreCheckoutResponse } from "@/lib/services/checkout";
 import type { BillingFormHandle } from "./BillingForm";
 
 interface PaymentMethodSelectorProps {
@@ -20,10 +19,13 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
   const [method, setMethod] = useState<"stripe">("stripe");
   const [stripeError, setStripeError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Buy-Now retry state (REST v3 path only)
   const [pendingOrder, setPendingOrder] = useState<CreateOrderResponse | null>(null);
 
   const stripe = useStripe();
   const elements = useElements();
+  const { mutateAsync: wcStoreCheckout } = useWcStoreCheckout();
   const { mutateAsync: createOrder } = useCreateOrder();
   const { mutateAsync: payOrder } = usePayOrder();
   const cartItems = useCartStore((s) => s.items);
@@ -32,15 +34,130 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
   const buyNowItem = useBuyNowStore((s) => s.item);
   const clearBuyNow = useBuyNowStore((s) => s.clear);
 
-  // Buy Now mode uses a single item; otherwise use cart.
-  const lineItems = buyNowItem
-    ? [{ product_id: buyNowItem.product_id, quantity: buyNowItem.quantity }]
-    : cartItems.map((i) => ({ product_id: i.product_id, quantity: i.quantity }));
+  // ─── Store API checkout (standard cart) ────────────────────────────────────
 
-  const cartCoupon =
-    !buyNowItem && cartTotals?.coupon_code && cartTotals.discount > 0
-      ? { coupon_code: cartTotals.coupon_code, discount_total: cartTotals.discount }
-      : null;
+  const handleStoreApiCheckout = async () => {
+    const billing = billingRef.current!.getValues();
+
+    if (!stripe || !elements) throw new Error("Stripe is not loaded.");
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) throw new Error("Card element not found.");
+
+    const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
+      type: "card",
+      card: cardElement,
+      billing_details: {
+        name: `${billing.first_name} ${billing.last_name}`,
+        email: billing.email,
+        phone: billing.phone || undefined,
+        address: {
+          line1: billing.address_1,
+          line2: billing.address_2 || undefined,
+          city: billing.city,
+          postal_code: billing.postcode,
+          country: billing.country,
+          state: billing.state || undefined,
+        },
+      },
+    });
+
+    if (pmError || !paymentMethod) {
+      throw new Error(pmError?.message ?? "Failed to process card details.");
+    }
+
+    const payload = {
+      billing_address: billing,
+      shipping_address: billing,
+      payment_method: "stripe",
+      payment_data: [{ key: "stripe_payment_method", value: paymentMethod.id }] as Array<{
+        key: string;
+        value: string | boolean;
+      }>,
+    };
+
+    let result: WCStoreCheckoutResponse = await wcStoreCheckout(payload);
+
+    // Handle 3DS / SCA
+    if (result.payment_result.payment_status === "requires_action") {
+      const clientSecret = result.payment_result.payment_details.find(
+        (d) => d.key === "client_secret",
+      )?.value;
+
+      if (!clientSecret) {
+        throw new Error("3D Secure required but no client secret was provided.");
+      }
+
+      const { error: actionError, paymentIntent } = await stripe.handleCardAction(clientSecret);
+      if (actionError) {
+        throw new Error(actionError.message ?? "3D Secure verification failed.");
+      }
+
+      // Retry with confirmed intent
+      result = await wcStoreCheckout({
+        ...payload,
+        payment_data: [
+          { key: "stripe_payment_method", value: paymentMethod.id },
+          { key: "stripe_payment_intent", value: paymentIntent!.id },
+        ],
+      });
+    }
+
+    if (result.payment_result.payment_status !== "success") {
+      throw new Error("Payment was not successful. Please try again.");
+    }
+
+    clearCart();
+    clearBuyNow();
+    onSuccess(result.order_id, result.order_key);
+  };
+
+  // ─── REST v3 checkout (Buy Now path) ───────────────────────────────────────
+
+  const handleBuyNowCheckout = async () => {
+    const billing = billingRef.current!.getValues();
+
+    if (!stripe || !elements) throw new Error("Stripe is not loaded.");
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) throw new Error("Card element not found.");
+
+    let order: CreateOrderResponse;
+
+    if (pendingOrder) {
+      order = pendingOrder;
+    } else {
+      order = await createOrder({
+        billing,
+        payment_method: method,
+        line_items: [{ product_id: buyNowItem!.product_id, quantity: buyNowItem!.quantity }],
+      });
+
+      if (!order.client_secret) {
+        throw new Error("Payment setup failed — no client secret returned.");
+      }
+
+      setPendingOrder(order);
+    }
+
+    const { error, paymentIntent } = await stripe.confirmCardPayment(order.client_secret!, {
+      payment_method: { card: cardElement },
+    });
+
+    if (error) {
+      throw new Error(error.message ?? "Payment failed.");
+    }
+
+    await payOrder({
+      orderId: order.order_id,
+      payment_intent_id: paymentIntent!.id,
+      order_key: order.order_key,
+    });
+
+    setPendingOrder(null);
+    clearBuyNow();
+    onSuccess(order.order_id, order.order_key);
+  };
+
+  // ─── Submit handler ─────────────────────────────────────────────────────────
 
   const handleSubmit = async () => {
     if (!billingRef.current) return;
@@ -52,56 +169,11 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
     setIsSubmitting(true);
 
     try {
-      let order: CreateOrderResponse;
-
-      if (pendingOrder) {
-        // Reuse existing WC order on retry to avoid duplicate orders.
-        order = pendingOrder;
+      if (buyNowItem) {
+        await handleBuyNowCheckout();
       } else {
-        order = await createOrder({
-          billing: billingRef.current.getValues(),
-          payment_method: method,
-          line_items: lineItems,
-          ...(cartCoupon ?? {}),
-        });
-
-        if (!order.client_secret) {
-          throw new Error("Payment setup failed — no client secret returned.");
-        }
-
-        setPendingOrder(order);
+        await handleStoreApiCheckout();
       }
-
-      if (!stripe || !elements) throw new Error("Stripe is not loaded.");
-
-      const cardElement = elements.getElement(CardElement);
-      if (!cardElement) throw new Error("Card element not found.");
-
-      const { error, paymentIntent } = await stripe.confirmCardPayment(order.client_secret!, {
-        payment_method: { card: cardElement },
-      });
-
-      if (error) {
-        setStripeError(error.message ?? "Payment failed.");
-        return;
-      }
-
-      // Confirm server-side: marks WC order as processing after Stripe verification.
-      await payOrder({
-        orderId: order.order_id,
-        payment_intent_id: paymentIntent!.id,
-        order_key: order.order_key,
-      });
-
-      setPendingOrder(null);
-      clearCart();
-      clearBuyNow();
-      try {
-        await cartService.emptyCart();
-      } catch {
-        // Cart may already be empty; checkout line_items are authoritative.
-      }
-      onSuccess(order.order_id, order.order_key);
     } catch (err) {
       setStripeError((err as Error).message ?? "Something went wrong.");
     } finally {

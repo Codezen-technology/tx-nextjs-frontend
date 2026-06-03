@@ -1,11 +1,14 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Elements } from "@stripe/react-stripe-js";
 import { stripePromise } from "@/lib/stripe";
 import { useCartQuery } from "@/lib/hooks/useCart";
+import { useCartStore } from "@/lib/stores/cart.store";
+import { useBuyNowStore } from "@/lib/stores/buy-now.store";
+import { hasUserLoggedInCookie } from "@/lib/api/bff-client";
 import { BillingForm } from "@/components/checkout/BillingForm";
 import { CheckoutOrderSummary } from "@/components/checkout/CheckoutOrderSummary";
 import { PaymentMethodSelector } from "@/components/checkout/PaymentMethodSelector";
@@ -15,9 +18,25 @@ import type { BillingFormHandle } from "@/components/checkout/BillingForm";
 export default function CheckoutPage() {
   const router = useRouter();
   const billingRef = useRef<BillingFormHandle>(null);
+  const itemCount = useCartStore((s) => s.itemCount);
+  const cartHydrated = useCartStore((s) => s.hasHydrated);
+  const buyNowItem = useBuyNowStore((s) => s.item);
+  const buyNowHydrated = useBuyNowStore((s) => s.hasHydrated);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(hasUserLoggedInCookie());
+  }, []);
 
   // Pre-fetch cart so CheckoutOrderSummary has data.
   useCartQuery();
+
+  // Redirect to cart if nothing to checkout — wait for both stores to rehydrate first.
+  useEffect(() => {
+    if (cartHydrated && buyNowHydrated && itemCount === 0 && !buyNowItem) {
+      router.replace("/cart");
+    }
+  }, [cartHydrated, buyNowHydrated, itemCount, buyNowItem, router]);
 
   const handleOrderSuccess = (orderId: number, orderKey: string) => {
     const params = new URLSearchParams();
@@ -32,9 +51,13 @@ export default function CheckoutPage() {
       <div className="bg-[#00204a] py-2.5">
         <div className="container">
           <p className="text-sm text-white">
-            <Link href="/" className="font-bold underline">Home</Link>
+            <Link href="/" className="font-bold underline">
+              Home
+            </Link>
             <span className="mx-1">›</span>
-            <Link href="/cart" className="underline">Cart</Link>
+            <Link href="/cart" className="underline">
+              Cart
+            </Link>
             <span className="mx-1">›</span>
             <span>Checkout</span>
           </p>
@@ -46,12 +69,14 @@ export default function CheckoutPage() {
           {/* Page title */}
           <div className="space-y-2">
             <h1 className="font-suse text-3xl font-medium text-[#00204a]">Checkout</h1>
-            <p className="text-lg text-[#3b5374]">
-              Returning customer?{" "}
-              <Link href="/login" className="font-bold text-[#9e6f21] underline">
-                Click here to login
-              </Link>
-            </p>
+            {!isLoggedIn && (
+              <p className="text-lg text-[#3b5374]">
+                Returning customer?{" "}
+                <Link href="/login" className="font-bold text-[#9e6f21] underline">
+                  Click here to login
+                </Link>
+              </p>
+            )}
           </div>
 
           {/* Billing details */}
@@ -74,10 +99,7 @@ export default function CheckoutPage() {
             <h2 className="mb-6 font-suse text-2xl font-medium text-[#1a171b]">Payment method</h2>
             {stripePromise ? (
               <Elements stripe={stripePromise}>
-                <PaymentMethodSelector
-                  billingRef={billingRef}
-                  onSuccess={handleOrderSuccess}
-                />
+                <PaymentMethodSelector billingRef={billingRef} onSuccess={handleOrderSuccess} />
               </Elements>
             ) : (
               <div className="rounded border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
