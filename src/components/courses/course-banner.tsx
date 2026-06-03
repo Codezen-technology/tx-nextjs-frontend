@@ -15,7 +15,7 @@ export function CourseBanner({ src, alt }: CourseBannerProps) {
 
   return (
     <section
-      className="relative h-[280px] w-full overflow-hidden sm:h-[360px] lg:h-[480px]"
+      className="relative h-[220px] w-full overflow-hidden sm:h-[280px] lg:h-[340px]"
       aria-label="Course banner"
     >
       {hasImage ? (
@@ -41,7 +41,7 @@ export function CourseBanner({ src, alt }: CourseBannerProps) {
       {/* Decorative wave + pattern (Figma 256:11795–11797), fill secondary-50 #F5F1E9 */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 overflow-hidden sm:h-20">
         <div className="absolute left-1/2 top-0 flex h-[405.89px] w-[max(100%,1920px)] -translate-x-1/2 items-center justify-center">
-          <div className="-rotate-90 shrink-0">
+          <div className="shrink-0 -rotate-90">
             <img
               src="/images/course-banner-wave.svg"
               alt=""
