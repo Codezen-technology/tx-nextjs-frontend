@@ -12,9 +12,14 @@ import { CourseOverview } from "@/components/courses/course-overview";
 import { CoursePurchaseCard } from "@/components/courses/course-purchase-card";
 import { CourseWhatYouLearn } from "@/components/courses/course-what-you-learn";
 import { CourseAbout } from "@/components/courses/course-about";
-import { CourseTabs } from "@/components/courses/course-tabs";
+import { CourseTabNav } from "@/components/courses/course-tab-nav";
+import { CourseAccreditations } from "@/components/courses/course-accreditations";
 import { CourseScreenshots } from "@/components/courses/course-screenshots";
 import { CourseExperts } from "@/components/courses/course-experts";
+import { CourseFlatCurriculum } from "@/components/courses/course-flat-curriculum";
+import { CourseFaq } from "@/components/courses/course-faq";
+import { CourseReviews } from "@/components/courses/course-reviews";
+import { CourseSuitableFor } from "@/components/courses/course-suitable-for";
 import { CourseRelated } from "@/components/courses/course-related";
 import type { CourseFlatCurriculumItem, CourseSections } from "@/types/course";
 
@@ -79,51 +84,103 @@ export default async function CourseDetailPage({ params }: PageProps) {
       <CourseBreadcrumb course={course} />
       <CourseTrustedStrip />
 
-      {course.announcement ? (
-        <CourseAnnouncement message={course.announcement} />
-      ) : null}
+      {course.announcement ? <CourseAnnouncement message={course.announcement} /> : null}
 
       <CourseBanner src={course.featuredImage} alt={course.title} />
 
-      <div className="container mx-auto max-w-[1296px] px-4 pb-16">
-        <div className="-mt-10 flex flex-col gap-8 lg:-mt-16 lg:flex-row lg:items-start lg:gap-6">
-          <div className="min-w-0 flex-1 space-y-10 lg:max-w-[966px]">
-            <CourseOverview course={course} />
+      <div className="mx-auto max-w-[1296px] px-4 pb-20">
+        {/* Two-column layout: 966px main + 307px sticky sidebar */}
+        <div className="-mt-[200px] flex flex-col gap-6 sm:-mt-[300px] lg:-mt-[400px] lg:flex-row lg:items-start">
+          {/* ── Main column ── */}
+          <div className="min-w-0 flex-1 lg:max-w-[966px]">
+            {/* Overview card — floats over banner */}
+            <div className="rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black/5 sm:p-6 lg:p-8">
+              <CourseOverview course={course} />
+            </div>
 
-            <div className="space-y-10 lg:hidden">
+            {/* Purchase card — mobile only */}
+            <div className="mt-6 lg:hidden">
               <CoursePurchaseCard course={course} />
             </div>
 
-            {(whatYouLearn.length > 0 || sections?.at_a_glance) && (
-              <div className="space-y-10">
-                {whatYouLearn.length > 0 ? (
-                  <CourseWhatYouLearn items={whatYouLearn} />
-                ) : null}
+            {/* ── What you'll learn + About ── */}
+            {whatYouLearn.length > 0 || sections?.at_a_glance ? (
+              <div className="mt-10 space-y-10">
+                {whatYouLearn.length > 0 ? <CourseWhatYouLearn items={whatYouLearn} /> : null}
                 {sections?.at_a_glance ? (
-                  <CourseAbout
-                    heading={sections.description_heading}
-                    html={sections.at_a_glance}
-                  />
+                  <CourseAbout heading={sections.description_heading} html={sections.at_a_glance} />
                 ) : null}
               </div>
-            )}
+            ) : null}
 
-            <CourseTabs
-              courseId={course.id}
+            {/* ── Sticky anchor tabs ── */}
+            <CourseTabNav
               accreditations={accreditations}
               curriculum={curriculum}
               sections={sections}
+              courseId={course.id}
             />
 
-            {screenshots.length > 0 ? (
-              <CourseScreenshots screenshots={screenshots} />
+            {/* ── Accreditations ── */}
+            {accreditations.length > 0 ? (
+              <section id="accreditations" className="mt-12 scroll-mt-28">
+                <CourseAccreditations accreditations={accreditations} />
+              </section>
             ) : null}
 
-            {experts.length > 0 ? <CourseExperts experts={experts} /> : null}
+            {/* ── Course in action (screenshots) ── */}
+            {screenshots.length > 0 ? (
+              <section id="course-content" className="mt-16 scroll-mt-28">
+                <CourseScreenshots screenshots={screenshots} />
+              </section>
+            ) : null}
 
-            <CourseRelated courseId={course.id} />
+            {/* ── Empower and Engage (experts) ── */}
+            {experts.length > 0 ? (
+              <section className="mt-16">
+                <CourseExperts experts={experts} />
+              </section>
+            ) : null}
+
+            {/* ── Curriculum ── */}
+            {curriculum.length > 0 ? (
+              <section
+                id={screenshots.length === 0 ? "course-content" : "curriculum"}
+                className="mt-16 scroll-mt-28"
+              >
+                <CourseFlatCurriculum items={curriculum} />
+              </section>
+            ) : null}
+
+            {/* ── FAQ ── */}
+            {sections?.faq?.length ? (
+              <section id="faq" className="mt-16 scroll-mt-28">
+                <CourseFaq heading={sections.faq_heading} items={sections.faq} />
+              </section>
+            ) : null}
+
+            {/* ── Reviews ── */}
+            <section id="reviews" className="mt-16 scroll-mt-28">
+              <CourseReviews courseId={course.id} />
+            </section>
+
+            {/* ── Suitable for ── */}
+            {sections?.who_should_take?.items?.length ? (
+              <section id="suitable-for" className="mt-16 scroll-mt-28">
+                <CourseSuitableFor
+                  heading={sections.who_should_take.summary}
+                  items={sections.who_should_take.items}
+                />
+              </section>
+            ) : null}
+
+            {/* ── Related courses ── */}
+            <div className="mt-16">
+              <CourseRelated courseId={course.id} />
+            </div>
           </div>
 
+          {/* ── Desktop sticky sidebar ── */}
           <aside className="hidden shrink-0 lg:block lg:w-[307px]">
             <div className="sticky top-24">
               <CoursePurchaseCard course={course} />

@@ -15,7 +15,7 @@ export function CourseBanner({ src, alt }: CourseBannerProps) {
 
   return (
     <section
-      className="relative h-[220px] w-full overflow-hidden sm:h-[280px] lg:h-[340px]"
+      className="relative h-[280px] w-full overflow-hidden sm:h-[380px] lg:h-[480px]"
       aria-label="Course banner"
     >
       {hasImage ? (
