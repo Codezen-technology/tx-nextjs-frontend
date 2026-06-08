@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Migration Context
+
+This is a **WP → Next.js headless migration** project.
+
+- **Design source of truth:** Figma — `VoTEBKr8x4fWlObjkr7RXg`
+- **Behavior/data reference:** Live WP site — `https://trainingexcellence.org.uk/`
+- **Full migration rules, page list, and decisions:** see `MIGRATION.md`
+
+**Always read `MIGRATION.md` before starting any new page migration.**
+
 ## Commands
 
 **Package manager: pnpm** — do not use npm or yarn.
@@ -25,10 +35,12 @@ Pre-commit hook (Husky + lint-staged) runs lint + format on staged files.
 ## Environment
 
 Copy `.env.example` to `.env.local`. Required:
+
 - `NEXT_PUBLIC_WP_API_URL` — WordPress base URL, no trailing slash, no `/wp-json`
 - `NEXT_PUBLIC_SITE_URL` — this app's public URL
 
 Optional overrides (all defined in `src/lib/env.ts`):
+
 - `NEXT_PUBLIC_LMS_NAMESPACE` — defaults to `lms-backend/v1`
 - `WP_API_URL` — server-only override for `NEXT_PUBLIC_WP_API_URL` (skips browser-public value in BFF)
 - `NEXT_PUBLIC_FEATURE_*` — boolean feature flags; default `true` except `FEATURE_BADGES` (false)
@@ -40,12 +52,12 @@ Optional overrides (all defined in `src/lib/env.ts`):
 
 All pages live under `src/app/[locale]/`. i18n uses next-intl with `localePrefix: "as-needed"` — URLs are clean (no `/en/` prefix) while the structure supports future locales.
 
-| Group | Paths | Notes |
-|---|---|---|
-| `(marketing)` | `/` | Public, SSR |
-| `(auth)` | `/login`, `/register`, `/forgot-password` | Bounces authenticated users to `/dashboard` |
-| `(student)` | `/dashboard`, `/courses`, `/profile`, etc. | Protected, uses `SiteShell` layout |
-| `(learn)` | `/learn/[courseId]/[unitId]` | Full-screen unit player |
+| Group         | Paths                                      | Notes                                       |
+| ------------- | ------------------------------------------ | ------------------------------------------- |
+| `(marketing)` | `/`                                        | Public, SSR                                 |
+| `(auth)`      | `/login`, `/register`, `/forgot-password`  | Bounces authenticated users to `/dashboard` |
+| `(student)`   | `/dashboard`, `/courses`, `/profile`, etc. | Protected, uses `SiteShell` layout          |
+| `(learn)`     | `/learn/[courseId]/[unitId]`               | Full-screen unit player                     |
 
 Middleware (`src/middleware.ts`) reads the non-httpOnly `user_logged_in=1` cookie as the auth signal. It runs next-intl for all non-protected, non-auth routes.
 
@@ -82,6 +94,7 @@ Public reads (course list, blog, etc.) go directly from the Axios client to Word
 ### Endpoint namespaces
 
 `src/lib/api/endpoints.ts` is the single source for all URL strings:
+
 - `lms` → `/lms-backend/v1` (custom LMS plugin)
 - `wp` → `/wp/v2` (native WordPress REST)
 - `swca` → `/swca/v1` (legacy certificate verification only)
@@ -108,18 +121,18 @@ All Axios errors are converted to `ApiError` (`src/lib/api/error.ts`) by the res
 
 ## Key files
 
-| File | Purpose |
-|---|---|
-| `src/lib/api/endpoints.ts` | All WP endpoint URLs |
-| `src/lib/api/bff.ts` | `proxyToWP()` — server-side proxy with token refresh |
-| `src/lib/api/bff-client.ts` | `bffJson()` — client helper for BFF route calls |
-| `src/lib/api/client.ts` | Axios singleton (direct-to-WP, public reads) |
-| `src/lib/api/parsers.ts` | `paginate()` + `decodeEntities()` |
-| `src/lib/api/server.ts` | Server Component fetch utilities |
-| `src/lib/env.ts` | All env var definitions and `getServerWpJsonBase()` |
-| `src/lib/utils/query-keys.ts` | Centralized TanStack Query keys |
-| `src/lib/stores/auth.store.ts` | Zustand auth store (user display data only) |
-| `src/middleware.ts` | Route guards + next-intl integration |
+| File                           | Purpose                                              |
+| ------------------------------ | ---------------------------------------------------- |
+| `src/lib/api/endpoints.ts`     | All WP endpoint URLs                                 |
+| `src/lib/api/bff.ts`           | `proxyToWP()` — server-side proxy with token refresh |
+| `src/lib/api/bff-client.ts`    | `bffJson()` — client helper for BFF route calls      |
+| `src/lib/api/client.ts`        | Axios singleton (direct-to-WP, public reads)         |
+| `src/lib/api/parsers.ts`       | `paginate()` + `decodeEntities()`                    |
+| `src/lib/api/server.ts`        | Server Component fetch utilities                     |
+| `src/lib/env.ts`               | All env var definitions and `getServerWpJsonBase()`  |
+| `src/lib/utils/query-keys.ts`  | Centralized TanStack Query keys                      |
+| `src/lib/stores/auth.store.ts` | Zustand auth store (user display data only)          |
+| `src/middleware.ts`            | Route guards + next-intl integration                 |
 
 ## Conventions
 
