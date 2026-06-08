@@ -14,20 +14,25 @@ test.describe("Course detail page", () => {
 
   test("has a canonical link pointing to the frontend domain", async ({ page }) => {
     await page.goto(`/course/${KNOWN_SLUG}`);
-    const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
+    await page.waitForLoadState("networkidle");
+    const canonical = await page.evaluate(
+      () => document.querySelector('link[rel="canonical"]')?.getAttribute("href") ?? null,
+    );
     expect(canonical).toBeTruthy();
-    // Must not reference the WP backend domain
     expect(canonical).not.toContain("trainingexcellence.org.uk");
     expect(canonical).toContain(`/course/${KNOWN_SLUG}`);
   });
 
   test("injects valid JSON-LD structured data", async ({ page }) => {
     await page.goto(`/course/${KNOWN_SLUG}`);
-    const scripts = await page.locator('script[type="application/ld+json"]').all();
+    await page.waitForLoadState("networkidle");
+    const scripts = await page.evaluate(() =>
+      [...document.querySelectorAll('script[type="application/ld+json"]')].map(
+        (s) => s.textContent,
+      ),
+    );
     expect(scripts.length).toBeGreaterThan(0);
-
-    const raw = await scripts[0].textContent();
-    expect(() => JSON.parse(raw ?? "")).not.toThrow();
+    expect(() => JSON.parse(scripts[0] ?? "")).not.toThrow();
   });
 
   test("renders course breadcrumb", async ({ page }) => {

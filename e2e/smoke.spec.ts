@@ -18,5 +18,5 @@ test("dashboard redirects unauthenticated users to login", async ({ page }) => {
 
 test("login page renders the sign-in form", async ({ page }) => {
   await page.goto("/login");
-  await expect(page.getByRole("button", { name: /sign in/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /log in/i })).toBeVisible();
 });
