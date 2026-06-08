@@ -1,9 +1,13 @@
 import createNextIntlPlugin from "next-intl/plugin";
 import { withSentryConfig } from "@sentry/nextjs";
 
-// Allow self-signed / untrusted certs in local dev for Next.js image optimizer.
-// Scoped to non-production only; does not affect browser requests.
-if (process.env.NODE_ENV !== "production") {
+// Bypass TLS verification when backend is a local .test domain (Valet self-signed cert).
+// Safe: real production WP_API_URL never contains ".test" or "localhost".
+const _wpApiUrl = process.env.NEXT_PUBLIC_WP_API_URL ?? "";
+const _isLocalBackend =
+  _wpApiUrl.includes(".test") || _wpApiUrl.includes("localhost") || _wpApiUrl.includes("127.0.0.1");
+
+if (process.env.NODE_ENV !== "production" || _isLocalBackend) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 }
 
@@ -44,16 +48,13 @@ const nextConfig = {
 };
 
 const sentryConfig = {
-  // Only upload source maps when DSN is configured (skips local dev)
   silent: !process.env.SENTRY_DSN,
-  // Disable auto-instrumentation of Pages Router (_document, _app) —
-  // we use App Router + instrumentation.ts instead
-  autoInstrumentServerFunctions: false,
-  autoInstrumentMiddleware: false,
-  // Don't tunnel — keep sentry requests direct
-  disableLogger: true,
-  // Suppress the Sentry build-time banner
   hideSourceMaps: false,
+  webpack: {
+    autoInstrumentServerFunctions: false,
+    autoInstrumentMiddleware: false,
+    treeshake: { removeDebugLogging: true },
+  },
 };
 
 export default withSentryConfig(withNextIntl(nextConfig), sentryConfig);

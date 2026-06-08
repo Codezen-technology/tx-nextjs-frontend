@@ -8,7 +8,6 @@ import { CourseAnnouncement } from "@/components/courses/course-announcement";
 import { CourseBreadcrumb } from "@/components/courses/course-breadcrumb";
 import { CourseTrustedStrip } from "@/components/courses/course-trusted-strip";
 import { CourseBanner } from "@/components/courses/course-banner";
-import { CourseOverview } from "@/components/courses/course-overview";
 import { CoursePurchaseCard } from "@/components/courses/course-purchase-card";
 import { CourseWhatYouLearn } from "@/components/courses/course-what-you-learn";
 import { CourseAbout } from "@/components/courses/course-about";
@@ -86,18 +85,13 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
       {course.announcement ? <CourseAnnouncement message={course.announcement} /> : null}
 
-      <CourseBanner src={course.featuredImage} alt={course.title} />
+      <CourseBanner src={course.featuredImage} alt={course.title} course={course} />
 
       <div className="mx-auto max-w-[1296px] px-4 pb-20">
         {/* Two-column layout: 966px main + 307px sticky sidebar */}
-        <div className="-mt-[200px] flex flex-col gap-6 sm:-mt-[300px] lg:-mt-[400px] lg:flex-row lg:items-start">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
           {/* ── Main column ── */}
           <div className="min-w-0 flex-1 lg:max-w-[966px]">
-            {/* Overview card — floats over banner */}
-            <div className="rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black/5 sm:p-6 lg:p-8">
-              <CourseOverview course={course} />
-            </div>
-
             {/* Purchase card — mobile only */}
             <div className="mt-6 lg:hidden">
               <CoursePurchaseCard course={course} />
@@ -180,8 +174,8 @@ export default async function CourseDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* ── Desktop sticky sidebar ── */}
-          <aside className="hidden shrink-0 lg:block lg:w-[307px]">
+          {/* ── Desktop sticky sidebar — pulled up to align with banner content ── */}
+          <aside className="hidden shrink-0 lg:-mt-[428px] lg:block lg:w-[307px]">
             <div className="sticky top-24">
               <CoursePurchaseCard course={course} />
             </div>
