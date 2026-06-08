@@ -8,11 +8,15 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/__tests__/setup.ts"],
+    env: {
+      NEXT_PUBLIC_WP_API_URL: "http://localhost",
+      NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
+    },
     exclude: ["**/node_modules/**", "**/e2e/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
-      include: ["src/lib/**/*.ts", "src/components/**/*.tsx"],
+      include: ["src/lib/**/*.ts", "src/components/**/*.tsx", "src/app/**/*.tsx"],
       exclude: ["**/*.d.ts", "**/node_modules/**"],
     },
   },

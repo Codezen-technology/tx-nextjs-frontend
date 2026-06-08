@@ -10,13 +10,11 @@ export default defineConfig({
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
     trace: "on-first-retry",
   },
-  projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-  ],
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: process.env.CI
     ? undefined
     : {
-        command: "npm run dev",
+        command: "pnpm dev",
         url: "http://localhost:3000",
         reuseExistingServer: true,
         timeout: 120_000,
