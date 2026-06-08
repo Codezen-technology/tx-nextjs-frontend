@@ -3,6 +3,8 @@ export interface ParsedSeo {
   description?: string;
   canonical?: string;
   robots?: string;
+  ogType?: string;
+  ogLocale?: string;
   ogTitle?: string;
   ogDescription?: string;
   ogImage?: string;
@@ -39,13 +41,15 @@ function extractJsonLd(html: string): Record<string, unknown>[] {
   return out;
 }
 
-/** Parse the `rank_math_head` HTML string Rank Math injects into REST responses. */
+/** Parse the Rank Math `head` HTML string returned by `/wp-json/rankmath/v1/getHead`. */
 export function parseRankMathHead(html: string): ParsedSeo {
   return {
     title: html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim(),
     description: extractMeta(html, "description"),
     canonical: extractLink(html, "canonical"),
     robots: extractMeta(html, "robots"),
+    ogType: extractMeta(html, "og:type"),
+    ogLocale: extractMeta(html, "og:locale"),
     ogTitle: extractMeta(html, "og:title"),
     ogDescription: extractMeta(html, "og:description"),
     ogImage: extractMeta(html, "og:image"),

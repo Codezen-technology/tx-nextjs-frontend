@@ -112,7 +112,8 @@ export default async function CourseDetailPage({ params }: PageProps) {
   const whatYouLearn = sections?.what_you_will_learn ?? [];
 
   const siteUrl = env.SITE_URL.replace(/\/$/, "");
-  const courseUrl = `${siteUrl}/course/${course.slug}`;
+  // Prefer canonical from Rank Math so JSON-LD url matches the canonical tag exactly
+  const courseUrl = rmSeo?.canonical ?? `${siteUrl}/course/${course.slug}`;
   const jsonLd = rmSeo?.jsonLd?.length ? rmSeo.jsonLd : [buildCourseSchema(course, courseUrl)];
 
   return (

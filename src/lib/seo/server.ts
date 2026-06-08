@@ -99,7 +99,9 @@ export function buildPageMetadata(
       title: seo?.ogTitle ?? title,
       ...(description ? { description: seo?.ogDescription ?? description } : {}),
       url: canonical,
-      type: "website",
+      // Use Rank Math's og:type (e.g. "article" for WP posts/courses) — fall back to "website"
+      type: (seo?.ogType ?? "website") as "website",
+      ...(seo?.ogLocale ? { locale: seo.ogLocale } : {}),
       ...(ogImage ? { images: [ogImage] } : {}),
     },
     twitter: {
