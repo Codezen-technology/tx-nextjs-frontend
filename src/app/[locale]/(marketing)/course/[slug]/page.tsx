@@ -4,6 +4,8 @@ import { getLocale, setRequestLocale } from "next-intl/server";
 import { serverApi } from "@/lib/api/server";
 import { normalizeRichCourse } from "@/lib/services/courses";
 import { truncate, stripHtml } from "@/lib/utils/format";
+import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { env } from "@/lib/env";
 import { CourseAnnouncement } from "@/components/courses/course-announcement";
 import { CourseBreadcrumb } from "@/components/courses/course-breadcrumb";
 import { CourseTrustedStrip } from "@/components/courses/course-trusted-strip";
@@ -20,66 +22,108 @@ import { CourseFaq } from "@/components/courses/course-faq";
 import { CourseReviews } from "@/components/courses/course-reviews";
 import { CourseSuitableFor } from "@/components/courses/course-suitable-for";
 import { CourseRelated } from "@/components/courses/course-related";
-import type { CourseFlatCurriculumItem, CourseSections } from "@/types/course";
+import type { CourseFlatCurriculumItem, CourseSections, CourseRichData } from "@/types/course";
 
 interface PageProps {
   params: { locale: string; slug: string };
 }
 
+export async function generateStaticParams() {
+  try {
+    const data = await serverApi.courses.list({ per_page: 500 });
+    const items = Array.isArray(data)
+      ? data
+      : ((data as { items?: { slug: string }[] }).items ?? []);
+    return (items as { slug: string }[]).flatMap(({ slug }) => (slug ? [{ slug }] : []));
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   setRequestLocale(await getLocale());
   try {
-    const raw = await serverApi.courses.richDetail(params.slug);
+    const [raw, seo] = await Promise.all([
+      serverApi.courses.richDetail(params.slug),
+      fetchRankMathSeo(`/course/${params.slug}`),
+    ]);
     const course = normalizeRichCourse(raw);
-    const description = truncate(stripHtml(course.excerpt ?? course.content), 160);
-    return {
+    const siteUrl = env.SITE_URL.replace(/\/$/, "");
+    return buildPageMetadata(seo, {
       title: course.title,
-      description,
-      openGraph: {
-        title: course.title,
-        description,
-        images: course.featuredImage ? [course.featuredImage] : undefined,
-      },
-    };
+      description: truncate(stripHtml(course.excerpt ?? course.content), 160),
+      image: course.featuredImage,
+      canonical: `${siteUrl}/course/${params.slug}`,
+    });
   } catch {
     return { title: "Course" };
   }
 }
 
+function buildCourseSchema(course: CourseRichData, url: string): Record<string, unknown> {
+  const schema: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: course.title,
+    description: truncate(stripHtml(course.excerpt ?? course.content ?? ""), 300),
+    url,
+    provider: {
+      "@type": "Organization",
+      name: env.SITE_NAME || "Training Excellence",
+      url: env.SITE_URL,
+    },
+  };
+  if (course.featuredImage) schema.image = course.featuredImage;
+  if (course.rating != null && course.ratingCount) {
+    schema.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: course.rating,
+      reviewCount: course.ratingCount,
+      bestRating: 5,
+      worstRating: 1,
+    };
+  }
+  return schema;
+}
+
 export default async function CourseDetailPage({ params }: PageProps) {
   setRequestLocale(await getLocale());
-  let rawCourse: Record<string, unknown>;
 
-  try {
-    rawCourse = await serverApi.courses.richDetail(params.slug);
-  } catch {
-    notFound();
-  }
-
-  const course = normalizeRichCourse(rawCourse!);
-
-  let sections: CourseSections | null = null;
-  let curriculum: CourseFlatCurriculumItem[] = [];
-
-  const [sectionsResult, curriculumResult] = await Promise.allSettled([
+  const [courseResult, sectionsResult, curriculumResult, seoResult] = await Promise.allSettled([
+    serverApi.courses.richDetail(params.slug),
     serverApi.courses.sections(params.slug),
     serverApi.courses.curriculum(params.slug),
+    fetchRankMathSeo(`/course/${params.slug}`),
   ]);
 
-  if (sectionsResult.status === "fulfilled") {
-    sections = sectionsResult.value;
-  }
-  if (curriculumResult.status === "fulfilled") {
-    curriculum = (curriculumResult.value ?? []) as CourseFlatCurriculumItem[];
-  }
+  if (courseResult.status === "rejected") notFound();
+
+  const course = normalizeRichCourse(courseResult.value);
+  const sections = sectionsResult.status === "fulfilled" ? sectionsResult.value : null;
+  const curriculum =
+    curriculumResult.status === "fulfilled"
+      ? ((curriculumResult.value ?? []) as CourseFlatCurriculumItem[])
+      : [];
+  const rmSeo = seoResult.status === "fulfilled" ? seoResult.value : null;
 
   const accreditations = course.accreditations ?? [];
   const experts = course.experts ?? [];
   const screenshots = sections?.screenshots ?? [];
   const whatYouLearn = sections?.what_you_will_learn ?? [];
 
+  const siteUrl = env.SITE_URL.replace(/\/$/, "");
+  const courseUrl = `${siteUrl}/course/${course.slug}`;
+  const jsonLd = rmSeo?.jsonLd?.length ? rmSeo.jsonLd : [buildCourseSchema(course, courseUrl)];
+
   return (
     <div className="min-h-screen bg-white">
+      {jsonLd.map((schema, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
       <CourseBreadcrumb course={course} />
       <CourseTrustedStrip />
 

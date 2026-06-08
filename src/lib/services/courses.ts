@@ -347,8 +347,8 @@ export const coursesService = {
   },
 
   async richDetail(idOrSlug: string | number): Promise<CourseRichData> {
-    const { data } = await api.get<unknown>(endpoints.courses.detail(idOrSlug));
-    return normalizeCourse(data as RawCourse) as CourseRichData;
+    const { data } = await api.get<Record<string, unknown>>(endpoints.courses.detail(idOrSlug));
+    return normalizeRichCourse(data);
   },
 
   async categories(): Promise<CourseCategory[]> {

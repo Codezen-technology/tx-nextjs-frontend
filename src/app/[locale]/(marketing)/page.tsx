@@ -1,4 +1,8 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
+import { getLocale, setRequestLocale } from "next-intl/server";
+import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { env } from "@/lib/env";
 import { HeroSection } from "@/components/home/hero-section";
 import { PricingSection } from "@/components/home/pricing-section";
 import { TrustedOrgs } from "@/components/home/trusted-orgs";
@@ -11,7 +15,18 @@ import { CourseCardSkeleton } from "@/components/courses/course-card";
 
 export const revalidate = 300;
 
-export default function HomePage() {
+export async function generateMetadata(): Promise<Metadata> {
+  setRequestLocale(await getLocale());
+  const seo = await fetchRankMathSeo("/");
+  return buildPageMetadata(seo, {
+    title: env.SITE_NAME || "Training Excellence — Online Courses",
+    description:
+      "Fully accredited online training courses in health & safety, food hygiene, safeguarding, mental health and more. Trusted by thousands across the UK.",
+    canonical: env.SITE_URL.replace(/\/$/, ""),
+  });
+}
+
+export default async function HomePage() {
   return (
     <>
       {/* 1. Hero */}

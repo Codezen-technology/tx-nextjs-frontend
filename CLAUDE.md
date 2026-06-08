@@ -141,6 +141,34 @@ All Axios errors are converted to `ApiError` (`src/lib/api/error.ts`) by the res
 - **`next/image` hosts**: `next.config.mjs` auto-adds `NEXT_PUBLIC_WP_API_URL`'s hostname; add other CDN hosts there manually
 - **Sentry**: configured in `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`
 
+## SEO
+
+**Full rules:** `SEO.md` — read before touching any public page's metadata.
+
+Every public server-rendered page must:
+
+1. Export `generateMetadata` using `fetchRankMathSeo` + `buildPageMetadata` from `@/lib/seo/server`
+2. Export `generateStaticParams` on any dynamic `[slug]` page
+3. Provide fallback `title`, `description`, and `canonical` to `buildPageMetadata`
+4. Inject JSON-LD structured data in the JSX — prefer `rmSeo?.jsonLd`, fall back to a manual schema.org block
+
+```ts
+// Minimal pattern for any server page
+import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+
+export async function generateMetadata(): Promise<Metadata> {
+  setRequestLocale(await getLocale());
+  const seo = await fetchRankMathSeo("/wp-path");
+  return buildPageMetadata(seo, {
+    title: "Page Title",
+    description: "Max 160 chars.",
+    canonical: `${env.SITE_URL}/next-path`,
+  });
+}
+```
+
+`fetchRankMathSeo` calls `GET /wp-json/rankmath/v1/getHead?url=<wp-page-url>`, parses the head HTML, and automatically patches the canonical and JSON-LD to use the headless frontend domain. Returns `null` on failure — `buildPageMetadata` falls back gracefully.
+
 ## API reference
 
 `API_REFERENCE.md` is the authoritative contract for the `lms-backend/v1` backend plugin. Consult it when wiring new endpoints.

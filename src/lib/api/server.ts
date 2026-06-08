@@ -493,4 +493,27 @@ export const serverApi = {
 
   testimonials: () =>
     serverFetch<unknown[]>("/wp/v2/testimonial", { revalidate: 3600, tags: ["testimonials"] }),
+
+  rankmath: {
+    /**
+     * Fetch Rank Math SEO head for a given WP page URL.
+     * Requires: Rank Math → General Settings → Others → Headless CMS Support enabled.
+     * Returns the raw <head> HTML string, or null on failure.
+     */
+    getHead: async (wpPageUrl: string): Promise<string | null> => {
+      const base = getServerWpJsonBase();
+      if (!base) return null;
+      try {
+        const url = `${base}/rankmath/v1/getHead?url=${encodeURIComponent(wpPageUrl)}`;
+        const res = await fetch(url, {
+          next: { revalidate: 3600, tags: ["rankmath:head"] },
+        });
+        if (!res.ok) return null;
+        const body = (await res.json()) as { success?: boolean; head?: string };
+        return body.success && body.head ? body.head : null;
+      } catch {
+        return null;
+      }
+    },
+  },
 };
