@@ -1,169 +1,189 @@
 import Link from "next/link";
-import { Check, X } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import pricingData from "@/data/home/pricing.json";
 import { cn } from "@/lib/utils/cn";
 
-interface PlanFeature {
-  label: string;
-  included: boolean;
-}
-
-interface Plan {
-  name: string;
-  price: string;
-  originalPrice?: string;
-  badge?: { label: string; variant: "gold" | "navy" };
-  features: PlanFeature[];
-  ctaHref: string;
-  ctaLabel: string;
-  highlight?: boolean;
-}
-
-const PLANS: Plan[] = [
-  {
-    name: "Yearly Subscription",
-    price: "£49/Year",
-    ctaHref: "/register",
-    ctaLabel: "Get Started",
-    features: [
-      { label: "1 Year Access to 3000+ Courses", included: true },
-      { label: "Unlimited PDF Certificates", included: false },
-      { label: "Unlimited PDF Transcripts", included: false },
-      { label: "Free Student ID Card & More", included: false },
-    ],
-  },
-  {
-    name: "Lifetime Prime",
-    price: "£149",
-    originalPrice: "£399",
-    badge: { label: "Best Value", variant: "gold" },
-    ctaHref: "/register",
-    ctaLabel: "Get Lifetime Prime",
-    features: [
-      { label: "1 Year Access to 3000+ Courses", included: true },
-      { label: "Unlimited PDF Certificates", included: false },
-      { label: "Unlimited PDF Transcripts", included: false },
-      { label: "Free Student ID Card & More", included: false },
-    ],
-  },
-  {
-    name: "Lifetime Prime Plus",
-    price: "£249",
-    originalPrice: "£599",
-    badge: { label: "Most Popular", variant: "navy" },
-    highlight: true,
-    ctaHref: "/register",
-    ctaLabel: "Get Prime Plus",
-    features: [
-      { label: "1 Year Access to 3000+ Courses", included: true },
-      { label: "Unlimited PDF Certificates", included: true },
-      { label: "Unlimited PDF Transcripts", included: true },
-      { label: "Free Student ID Card & More", included: true },
-    ],
-  },
-];
-
 export function PricingSection() {
+  const { header, plans } = pricingData;
+
   return (
-    <section className="py-16">
-      <div className="container">
-        <div className="mb-10 text-center">
-          <h2 className="font-suse text-3xl font-bold text-neutral-900 md:text-4xl">
-            Choose Your Learning Plan
-          </h2>
-          <p className="mt-2 font-open-sans text-neutral-500">
-            Flexible plans to suit every learner — individuals and businesses alike.
-          </p>
+    <section className="py-20 bg-white">
+      <div className="container mx-auto">
+        {/* Header */}
+        <div className="mb-12 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <h2 className="font-suse text-[2rem] font-bold text-neutral-900">
+              {header.title}
+            </h2>
+            <p className="font-open-sans text-neutral-500 text-base">
+              {header.description}
+            </p>
+          </div>
+          <Link
+            href={header.ctaHref}
+            className="inline-flex shrink-0 items-center gap-2 font-open-sans text-base font-medium text-secondary-500 transition-colors hover:text-secondary-600"
+          >
+            {header.ctaLabel}
+            <ArrowRight className="h-5 w-5" />
+          </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {PLANS.map((plan) => (
-            <div
-              key={plan.name}
-              className={cn(
-                "relative flex flex-col rounded-lg border p-8",
-                plan.highlight
-                  ? "border-neutral-900 bg-neutral-900 text-white"
-                  : "border-[#ebedf1] bg-white",
-              )}
-            >
-              {/* Badge */}
-              {plan.badge && (
-                <div
-                  className={cn(
-                    "absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-sm px-4 py-1 text-sm font-semibold",
-                    plan.badge.variant === "gold"
-                      ? "bg-secondary-500 text-white"
-                      : "bg-neutral-900 text-white",
-                  )}
-                >
-                  {plan.badge.label}
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {plans.map((plan) => (
+            <div key={plan.name} className="relative">
+              {/* Ribbon Badge */}
+              {plan.badge === "best-value" && (
+                <div className="absolute -top-4 right-6 z-20 flex items-start">
+                  <div className="relative bg-white text-secondary-700 font-medium text-sm shadow-md p-4 rounded-b-lg">
+                    Best Value
+                    <svg
+                      className="absolute top-0 -right-[0.75rem]"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width={12}
+                      height={18}
+                      viewBox="0 0 12 16"
+                      fill="none"
+                    >
+                      <path d="M12 15.0588H0V0L12 15.0588Z" fill="#E1D2BA" />
+                    </svg>
+                  </div>
                 </div>
               )}
 
-              <h3
+              {plan.badge === "most-popular" && (
+                <div className="absolute -top-4 right-6 z-20 flex items-start">
+                  <div
+                    className="relative text-neutral-900 font-medium text-sm shadow-md p-4 rounded-b-lg"
+                    style={{ background: "linear-gradient(85deg, #01aee0 0%, #00c7ff 100%)" }}
+                  >
+                    Most Popular
+                    <svg
+                      className="absolute top-0 -right-[0.75rem]"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width={12}
+                      height={18}
+                      viewBox="0 0 12 16"
+                      fill="none"
+                    >
+                      <path d="M12 15.0588H0V0L12 15.0588Z" fill="#0085aa" />
+                    </svg>
+                  </div>
+                </div>
+              )}
+
+              {/* Card */}
+              <div
                 className={cn(
-                  "font-suse text-xl font-bold",
-                  plan.highlight ? "text-white" : "text-neutral-900",
+                  "relative flex flex-col gap-6 overflow-hidden rounded-[12px] p-8 h-full",
+                  plan.variant === "default" && "border border-[#ebedf1] bg-white shadow-sm",
+                  plan.variant === "beige" && "border border-[#ebedf1] shadow-sm",
+                  plan.variant === "navy" && "border-transparent shadow-lg"
                 )}
+                style={
+                  plan.variant === "beige"
+                    ? { background: "linear-gradient(210.15deg, #f5f1e9 14.85%, #e1d2ba 96.39%)" }
+                    : plan.variant === "navy"
+                    ? { background: "linear-gradient(30.18deg, #00204a 9.18%, #1c395e 92.41%)" }
+                    : undefined
+                }
               >
-                {plan.name}
-              </h3>
-
-              {/* Price */}
-              <div className="mt-4 flex items-baseline gap-2">
-                <span
-                  className={cn(
-                    "font-open-sans text-4xl font-bold",
-                    plan.highlight ? "text-white" : "text-neutral-900",
-                  )}
-                >
-                  {plan.price}
-                </span>
-                {plan.originalPrice && (
-                  <span className="font-open-sans text-lg text-[#dc3545] line-through">
-                    {plan.originalPrice}
-                  </span>
+                {/* Navy pattern */}
+                {plan.variant === "navy" && (
+                  <div
+                    className="pointer-events-none absolute inset-0 bg-[url('/images/plus-shape.png')] bg-no-repeat bg-contain bg-right"
+                    aria-hidden="true"
+                  />
                 )}
-              </div>
 
-              {/* Features */}
-              <ul className="mt-8 flex flex-col gap-4">
-                {plan.features.map((feat) => (
-                  <li key={feat.label} className="flex items-center gap-3">
-                    {feat.included ? (
-                      <Check
-                        className={cn(
-                          "h-5 w-5 shrink-0",
-                          plan.highlight ? "text-primary-300" : "text-secondary-500",
-                        )}
-                      />
-                    ) : (
-                      <X className="h-5 w-5 shrink-0 text-[#dc3545]" />
+                {/* Plan content */}
+                <div className="flex flex-col gap-4">
+                  <p
+                    className={cn(
+                      "font-suse text-xl font-bold",
+                      plan.variant === "default" && "text-neutral-900",
+                      plan.variant === "beige" && "text-secondary-500",
+                      plan.variant === "navy" && "text-[#00bbf0]"
+                    )}
+                  >
+                    {plan.name}
+                  </p>
+
+                  {plan.subtitle && (
+                    <p
+                      className={cn(
+                        "font-open-sans text-base",
+                        plan.variant === "navy" && "text-white"
+                      )}
+                    >
+                      {plan.subtitle}
+                    </p>
+                  )}
+
+                  {/* Price */}
+                  <div className="flex items-baseline gap-2">
+                    {plan.originalPrice && (
+                      <span className="text-[#dc3545] line-through font-bold text-xl">
+                        {plan.originalPrice}
+                      </span>
                     )}
                     <span
                       className={cn(
-                        "font-open-sans text-sm",
-                        plan.highlight ? "text-white/80" : "text-neutral-500",
+                        "font-suse font-bold",
+                        plan.variant === "navy" ? "text-white" : "text-neutral-900"
                       )}
                     >
-                      {feat.label}
+                      <span className="text-2xl">{plan.price}</span>
+                      {plan.priceUnit && <span className="text-base">{plan.priceUnit}</span>}
                     </span>
-                  </li>
-                ))}
-              </ul>
+                  </div>
 
-              {/* CTA */}
-              <Link
-                href={plan.ctaHref}
-                className={cn(
-                  "mt-8 block rounded-sm py-2.5 text-center font-open-sans text-sm font-semibold transition-colors",
-                  plan.highlight
-                    ? "bg-secondary-500 text-white hover:bg-secondary-600"
-                    : "border border-secondary-500 text-secondary-500 hover:bg-secondary-50",
-                )}
-              >
-                {plan.ctaLabel}
-              </Link>
+                  {/* Features */}
+                  <ul className="flex flex-col gap-3">
+                    {plan.features.map((feat) => (
+                      <li key={feat.label} className="flex items-center gap-2">
+                        <img
+                          src={feat.included ? "/icons/tick-circle.svg" : "/icons/close-circle.svg"}
+                          alt=""
+                          aria-hidden="true"
+                          width={24}
+                          height={24}
+                          className="shrink-0 self-start"
+                        />
+                        <span
+                          className={cn(
+                            "font-open-sans text-base",
+                            plan.variant === "navy" ? "text-white" : "text-neutral-900"
+                          )}
+                        >
+                          {feat.label}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* CTA Button */}
+                <Link
+                  href={plan.ctaHref}
+                  className={cn(
+                    "mt-auto flex h-10 items-center justify-center rounded-full font-open-sans text-sm font-medium transition-transform hover:scale-105",
+                    plan.variant === "default" &&
+                      "border border-secondary-500 bg-transparent text-secondary-500",
+                    plan.variant === "beige" &&
+                      "border border-secondary-500 bg-white text-secondary-500",
+                    plan.variant === "navy" &&
+                      "border border-[#00bbf0] text-neutral-900 font-bold text-base"
+                  )}
+                  style={
+                    plan.variant === "navy"
+                      ? { background: "linear-gradient(90deg, #00bbf0, #8AE0F8)" }
+                      : undefined
+                  }
+                >
+                  {plan.ctaLabel}
+                </Link>
+              </div>
             </div>
           ))}
         </div>

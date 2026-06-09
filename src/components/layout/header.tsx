@@ -111,7 +111,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
 
   return (
     <header className="relative w-full bg-neutral-800">
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-6 px-6 py-5 lg:px-10">
+      <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-6 py-5">
         {/* Logo */}
         <Link
           href={isAuthenticated ? "/dashboard" : "/"}

@@ -1,33 +1,32 @@
-const ORGS = [
-  "NHS",
-  "Hull College",
-  "RoSPA",
-  "IOSH",
-  "City & Guilds",
-  "CPD Certification Service",
-  "UKRLP",
-  "AOHT",
-];
+"use client";
+
+import sponsorsData from "@/data/home/sponsors.json";
 
 export function TrustedOrgs() {
+  // Duplicate sponsors array so infinite scrolling works seamlessly
+  const track = [...sponsorsData, ...sponsorsData];
+
   return (
-    <section className="border-y border-neutral-30 bg-white py-10">
-      <div className="container">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-12">
-          <div className="shrink-0 lg:w-[380px]">
-            <div className="mb-3 h-0.5 w-24 bg-secondary-500" />
-            <h2 className="font-suse text-2xl font-bold leading-snug text-neutral-900 md:text-3xl">
-              Trusted by Over 50,000 Organizations Worldwide
-            </h2>
-          </div>
-          <div className="flex flex-1 flex-wrap items-center gap-6">
-            {ORGS.map((org) => (
-              <div
-                key={org}
-                className="flex h-14 min-w-[100px] items-center justify-center rounded-md border border-neutral-30 bg-neutral-10 px-4"
-              >
-                <span className="font-open-sans text-sm font-semibold text-neutral-500">{org}</span>
-              </div>
+    <section className="overflow-hidden bg-secondary-50 py-12">
+      <div className="flex items-center gap-8 pl-4 2xl:pl-[calc((100vw-1400px)/2+1rem)]">
+        {/* Heading */}
+        <div className="flex w-[446px] shrink-0 flex-col gap-4">
+          <div className="h-0.5 w-24 bg-secondary-500" />
+          <h2 className="font-suse text-[32px] font-medium leading-[1.2] text-neutral-900">
+            Trusted by Over 50,000 Organizations Worldwide
+          </h2>
+        </div>
+
+        {/* Marquee — flex-1 fills remaining width */}
+        <div className="flex-1 overflow-hidden">
+          <div className="inline-flex whitespace-nowrap animate-infinite-scroll items-center gap-6 [will-change:transform] [&:hover]:[animation-play-state:paused]">
+            {track.map((sponsor, i) => (
+              <img
+                key={i}
+                src={sponsor.src}
+                alt={sponsor.alt}
+                className="h-14 w-auto shrink-0 object-contain"
+              />
             ))}
           </div>
         </div>

@@ -17,7 +17,7 @@ export async function SiteShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-svh flex-col">
       <SiteHeader categories={categories} />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 bg-neutral-10">{children}</main>
       <SiteFooter />
     </div>
   );

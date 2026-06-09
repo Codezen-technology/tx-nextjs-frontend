@@ -1,30 +1,13 @@
-import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { HeroCarousel } from "./hero-carousel";
+import { CategoriesScroller } from "./categories-scroller";
 import { CourseCard } from "@/components/courses/course-card";
 import { SafeImage } from "@/components/ui/safe-image";
 import { coursesService } from "@/lib/services/courses";
 import { publicImageExists } from "@/lib/utils/public-image.server";
 import type { Course } from "@/types/course";
-
-const HERO_ACCREDITATIONS = [
-  { src: "/images/cpd-logo.png", alt: "CPD Certified", width: 56, height: 56, label: "CPD Certified" },
-  {
-    src: "/images/ukrlp-logo.png",
-    alt: "UKRLP Registered",
-    width: 75,
-    height: 20,
-    label: "UKRLP Registered",
-  },
-] as const;
-
-const POPULAR_CATEGORIES = [
-  "Discount courses",
-  "Online courses",
-  "On Demand courses",
-  "Accounting courses",
-  "IT courses",
-];
+import heroData from "@/data/home/hero.json";
+const overlayImage = "/images/Overlay-Image.webp";
+const HERO_ACCREDITATIONS = heroData.accreditations;
 
 async function getPopularCourses(): Promise<Course[]> {
   try {
@@ -39,17 +22,15 @@ export async function HeroSection() {
   const courses = await getPopularCourses();
 
   return (
-    <section className="relative overflow-x-clip bg-[#e6f8fe]">
-      <div className="mx-auto flex max-w-[1400px] flex-col items-start gap-12 px-6 py-[60px] lg:flex-row lg:items-center lg:px-10 lg:py-[160px]">
+    <section className="relative overflow-x-clip bg-primary-50 bg-cover bg-center" style={{ backgroundImage: `url(${overlayImage})` }}>
+      <div className="mx-auto flex  max-w-none lg:max-w-[1400px] flex-col items-start gap-12 px-4 py-[60px] xl:flex-row lg:items-center xl:px-0 lg:py-[170px]">
         <div className="flex w-full min-w-0 flex-col gap-6 lg:max-w-[636px]">
           <div className="flex flex-col gap-4">
-            <h1 className="font-suse text-[40px] font-bold leading-[1.2] text-[#00204a] md:text-[48px] lg:text-[56px]">
-              UK&apos;s Leading eLearning Hub for Growth
+            <h1 className="font-suse text-[40px] font-bold leading-[1.2] text-neutral-900 md:text-[48px] lg:text-[56px]">
+               {heroData.title}
             </h1>
-            <p className="font-open-sans text-base font-normal leading-[1.5] text-[#3b5374]">
-              Join thousands of professionals and businesses across the UK. Be industry-ready with
-              expert-led, accredited online training and earn recognised certifications. Stay
-              compliant, upskill, and advance with quality courses, anywhere, anytime.
+            <p className="font-open-sans text-base font-normal leading-[1.5] text-neutral-500">
+              {heroData.description}
             </p>
           </div>
 
@@ -77,12 +58,12 @@ export async function HeroSection() {
           </div>
 
           <div className="overflow-hidden rounded-[4px] bg-[rgba(0,32,74,0.4)] backdrop-blur-[8px]">
-            <form action="/courses" method="get" className="flex items-center gap-6 p-6">
+            <form action="/courses" method="get" className="flex flex-col md:flex-row items-center gap-6 p-6">
               <input
                 name="search"
                 type="text"
                 placeholder="Subject or qualification, e.g. IT Course"
-                className="h-[56px] flex-1 rounded-[2px] px-8 font-open-sans text-sm text-[#767476] outline-none placeholder:text-[#767476]"
+                className="h-[56px] flex-1 rounded-[2px] bg-white px-8 font-open-sans text-sm text-[#767476] outline-none placeholder:text-[#767476]"
               />
               <button
                 type="submit"
@@ -92,25 +73,7 @@ export async function HeroSection() {
               </button>
             </form>
 
-            <div className="flex items-center gap-2 overflow-hidden px-6 pb-6">
-              <ChevronLeft className="h-4 w-4 shrink-0 text-white" />
-              <div className="flex min-w-0 flex-1 items-center overflow-x-auto">
-                {POPULAR_CATEGORIES.map((cat, i) => (
-                  <span key={cat} className="flex shrink-0 items-center">
-                    <Link
-                      href={`/courses?search=${encodeURIComponent(cat)}`}
-                      className="whitespace-nowrap px-2 font-open-sans text-base font-normal leading-[1.5] text-white/90 transition-colors hover:text-white"
-                    >
-                      {cat}
-                    </Link>
-                    {i < POPULAR_CATEGORIES.length - 1 && (
-                      <span className="text-white/40">|</span>
-                    )}
-                  </span>
-                ))}
-              </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-white" />
-            </div>
+            <CategoriesScroller />
           </div>
         </div>
 

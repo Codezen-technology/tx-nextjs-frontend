@@ -1,52 +1,15 @@
 import Link from "next/link";
-import {
-  Utensils,
-  ShieldCheck,
-  Baby,
-  FlaskConical,
-  GraduationCap,
-  Layers,
-  Flame,
-  Brain,
-  Heart,
-  Briefcase,
-  Award,
-  ChevronRight,
-} from "lucide-react";
-import { coursesService } from "@/lib/services/courses";
-import type { CourseCategory } from "@/types/course";
+import { GraduationCap, ChevronRight } from "lucide-react";
+import categoriesData from "@/data/home/categories.json";
 
-const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  "food-hygiene": Utensils,
-  "health-and-safety": ShieldCheck,
-  "health-safety": ShieldCheck,
-  safeguarding: Baby,
-  haccp: FlaskConical,
-  education: GraduationCap,
-  "asbestos-awareness": Layers,
-  asbestos: Layers,
-  "fire-safety": Flame,
-  "mental-health": Brain,
-  "health-and-social-care": Heart,
-  "health-social-care": Heart,
-  "business-essentials": Briefcase,
-  business: Briefcase,
-  "city-guilds": Award,
-};
+type CategoryItem = (typeof categoriesData)[number];
 
-function getCategoryIcon(slug: string): React.ComponentType<{ className?: string }> {
-  const match = Object.keys(CATEGORY_ICONS).find(
-    (k) => slug.includes(k) || k.includes(slug.split("-")[0]),
-  );
-  return match ? CATEGORY_ICONS[match] : GraduationCap;
+function resolveIcon(cat: CategoryItem): { type: "img"; src: string } | { type: "icon" } {
+  return cat.image ? { type: "img", src: cat.image } : { type: "icon" };
 }
 
-async function getCategories(): Promise<CourseCategory[]> {
-  try {
-    return await coursesService.categories();
-  } catch {
-    return [];
-  }
+async function getCategories(): Promise<CategoryItem[]> {
+  return categoriesData;
 }
 
 export async function CategoriesGrid() {
@@ -54,35 +17,48 @@ export async function CategoriesGrid() {
 
   if (!categories.length) return null;
 
+  // Static Figma order: 11 tiles (6 + 5)
   const displayed = categories.slice(0, 11);
 
   return (
-    <div className="mt-10">
-      <div className="mb-6 flex items-center justify-between">
-        <h3 className="font-suse text-2xl font-bold text-neutral-900">
+    <div className="container">
+      {/* Header — Figma: SUSE Bold 32px, "View all" secondary-500 */}
+      <div className="mb-6 flex flex-col md:flex-row items-end md:items-center justify-between">
+        <h3 className="font-suse text-[32px] font-bold leading-normal text-neutral-900">
           Explore courses by category
         </h3>
         <Link
           href="/courses"
-          className="flex items-center gap-1 font-open-sans text-sm font-semibold text-secondary-500 transition-colors hover:text-secondary-600"
+          className="flex items-end md:items-center gap-1 font-open-sans text-base font-normal text-secondary-500 transition-colors hover:text-secondary-600"
         >
-          View all <ChevronRight className="h-4 w-4" />
+          View all courses
+          <ChevronRight className="h-4 w-4" />
         </Link>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
         {displayed.map((cat) => {
-          const Icon = getCategoryIcon(cat.slug);
+          const icon = resolveIcon(cat);
           return (
             <Link
               key={cat.id}
-              href={`/courses?category=${cat.slug}`}
-              className="group flex flex-col items-center gap-3 rounded-lg border border-neutral-30 bg-white p-4 text-center transition-all hover:border-secondary-200 hover:bg-secondary-50 hover:shadow-sm"
+              href={`/course-cat/${cat.slug}`}
+              className="group flex h-[196px] w-auto shrink-0 flex-col items-center justify-center gap-1 rounded-[8px] bg-secondary-50 transition-all hover:bg-primary-50 hover:shadow-sm"
             >
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-50 transition-colors group-hover:bg-secondary-100">
-                <Icon className="h-7 w-7 text-neutral-900 transition-colors group-hover:text-secondary-500" />
+              <div className="flex h-14 w-14 items-center justify-center overflow-hidden">
+                {icon.type === "img" ? (
+                  <img
+                    src={encodeURI(icon.src)}
+                    alt={cat.name}
+                    width={56}
+                    height={56}
+                    className="h-14 w-14 object-contain"
+                  />
+                ) : (
+                  <GraduationCap className="h-8 w-8 text-neutral-300" />
+                )}
               </div>
-              <span className="font-open-sans text-sm font-medium leading-tight text-neutral-900">
+              <span className="px-2 text-center font-open-sans text-base text-neutral-300 group-hover:text-neutral-500">
                 {cat.name}
               </span>
             </Link>

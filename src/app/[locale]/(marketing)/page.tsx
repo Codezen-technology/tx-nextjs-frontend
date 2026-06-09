@@ -8,12 +8,17 @@ import { WhySection } from "@/components/home/why-section";
 import { ReviewsSection } from "@/components/home/reviews-section";
 import { BlogSection } from "@/components/home/blog-section";
 import { CourseCardSkeleton } from "@/components/courses/course-card";
+import { PopularCourses } from "@/components/home/popular-courses";
+import { Topbar } from "@/components/home/topbar";
 
 export const revalidate = 300;
 
 export default function HomePage() {
   return (
     <>
+      {/* 0. Topbar */}
+      <Topbar />
+
       {/* 1. Hero */}
       <HeroSection />
 
@@ -24,14 +29,14 @@ export default function HomePage() {
       <TrustedOrgs />
 
       {/* 4. Featured courses (8-grid) */}
-      <section className="py-16">
+      {/* <section className="pt-20">
         <div className="container">
           <div className="mb-8">
             <h2 className="font-suse text-3xl font-bold text-neutral-900 md:text-4xl">
-              Our Most Popular Courses
+              Popular Courses
             </h2>
             <p className="mt-2 font-open-sans text-neutral-500">
-              Explore our top-rated courses, trusted by thousands of learners across the UK.
+              Explore our wide range of online courses covering key areas like Health & Safety, Compliance, Education, Food Hygiene, Safeguarding, and more. Whether you're looking to advance your personal skills or provide your team or business with the knowledge they need, our courses are designed to foster growth, safety, and compliance in any workplace.
             </p>
           </div>
           <Suspense
@@ -46,9 +51,16 @@ export default function HomePage() {
             <FeaturedCourses limit={8} />
           </Suspense>
 
-          {/* 5. Browse by category */}
-          <CategoriesGrid />
+          
         </div>
+      </section> */}
+
+      <section className="flex flex-col gap-20 py-16 lg:py-20">
+        {/* 4. Popular Courses */}
+        <PopularCourses limit={8} />
+
+        {/* 5. Browse by category */}
+        <CategoriesGrid />
       </section>
 
       {/* 6. Why choose us */}
@@ -58,7 +70,7 @@ export default function HomePage() {
       <ReviewsSection />
 
       {/* 8. Blog */}
-      <BlogSection />
+      {/* <BlogSection /> */}
     </>
   );
 }
