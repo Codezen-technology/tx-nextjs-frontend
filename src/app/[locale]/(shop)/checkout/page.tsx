@@ -7,7 +7,6 @@ import { Elements } from "@stripe/react-stripe-js";
 import { stripePromise } from "@/lib/stripe";
 import { useCartQuery } from "@/lib/hooks/useCart";
 import { useCartStore } from "@/lib/stores/cart.store";
-import { useBuyNowStore } from "@/lib/stores/buy-now.store";
 import { hasUserLoggedInCookie } from "@/lib/api/bff-client";
 import { BillingForm } from "@/components/checkout/BillingForm";
 import { CheckoutOrderSummary } from "@/components/checkout/CheckoutOrderSummary";
@@ -20,8 +19,6 @@ export default function CheckoutPage() {
   const billingRef = useRef<BillingFormHandle>(null);
   const itemCount = useCartStore((s) => s.itemCount);
   const cartHydrated = useCartStore((s) => s.hasHydrated);
-  const buyNowItem = useBuyNowStore((s) => s.item);
-  const buyNowHydrated = useBuyNowStore((s) => s.hasHydrated);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -31,12 +28,12 @@ export default function CheckoutPage() {
   // Pre-fetch cart so CheckoutOrderSummary has data.
   useCartQuery();
 
-  // Redirect to cart if nothing to checkout — wait for both stores to rehydrate first.
+  // Redirect to cart if nothing to checkout — wait for cart store to rehydrate first.
   useEffect(() => {
-    if (cartHydrated && buyNowHydrated && itemCount === 0 && !buyNowItem) {
+    if (cartHydrated && itemCount === 0) {
       router.replace("/cart");
     }
-  }, [cartHydrated, buyNowHydrated, itemCount, buyNowItem, router]);
+  }, [cartHydrated, itemCount, router]);
 
   const handleOrderSuccess = (orderId: number, orderKey: string) => {
     const params = new URLSearchParams();

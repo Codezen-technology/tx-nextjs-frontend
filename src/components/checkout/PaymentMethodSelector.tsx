@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { cn } from "@/lib/utils/cn";
-import { useCreateOrder, usePayOrder, useWcStoreCheckout } from "@/lib/hooks/useCheckout";
+import { useWcStoreCheckout } from "@/lib/hooks/useCheckout";
 import { useCartStore } from "@/lib/stores/cart.store";
-import { useBuyNowStore } from "@/lib/stores/buy-now.store";
 import { SecurePaymentBadge } from "./SecurePaymentBadge";
-import type { CreateOrderResponse, WCStoreCheckoutResponse } from "@/lib/services/checkout";
+import type { WCStoreCheckoutResponse } from "@/lib/services/checkout";
 import type { BillingFormHandle } from "./BillingForm";
 
 interface PaymentMethodSelectorProps {
@@ -20,19 +19,10 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
   const [stripeError, setStripeError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Buy-Now retry state (REST v3 path only)
-  const [pendingOrder, setPendingOrder] = useState<CreateOrderResponse | null>(null);
-
   const stripe = useStripe();
   const elements = useElements();
   const { mutateAsync: wcStoreCheckout } = useWcStoreCheckout();
-  const { mutateAsync: createOrder } = useCreateOrder();
-  const { mutateAsync: payOrder } = usePayOrder();
-  const cartItems = useCartStore((s) => s.items);
-  const cartTotals = useCartStore((s) => s.totals);
   const clearCart = useCartStore((s) => s.clearCart);
-  const buyNowItem = useBuyNowStore((s) => s.item);
-  const clearBuyNow = useBuyNowStore((s) => s.clear);
 
   // ─── Store API checkout (standard cart) ────────────────────────────────────
 
@@ -107,54 +97,7 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
     }
 
     clearCart();
-    clearBuyNow();
     onSuccess(result.order_id, result.order_key);
-  };
-
-  // ─── REST v3 checkout (Buy Now path) ───────────────────────────────────────
-
-  const handleBuyNowCheckout = async () => {
-    const billing = billingRef.current!.getValues();
-
-    if (!stripe || !elements) throw new Error("Stripe is not loaded.");
-    const cardElement = elements.getElement(CardElement);
-    if (!cardElement) throw new Error("Card element not found.");
-
-    let order: CreateOrderResponse;
-
-    if (pendingOrder) {
-      order = pendingOrder;
-    } else {
-      order = await createOrder({
-        billing,
-        payment_method: method,
-        line_items: [{ product_id: buyNowItem!.product_id, quantity: buyNowItem!.quantity }],
-      });
-
-      if (!order.client_secret) {
-        throw new Error("Payment setup failed — no client secret returned.");
-      }
-
-      setPendingOrder(order);
-    }
-
-    const { error, paymentIntent } = await stripe.confirmCardPayment(order.client_secret!, {
-      payment_method: { card: cardElement },
-    });
-
-    if (error) {
-      throw new Error(error.message ?? "Payment failed.");
-    }
-
-    await payOrder({
-      orderId: order.order_id,
-      payment_intent_id: paymentIntent!.id,
-      order_key: order.order_key,
-    });
-
-    setPendingOrder(null);
-    clearBuyNow();
-    onSuccess(order.order_id, order.order_key);
   };
 
   // ─── Submit handler ─────────────────────────────────────────────────────────
@@ -169,11 +112,7 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
     setIsSubmitting(true);
 
     try {
-      if (buyNowItem) {
-        await handleBuyNowCheckout();
-      } else {
-        await handleStoreApiCheckout();
-      }
+      await handleStoreApiCheckout();
     } catch (err) {
       setStripeError((err as Error).message ?? "Something went wrong.");
     } finally {

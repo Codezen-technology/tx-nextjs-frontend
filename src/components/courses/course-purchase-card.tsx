@@ -7,7 +7,6 @@ import { Check, Facebook, Linkedin, Twitter } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useAddToCart } from "@/lib/hooks/useCart";
 import { resolveCourseProductId } from "@/lib/services/courses";
-import { useBuyNowStore } from "@/lib/stores/buy-now.store";
 import type { CourseRichData } from "@/types/course";
 
 function formatCoursePrice(amount: number, currency: string): string {
@@ -31,8 +30,8 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
   const [addedFeedback, setAddedFeedback] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const router = useRouter();
-  const { mutate: addToCart, isPending } = useAddToCart();
-  const setBuyNow = useBuyNowStore((s) => s.set);
+  const { mutate: addToBasket, isPending: isAddingToBasket } = useAddToCart();
+  const { mutate: addToCartAndGo, isPending: isBuyingNow } = useAddToCart();
   const { pricing } = course;
 
   const durationLabel = course.duration
@@ -48,7 +47,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
       return;
     }
     setAddError(null);
-    addToCart(
+    addToBasket(
       { product_id: wcProductId },
       {
         onSuccess: () => {
@@ -68,14 +67,17 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
       return;
     }
     setAddError(null);
-    // Direct checkout: bypass WC Store API cart, create order on checkout page.
-    setBuyNow({
-      product_id: wcProductId,
-      name: course.title ?? "",
-      price: pricing?.price ?? 0,
-      quantity: 1,
-    });
-    router.push("/checkout");
+    addToCartAndGo(
+      { product_id: wcProductId, quantity: tab === "teams" ? qty : 1 },
+      {
+        onSuccess: () => {
+          router.push("/checkout");
+        },
+        onError: (err) => {
+          setAddError((err as Error).message ?? "Could not process purchase.");
+        },
+      },
+    );
   };
 
   return (
@@ -157,10 +159,10 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
               <button
                 type="button"
                 onClick={handleBuyNow}
-                disabled={isPending}
+                disabled={isBuyingNow || isAddingToBasket}
                 className="block w-full rounded bg-secondary-500 py-2.5 text-center font-open-sans text-sm font-semibold text-white transition-colors hover:bg-secondary-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isPending ? "Adding…" : "Buy this course"}
+                {isBuyingNow ? "Adding…" : "Buy this course"}
               </button>
             ) : (
               <Link
@@ -180,7 +182,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
               <button
                 type="button"
                 onClick={handleAddToBasket}
-                disabled={isPending || addedFeedback || !canPurchase}
+                disabled={isAddingToBasket || isBuyingNow || addedFeedback || !canPurchase}
                 className={cn(
                   "block w-full rounded border py-2.5 text-center font-open-sans text-sm font-semibold transition-colors disabled:cursor-not-allowed",
                   addedFeedback
@@ -193,7 +195,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                     <Check className="h-4 w-4" />
                     Added to Basket
                   </span>
-                ) : isPending ? (
+                ) : isAddingToBasket ? (
                   "Adding…"
                 ) : (
                   "Add to Basket"
