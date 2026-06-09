@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, Minus, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { ParsedHtml } from "@/components/ui/parsed-html";
@@ -21,18 +21,32 @@ export function CartItemRow({ item }: CartItemRowProps) {
 
   const [localQty, setLocalQty] = useState(item.quantity);
   const debouncedQty = useDebounce(localQty, 400);
+  // Tracks the quantity we last sent to the server to avoid duplicate mutations.
+  const inFlightQty = useRef<number | null>(null);
 
-  // Sync server qty → local when not in the middle of an update
+  // Sync to server quantity whenever the store updates (mutation success, external change).
+  // Does NOT depend on isUpdating — that causes a race where isPending goes false before
+  // the Zustand store processes setCart, resetting localQty and re-triggering the mutation.
   useEffect(() => {
-    if (!isUpdating) setLocalQty(item.quantity);
-  }, [item.quantity, isUpdating]);
+    setLocalQty(item.quantity);
+    inFlightQty.current = null;
+  }, [item.quantity]);
 
-  // Fire mutation only when debounced value differs from server value
+  // Fire mutation when debounced value diverges from server value.
+  // updateQty is intentionally omitted from deps: useMutation's mutate is not a stable
+  // reference — including it causes the effect to re-run on every status change (pending →
+  // success), firing a duplicate mutation before item.quantity has synced from the store.
   useEffect(() => {
-    if (debouncedQty !== item.quantity && debouncedQty >= 1) {
+    if (
+      debouncedQty !== item.quantity &&
+      debouncedQty >= 1 &&
+      debouncedQty !== inFlightQty.current
+    ) {
+      inFlightQty.current = debouncedQty;
       updateQty({ key: item.key, quantity: debouncedQty });
     }
-  }, [debouncedQty, item.quantity, item.key, updateQty]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedQty, item.quantity, item.key]);
 
   const handleQty = (delta: number) => {
     setLocalQty((prev) => Math.min(item.max_quantity, Math.max(1, prev + delta)));
@@ -97,22 +111,24 @@ export function CartItemRow({ item }: CartItemRowProps) {
           >
             <button
               onClick={() => handleQty(-1)}
-              disabled={localQty <= 1 || isRemoving || isUpdating}
+              disabled={localQty <= 1 || isRemoving}
               aria-label="Decrease quantity"
               className="flex h-full w-10 items-center justify-center text-[#00204a] hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Minus size={16} />
             </button>
             <span className="relative flex w-8 items-center justify-center">
-              {isUpdating ? (
-                <Loader2 size={14} className="animate-spin text-[#9e6f21]" />
-              ) : (
-                <span className="text-sm font-medium text-[#00204a]">{localQty}</span>
+              <span className="text-sm font-medium text-[#00204a]">{localQty}</span>
+              {isUpdating && (
+                <Loader2
+                  size={10}
+                  className="absolute -right-3 -top-2 animate-spin text-[#9e6f21]"
+                />
               )}
             </span>
             <button
               onClick={() => handleQty(1)}
-              disabled={localQty >= item.max_quantity || isRemoving || isUpdating}
+              disabled={localQty >= item.max_quantity || isRemoving}
               aria-label="Increase quantity"
               className="flex h-full w-10 items-center justify-center text-[#00204a] hover:bg-gray-50 disabled:opacity-40"
             >

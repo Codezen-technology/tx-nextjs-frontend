@@ -53,6 +53,17 @@ export interface FooterData {
   };
 }
 
+export interface MembershipUpsell {
+  product_id: number;
+  name: string;
+  price: number;
+  regular_price: number;
+  currency: string;
+  badge: string | null;
+  features: string[];
+  permalink: string | null;
+}
+
 export interface SiteSettings {
   site_name: string;
   tagline?: string;
@@ -70,6 +81,7 @@ export interface SiteSettings {
   currency: string;
   locale: string;
   features: SiteFeatures;
+  membership_upsell?: MembershipUpsell | null;
 }
 
 /** Merged effective settings: API response overridden by env vars. */

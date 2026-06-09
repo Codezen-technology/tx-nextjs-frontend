@@ -7,8 +7,11 @@ import { useRouter, usePathname } from "next/navigation";
 import { Search, ChevronDown, ShoppingCart, Menu, X, LogOut, User as UserIcon } from "lucide-react";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
 import { useAuth, useLogout } from "@/lib/hooks/useAuth";
+import { useCartQuery } from "@/lib/hooks/useCart";
+import { useCartStore } from "@/lib/stores/cart.store";
 import { cn } from "@/lib/utils/cn";
 import { MegaMenu } from "./mega-menu";
+import { MiniCart } from "@/components/cart/MiniCart";
 import type { CourseCategory } from "@/types/course";
 
 const resourcesLinks = [
@@ -17,7 +20,13 @@ const resourcesLinks = [
   { href: "/about", label: "About Us" },
 ];
 
-function NavDropdown({ label, links }: { label: string; links: { href: string; label: string }[] }) {
+function NavDropdown({
+  label,
+  links,
+}: {
+  label: string;
+  links: { href: string; label: string }[];
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -93,6 +102,38 @@ function CourseSearch() {
   );
 }
 
+function CartButton() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const itemCount = useCartStore((s) => s.itemCount);
+  const hasHydrated = useCartStore((s) => s.hasHydrated);
+
+  useCartQuery();
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        className="flex items-center gap-1.5 font-open-sans text-[14px] font-medium text-neutral-30 transition-colors hover:text-primary-300"
+      >
+        <ShoppingCart className="h-4 w-4" />
+        Basket {hasHydrated ? `(${itemCount})` : "(0)"}
+      </button>
+      {open && <MiniCart onClose={() => setOpen(false)} />}
+    </div>
+  );
+}
+
 export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
@@ -137,10 +178,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
         </Link>
 
         {/* Desktop nav */}
-        <nav
-          aria-label="Main navigation"
-          className="hidden flex-col items-end gap-[14px] lg:flex"
-        >
+        <nav aria-label="Main navigation" className="hidden flex-col items-end gap-[14px] lg:flex">
           {/* Row 1: utility */}
           <div className="flex items-center gap-6">
             <Link
@@ -176,7 +214,9 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
               className="flex items-center gap-1 font-open-sans text-[14px] font-medium text-neutral-30 transition-colors hover:text-primary-300"
             >
               Our courses
-              <ChevronDown className={cn("h-4 w-4 transition-transform", megaMenuOpen && "rotate-180")} />
+              <ChevronDown
+                className={cn("h-4 w-4 transition-transform", megaMenuOpen && "rotate-180")}
+              />
             </button>
             <Link
               href="/training-teams"
@@ -204,13 +244,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
             <div className="h-8 w-px bg-neutral-600" aria-hidden="true" />
 
             {/* Basket */}
-            <Link
-              href="/courses"
-              className="flex items-center gap-1.5 font-open-sans text-[14px] font-medium text-neutral-30 transition-colors hover:text-primary-300"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              Basket (0)
-            </Link>
+            <CartButton />
 
             {/* Auth */}
             {!hasHydrated ? (
@@ -260,25 +294,91 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
 
       {/* Mobile nav */}
       {mobileOpen && (
-        <div id="mobile-nav" className="border-t border-neutral-600 bg-neutral-800 px-6 pb-6 lg:hidden">
+        <div
+          id="mobile-nav"
+          className="border-t border-neutral-600 bg-neutral-800 px-6 pb-6 lg:hidden"
+        >
           <div className="flex flex-col gap-1 pt-4">
-            <Link href="/about" onClick={() => setMobileOpen(false)} className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300">About us</Link>
-            <Link href="/help" onClick={() => setMobileOpen(false)} className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300">Help</Link>
-            <Link href="/courses" onClick={() => { setMobileOpen(false); closeMegaMenu(); }} className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300">Our courses</Link>
-            <Link href="/training-teams" onClick={() => setMobileOpen(false)} className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300">Training teams</Link>
-            <Link href="/blog" onClick={() => setMobileOpen(false)} className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300">Resources</Link>
-            <Link href="/contact" onClick={() => setMobileOpen(false)} className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300">Contact us</Link>
+            <Link
+              href="/about"
+              onClick={() => setMobileOpen(false)}
+              className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+            >
+              About us
+            </Link>
+            <Link
+              href="/help"
+              onClick={() => setMobileOpen(false)}
+              className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+            >
+              Help
+            </Link>
+            <Link
+              href="/courses"
+              onClick={() => {
+                setMobileOpen(false);
+                closeMegaMenu();
+              }}
+              className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+            >
+              Our courses
+            </Link>
+            <Link
+              href="/training-teams"
+              onClick={() => setMobileOpen(false)}
+              className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+            >
+              Training teams
+            </Link>
+            <Link
+              href="/blog"
+              onClick={() => setMobileOpen(false)}
+              className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+            >
+              Resources
+            </Link>
+            <Link
+              href="/contact"
+              onClick={() => setMobileOpen(false)}
+              className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+            >
+              Contact us
+            </Link>
             <div className="my-2 border-t border-neutral-600" />
-            <Link href="/courses" onClick={() => setMobileOpen(false)} className="flex items-center gap-1.5 py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300">
-              <ShoppingCart className="h-4 w-4" /> Basket (0)
+            <Link
+              href="/cart"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-1.5 py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+            >
+              <ShoppingCart className="h-4 w-4" /> Basket
             </Link>
             {isAuthenticated ? (
               <>
-                <Link href="/profile" onClick={() => setMobileOpen(false)} className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300">My account</Link>
-                <button onClick={() => { logout(); setMobileOpen(false); }} className="py-2 text-left font-open-sans text-[15px] font-medium text-neutral-100 hover:text-primary-300">Sign out</button>
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileOpen(false)}
+                  className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+                >
+                  My account
+                </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    setMobileOpen(false);
+                  }}
+                  className="py-2 text-left font-open-sans text-[15px] font-medium text-neutral-100 hover:text-primary-300"
+                >
+                  Sign out
+                </button>
               </>
             ) : (
-              <Link href="/login" onClick={() => setMobileOpen(false)} className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300">Log in</Link>
+              <Link
+                href="/login"
+                onClick={() => setMobileOpen(false)}
+                className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+              >
+                Log in
+              </Link>
             )}
             {/* Mobile search */}
             <div className="mt-3">

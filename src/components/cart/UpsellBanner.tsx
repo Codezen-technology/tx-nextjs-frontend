@@ -1,61 +1,96 @@
-import Link from "next/link";
-import { CheckCircle } from "lucide-react";
+"use client";
 
-const FEATURES = [
-  "1 Year Access to 3000+ Courses",
-  "Unlimited PDF Certificates",
-  "Unlimited PDF Transcripts",
-  "Free Student ID Card & More",
-];
+import { CheckCircle } from "lucide-react";
+import { useSiteSettings } from "@/components/providers/site-settings-provider";
+import { useAddToCart } from "@/lib/hooks/useCart";
+import { useCartStore } from "@/lib/stores/cart.store";
 
 interface UpsellBannerProps {
   variant?: "cart" | "checkout";
 }
 
 export function UpsellBanner({ variant = "cart" }: UpsellBannerProps) {
+  const { membership_upsell: upsell } = useSiteSettings();
+  const addToCart = useAddToCart();
+  const cartItems = useCartStore((s) => s.items);
+
+  if (!upsell) return null;
+
+  const alreadyInCart = cartItems.some((i) => i.product_id === upsell.product_id);
+
+  function handleAddToCart() {
+    if (!upsell || alreadyInCart) return;
+    addToCart.mutate({ product_id: upsell.product_id, quantity: 1 });
+  }
+
   return (
-    <div className="relative overflow-hidden rounded-lg" style={{ background: "linear-gradient(6deg, #00204a 9%, #1c395e 92%)" }}>
-      {/* Most Popular badge */}
-      <div className="absolute right-0 top-0">
-        <div
-          className="px-4 py-1.5 text-xs font-medium text-[#00204a]"
-          style={{ background: "linear-gradient(69deg, #01aee0 0%, #00c7ff 100%)" }}
-        >
-          Most Popular
+    <div
+      className="relative overflow-hidden rounded-lg"
+      style={{ background: "linear-gradient(6deg, #00204a 9%, #1c395e 92%)" }}
+    >
+      {upsell.badge && (
+        <div className="absolute right-0 top-0">
+          <div
+            className="px-4 py-1.5 text-xs font-medium text-[#00204a]"
+            style={{ background: "linear-gradient(69deg, #01aee0 0%, #00c7ff 100%)" }}
+          >
+            {upsell.badge}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
         {/* Title + price */}
         <div>
-          <p className="text-sm font-semibold text-[#00bbf0]">Lifetime Prime Plus</p>
-          <p className="mt-1 text-[#dc3545] line-through text-xl font-bold">£599</p>
+          <p className="text-sm font-semibold text-[#00bbf0]">{upsell.name}</p>
+          {upsell.regular_price > upsell.price && (
+            <p className="mt-1 text-xl font-bold text-[#dc3545] line-through">
+              {upsell.currency}
+              {upsell.regular_price}
+            </p>
+          )}
           <p className="text-2xl font-bold text-white">
-            £249<span className="text-base font-normal">/Year</span>
+            {upsell.currency}
+            {upsell.price}
+            <span className="text-base font-normal">/Year</span>
           </p>
         </div>
 
         {/* Feature list */}
-        <ul className="space-y-1.5">
-          {FEATURES.map((f) => (
-            <li key={f} className="flex items-center gap-2 text-sm text-white">
-              <CheckCircle size={14} className="shrink-0 text-[#00bbf0]" />
-              {f}
-            </li>
-          ))}
-        </ul>
+        {upsell.features.length > 0 && (
+          <ul className="space-y-1.5">
+            {upsell.features.map((f) => (
+              <li key={f} className="flex items-center gap-2 text-sm text-white">
+                <CheckCircle size={14} className="shrink-0 text-[#00bbf0]" />
+                {f}
+              </li>
+            ))}
+          </ul>
+        )}
 
         {/* CTA */}
         <div className="flex flex-col items-center gap-2 sm:w-56">
-          <Link
-            href="/membership"
-            className="w-full rounded-full border border-[#00bbf0] bg-gradient-to-r from-[#00bbf0] to-[#8ae0f8] px-6 py-2.5 text-center text-sm font-medium text-[#00204a] hover:opacity-90"
+          <button
+            onClick={handleAddToCart}
+            disabled={alreadyInCart || addToCart.isPending}
+            className="w-full rounded-full border border-[#00bbf0] bg-gradient-to-r from-[#00bbf0] to-[#8ae0f8] px-6 py-2.5 text-center text-sm font-medium text-[#00204a] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {variant === "cart" ? "Add to Cart" : "Start Today"}
-          </Link>
-          <Link href="/membership" className="text-xs text-white underline underline-offset-2 hover:text-gray-300">
-            View more details
-          </Link>
+            {alreadyInCart
+              ? "Added"
+              : addToCart.isPending
+                ? "Adding…"
+                : variant === "cart"
+                  ? "Add to Cart"
+                  : "Get Started"}
+          </button>
+          {upsell.permalink && (
+            <a
+              href={upsell.permalink}
+              className="text-xs text-white underline underline-offset-2 hover:text-gray-300"
+            >
+              View more details
+            </a>
+          )}
         </div>
       </div>
     </div>

@@ -22,7 +22,9 @@ export function CouponInput() {
   if (appliedCoupon) {
     return (
       <div className="flex items-center gap-3 rounded border border-green-200 bg-green-50 px-4 py-3 text-sm">
-        <span className="font-medium text-green-700">Coupon applied: {appliedCoupon.toUpperCase()}</span>
+        <span className="font-medium text-green-700">
+          Coupon applied: {appliedCoupon.toUpperCase()}
+        </span>
         <button
           onClick={() => remove(appliedCoupon)}
           disabled={isRemoving}
@@ -36,24 +38,24 @@ export function CouponInput() {
 
   return (
     <div className="space-y-2">
-      <div className="flex gap-2">
+      <div className="flex">
         <input
           type="text"
           value={code}
           onChange={(e) => setCode(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleApply()}
           placeholder="Coupon code"
-          className="h-10 flex-1 rounded border border-[#ced4da] px-3 text-sm text-[#00204a] placeholder:text-gray-400 focus:border-[#9e6f21] focus:outline-none focus:ring-1 focus:ring-[#9e6f21]"
+          className="h-12 flex-1 rounded-l border border-r-0 border-[#ebedf1] bg-white px-[13px] py-[7px] text-base text-[#00204a] placeholder:text-[#75879d] focus:border-[#9e6f21] focus:outline-none"
         />
         <button
           onClick={handleApply}
           disabled={isApplying || !code.trim()}
           className={cn(
-            "rounded bg-[#9e6f21] px-4 py-2 text-sm font-medium text-white transition-colors",
-            "hover:bg-[#7d5819] disabled:cursor-not-allowed disabled:opacity-50",
+            "h-12 rounded-r border border-[#9e6f21] bg-[#9e6f21] px-[13px] py-[7px] text-base text-white transition-colors",
+            "hover:border-[#7d5819] hover:bg-[#7d5819] disabled:cursor-not-allowed disabled:opacity-50",
           )}
         >
-          {isApplying ? "Applying…" : "Apply"}
+          {isApplying ? "Applying…" : "Apply Coupon"}
         </button>
       </div>
       {applyError && (

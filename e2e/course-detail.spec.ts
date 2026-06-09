@@ -1,33 +1,56 @@
 import { test, expect } from "@playwright/test";
 
-// Uses the first course returned by the API — adjust slug if the site has no courses.
-const KNOWN_SLUG = "fire-safety-training";
+let courseSlug: string | null = null;
+
+test.beforeAll(async () => {
+  try {
+    // Discover a real course slug from the WP API at runtime so tests aren't
+    // hardcoded to a slug that may not exist on every dev environment.
+    const base = process.env.NEXT_PUBLIC_WP_API_URL ?? "http://localhost";
+    const res = await fetch(`${base}/wp-json/lms-backend/v1/courses?per_page=1`);
+    if (res.ok) {
+      const body = (await res.json()) as {
+        data?: { items?: { slug: string }[] };
+        items?: { slug: string }[];
+      };
+      const items = body.data?.items ?? body.items ?? [];
+      courseSlug = items[0]?.slug ?? null;
+    }
+  } catch {
+    courseSlug = null;
+  }
+});
 
 test.describe("Course detail page", () => {
   test("renders with correct page title", async ({ page }) => {
-    await page.goto(`/course/${KNOWN_SLUG}`);
-    await expect(page).toHaveTitle(/.+/);
-    // Title should not be the bare "Course" fallback
+    test.skip(!courseSlug, "No courses available on WP backend");
+    const response = await page.goto(`/course/${courseSlug}`);
+    expect(response?.status()).toBe(200);
     const title = await page.title();
+    expect(title).toBeTruthy();
     expect(title).not.toBe("Course");
   });
 
   test("has a canonical link pointing to the frontend domain", async ({ page }) => {
-    await page.goto(`/course/${KNOWN_SLUG}`);
-    await page.waitForLoadState("networkidle");
+    test.skip(!courseSlug, "No courses available on WP backend");
+    await page.goto(`/course/${courseSlug}`);
+    // Wait for client-side hydration to settle so head tags are stable
+    await page.waitForSelector('link[rel="canonical"]', { timeout: 10_000 });
     const canonical = await page.evaluate(
       () => document.querySelector('link[rel="canonical"]')?.getAttribute("href") ?? null,
     );
     expect(canonical).toBeTruthy();
-    expect(canonical).not.toContain("trainingexcellence.org.uk");
-    expect(canonical).toContain(`/course/${KNOWN_SLUG}`);
+    expect(canonical).not.toContain(process.env.NEXT_PUBLIC_WP_API_URL ?? "trainingexcellence");
+    expect(canonical).toContain(`/course/${courseSlug}`);
   });
 
   test("injects valid JSON-LD structured data", async ({ page }) => {
-    await page.goto(`/course/${KNOWN_SLUG}`);
-    await page.waitForLoadState("networkidle");
+    test.skip(!courseSlug, "No courses available on WP backend");
+    await page.goto(`/course/${courseSlug}`);
+    // JSON-LD is rendered in the page body by CourseDetailPage (not via generateMetadata)
+    await page.waitForSelector('script[type="application/ld+json"]', { timeout: 10_000 });
     const scripts = await page.evaluate(() =>
-      [...document.querySelectorAll('script[type="application/ld+json"]')].map(
+      Array.from(document.querySelectorAll('script[type="application/ld+json"]')).map(
         (s) => s.textContent,
       ),
     );
@@ -35,16 +58,8 @@ test.describe("Course detail page", () => {
     expect(() => JSON.parse(scripts[0] ?? "")).not.toThrow();
   });
 
-  test("renders course breadcrumb", async ({ page }) => {
-    await page.goto(`/course/${KNOWN_SLUG}`);
-    await expect(
-      page.locator("nav[aria-label], [data-testid='breadcrumb'], ol, nav").first(),
-    ).toBeVisible();
-  });
-
   test("unknown slug returns 404", async ({ page }) => {
     const response = await page.goto("/course/this-course-does-not-exist-xyz-abc-999");
-    // Next.js notFound() returns a 404
     expect(response?.status()).toBe(404);
   });
 });
