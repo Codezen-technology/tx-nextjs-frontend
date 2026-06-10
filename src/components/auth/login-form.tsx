@@ -24,7 +24,7 @@ export function LoginForm() {
   const onSubmit = (values: LoginInput) => login.mutate(values);
 
   return (
-    <div className="w-full max-w-[416px] rounded-lg border border-[#ebedf1] bg-white p-10 shadow-[0px_8px_8px_rgb(0_0_0/0.15)]">
+    <div className="w-full max-w-[416px] rounded-lg border border-[#ebedf1] bg-white p-10 text-[#3b5374] shadow-[0px_8px_8px_rgb(0_0_0/0.15)]">
       <h1 className="mb-10 text-center font-suse text-[28px] font-bold leading-[1.2] text-[#00204a]">
         Log in
       </h1>
@@ -42,11 +42,17 @@ export function LoginForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           <div className="flex flex-col gap-4">
             <div>
+              <label
+                htmlFor="username"
+                className="mb-1 block font-open-sans text-sm font-medium text-[#3b5374]"
+              >
+                Email or Username
+              </label>
               <input
                 id="username"
                 autoComplete="username"
                 autoFocus
-                placeholder="Email"
+                placeholder="you@example.com"
                 className={cn(
                   "w-full rounded border border-[#ced4da] bg-white px-3.5 py-[7px] font-open-sans text-base text-[#3b5374] placeholder:text-[#6c757d] focus:border-[#9e6f21] focus:outline-none focus:ring-2 focus:ring-[#9e6f21]/30",
                   errors.username && "border-red-500",
@@ -59,7 +65,13 @@ export function LoginForm() {
             </div>
 
             <div>
-              <div className="mb-1 flex justify-end">
+              <div className="mb-1 flex items-center justify-between">
+                <label
+                  htmlFor="password"
+                  className="font-open-sans text-sm font-medium text-[#3b5374]"
+                >
+                  Password
+                </label>
                 <Link
                   href="/forgot-password"
                   className="font-open-sans text-xs text-[#9e6f21] hover:underline"
@@ -72,7 +84,7 @@ export function LoginForm() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  placeholder="••••••••••••"
+                  placeholder="Password"
                   className={cn(
                     "w-full rounded border border-[#ced4da] bg-white px-3.5 py-[7px] pr-10 font-open-sans text-base text-[#3b5374] placeholder:text-[#6c757d] focus:border-[#9e6f21] focus:outline-none focus:ring-2 focus:ring-[#9e6f21]/30",
                     errors.password && "border-red-500",

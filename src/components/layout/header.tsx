@@ -4,14 +4,15 @@ import { useState, useRef, useEffect, useCallback, type FormEvent } from "react"
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { Search, ChevronDown, ShoppingCart, Menu, X, LogOut, User as UserIcon } from "lucide-react";
+import { Search, ChevronDown, ShoppingCart, Menu, X } from "lucide-react";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
-import { useAuth, useLogout } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { useCartQuery } from "@/lib/hooks/useCart";
 import { useCartStore } from "@/lib/stores/cart.store";
 import { cn } from "@/lib/utils/cn";
 import { MegaMenu } from "./mega-menu";
 import { MiniCart } from "@/components/cart/MiniCart";
+import { ProfileMenu, ProfileNavLinks } from "./profile-menu";
 import type { CourseCategory } from "@/types/course";
 
 const resourcesLinks = [
@@ -139,8 +140,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   const pathname = usePathname();
   const settings = useSiteSettings();
-  const { isAuthenticated, user, hasHydrated } = useAuth();
-  const logout = useLogout();
+  const { isAuthenticated, hasHydrated } = useAuth();
   const closeMegaMenu = useCallback(() => setMegaMenuOpen(false), []);
 
   useEffect(() => {
@@ -250,22 +250,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
             {!hasHydrated ? (
               <div className="h-5 w-16 animate-pulse rounded bg-neutral-700" />
             ) : isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-1 font-open-sans text-[14px] font-medium text-neutral-30 transition-colors hover:text-primary-300"
-                >
-                  <UserIcon className="h-4 w-4" />
-                  {user?.displayName ?? "My account"}
-                </Link>
-                <button
-                  onClick={logout}
-                  aria-label="Sign out"
-                  className="font-open-sans text-[14px] font-medium text-neutral-100 transition-colors hover:text-primary-300"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </div>
+              <ProfileMenu />
             ) : (
               <Link
                 href="/login"
@@ -353,24 +338,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
               <ShoppingCart className="h-4 w-4" /> Basket
             </Link>
             {isAuthenticated ? (
-              <>
-                <Link
-                  href="/profile"
-                  onClick={() => setMobileOpen(false)}
-                  className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
-                >
-                  My account
-                </Link>
-                <button
-                  onClick={() => {
-                    logout();
-                    setMobileOpen(false);
-                  }}
-                  className="py-2 text-left font-open-sans text-[15px] font-medium text-neutral-100 hover:text-primary-300"
-                >
-                  Sign out
-                </button>
-              </>
+              <ProfileNavLinks onClose={() => setMobileOpen(false)} />
             ) : (
               <Link
                 href="/login"

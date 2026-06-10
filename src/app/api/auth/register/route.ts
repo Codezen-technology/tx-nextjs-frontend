@@ -9,14 +9,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "WordPress API URL is not configured" }, { status: 500 });
   }
 
-  const body = await request.json();
-  const wpRes = await fetch(`${base}${endpoints.auth.register}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
 
-  const json = (await wpRes.json()) as {
+  let wpRes: Response;
+  let json: {
     success?: boolean;
     data?: {
       access_token?: string;
@@ -26,6 +27,17 @@ export async function POST(request: Request) {
     };
     message?: string;
   };
+
+  try {
+    wpRes = await fetch(`${base}${endpoints.auth.register}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    json = await wpRes.json();
+  } catch {
+    return NextResponse.json({ error: "Registration service unavailable" }, { status: 502 });
+  }
 
   if (!wpRes.ok || json.success === false) {
     return NextResponse.json(

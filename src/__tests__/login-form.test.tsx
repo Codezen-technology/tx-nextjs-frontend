@@ -33,8 +33,8 @@ function submitForm(container: HTMLElement) {
 describe("LoginForm", () => {
   it("renders username and password inputs", () => {
     render(<LoginForm />);
-    expect(screen.getByPlaceholderText("Email")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("••••••••••••")).toBeInTheDocument();
+    expect(screen.getByLabelText(/email or username/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
   });
 
   it("renders the Log in submit button", () => {
@@ -53,7 +53,7 @@ describe("LoginForm", () => {
   it("shows validation error when submitting empty password", async () => {
     const user = userEvent.setup();
     const { container } = render(<LoginForm />);
-    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByLabelText(/email or username/i), "test@example.com");
     submitForm(container);
     await waitFor(() => {
       expect(screen.getByText(/password is required/i)).toBeInTheDocument();
@@ -63,8 +63,8 @@ describe("LoginForm", () => {
   it("calls mutate with credentials on valid submit", async () => {
     const user = userEvent.setup();
     const { container } = render(<LoginForm />);
-    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
-    await user.type(screen.getByPlaceholderText("••••••••••••"), "secret123");
+    await user.type(screen.getByLabelText(/email or username/i), "test@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "secret123");
     submitForm(container);
     await waitFor(() => {
       expect(mockMutate).toHaveBeenCalledWith({
@@ -77,7 +77,7 @@ describe("LoginForm", () => {
   it("toggles password visibility", async () => {
     const user = userEvent.setup();
     render(<LoginForm />);
-    const passwordInput = screen.getByPlaceholderText("••••••••••••");
+    const passwordInput = screen.getByLabelText(/^password$/i);
     expect(passwordInput).toHaveAttribute("type", "password");
 
     await user.click(screen.getByRole("button", { name: /show password/i }));

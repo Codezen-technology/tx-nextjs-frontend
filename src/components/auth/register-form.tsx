@@ -24,7 +24,7 @@ export function RegisterForm() {
   const onSubmit = (values: RegisterInput) => reg.mutate(values);
 
   return (
-    <div className="w-full max-w-[416px] rounded-lg border border-[#ebedf1] bg-white p-10 shadow-[0px_8px_8px_rgb(0_0_0/0.15)]">
+    <div className="w-full max-w-[416px] rounded-lg border border-[#ebedf1] bg-white p-10 text-[#3b5374] shadow-[0px_8px_8px_rgb(0_0_0/0.15)]">
       <h1 className="mb-10 text-center font-suse text-[28px] font-bold leading-[1.2] text-[#00204a]">
         Create your account
       </h1>
@@ -42,6 +42,12 @@ export function RegisterForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           <div className="flex flex-col gap-4">
             <div>
+              <label
+                htmlFor="name"
+                className="mb-1 block font-open-sans text-sm font-medium text-[#3b5374]"
+              >
+                Full Name
+              </label>
               <input
                 id="name"
                 autoComplete="name"
@@ -57,11 +63,17 @@ export function RegisterForm() {
             </div>
 
             <div>
+              <label
+                htmlFor="email"
+                className="mb-1 block font-open-sans text-sm font-medium text-[#3b5374]"
+              >
+                Email
+              </label>
               <input
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="Email"
+                placeholder="you@example.com"
                 className={cn(
                   "w-full rounded border border-[#ced4da] bg-white px-3.5 py-[7px] font-open-sans text-base text-[#3b5374] placeholder:text-[#6c757d] focus:border-[#9e6f21] focus:outline-none focus:ring-2 focus:ring-[#9e6f21]/30",
                   errors.email && "border-red-500",
@@ -72,12 +84,18 @@ export function RegisterForm() {
             </div>
 
             <div>
+              <label
+                htmlFor="password"
+                className="mb-1 block font-open-sans text-sm font-medium text-[#3b5374]"
+              >
+                Password
+              </label>
               <div className="relative">
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  placeholder="••••••••••••"
+                  placeholder="Password"
                   className={cn(
                     "w-full rounded border border-[#ced4da] bg-white px-3.5 py-[7px] pr-10 font-open-sans text-base text-[#3b5374] placeholder:text-[#6c757d] focus:border-[#9e6f21] focus:outline-none focus:ring-2 focus:ring-[#9e6f21]/30",
                     errors.password && "border-red-500",
