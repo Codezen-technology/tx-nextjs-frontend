@@ -5,6 +5,7 @@ import { serverApi } from "@/lib/api/server";
 import { fetchSettings } from "@/lib/services/settings.server";
 import { CertificateForm } from "./certificate-form";
 import type { FooterNavLink, FooterData, WpNavItem } from "@/types/settings";
+const overlayImage = "/images/bg-footer.webp";
 
 function SocialIcon({
   className,
@@ -143,7 +144,8 @@ export async function SiteFooter() {
   const logoUrl = settings?.logo_url ?? settings?.logo_dark_url;
 
   return (
-    <footer className="bg-neutral-900">
+    <footer className="bg-neutral-900 bg-cover bg-bottom relative" style={{ backgroundImage: `url(${overlayImage})` }}>
+      <img src="/images/shape-bg-full.png" className="absolute inset-0 object-contain bg-top" alt="BG Shape" />
       {/* CTA band */}
       <div className="border-b border-neutral-500 px-4 py-16">
         <div className="mx-auto flex max-w-[768px] flex-col items-center gap-10 text-center">
@@ -164,7 +166,7 @@ export async function SiteFooter() {
               Chat to us
             </Link>
             <Link
-              href="/courses"
+              href="/all-courses"
               className="rounded border border-secondary-500 bg-secondary-500 px-6 py-4 font-open-sans text-[16px] leading-[1.5] text-white transition-colors hover:bg-secondary-600"
             >
               Get Started
@@ -177,7 +179,7 @@ export async function SiteFooter() {
       <div className="mx-auto max-w-[1296px] px-4 py-16">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
           {/* Logo + description + social */}
-          <div className="flex flex-col gap-8 lg:w-[360px] lg:shrink-0 lg:pr-8">
+          <div className="flex flex-col gap-8 lg:w-[400px] lg:shrink-0 lg:pr-8">
             <Link href="/" aria-label="Training Excellence — home">
               {logoUrl ? (
                 <Image
@@ -196,9 +198,7 @@ export async function SiteFooter() {
               )}
             </Link>
             <p className="font-open-sans text-[16px] leading-[1.5] text-neutral-30">
-              Our platform offers fully accredited, 100% online training designed for businesses
-              of all sizes. Trusted by over 3 million learners, we provide flexible, high-quality
-              courses to meet your compliance and development needs.
+              Training Excellence delivers CPD-accredited, expert-led online training for businesses and professionals. Our flexible, high-quality courses ensure compliance, workplace safety, and career growth—anytime, anywhere.
             </p>
             {socialLinks.length > 0 && (
               <div className="flex items-center gap-3.5">
@@ -242,7 +242,7 @@ export async function SiteFooter() {
               </div>
             )}
           </div>
-
+ 
           {/* Links + Certificate validator */}
           <div className="flex flex-1 flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:pl-8">
             {/* Nav columns */}

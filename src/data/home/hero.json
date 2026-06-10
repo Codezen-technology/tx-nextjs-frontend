@@ -1,0 +1,21 @@
+{
+  "title": "Get Skilled, Get Certified",
+  "description": "We provide high-quality compliance training and certification across the UK, with accredited courses in safety, food hygiene, safeguarding, health and social care, office skills, and more, helping you and your team stay compliant, grow, and succeed.",
+
+  "accreditations": [
+    {
+      "src": "/images/cpd-logo.png",
+      "alt": "CPD Certified",
+      "width": 56,
+      "height": 56,
+      "label": "CPD Certified"
+    },
+    {
+      "src": "/images/ukrlp-logo.png",
+      "alt": "UKRLP Registered",
+      "width": 75,
+      "height": 20,
+      "label": "UKRLP Registered"
+    }
+  ]
+}

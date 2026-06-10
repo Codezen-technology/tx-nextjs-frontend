@@ -17,6 +17,10 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        suse: ["var(--font-suse)", "sans-serif"],
+        "open-sans": ["var(--font-open-sans)", "sans-serif"],
+      },
       colors: {
         // ─── Training Excellence Design System ────────────────────────────────
         // Sourced directly from Figma: VoTEBKr8x4fWlObjkr7RXg (nodes 83-3864, 83-4218, 83-3987)
@@ -123,14 +127,15 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "infinite-scroll": {
+          from: { transform: "translateX(0)" },
+          to: { transform: 'translateX(-50%)' },
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-      },
-      fontFamily: {
-        suse: ["var(--font-suse)", "sans-serif"],
-        "open-sans": ["var(--font-open-sans)", "sans-serif"],
+        "infinite-scroll": "infinite-scroll 25s linear infinite",
       },
     },
   },

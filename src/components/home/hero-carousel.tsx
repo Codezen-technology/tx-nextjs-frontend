@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft , ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { CourseCard } from "@/components/courses/course-card";
 import type { Course } from "@/types/course";
@@ -17,7 +17,7 @@ interface HeroCarouselProps {
 //   far-right   x=560 y=+44  scale=0.797  z=10
 const CARD_OFFSETS = [
   { x: 0,   y: 20, scale: 0.905, z: 20, shadow: "" },
-  { x: 177, y: 0,  scale: 1.0,   z: 40, shadow: "drop-shadow-[0px_16px_24px_rgba(0,0,0,0.17)]" },
+  { x: 177, y: 0,  scale: 1.0,   z: 40, shadow: "[filter:drop-shadow(0px_16px_48px_rgba(0,0,0,0.18))]" },
   { x: 383, y: 20, scale: 0.905, z: 30, shadow: "" },
   { x: 560, y: 44, scale: 0.797, z: 10, shadow: "" },
 ] as const;
@@ -67,15 +67,14 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
 
       {/* Navigation — aligned below the FRONT card centre (front starts at x=177, width=306 → centre=330) */}
       <div
-        className="mt-4 flex items-center gap-6"
-        style={{ paddingLeft: "177px" }}
+        className="flex items-center gap-6 justify-center"
       >
         <button
           onClick={prev}
           aria-label="Previous course"
           className="text-[#3b5374] transition-colors hover:text-[#00204a]"
         >
-          <ChevronLeft className="h-6 w-6" />
+          <ArrowLeft className="h-6 w-6" />
         </button>
         <div className="flex items-center gap-1">
           {Array.from({ length: total }).map((_, i) => (
@@ -86,8 +85,8 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
               className={cn(
                 "h-2 w-2 rounded-full transition-all duration-200",
                 i === active
-                  ? "scale-125 bg-[#9e6f21]"
-                  : "bg-[#3b5374]/40 hover:bg-[#3b5374]/70",
+                  ? "scale-125 bg-black"
+                  : "bg-transparent border border-[#3B5374] hover:bg-black",
               )}
             />
           ))}
@@ -97,7 +96,7 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
           aria-label="Next course"
           className="text-[#3b5374] transition-colors hover:text-[#00204a]"
         >
-          <ChevronRight className="h-6 w-6" />
+          <ArrowRight className="h-6 w-6" />
         </button>
       </div>
     </div>

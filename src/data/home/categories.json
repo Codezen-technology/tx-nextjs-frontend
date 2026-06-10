@@ -1,0 +1,68 @@
+[
+  {
+    "id": 1,
+    "name": "Food Hygiene",
+    "slug": "food-hygiene",
+    "image": "/images/cat-images/Food-Hygiene.png"
+  },
+  {
+    "id": 2,
+    "name": "Health and Safety",
+    "slug": "health-and-safety",
+    "image": "/images/cat-images/Health-and-Safety.png"
+  },
+  {
+    "id": 3,
+    "name": "Safeguarding",
+    "slug": "safeguarding",
+    "image": "/images/cat-images/Safeguarding.png"
+  },
+  {
+    "id": 4,
+    "name": "HACCP",
+    "slug": "haccp",
+    "image": "/images/cat-images/HACCP.png"
+  },
+  {
+    "id": 5,
+    "name": "Education",
+    "slug": "education",
+    "image": "/images/cat-images/Education.png"
+  },
+  {
+    "id": 6,
+    "name": "Asbestos Awareness",
+    "slug": "asbestos-awareness",
+    "image": "/images/cat-images/Asbestos-Awareness.png"
+  },
+  {
+    "id": 7,
+    "name": "Fire Safety",
+    "slug": "fire-safety",
+    "image": "/images/cat-images/Fire-Safety.png"
+  },
+  {
+    "id": 8,
+    "name": "Mental Health",
+    "slug": "mental-health",
+    "image": "/images/cat-images/Mental Health.png"
+  },
+  {
+    "id": 9,
+    "name": "Health and Social Care",
+    "slug": "health-and-social-care",
+    "image": "/images/cat-images/Health-and-Social Care.png"
+  },
+  {
+    "id": 10,
+    "name": "Business Essentials",
+    "slug": "business-essentials",
+    "image": "/images/cat-images/Business Essentials.png"
+  },
+  {
+    "id": 11,
+    "name": "City & Guilds Assured",
+    "slug": "city-guilds-assured",
+    "image": "/images/cat-images/City-&-Guilds Assured.png"
+  }
+]

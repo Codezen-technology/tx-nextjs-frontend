@@ -16,7 +16,7 @@ export function CourseCard({ course, className }: CourseCardProps) {
   return (
     <div
       className={cn(
-        "flex flex-col overflow-hidden rounded-lg border border-[#ebedf1] bg-white shadow-sm transition-shadow hover:shadow-md",
+        "flex flex-col overflow-hidden rounded-lg border border-[#ebedf1] bg-white shadow-sm transition-shadow hover:shadow-md group",
         className,
       )}
     >
@@ -58,18 +58,18 @@ export function CourseCard({ course, className }: CourseCardProps) {
 
         {/* Title */}
         <Link href={`/course/${course.slug}`}>
-          <h3 className="line-clamp-2 font-suse font-bold leading-snug text-neutral-900 transition-colors hover:text-secondary-500">
+          <h3 className="line-clamp-2 h-12 font-suse font-bold leading-snug text-neutral-900 transition-colors hover:text-secondary-500">
             {course.title}
           </h3>
         </Link>
 
         {/* Accreditation badges */}
         {badges.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {badges.map((cat) => (
               <span
                 key={cat.id}
-                className="inline-flex items-center gap-1 rounded-full bg-secondary-50 px-2 py-0.5 font-open-sans text-xs text-secondary-900"
+                className="inline-flex items-center gap-1 rounded-full bg-secondary-50 px-2 py-0.5 font-open-sans text-xs text-secondary-900 whitespace-nowrap"
               >
                 <Check className="h-2.5 w-2.5 shrink-0" />
                 {cat.name}
@@ -103,7 +103,7 @@ export function CourseCard({ course, className }: CourseCardProps) {
           ) : null}
         </div>
 
-        <div className="mt-auto border-t border-[#ebedf1] pt-4" />
+        <div className="mt-auto border-dashed border border-secondary-100" />
 
         {/* Price + CTA */}
         <div className="flex items-center justify-between">
@@ -126,7 +126,7 @@ export function CourseCard({ course, className }: CourseCardProps) {
           </div>
           <Link
             href={`/course/${course.slug}`}
-            className="inline-flex items-center gap-1 rounded-full border border-secondary-500 px-4 py-1.5 text-sm text-secondary-500 transition-colors hover:bg-secondary-50"
+            className="inline-flex items-center gap-1 rounded-full border border-secondary-500 px-4 py-1.5 text-sm text-secondary-500 transition-colors hover:bg-secondary-50 group-hover:bg-primary-500 group-hover:border-primary-600 group-hover:text-white"
           >
             View Course →
           </Link>
