@@ -6,9 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Pagination } from "@/components/ui/pagination";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
-  LearningCourseCard,
-  LearningCourseCardSkeleton,
-} from "@/components/dashboard/learning-course-card";
+  CatalogCourseCard,
+  CatalogCourseCardSkeleton,
+} from "@/components/dashboard/catalog-course-card";
 import { CourseFilterBar, type SortOption } from "@/components/dashboard/course-filter-bar";
 import { PromoCardsSection } from "@/components/dashboard/promo-cards-section";
 import { DashboardErrorBanner } from "@/components/dashboard/dashboard-error-banner";
@@ -123,7 +123,7 @@ export default function AllCoursesPage() {
       {coursesQuery.isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 12 }).map((_, i) => (
-            <LearningCourseCardSkeleton key={i} />
+            <CatalogCourseCardSkeleton key={i} />
           ))}
         </div>
       ) : !coursesQuery.data?.courses.length ? (
@@ -132,7 +132,7 @@ export default function AllCoursesPage() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {coursesQuery.data.courses.map((course) => (
-              <LearningCourseCard key={course.id} course={course} />
+              <CatalogCourseCard key={course.id} course={course} />
             ))}
           </div>
           <Pagination
