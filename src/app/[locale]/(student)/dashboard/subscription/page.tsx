@@ -67,7 +67,11 @@ function PricingCard({
   const isFeatured = plan.featured;
   const isTeam = plan.type === "team";
   const totalPrice = plan.price != null ? plan.price * userCount : null;
-  const checkoutUrl = plan.checkout_url ? `${plan.checkout_url}&quantity=${userCount}` : null;
+  const checkoutUrl = plan.checkout_url
+    ? isTeam
+      ? plan.checkout_url
+      : `${plan.checkout_url}&quantity=${userCount}`
+    : null;
 
   return (
     <div
