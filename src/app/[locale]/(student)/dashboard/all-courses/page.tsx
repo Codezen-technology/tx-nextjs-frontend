@@ -13,18 +13,14 @@ import { CourseFilterBar, type SortOption } from "@/components/dashboard/course-
 import { PromoCardsSection } from "@/components/dashboard/promo-cards-section";
 import { DashboardErrorBanner } from "@/components/dashboard/dashboard-error-banner";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   useAllCategories,
   useStudentCourses,
   useStudentSubscription,
 } from "@/lib/hooks/useStudentDashboard";
+import { useDebounce } from "@/lib/hooks/useDebounce";
 import Link from "next/link";
+
+const SKELETON_COUNT = 8;
 
 export default function AllCoursesPage() {
   const searchParams = useSearchParams();
@@ -35,16 +31,20 @@ export default function AllCoursesPage() {
   const [sort, setSort] = useState<SortOption>("recently_accessed");
   const [category, setCategory] = useState<number | undefined>();
 
+  // Debounce the search value so the API is only called after typing stops
+  const debouncedSearch = useDebounce(search, 350);
+
   const gridRef = useRef<HTMLDivElement>(null);
 
   const { data: subscription } = useStudentSubscription();
-  const { data: categories } = useAllCategories();
+  const { data: categoriesData } = useAllCategories();
 
+  // Use debouncedSearch for the actual API query
   const coursesQuery = useStudentCourses({
     access: "all",
     page,
-    per_page: 12,
-    search: search || undefined,
+    per_page: SKELETON_COUNT,
+    search: debouncedSearch || undefined,
     orderby: sort,
     category,
   });
@@ -53,18 +53,55 @@ export default function AllCoursesPage() {
     subscription?.active_subscription?.plan_name ??
     subscription?.lifetime_membership?.product?.name;
 
+  const totalCourses = coursesQuery.data?.total ?? 0;
+  const totalPages = coursesQuery.data?.totalPages ?? 1;
+  const courses = coursesQuery.data?.courses ?? [];
+
+  const handleSearchChange = (v: string) => {
+    setSearch(v);
+    setPage(1);
+  };
+
+  const handleSortChange = (v: SortOption) => {
+    setSort(v);
+    setPage(1);
+  };
+
+  const handleCategoryChange = (v: number | undefined) => {
+    setCategory(v);
+    setPage(1);
+  };
+
+  const handleReset = () => {
+    setSearch("");
+    setSort("recently_accessed");
+    setCategory(undefined);
+    setPage(1);
+  };
+
+  const handlePageChange = (p: number) => {
+    setPage(p);
+    gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <div>
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-3">
+      {/* Header */}
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-2xl font-bold text-[#2e4450]">All Courses</h1>
           {planName && (
             <Badge className="bg-lms-secondary text-white">Subscription: {planName}</Badge>
           )}
+          {!coursesQuery.isLoading && totalCourses > 0 && (
+            <span className="text-sm text-[#73828a]">
+              {totalCourses} course{totalCourses !== 1 ? "s" : ""}
+            </span>
+          )}
         </div>
         {subscription?.active_subscription && (
           <Link
-            href="/subscription"
+            href="/dashboard/subscription"
             className="text-sm font-semibold text-lms-secondary hover:underline"
           >
             View Subscription Status ↗
@@ -74,76 +111,55 @@ export default function AllCoursesPage() {
 
       <hr className="mb-4 border-[#eaecee]" />
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+      {/* Unified filter bar */}
+      <div className="mb-5" ref={gridRef}>
         <CourseFilterBar
           search={search}
           sort={sort}
-          onSearchChange={(v) => {
-            setSearch(v);
-            setPage(1);
-          }}
-          onSortChange={(v) => {
-            setSort(v);
-            setPage(1);
-          }}
-          onReset={() => {
-            setSearch("");
-            setSort("recently_accessed");
-            setCategory(undefined);
-            setPage(1);
-          }}
+          category={category}
+          categories={categoriesData?.categories}
+          onSearchChange={handleSearchChange}
+          onSortChange={handleSortChange}
+          onCategoryChange={handleCategoryChange}
+          onReset={handleReset}
         />
-        {categories?.categories && categories.categories.length > 0 && (
-          <Select
-            value={category?.toString() ?? "all"}
-            onValueChange={(v) => {
-              setCategory(v === "all" ? undefined : Number(v));
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-full sm:w-[220px]">
-              <SelectValue placeholder="All categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
-              {categories.categories.map((cat) => (
-                <SelectItem key={cat.term_id} value={String(cat.term_id)}>
-                  {cat.name} ({cat.count})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
       </div>
 
-      <div ref={gridRef} />
-
+      {/* Error */}
       {coursesQuery.isError && <DashboardErrorBanner />}
 
+      {/* Loading skeletons */}
       {coursesQuery.isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 12 }).map((_, i) => (
+          {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
             <CatalogCourseCardSkeleton key={i} />
           ))}
         </div>
-      ) : !coursesQuery.data?.courses.length ? (
-        <EmptyState title="No courses found" description="Try adjusting your filters." />
+      ) : courses.length === 0 ? (
+        <EmptyState
+          title="No courses found"
+          description={
+            debouncedSearch || category
+              ? "Try adjusting your search or filters."
+              : "No courses are available yet."
+          }
+        />
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {coursesQuery.data.courses.map((course) => (
+            {courses.map((course) => (
               <CatalogCourseCard key={course.id} course={course} />
             ))}
           </div>
-          <Pagination
-            page={page}
-            totalPages={coursesQuery.data.totalPages ?? 1}
-            onPageChange={(p) => {
-              setPage(p);
-              gridRef.current?.scrollIntoView({ behavior: "smooth" });
-            }}
-            className="mt-8"
-          />
+
+          {totalPages > 1 && (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              className="mt-8"
+            />
+          )}
         </>
       )}
 
