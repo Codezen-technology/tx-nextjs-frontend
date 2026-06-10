@@ -131,22 +131,22 @@ function PricingCard({
             </ul>
           </div>
 
-          {isTeam ? (
+          {checkoutUrl ? (
             <a
-              href={plan.checkout_url ?? "#request-invoice"}
-              className="flex h-14 items-center justify-center rounded-lg bg-[#e7e9f2] text-[1.05rem] font-bold text-lms-primary transition-colors hover:bg-[#d0d4e8]"
-            >
-              {plan.cta}
-            </a>
-          ) : (
-            <a
-              href={checkoutUrl ?? "#"}
+              href={checkoutUrl}
               className={cn(
                 "flex h-14 items-center justify-center rounded-lg text-[1.05rem] font-bold transition-colors",
                 isFeatured
                   ? "bg-[#3f4d97] text-white hover:bg-[#0f217d]"
                   : "bg-[#e7e9f2] text-lms-primary hover:bg-[#d0d4e8]",
               )}
+            >
+              {plan.cta}
+            </a>
+          ) : (
+            <a
+              href={plan.request_invoice_url || "#request-invoice"}
+              className="flex h-14 items-center justify-center rounded-lg bg-[#e7e9f2] text-[1.05rem] font-bold text-lms-primary transition-colors hover:bg-[#d0d4e8]"
             >
               {plan.cta}
             </a>

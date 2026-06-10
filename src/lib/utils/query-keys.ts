@@ -57,5 +57,7 @@ export const queryKeys = {
     navigation: ["admin", "navigation"] as const,
     promos: ["admin", "promos"] as const,
     categories: ["admin", "categories"] as const,
+    subscriptionPlanSettings: ["admin", "subscriptionPlanSettings"] as const,
+    products: ["admin", "products"] as const,
   },
 } as const;

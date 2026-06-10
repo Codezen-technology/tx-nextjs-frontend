@@ -3,7 +3,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { studentDashboardService } from "@/lib/services/student-dashboard";
 import { queryKeys } from "@/lib/utils/query-keys";
-import type { CertificatesParams, StudentCoursesParams } from "@/types/student-dashboard";
+import type {
+  CertificatesParams,
+  StudentCoursesParams,
+  SubscriptionPlanSettings,
+} from "@/types/student-dashboard";
 
 export function useStudentSummary() {
   return useQuery({
@@ -102,5 +106,34 @@ export function useStudentEnroll() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["student"] });
     },
+  });
+}
+
+export function useAdminSubscriptionPlanSettings() {
+  return useQuery({
+    queryKey: queryKeys.admin.subscriptionPlanSettings,
+    queryFn: () => studentDashboardService.getSubscriptionPlanSettings(),
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useUpdateSubscriptionPlanSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Partial<SubscriptionPlanSettings>) =>
+      studentDashboardService.updateSubscriptionPlanSettings(payload),
+    onSuccess: (updated) => {
+      qc.setQueryData(queryKeys.admin.subscriptionPlanSettings, updated);
+      // Invalidate the public plans cache so the subscription page refreshes.
+      void qc.invalidateQueries({ queryKey: queryKeys.student.plans });
+    },
+  });
+}
+
+export function useAdminProducts() {
+  return useQuery({
+    queryKey: queryKeys.admin.products,
+    queryFn: () => studentDashboardService.getAdminProducts(),
+    staleTime: 5 * 60 * 1000,
   });
 }

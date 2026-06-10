@@ -163,8 +163,35 @@ export interface SubscriptionPlan {
   currency: string;
   product_id: number | null;
   checkout_url: string | null;
+  /** Shown when checkout_url is null — admin-configurable invoice/contact URL. */
+  request_invoice_url?: string | null;
   cta: string;
   features: PlanFeature[];
+}
+
+/** Shape of GET/POST /admin/subscription-plan-settings */
+export interface SubscriptionPlanConfig {
+  product_id: number;
+  label: string;
+  billing: string | null;
+  featured: boolean;
+  subtitle?: string;
+  cta: string;
+  request_invoice_url: string;
+  features: PlanFeature[];
+}
+
+export interface SubscriptionPlanSettings {
+  prime: SubscriptionPlanConfig;
+  lifetime: SubscriptionPlanConfig;
+  team: SubscriptionPlanConfig;
+}
+
+/** Shape of GET /admin/products */
+export interface WcProduct {
+  id: number;
+  name: string;
+  price: string;
 }
 
 export type PromoCardVariant = "hardcopy" | "team";

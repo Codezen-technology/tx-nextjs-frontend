@@ -14,8 +14,10 @@ import type {
   Certificate,
   StudentSummary,
   SubscriptionPlan,
+  SubscriptionPlanSettings,
   SubscriptionPromosResponse,
   SubscriptionResponse,
+  WcProduct,
 } from "@/types/student-dashboard";
 
 /** Shape `paginated_success` always returns from the PHP backend. */
@@ -129,5 +131,22 @@ export const studentDashboardService = {
 
   async getAllCategories(): Promise<AllCategoriesResponse> {
     return bffJson<AllCategoriesResponse>("/api/admin/all-categories");
+  },
+
+  async getSubscriptionPlanSettings(): Promise<SubscriptionPlanSettings> {
+    return bffJson<SubscriptionPlanSettings>("/api/admin/subscription-plan-settings");
+  },
+
+  async updateSubscriptionPlanSettings(
+    payload: Partial<SubscriptionPlanSettings>,
+  ): Promise<SubscriptionPlanSettings> {
+    return bffJson<SubscriptionPlanSettings>("/api/admin/subscription-plan-settings", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getAdminProducts(): Promise<WcProduct[]> {
+    return bffJson<WcProduct[]>("/api/admin/products");
   },
 };

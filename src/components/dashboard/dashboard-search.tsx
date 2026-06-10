@@ -16,7 +16,7 @@ export function DashboardSearch({ className }: { className?: string }) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const q = query.trim();
-    if (q) router.push(`/all-courses?search=${encodeURIComponent(q)}`);
+    if (q) router.push(`/dashboard/all-courses?search=${encodeURIComponent(q)}`);
   };
 
   return (
@@ -59,7 +59,7 @@ export function CartIconButton({ count, onClick }: { count: number; onClick: () 
 
 export function DashboardLogo({ className }: { className?: string }) {
   return (
-    <Link href="/my-learning" className={cn("flex items-center", className)}>
+    <Link href="/dashboard/my-learning" className={cn("flex items-center", className)}>
       <Image
         src="/dashboard/dashboard-white-logo.svg"
         alt="Dashboard"

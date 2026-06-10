@@ -269,7 +269,7 @@ export function ProfileNavLinks({ onClose }: { onClose: () => void }) {
         Purchase History
       </Link>
       <Link
-        href="/profile"
+        href="/dashboard/profile"
         onClick={onClose}
         className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
       >
