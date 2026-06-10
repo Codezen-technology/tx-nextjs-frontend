@@ -6,7 +6,6 @@ import {
   ChevronDown,
   BookOpen,
   Award,
-  CreditCard,
   Gift,
   RefreshCw,
   Clock,
@@ -58,15 +57,15 @@ function Avatar({
 }
 
 const STUDENT_LINKS = [
-  { href: "/courses", label: "My Courses", Icon: BookOpen },
-  { href: "/certificates", label: "Certificates", Icon: Award },
-  { href: "/student-id", label: "Student ID Cards", Icon: CreditCard },
+  { href: "/dashboard/my-learning", label: "My Learning", Icon: BookOpen },
+  { href: "/dashboard/all-courses", label: "All Courses", Icon: BookOpen },
+  { href: "/dashboard/my-learning?tab=certificates", label: "Certificates", Icon: Award },
   { href: "/special-offers", label: "Special Offers", Icon: Gift },
 ];
 
 const ACCOUNT_LINKS = [
-  { href: "/subscriptions", label: "Subscriptions", Icon: RefreshCw },
-  { href: "/orders", label: "Purchase History", Icon: Clock },
+  { href: "/dashboard/subscription", label: "Subscriptions", Icon: RefreshCw },
+  { href: "/dashboard/my-orders", label: "Purchase History", Icon: Clock },
 ];
 
 export function ProfileMenu() {
@@ -118,7 +117,7 @@ export function ProfileMenu() {
                 {user.displayName}
               </p>
               <Link
-                href="/profile"
+                href="/dashboard/profile"
                 onClick={() => setOpen(false)}
                 role="menuitem"
                 className="font-open-sans text-[12px] text-primary-400 hover:underline"
@@ -133,7 +132,7 @@ export function ProfileMenu() {
           {/* Dashboard CTAs */}
           <div className="flex flex-col gap-2 px-3 py-3">
             <Link
-              href="/dashboard"
+              href="/dashboard/my-learning"
               onClick={() => setOpen(false)}
               role="menuitem"
               className="flex items-center justify-center gap-2 rounded border border-neutral-300 px-3 py-2 font-open-sans text-[13px] font-medium text-neutral-800 transition-colors hover:border-primary-400 hover:text-primary-400"
@@ -233,7 +232,7 @@ export function ProfileNavLinks({ onClose }: { onClose: () => void }) {
   return (
     <>
       <Link
-        href="/dashboard"
+        href="/dashboard/my-learning"
         onClick={onClose}
         className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
       >
@@ -249,21 +248,21 @@ export function ProfileNavLinks({ onClose }: { onClose: () => void }) {
         </Link>
       )}
       <Link
-        href="/courses"
+        href="/dashboard/my-learning"
         onClick={onClose}
         className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
       >
         My Courses
       </Link>
       <Link
-        href="/certificates"
+        href="/dashboard/my-learning?tab=certificates"
         onClick={onClose}
         className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
       >
         Certificates
       </Link>
       <Link
-        href="/orders"
+        href="/dashboard/my-orders"
         onClick={onClose}
         className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
       >

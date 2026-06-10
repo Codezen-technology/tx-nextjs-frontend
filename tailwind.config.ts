@@ -25,7 +25,7 @@ const config: Config = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
-          50:  "#e6f8fe",
+          50: "#e6f8fe",
           100: "#b0eafa",
           200: "#8ae0f8",
           300: "#54d1f5",
@@ -41,7 +41,7 @@ const config: Config = {
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
-          50:  "#f5f1e9",
+          50: "#f5f1e9",
           100: "#e1d2ba",
           200: "#d2bd99",
           300: "#be9f6a",
@@ -55,16 +55,16 @@ const config: Config = {
 
         /** Neutral palette — slate/navy greyscale. */
         neutral: {
-          0:   "#ffffff",
-          10:  "#fafbfb",
-          20:  "#f5f6f8",
-          30:  "#ebedf1",
-          40:  "#dee2e7",
-          50:  "#bfc7d2",
-          60:  "#b0bac7",
-          70:  "#a3afbe",
-          80:  "#94a1b3",
-          90:  "#8594a8",
+          0: "#ffffff",
+          10: "#fafbfb",
+          20: "#f5f6f8",
+          30: "#ebedf1",
+          40: "#dee2e7",
+          50: "#bfc7d2",
+          60: "#b0bac7",
+          70: "#a3afbe",
+          80: "#94a1b3",
+          90: "#8594a8",
           100: "#75879d",
           200: "#667992",
           300: "#576c88",
@@ -102,6 +102,12 @@ const config: Config = {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
         },
+
+        /** Dynamic student dashboard theme from WP admin color-settings */
+        "lms-primary": "var(--color-primary, #0f217d)",
+        "lms-secondary": "var(--color-secondary, #16c2d5)",
+        "lms-background": "var(--color-background, #ffffff)",
+        "lms-text": "var(--color-text, #2E323E)",
       },
       borderRadius: {
         lg: "var(--radius)",

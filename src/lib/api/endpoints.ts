@@ -156,6 +156,22 @@ export const endpoints = {
     cancel: `${lms}/memberships/cancel`,
     myMembership: `${lms}/users/me/membership`,
   },
+  student: {
+    summary: `${lms}/student/summary`,
+    courses: `${lms}/student/courses`,
+    certificates: `${lms}/student/certificates`,
+    certificatesShare: `${lms}/student/certificates/share`,
+    subscription: `${lms}/student/subscription`,
+    enroll: `${lms}/student/enroll`,
+    orders: `${lms}/orders`,
+  },
+  admin: {
+    colorSettings: `${lms}/admin/color-settings`,
+    navigationSettings: `${lms}/admin/navigation-settings`,
+    subscriptionPromos: `${lms}/admin/subscription-promo-settings`,
+    allCategories: `${lms}/admin/all-categories`,
+  },
+  subscriptionPlans: `${lms}/subscription-plans`,
   partners: {
     list: `${wp}/partner_logo`,
   },

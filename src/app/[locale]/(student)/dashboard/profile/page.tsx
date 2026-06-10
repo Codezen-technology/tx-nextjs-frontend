@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth, useMe, useLogoutAll } from "@/lib/hooks/useAuth";
 import { profileSchema, type ProfileInput } from "@/lib/schemas/profile";
 import { userService } from "@/lib/services/user";
@@ -18,12 +19,20 @@ import { useAuthStore } from "@/lib/stores/auth.store";
 import { queryKeys } from "@/lib/utils/query-keys";
 import type { ApiError } from "@/lib/api/error";
 
+function getInitials(name?: string) {
+  if (!name) return "U";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "U";
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
+
 export default function ProfilePage() {
   const { user: authUser } = useAuth();
   const { data: me, isLoading } = useMe();
   const logoutAll = useLogoutAll();
   const qc = useQueryClient();
   const setUser = useAuthStore((s) => s.setUser);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -35,8 +44,6 @@ export default function ProfilePage() {
     defaultValues: {
       first_name: "",
       last_name: "",
-      description: "",
-      url: "",
       email: "",
     },
   });
@@ -46,15 +53,18 @@ export default function ProfilePage() {
       reset({
         first_name: me.first_name ?? "",
         last_name: me.last_name ?? "",
-        description: me.description ?? "",
-        url: me.url ?? "",
         email: me.email ?? "",
       });
     }
   }, [me, reset]);
 
   const updateMutation = useMutation({
-    mutationFn: (input: ProfileInput) => userService.updateMe(input),
+    mutationFn: (input: ProfileInput) =>
+      userService.updateMe({
+        first_name: input.first_name,
+        last_name: input.last_name,
+        email: input.email,
+      }),
     onSuccess: (updated) => {
       qc.setQueryData(queryKeys.user.me, updated);
       qc.invalidateQueries({ queryKey: queryKeys.user.me });
@@ -73,14 +83,67 @@ export default function ProfilePage() {
     onError: (err: ApiError) => toast.error(err.message || "Could not update profile"),
   });
 
+  const avatarMutation = useMutation({
+    mutationFn: (file: File) => userService.uploadAvatar(file),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.user.me });
+      toast.success("Avatar updated");
+    },
+    onError: () => toast.error("Could not upload avatar"),
+  });
+
   const onSubmit = (values: ProfileInput) => updateMutation.mutate(values);
 
+  const avatarSrc = me?.avatar_urls?.["96"] ?? me?.avatar_urls?.["48"];
+
   return (
-    <div className="container max-w-3xl py-10">
+    <div className="mx-auto max-w-3xl py-6">
       <header className="mb-8">
-        <h1 className="text-3xl font-semibold tracking-tight">Profile</h1>
-        <p className="text-muted-foreground">Update your personal info and contact details.</p>
+        <h1 className="text-2xl font-bold text-[#2e4450]">Profile</h1>
+        <p className="text-[#586973]">Update your personal info and contact details.</p>
       </header>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Profile photo</CardTitle>
+          <CardDescription>Upload a photo to personalize your account.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-6">
+            <Avatar className="h-20 w-20">
+              <AvatarImage src={avatarSrc} alt={me?.name} />
+              <AvatarFallback className="bg-lms-secondary text-xl text-white">
+                {getInitials(me?.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) avatarMutation.mutate(file);
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={avatarMutation.isPending}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {avatarMutation.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Camera className="mr-2 h-4 w-4" />
+                )}
+                Change photo
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -90,7 +153,7 @@ export default function ProfilePage() {
         <CardContent>
           {isLoading && !me ? (
             <div className="space-y-4">
-              {Array.from({ length: 5 }).map((_, i) => (
+              {Array.from({ length: 4 }).map((_, i) => (
                 <Skeleton key={i} className="h-10 w-full" />
               ))}
             </div>
@@ -121,29 +184,12 @@ export default function ProfilePage() {
                 ) : null}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="url">Website</Label>
-                <Input id="url" type="url" placeholder="https://" {...register("url")} />
-                {errors.url ? (
-                  <p className="text-sm text-destructive">{errors.url.message}</p>
-                ) : null}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Bio</Label>
-                <textarea
-                  id="description"
-                  rows={4}
-                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  {...register("description")}
-                />
-                {errors.description ? (
-                  <p className="text-sm text-destructive">{errors.description.message}</p>
-                ) : null}
-              </div>
-
               <div className="flex justify-end">
-                <Button type="submit" disabled={!isDirty || updateMutation.isPending}>
+                <Button
+                  type="submit"
+                  disabled={!isDirty || updateMutation.isPending}
+                  className="hover:bg-lms-primary/90 bg-lms-primary"
+                >
                   {updateMutation.isPending ? <Loader2 className="animate-spin" /> : null}
                   Save changes
                 </Button>
@@ -152,7 +198,8 @@ export default function ProfilePage() {
           )}
         </CardContent>
       </Card>
-      <Card className="border-red-100">
+
+      <Card className="mt-6 border-red-100">
         <CardHeader>
           <CardTitle className="text-base">Security</CardTitle>
           <CardDescription>

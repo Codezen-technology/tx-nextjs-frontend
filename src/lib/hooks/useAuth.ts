@@ -51,7 +51,7 @@ export function useLogin() {
       qc.invalidateQueries({ queryKey: queryKeys.enrollments.me });
       toast.success(`Welcome back, ${user.displayName}`);
       const next = search.get("next");
-      router.replace(next && next.startsWith("/") ? next : "/dashboard");
+      router.replace(next && next.startsWith("/") ? next : "/dashboard/my-learning");
     },
     onError: (err: ApiError) => {
       toast.error(err.message || "Invalid credentials");

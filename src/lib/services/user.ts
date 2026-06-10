@@ -22,4 +22,17 @@ export const userService = {
       body: JSON.stringify(payload),
     });
   },
+
+  async uploadAvatar(file: File): Promise<{ avatar: string }> {
+    const formData = new FormData();
+    formData.append("avatar", file);
+    const res = await fetch("/api/users/me/avatar", {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+    const data = (await res.json()) as { avatar?: string; error?: string };
+    if (!res.ok) throw new Error(data.error ?? "Avatar upload failed");
+    return { avatar: data.avatar ?? "" };
+  },
 };

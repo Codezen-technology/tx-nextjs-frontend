@@ -1,4 +1,5 @@
 import type { CourseListFilters } from "@/types/course";
+import type { CertificatesParams, StudentCoursesParams } from "@/types/student-dashboard";
 
 export const queryKeys = {
   auth: {
@@ -35,11 +36,26 @@ export const queryKeys = {
   },
   orders: {
     list: ["orders"] as const,
-    detail: (id: number, orderKey?: string) =>
-      ["orders", "detail", id, orderKey ?? ""] as const,
+    detail: (id: number, orderKey?: string) => ["orders", "detail", id, orderKey ?? ""] as const,
   },
   payment: {
     methods: ["payment", "methods"] as const,
     gateways: ["payment", "gateways"] as const,
+  },
+  student: {
+    summary: ["student", "summary"] as const,
+    courses: (filters: StudentCoursesParams = {}) => ["student", "courses", filters] as const,
+    certificates: (filters: CertificatesParams = {}) =>
+      ["student", "certificates", filters] as const,
+    subscription: ["student", "subscription"] as const,
+    orders: (page: number) => ["student", "orders", page] as const,
+    order: (id: number) => ["student", "order", id] as const,
+    plans: ["student", "plans"] as const,
+  },
+  admin: {
+    colors: ["admin", "colors"] as const,
+    navigation: ["admin", "navigation"] as const,
+    promos: ["admin", "promos"] as const,
+    categories: ["admin", "categories"] as const,
   },
 } as const;

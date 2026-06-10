@@ -52,7 +52,7 @@ export function middleware(req: NextRequest) {
   // Redirect already-logged-in users away from auth pages
   if (loggedIn && AUTH_ROUTES.some((r) => r.test(strippedPathname))) {
     const url = req.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/dashboard/my-learning";
     url.search = "";
     return NextResponse.redirect(url);
   }
