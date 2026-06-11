@@ -1,7 +1,6 @@
 "use client";
 
 import { CheckCircle2, XCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { ParsedHtml } from "@/components/ui/parsed-html";
 import type { IQuizSubmitResult } from "@/types/player";
 
@@ -21,9 +20,9 @@ export function QuizResultsPanel({
   const passed = result.continue === 1;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 text-center text-white">
+    <div className="mx-auto max-w-2xl space-y-6 rounded-lg bg-white p-8 text-center text-gray-900 shadow-lg">
       {passed ? (
-        <CheckCircle2 className="mx-auto h-16 w-16 text-player-success" />
+        <CheckCircle2 className="mx-auto h-16 w-16 text-green-500" />
       ) : (
         <XCircle className="mx-auto h-16 w-16 text-amber-500" />
       )}
@@ -32,10 +31,10 @@ export function QuizResultsPanel({
         <ParsedHtml
           as="div"
           content={result.completion_message}
-          className="prose-wp prose-invert mx-auto"
+          className="prose-wp mx-auto max-w-none text-left"
         />
       ) : null}
-      <p className="text-sm text-gray-400">Course progress: {result.progress}%</p>
+      <p className="text-sm text-gray-500">Course progress: {result.progress}%</p>
       {result.tags_data?.length ? (
         <ul className="mx-auto max-w-md space-y-2 text-left text-sm">
           {result.tags_data.map((t) => (
@@ -48,22 +47,23 @@ export function QuizResultsPanel({
       ) : null}
       <div className="flex flex-wrap justify-center gap-3">
         {result.retakes > 0 && onRetake ? (
-          <Button
-            variant="outline"
-            className="border-gray-600 text-white hover:bg-gray-900"
+          <button
+            type="button"
             onClick={onRetake}
             disabled={isRetaking}
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-50"
           >
             Retake ({result.retakes} left)
-          </Button>
+          </button>
         ) : null}
         {result.next_unit && onContinue ? (
-          <Button
-            className="bg-player-primary hover:bg-sky-600"
+          <button
+            type="button"
             onClick={() => onContinue(result.next_unit as number)}
+            className="rounded-md bg-sky-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-600"
           >
             Continue to next unit
-          </Button>
+          </button>
         ) : null}
       </div>
     </div>

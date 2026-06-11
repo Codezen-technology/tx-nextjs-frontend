@@ -32,8 +32,10 @@ function TabPanel({
 }) {
   if (value !== index) return null;
   return (
-    <div role="tabpanel" className="rounded-b-lg border-t border-gray-200 bg-white p-6">
-      {children}
+    <div role="tabpanel" className="rounded-b-lg border-t border-gray-200 bg-white p-4 sm:p-6">
+      <div className="max-h-[min(60svh,640px)] overflow-y-auto overscroll-y-contain">
+        {children}
+      </div>
     </div>
   );
 }
@@ -78,7 +80,7 @@ export function PlayerCourseTabs({
   ];
 
   return (
-    <div className="bg-white">
+    <div className="shrink-0 bg-white">
       <div className="flex overflow-x-auto border-b border-gray-200">
         {tabs.map((tab, index) => (
           <button

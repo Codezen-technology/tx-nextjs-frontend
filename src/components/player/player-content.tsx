@@ -37,7 +37,7 @@ export function PlayerContent({
 
   if (!item) {
     return (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-black p-6">
+      <div className="flex min-h-[240px] items-center justify-center bg-black p-6">
         <Skeleton className="h-8 w-2/3 bg-gray-800" />
       </div>
     );
@@ -51,14 +51,14 @@ export function PlayerContent({
   const showOverlays = !isLocked && !isQuiz && !isAssignment;
 
   return (
-    <div className="group relative flex min-h-[calc(100vh-4rem)] flex-col bg-black">
+    <div className="group relative flex shrink-0 flex-col bg-black">
       {isLocked ? (
         <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center text-white">
           <Lock className="h-12 w-12 text-amber-400" />
           <p className="text-lg">This content is locked. Complete previous units first.</p>
         </div>
       ) : isQuiz ? (
-        <div className="p-4 sm:p-8">
+        <div className="shrink-0 p-4 sm:p-6">
           <QuizPlayer
             courseId={courseId}
             quizId={item.id}

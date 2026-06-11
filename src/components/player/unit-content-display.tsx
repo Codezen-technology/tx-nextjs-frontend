@@ -90,7 +90,7 @@ function UnitContentDisplayInner({
   const attachments = content?.meta?.attachments ?? [];
 
   return (
-    <div className="flex h-full min-h-[calc(100vh-4rem)] flex-col bg-black">
+    <div className="flex shrink-0 flex-col bg-black">
       <header className="shrink-0 border-b border-gray-900 px-4 py-3 sm:px-6">
         <h1 className="text-lg font-semibold text-white sm:text-xl">
           {content?.title ?? unitTitle}
@@ -100,7 +100,7 @@ function UnitContentDisplayInner({
       {displayHtml ? (
         <div
           ref={containerRef}
-          className="unit-course-player min-h-0 flex-1 overflow-y-auto bg-black"
+          className="unit-course-player bg-black"
           dangerouslySetInnerHTML={{ __html: displayHtml }}
         />
       ) : (

@@ -100,12 +100,11 @@ function bindVimeoPostMessage(iframe: HTMLIFrameElement, onEnded: () => void): (
 export function bindVimeoEnded(iframe: HTMLIFrameElement, onEnded: () => void): () => void {
   if (!isVimeoIframe(iframe)) return () => undefined;
 
-  const fireOnce = once(onEnded);
-
   try {
     const player = activePlayers.get(iframe) ?? new Player(iframe);
     activePlayers.set(iframe, player);
 
+    const fireOnce = once(onEnded);
     const handler = () => fireOnce();
     player.on("ended", handler);
 
@@ -113,6 +112,6 @@ export function bindVimeoEnded(iframe: HTMLIFrameElement, onEnded: () => void): 
       player.off("ended", handler);
     };
   } catch {
-    return bindVimeoPostMessage(iframe, fireOnce);
+    return bindVimeoPostMessage(iframe, onEnded);
   }
 }

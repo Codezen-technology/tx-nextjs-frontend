@@ -1,7 +1,6 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { ParsedHtml } from "@/components/ui/parsed-html";
 import type { IQuiz } from "@/types/player";
 
@@ -16,10 +15,14 @@ export function QuizStartPanel({ quiz, title, onStart, isStarting }: QuizStartPa
   const questions = quiz.meta?.questions ?? [];
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 text-center text-white">
+    <div className="mx-auto max-w-2xl space-y-6 rounded-lg bg-white p-8 text-center text-gray-900 shadow-lg">
       <h1 className="text-2xl font-semibold">{quiz.title || title}</h1>
       {quiz.content ? (
-        <ParsedHtml as="div" content={quiz.content} className="prose-wp prose-invert mx-auto" />
+        <ParsedHtml
+          as="div"
+          content={quiz.content}
+          className="prose-wp mx-auto max-w-none text-left"
+        />
       ) : null}
       <dl className="mx-auto grid max-w-md grid-cols-2 gap-3 text-sm">
         <Stat label="Questions" value={String(questions.length)} />
@@ -29,19 +32,24 @@ export function QuizStartPanel({ quiz, title, onStart, isStarting }: QuizStartPa
           <Stat label="Pass score" value={`${quiz.quiz_passing_score}%`} />
         ) : null}
       </dl>
-      <Button size="lg" onClick={onStart} disabled={isStarting}>
-        {isStarting ? <Loader2 className="animate-spin" /> : null}
+      <button
+        type="button"
+        onClick={onStart}
+        disabled={isStarting}
+        className="inline-flex items-center gap-2 rounded-md bg-sky-500 px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-sky-600 disabled:opacity-50"
+      >
+        {isStarting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
         Start quiz
-      </Button>
+      </button>
     </div>
   );
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-gray-700 p-3">
-      <dt className="text-xs text-gray-400">{label}</dt>
-      <dd className="text-lg font-semibold">{value}</dd>
+    <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+      <dt className="text-xs text-gray-500">{label}</dt>
+      <dd className="text-lg font-semibold text-gray-900">{value}</dd>
     </div>
   );
 }

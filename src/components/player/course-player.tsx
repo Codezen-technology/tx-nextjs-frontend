@@ -102,7 +102,7 @@ export function CoursePlayer({ courseId, unitId }: CoursePlayerProps) {
   }
 
   return (
-    <div className="course-player flex min-h-svh flex-col bg-black">
+    <div className="course-player flex h-full min-h-0 flex-col bg-black">
       <PlayerTopBar
         courseTitle={course.course_title}
         progress={progress}
@@ -111,8 +111,8 @@ export function CoursePlayer({ courseId, unitId }: CoursePlayerProps) {
         onToggleSidebar={() => setIsSidebarOpen((o) => !o)}
       />
 
-      <div className="flex flex-1 flex-col lg:mt-16 lg:flex-row">
-        <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col pt-16 lg:flex-row">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
           <PlayerContent
             course={course}
             courseId={courseId}

@@ -37,9 +37,9 @@ export function QuizPlayer({ courseId, quizId, title, onContinue }: QuizPlayerPr
 
   if (isLoading || !quiz) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-1/2 bg-gray-800" />
-        <Skeleton className="h-24 w-full bg-gray-800" />
+      <div className="mx-auto max-w-4xl space-y-4 rounded-lg bg-white p-6 shadow-lg">
+        <Skeleton className="h-8 w-1/2 bg-gray-200" />
+        <Skeleton className="h-24 w-full bg-gray-200" />
       </div>
     );
   }

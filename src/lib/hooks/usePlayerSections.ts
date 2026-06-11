@@ -17,12 +17,14 @@ export function usePlayerSections(items: IPlayerUnit[], activeUnitId: number) {
   useEffect(() => {
     const idx = sections.findIndex((s) => s.units.some((u) => u.id === activeUnitId));
     if (idx >= 0) {
-      setExpandedSections((prev) => (prev.includes(idx) ? prev : [idx]));
+      setExpandedSections((prev) => (prev.includes(idx) ? prev : [...prev, idx]));
     }
   }, [sections, activeUnitId]);
 
   const toggleSection = useCallback((index: number) => {
-    setExpandedSections((prev) => (prev.includes(index) ? [] : [index]));
+    setExpandedSections((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
+    );
   }, []);
 
   const getStats = useCallback(

@@ -32,12 +32,12 @@ export function PlayerSidebarShell({
 }: PlayerSidebarShellProps) {
   return (
     <div
-      className={`hidden h-full shrink-0 transform border-l border-gray-200 bg-white transition-all duration-300 ease-in-out lg:block ${
+      className={`hidden min-h-0 shrink-0 transform border-l border-gray-200 bg-white transition-all duration-300 ease-in-out lg:flex lg:flex-col ${
         isOpen ? "translate-x-0" : "w-0 translate-x-full overflow-hidden border-0"
       }`}
       style={isOpen ? { width: PLAYER_SIDEBAR_WIDTH } : undefined}
     >
-      <div className="h-full w-full overflow-y-auto p-4 text-gray-900">
+      <div className="min-h-0 w-full flex-1 overflow-y-auto overscroll-y-contain p-4 text-gray-900">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">Course content</h2>
           <button

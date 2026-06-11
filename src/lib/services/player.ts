@@ -44,7 +44,7 @@ export const playerService = {
   async startQuiz(quizId: number, courseId: number): Promise<unknown> {
     return bffJson(`/api/quizzes/${quizId}/start`, {
       method: "POST",
-      body: JSON.stringify({ course: courseId }),
+      body: JSON.stringify({ course_id: courseId }),
     });
   },
 
@@ -91,7 +91,7 @@ export const playerService = {
   async startAssignment(assignmentId: number, courseId: number): Promise<unknown> {
     return bffJson(`/api/assignments/${assignmentId}/start`, {
       method: "POST",
-      body: JSON.stringify({ course: courseId }),
+      body: JSON.stringify({ course_id: courseId }),
     });
   },
 
