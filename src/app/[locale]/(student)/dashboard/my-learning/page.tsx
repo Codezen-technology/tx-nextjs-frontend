@@ -143,7 +143,7 @@ export default function MyLearningPage() {
         <TabsContent value="active" className="mt-4">
           {activeQuery.isError && <DashboardErrorBanner />}
           {activeQuery.isLoading ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,280px))] gap-6">
               {Array.from({ length: 12 }).map((_, i) => (
                 <LearningCourseCardSkeleton key={i} />
               ))}
@@ -160,7 +160,7 @@ export default function MyLearningPage() {
             />
           ) : (
             <>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,280px))] gap-6">
                 {activeQuery.data.courses.map((course) => (
                   <LearningCourseCard key={course.id} course={course} />
                 ))}
@@ -205,8 +205,13 @@ export default function MyLearningPage() {
         <TabsContent value="certificates" className="mt-4">
           {certQuery.isError && <DashboardErrorBanner />}
           {certQuery.isLoading ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {Array.from({ length: 8 }).map((_, i) => (
+            <div>
+              <div className="flex items-center justify-between pb-4 text-[24px] font-bold text-[#2e4450]">
+                <span className="w-[260px]">Course</span>
+                <span className="mr-8">Action</span>
+              </div>
+              <hr className="border-[#eaecee]" />
+              {Array.from({ length: 5 }).map((_, i) => (
                 <CertificateCardSkeleton key={i} />
               ))}
             </div>
@@ -217,15 +222,18 @@ export default function MyLearningPage() {
             />
           ) : (
             <>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {certQuery.data.certificates.map((cert) => (
-                  <CertificateCard
-                    key={cert.course_id}
-                    certificate={cert}
-                    onShare={setSelectedCert}
-                  />
-                ))}
+              <div className="flex items-center justify-between pb-4 text-[24px] font-bold text-[#2e4450]">
+                <span className="w-[260px]">Course</span>
+                <span className="mr-8">Action</span>
               </div>
+              <hr className="border-[#eaecee]" />
+              {certQuery.data.certificates.map((cert) => (
+                <CertificateCard
+                  key={cert.course_id}
+                  certificate={cert}
+                  onShare={setSelectedCert}
+                />
+              ))}
               <Pagination
                 page={certPage}
                 totalPages={certQuery.data.totalPages ?? 1}

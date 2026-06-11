@@ -1,13 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { Download, Share2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Download, MoreVertical } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SafeImage } from "@/components/ui/safe-image";
 import type { Certificate } from "@/types/student-dashboard";
-
-const FALLBACK = "/dashboard/no-image.jpg";
 
 interface CertificateCardProps {
   certificate: Certificate;
@@ -15,63 +10,61 @@ interface CertificateCardProps {
 }
 
 export function CertificateCard({ certificate, onShare }: CertificateCardProps) {
-  const unlocked = certificate.is_certificate_unlocked === "1";
   const pdfUrl = certificate.certificate_url || certificate.lms_certificate_url;
+  const canDownload = pdfUrl && typeof pdfUrl === "string";
 
   return (
-    <article className="overflow-hidden rounded-2xl bg-[#f6f6fa]">
-      <div className="relative h-40">
-        <SafeImage
-          src={
-            typeof certificate.featured_image === "string" ? certificate.featured_image : FALLBACK
-          }
-          alt={certificate.title}
-          fill
-          className="object-cover"
-        />
+    <div className="flex items-center justify-between border-b border-[#eaecee] py-6">
+      <p className="w-[260px] shrink-0 text-[18px] font-bold leading-[1.3] text-[#2e4450]">
+        {certificate.title}
+      </p>
+
+      <div className="flex items-center gap-4">
+        {canDownload ? (
+          <a
+            href={pdfUrl as string}
+            download
+            className="flex h-14 w-[220px] items-center justify-center gap-2 rounded-lg bg-[#3f4d97] text-[18px] font-bold text-[#f6f6fa] transition hover:bg-[#3f4d97]/90"
+          >
+            <Download className="h-6 w-6 shrink-0" />
+            Download Certificate
+          </a>
+        ) : (
+          <span className="flex h-14 w-[220px] cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-[#3f4d97]/40 text-[18px] font-bold text-[#f6f6fa]">
+            <Download className="h-6 w-6 shrink-0" />
+            Download Certificate
+          </span>
+        )}
+
+        <button
+          type="button"
+          onClick={() => onShare(certificate)}
+          className="flex h-14 items-center justify-center rounded-lg bg-[#108a97] px-6 text-[18px] font-bold text-[#f6f6fa] transition hover:bg-[#108a97]/90"
+        >
+          Order Hardcopy Certificate
+        </button>
       </div>
-      <div className="space-y-3 p-4">
-        <h3 className="line-clamp-2 font-bold text-[#2e4450]">{certificate.title}</h3>
-        <p className="text-sm text-[#586973]">
-          {unlocked ? "Certificate unlocked" : "Complete course to unlock"}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {pdfUrl && typeof pdfUrl === "string" && (
-            <>
-              <Button asChild size="sm" variant="outline">
-                <Link href={pdfUrl} target="_blank" rel="noopener noreferrer">
-                  View
-                </Link>
-              </Button>
-              <Button asChild size="sm" variant="outline">
-                <a href={pdfUrl} download>
-                  <Download className="mr-1 h-4 w-4" />
-                  Download PDF
-                </a>
-              </Button>
-            </>
-          )}
-          {unlocked && (
-            <Button size="sm" variant="secondary" onClick={() => onShare(certificate)}>
-              <Share2 className="mr-1 h-4 w-4" />
-              Share
-            </Button>
-          )}
-        </div>
-      </div>
-    </article>
+
+      <button
+        type="button"
+        aria-label="More options"
+        className="flex h-8 w-8 shrink-0 items-center justify-center text-[#2e4450]"
+      >
+        <MoreVertical className="h-6 w-6" />
+      </button>
+    </div>
   );
 }
 
 export function CertificateCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-2xl bg-[#f6f6fa]">
-      <Skeleton className="h-40 w-full rounded-none" />
-      <div className="space-y-2 p-4">
-        <Skeleton className="h-6 w-full" />
-        <Skeleton className="h-4 w-2/3" />
-        <Skeleton className="h-9 w-32" />
+    <div className="flex items-center justify-between border-b border-[#eaecee] py-6">
+      <Skeleton className="h-6 w-[260px] shrink-0 bg-[#e2e8ee]" />
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-14 w-[220px] rounded-lg bg-[#e2e8ee]" />
+        <Skeleton className="h-14 w-[240px] rounded-lg bg-[#e2e8ee]" />
       </div>
+      <Skeleton className="h-6 w-6 shrink-0 rounded bg-[#e2e8ee]" />
     </div>
   );
 }
