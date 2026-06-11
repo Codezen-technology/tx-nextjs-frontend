@@ -112,6 +112,12 @@ const config: Config = {
         "lms-secondary": "var(--color-secondary, #16c2d5)",
         "lms-background": "var(--color-background, #ffffff)",
         "lms-text": "var(--color-text, #2E323E)",
+
+        /** Course player tokens — parity with wplms-custom-course-player */
+        "player-primary": "#0ea5e9",
+        "player-success": "#22c55e",
+        "player-warning": "#eab308",
+        "player-danger": "#ef4444",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -129,8 +135,8 @@ const config: Config = {
         },
         "infinite-scroll": {
           from: { transform: "translateX(0)" },
-          to: { transform: 'translateX(-50%)' },
-        }
+          to: { transform: "translateX(-50%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",

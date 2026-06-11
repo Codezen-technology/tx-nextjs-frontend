@@ -1,4 +1,4 @@
-import { UnitPlayer } from "@/components/units/unit-player";
+import { CoursePlayer } from "@/components/player/course-player";
 
 interface PageProps {
   params: { courseId: string; unitId: string };
@@ -16,5 +16,5 @@ export default function LearnUnitPage({ params }: PageProps) {
     );
   }
 
-  return <UnitPlayer courseId={courseId} unitId={unitId} />;
+  return <CoursePlayer courseId={courseId} unitId={unitId} />;
 }

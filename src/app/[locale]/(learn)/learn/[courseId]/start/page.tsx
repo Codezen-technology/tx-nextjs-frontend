@@ -24,11 +24,14 @@ export default function LearnStartPage() {
       return;
     }
 
-    const first = curriculum?.sections?.[0]?.units?.[0]?.id;
+    const first = curriculum?.sections?.flatMap((s) => s.units)?.find((u) => u.id)?.id;
     if (first) {
       router.replace(`/learn/${courseId}/${first}`);
     } else if (!isLoading) {
-      router.replace(`/course/${courseId}`);
+      // No resolvable unit (empty/locked curriculum). The public course page is
+      // slug-only, and we only have the numeric id here, so send the user back
+      // to their learning dashboard rather than a 404.
+      router.replace("/dashboard/my-learning");
     }
   }, [courseId, curriculum, progress, isLoading, router]);
 

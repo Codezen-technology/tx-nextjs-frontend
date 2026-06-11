@@ -11,8 +11,8 @@
 @layer base {
   :root {
     /* Backgrounds */
-    --background: 0 0% 100%;                    /* neutral-0  #ffffff  */
-    --foreground: 215 100% 15%;                 /* neutral-900 #00204a */
+    --background: 0 0% 100%; /* neutral-0  #ffffff  */
+    --foreground: 215 100% 15%; /* neutral-900 #00204a */
 
     --card: 0 0% 100%;
     --card-foreground: 215 100% 15%;
@@ -28,28 +28,28 @@
     --secondary: 35 65% 37%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 215 20% 94%;                       /* neutral-20 #f5f6f8 */
-    --muted-foreground: 215 20% 55%;            /* neutral-200 #667992 */
+    --muted: 215 20% 94%; /* neutral-20 #f5f6f8 */
+    --muted-foreground: 215 20% 55%; /* neutral-200 #667992 */
 
-    --accent: 193 100% 94%;                     /* primary-50 #e6f8fe */
-    --accent-foreground: 193 100% 16%;          /* primary-900 #004f65 */
+    --accent: 193 100% 94%; /* primary-50 #e6f8fe */
+    --accent-foreground: 193 100% 16%; /* primary-900 #004f65 */
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 20% 88%;                      /* neutral-40 #dee2e7 */
+    --border: 215 20% 88%; /* neutral-40 #dee2e7 */
     --input: 215 20% 88%;
-    --ring: 193 100% 47%;                       /* primary-500 */
+    --ring: 193 100% 47%; /* primary-500 */
 
     --radius: 0.5rem;
   }
 
   .dark {
     /* Backgrounds — deep navy from neutral palette */
-    --background: 215 100% 15%;                 /* neutral-900 #00204a */
-    --foreground: 215 20% 94%;                  /* neutral-20 #f5f6f8 */
+    --background: 215 100% 15%; /* neutral-900 #00204a */
+    --foreground: 215 20% 94%; /* neutral-20 #f5f6f8 */
 
-    --card: 215 80% 20%;                        /* neutral-800 #0d2b53 */
+    --card: 215 80% 20%; /* neutral-800 #0d2b53 */
     --card-foreground: 215 20% 94%;
 
     --popover: 215 80% 20%;
@@ -63,8 +63,8 @@
     --secondary: 35 65% 37%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 215 50% 22%;                       /* neutral-700 #1c395e */
-    --muted-foreground: 215 20% 65%;            /* neutral-100 #75879d */
+    --muted: 215 50% 22%; /* neutral-700 #1c395e */
+    --muted-foreground: 215 20% 65%; /* neutral-100 #75879d */
 
     --accent: 215 50% 22%;
     --accent-foreground: 193 100% 80%;
@@ -72,7 +72,7 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 50% 26%;                      /* neutral-600 #2e486b */
+    --border: 215 50% 26%; /* neutral-600 #2e486b */
     --input: 215 50% 26%;
     --ring: 193 90% 58%;
   }
@@ -84,7 +84,9 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
   }
 }
 
@@ -124,5 +126,45 @@
   }
   .prose-wp :where(pre) {
     @apply mb-4 overflow-x-auto rounded-md bg-muted p-4 text-sm;
+  }
+
+  /* Course player — parity with wplms-custom-course-player */
+  .course-player .unit-course-player {
+    background: #000;
+    color: #fff;
+  }
+
+  .course-player .unit-course-player > p,
+  .course-player .unit-course-player > div {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: #000 !important;
+  }
+
+  .course-player .unit-course-player iframe,
+  .course-player .unit-course-player embed,
+  .course-player .unit-course-player object,
+  .course-player .unit-course-player .vibe_editor_media,
+  .course-player .unit-course-player .vbp_pdf_object,
+  .course-player .unit-course-player .wp-block-embed,
+  .course-player .unit-course-player .wp-block-embed__wrapper,
+  .course-player .unit-course-player video {
+    display: block;
+    width: 100% !important;
+    height: calc(100vh - 8rem) !important;
+    min-height: 360px;
+    max-width: 100%;
+    border: 0;
+    background: #000 !important;
+  }
+
+  /* Prose copy below embeds */
+  .course-player .unit-course-player p:not(:has(iframe)) {
+    height: auto !important;
+    min-height: 0;
+    padding: 1rem 1.5rem !important;
+    background: transparent !important;
+    color: #e5e7eb;
   }
 }

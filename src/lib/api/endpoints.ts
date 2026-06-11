@@ -55,12 +55,19 @@ export const endpoints = {
     related: (idOrSlug: string | number) => coursePath(idOrSlug, "related"),
     instructors: (id: number) => `${lms}/courses/${id}/instructors`,
     enroll: (courseId: number) => `${lms}/courses/${courseId}/enroll`,
+    // Course-player parity (wraps WPLMS coursestatus / finishcourse).
+    playerStatus: (id: number) => `${lms}/courses/${id}/player-status`,
+    finish: (id: number) => `${lms}/courses/${id}/finish`,
   },
   units: {
     list: `${lms}/units`,
     detail: (id: number) => `${lms}/units/${id}`,
     content: (id: number) => `${lms}/units/${id}/content`,
     complete: (id: number) => `${lms}/units/${id}/complete`,
+    // Course-player parity (full IUnitItem + WPLMS markcomplete).
+    playerContent: (id: number, courseId: number) =>
+      `${lms}/units/${id}/player-content?course_id=${courseId}`,
+    playerComplete: (id: number) => `${lms}/units/${id}/player-complete`,
   },
   quizzes: {
     list: `${lms}/quizzes`,
@@ -69,6 +76,8 @@ export const endpoints = {
     start: (id: number) => `${lms}/quizzes/${id}/start`,
     submit: (id: number) => `${lms}/quizzes/${id}/submit`,
     results: (id: number) => `${lms}/quizzes/${id}/results`,
+    // Full quiz payload incl. encrypted correct answers (WPLMS bp_wplms_get_quiz_data).
+    full: (id: number, courseId: number) => `${lms}/quizzes/${id}/full?course_id=${courseId}`,
   },
   assignments: {
     list: `${lms}/assignments`,
@@ -76,6 +85,10 @@ export const endpoints = {
     submit: (id: number) => `${lms}/assignments/${id}/submit`,
     status: (id: number) => `${lms}/assignments/${id}/status`,
     grade: (id: number) => `${lms}/assignments/${id}/grade`,
+    // Course-player parity (wraps WPLMS assignment endpoints).
+    full: (id: number, courseId: number) => `${lms}/assignments/${id}/full?course_id=${courseId}`,
+    start: (id: number) => `${lms}/assignments/${id}/start`,
+    upload: (id: number) => `${lms}/assignments/${id}/upload`,
   },
   enrollments: {
     enroll: (courseId: number) => `${lms}/courses/${courseId}/enroll`,

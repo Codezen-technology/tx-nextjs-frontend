@@ -275,7 +275,7 @@ export const coursesService = {
   },
 
   async curriculum(idOrSlug: string | number): Promise<CourseCurriculum> {
-    const { data } = await api.get<{
+    type NestedShape = {
       sections?: Array<{
         id: number | string;
         title: string;
@@ -291,17 +291,58 @@ export const coursesService = {
       total_lessons?: number;
       total_units?: number;
       course_id?: number;
-    }>(endpoints.courses.curriculum(idOrSlug));
+    };
+
+    // The lms-backend `/courses/{id}/curriculum` endpoint returns a FLAT array:
+    // section markers ({ id: null, type: "section" }) interleaved with unit/quiz
+    // items ({ id: number, type: "unit" | "quiz", ... }). Older/alternate shapes
+    // nest units under `sections[].units`, so we tolerate both.
+    const { data } = await api.get<Array<Record<string, unknown>> | NestedShape>(
+      endpoints.courses.curriculum(idOrSlug),
+    );
+
+    const sections: CourseSection[] = [];
+
+    if (Array.isArray(data)) {
+      let current: CourseSection | null = null;
+      for (const item of data) {
+        const type = (item as { type?: string }).type;
+        const rawId = (item as { id?: unknown }).id;
+        const isSection = type === "section" || rawId == null;
+
+        if (isSection) {
+          current = {
+            id: sections.length,
+            title: renderedOrString((item as { title?: unknown }).title) || "Section",
+            units: [],
+          };
+          sections.push(current);
+          continue;
+        }
+
+        if (!current) {
+          current = { id: sections.length, title: "", units: [] };
+          sections.push(current);
+        }
+        current.units.push(normalizeUnitSummaryFromCurriculum(item as Record<string, unknown>));
+      }
+
+      return {
+        courseId: Number(idOrSlug) || 0,
+        sections,
+        totalUnits: sections.reduce((acc, s) => acc + s.units.length, 0),
+      };
+    }
 
     const rawSections = data.sections ?? data.data ?? [];
-    const sections: CourseSection[] = rawSections.map((sec) => {
+    for (const sec of rawSections) {
       const items = (sec.units ?? sec.lessons ?? []) as Record<string, unknown>[];
-      return {
+      sections.push({
         id: sec.id,
         title: sec.title,
         units: items.map(normalizeUnitSummaryFromCurriculum),
-      };
-    });
+      });
+    }
 
     const totalUnits =
       data.total_units ??

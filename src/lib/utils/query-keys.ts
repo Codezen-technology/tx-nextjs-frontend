@@ -18,6 +18,15 @@ export const queryKeys = {
   units: {
     detail: (id: number) => ["units", "detail", id] as const,
   },
+  player: {
+    status: (courseId: number) => ["player", "status", courseId] as const,
+    unit: (courseId: number, unitId: number) => ["player", "unit", courseId, unitId] as const,
+    quiz: (courseId: number, quizId: number) => ["player", "quiz", courseId, quizId] as const,
+    assignment: (courseId: number, assignmentId: number) =>
+      ["player", "assignment", courseId, assignmentId] as const,
+    reviews: (courseId: number) => ["player", "reviews", courseId] as const,
+    myReview: (courseId: number) => ["player", "my-review", courseId] as const,
+  },
   progress: {
     course: (id: number) => ["progress", "course", id] as const,
   },

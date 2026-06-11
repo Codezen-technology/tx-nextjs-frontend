@@ -281,3 +281,60 @@ export async function proxyToWP(wpPath: string, options: ProxyOptions = {}): Pro
 
   return nextRes;
 }
+
+/**
+ * Proxy a multipart/form-data request (e.g. assignment file uploads) to the LMS
+ * backend. Mirrors proxyToWP's auth (httpOnly access_token → Bearer, refresh on
+ * 401) but streams the raw FormData instead of JSON. Content-Type is left unset
+ * so fetch derives the correct multipart boundary.
+ */
+export async function proxyFormDataToWP(wpPath: string, formData: FormData): Promise<NextResponse> {
+  const cookieStore = cookies();
+  const accessFromCookie = cookieStore.get("access_token")?.value;
+
+  if (!accessFromCookie) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const url = wpJsonUrl(wpPath.startsWith("/") ? wpPath : `/${wpPath}`);
+
+  const doFetch = (token: string) =>
+    fetch(url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+
+  let res = await doFetch(accessFromCookie);
+
+  if (res.status === 401) {
+    const refreshed = await tryRefresh();
+    if (refreshed) res = await doFetch(refreshed);
+  }
+
+  const text = await res.text();
+  let json: unknown;
+  try {
+    json = text ? JSON.parse(text) : {};
+  } catch {
+    return NextResponse.json({ error: "Invalid response from WordPress" }, { status: 502 });
+  }
+
+  const envelope = json as {
+    success?: boolean;
+    data?: unknown;
+    message?: string;
+    code?: string;
+    error?: { message?: string; code?: string };
+  };
+
+  if (envelope.success === true) {
+    return NextResponse.json(envelope.data ?? null, { status: res.status });
+  }
+  if (envelope.success === false) {
+    const msg = envelope.message ?? envelope.error?.message ?? "Upload failed";
+    const code = envelope.code ?? envelope.error?.code ?? "error";
+    return NextResponse.json({ error: msg, code }, { status: res.status });
+  }
+  return NextResponse.json(json, { status: res.status });
+}
