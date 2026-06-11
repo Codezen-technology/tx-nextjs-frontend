@@ -94,8 +94,15 @@ export function useAllCategories() {
 
 export function useShareCertificate() {
   return useMutation({
-    mutationFn: ({ courseId, email }: { courseId: number; email: string }) =>
-      studentDashboardService.shareCertificate(courseId, email),
+    mutationFn: ({
+      courseId,
+      email,
+      message,
+    }: {
+      courseId: number;
+      email: string;
+      message?: string;
+    }) => studentDashboardService.shareCertificate(courseId, email, message),
   });
 }
 

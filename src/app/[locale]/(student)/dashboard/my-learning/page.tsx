@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,6 +28,20 @@ import {
 import type { Certificate } from "@/types/student-dashboard";
 
 type LearningTab = "active" | "completed" | "certificates";
+type CertFilter = "all" | "certificate" | "transcript";
+
+const CERT_FILTER_OPTIONS: { value: CertFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "certificate", label: "Has Certificate" },
+  { value: "transcript", label: "Has Transcript" },
+];
+
+function hasCert(c: Certificate) {
+  return c.is_certificate_generated && !!c.certificate_url;
+}
+function hasTranscript(c: Certificate) {
+  return !!c.is_transcript_unlocked && !!c.transcript_url;
+}
 
 export default function MyLearningPage() {
   const searchParams = useSearchParams();
@@ -39,6 +53,7 @@ export default function MyLearningPage() {
   const [activePage, setActivePage] = useState(1);
   const [completedPage, setCompletedPage] = useState(1);
   const [certPage, setCertPage] = useState(1);
+  const [certFilter, setCertFilter] = useState<CertFilter>("all");
   const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
 
   const gridRef = useRef<HTMLDivElement>(null);
@@ -66,11 +81,31 @@ export default function MyLearningPage() {
     orderby: sort,
   });
 
+  // Paginated for "all", fetch all for sub-filters (matching plugin behavior)
   const certQuery = useStudentCertificates({
-    page: certPage,
-    per_page: 12,
+    page: certFilter !== "all" ? 1 : certPage,
+    per_page: certFilter !== "all" ? 999 : 12,
     search: search || undefined,
   });
+
+  // Separate count query for filter badge numbers
+  const certCountQuery = useStudentCertificates({ page: 1, per_page: 999 });
+  const certCounts = useMemo(() => {
+    const all = certCountQuery.data?.certificates ?? [];
+    if (!certCountQuery.data) return null;
+    return {
+      all: certCountQuery.data.total ?? all.length,
+      certificate: all.filter(hasCert).length,
+      transcript: all.filter(hasTranscript).length,
+    };
+  }, [certCountQuery.data]);
+
+  const filteredCerts = useMemo(() => {
+    const certs = certQuery.data?.certificates ?? [];
+    if (certFilter === "certificate") return certs.filter(hasCert);
+    if (certFilter === "transcript") return certs.filter(hasTranscript);
+    return certs;
+  }, [certQuery.data?.certificates, certFilter]);
 
   const scrollToGrid = () => {
     gridRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -86,6 +121,12 @@ export default function MyLearningPage() {
     setSearch("");
     setActivePage(1);
     setCompletedPage(1);
+    setCertPage(1);
+    setCertFilter("all");
+  };
+
+  const handleCertFilterChange = (f: CertFilter) => {
+    setCertFilter(f);
     setCertPage(1);
   };
 
@@ -140,6 +181,7 @@ export default function MyLearningPage() {
 
         <div ref={gridRef} />
 
+        {/* ── Active Training ── */}
         <TabsContent value="active" className="mt-4">
           {activeQuery.isError && <DashboardErrorBanner />}
           {activeQuery.isLoading ? (
@@ -175,18 +217,45 @@ export default function MyLearningPage() {
           )}
         </TabsContent>
 
+        {/* ── Completed Training ── */}
         <TabsContent value="completed" className="mt-4">
           {completedQuery.isError && <DashboardErrorBanner />}
           {completedQuery.isLoading ? (
-            <div>
+            <>
+              {/* Column headers */}
+              <div className="mt-2 flex w-full min-w-0 items-center gap-4">
+                <span className="min-w-0 max-w-[350px] flex-1 text-2xl font-bold text-[#2e4450]">
+                  Course
+                </span>
+                <span className="w-[280px] shrink-0 text-2xl font-bold text-[#2e4450]">
+                  Progress
+                </span>
+                <span className="flex-1 pr-10 text-right text-2xl font-bold text-[#2e4450]">
+                  Action
+                </span>
+              </div>
+              <hr className="mt-1 border-[#eaecee]" />
               {Array.from({ length: 3 }).map((_, i) => (
                 <CompletedCourseRowSkeleton key={i} />
               ))}
-            </div>
+            </>
           ) : !completedQuery.data?.courses.length ? (
             <EmptyState title="No completed courses yet" description="" />
           ) : (
             <>
+              {/* Column headers */}
+              <div className="mt-2 flex w-full min-w-0 items-center gap-4">
+                <span className="min-w-0 max-w-[350px] flex-1 text-2xl font-bold text-[#2e4450]">
+                  Course
+                </span>
+                <span className="w-[280px] shrink-0 text-2xl font-bold text-[#2e4450]">
+                  Progress
+                </span>
+                <span className="flex-1 pr-10 text-right text-2xl font-bold text-[#2e4450]">
+                  Action
+                </span>
+              </div>
+              <hr className="mt-1 border-[#eaecee]" />
               <div>
                 {completedQuery.data.courses.map((course) => (
                   <CompletedCourseRow key={course.id} course={course} />
@@ -202,8 +271,43 @@ export default function MyLearningPage() {
           )}
         </TabsContent>
 
+        {/* ── Certificates ── */}
         <TabsContent value="certificates" className="mt-4">
           {certQuery.isError && <DashboardErrorBanner />}
+
+          {/* Filter pills */}
+          <div className="mb-4 flex flex-wrap gap-2">
+            {CERT_FILTER_OPTIONS.map(({ value, label }) => {
+              const active = certFilter === value;
+              const count = certCounts ? certCounts[value] : null;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => handleCertFilterChange(value)}
+                  className={[
+                    "flex items-center gap-1.5 rounded-[20px] px-4 py-2 text-[13px] font-semibold leading-none transition",
+                    active
+                      ? "bg-[#3f4d97] text-white hover:bg-[#0f217d]"
+                      : "border border-[#d0d5df] bg-[#f6f6fa] text-[#2e4450] hover:bg-[#eef0f9]",
+                  ].join(" ")}
+                >
+                  {label}
+                  {count !== null && (
+                    <span
+                      className={[
+                        "inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[9px] px-1 text-[11px] font-bold leading-none",
+                        active ? "bg-white/25 text-white" : "bg-[#e2e8ee] text-[#2e4450]",
+                      ].join(" ")}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
           {certQuery.isLoading ? (
             <div>
               <div className="flex items-center justify-between pb-4 text-[24px] font-bold text-[#2e4450]">
@@ -215,10 +319,18 @@ export default function MyLearningPage() {
                 <CertificateCardSkeleton key={i} />
               ))}
             </div>
-          ) : !certQuery.data?.certificates.length ? (
+          ) : !filteredCerts.length ? (
             <EmptyState
-              title="No certificates yet"
-              description="Complete a course to earn your first certificate."
+              title={
+                certFilter === "certificate"
+                  ? "No certificates available"
+                  : certFilter === "transcript"
+                    ? "No transcripts available"
+                    : "No certificates yet"
+              }
+              description={
+                certFilter === "all" ? "Complete a course to earn your first certificate." : ""
+              }
             />
           ) : (
             <>
@@ -227,19 +339,21 @@ export default function MyLearningPage() {
                 <span className="mr-8">Action</span>
               </div>
               <hr className="border-[#eaecee]" />
-              {certQuery.data.certificates.map((cert) => (
+              {filteredCerts.map((cert) => (
                 <CertificateCard
                   key={cert.course_id}
                   certificate={cert}
                   onShare={setSelectedCert}
                 />
               ))}
-              <Pagination
-                page={certPage}
-                totalPages={certQuery.data.totalPages ?? 1}
-                onPageChange={handlePageChange(setCertPage)}
-                className="mt-8"
-              />
+              {certFilter === "all" && (
+                <Pagination
+                  page={certPage}
+                  totalPages={certQuery.data?.totalPages ?? 1}
+                  onPageChange={handlePageChange(setCertPage)}
+                  className="mt-8"
+                />
+              )}
             </>
           )}
         </TabsContent>

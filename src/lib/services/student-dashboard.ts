@@ -79,10 +79,18 @@ export const studentDashboardService = {
     };
   },
 
-  async shareCertificate(courseId: number, email: string): Promise<{ sent: boolean }> {
+  async shareCertificate(
+    courseId: number,
+    email: string,
+    message?: string,
+  ): Promise<{ sent: boolean }> {
     return bffJson<{ sent: boolean }>("/api/student/certificates/share", {
       method: "POST",
-      body: JSON.stringify({ course_id: courseId, recipient_email: email }),
+      body: JSON.stringify({
+        course_id: courseId,
+        recipient_email: email,
+        ...(message ? { message } : {}),
+      }),
     });
   },
 

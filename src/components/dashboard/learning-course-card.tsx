@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { MoreVertical, Play } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
@@ -13,6 +14,7 @@ const FALLBACK = "/dashboard/no-image.jpg";
 export function LearningCourseCard({ course }: { course: StudentCourse }) {
   const continueUrl = getCourseContinueUrl(course);
   const progress = course.user_progress ?? 0;
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <article className="flex w-full flex-col overflow-hidden rounded-2xl bg-[#f6f6fa] transition-shadow hover:shadow-lg">
@@ -24,7 +26,8 @@ export function LearningCourseCard({ course }: { course: StudentCourse }) {
           fill
           className="object-cover"
         />
-        {/* Play button */}
+
+        {/* Play button — frosted glass circle */}
         <Link
           href={continueUrl}
           className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#f6f6fa]/80 transition hover:bg-[#f6f6fa]/95"
@@ -32,14 +35,44 @@ export function LearningCourseCard({ course }: { course: StudentCourse }) {
         >
           <Play className="ml-0.5 h-8 w-8 text-[#3f4d97]" fill="currentColor" />
         </Link>
-        {/* Three-dot menu */}
-        <button
-          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg bg-[#f6f6fa] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.2)] transition hover:bg-white"
-          aria-label="Course options"
-          type="button"
-        >
-          <MoreVertical className="h-[18px] w-[18px] text-[#2e4450]" />
-        </button>
+
+        {/* 3-dot menu — top-right */}
+        <div className="absolute right-3 top-3">
+          <button
+            type="button"
+            aria-label="Course options"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f6f6fa] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.2)] transition hover:bg-white"
+          >
+            <MoreVertical className="h-[18px] w-[18px] text-[#2e4450]" />
+          </button>
+
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+              <div className="absolute right-0 top-full z-20 mt-1 min-w-[160px] rounded-2xl bg-white py-2 shadow-[0_2px_8px_rgba(0,0,0,0.15)] ring-1 ring-black/5">
+                <Link
+                  href={continueUrl}
+                  onClick={() => setMenuOpen(false)}
+                  className="block px-4 py-2 text-sm text-[#2e4450] hover:bg-[#f6f6fa]"
+                >
+                  Continue Learning
+                </Link>
+                {course.link && (
+                  <a
+                    href={course.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-2 text-sm text-[#2e4450] hover:bg-[#f6f6fa]"
+                  >
+                    View Course
+                  </a>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Body */}
