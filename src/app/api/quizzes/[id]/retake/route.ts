@@ -9,6 +9,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const body = await req.json().catch(() => ({}));
   return proxyToWP(`/quizzes/${encodeURIComponent(quizId)}/retake`, {
     method: "POST",
-    body: JSON.stringify(body),
+    body,
   });
 }

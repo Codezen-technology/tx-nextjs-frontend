@@ -16,7 +16,7 @@ interface PlayerContentProps {
   prev: IPlayerUnit | null;
   next: IPlayerUnit | null;
   onNavigate: (unitId: number) => void;
-  onCompleteUnit: (unitId: number) => void;
+  onCompleteUnit: (unitId: number, options?: { advance?: boolean }) => void | Promise<void>;
 }
 
 export function PlayerContent({

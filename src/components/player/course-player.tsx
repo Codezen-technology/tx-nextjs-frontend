@@ -7,7 +7,11 @@ import { Button } from "@/components/ui/button";
 import { useMyReview, usePlayerStatus } from "@/lib/hooks/usePlayer";
 import { useReviewMilestones } from "@/lib/hooks/useReviewMilestones";
 import { useUnitCompletion } from "@/lib/hooks/useUnitCompletion";
-import { calculatePlayerProgress, getPlayableUnits } from "@/lib/player/progress";
+import {
+  calculatePlayerProgress,
+  getNextIncompleteUnit,
+  getPlayableUnits,
+} from "@/lib/player/progress";
 import { usePlayerStore } from "@/lib/stores/player.store";
 import { PlayerTopBar } from "@/components/player/player-top-bar";
 import { PlayerSidebarShell } from "@/components/player/player-sidebar-shell";
@@ -56,21 +60,13 @@ export function CoursePlayer({ courseId, unitId }: CoursePlayerProps) {
     [router, courseId],
   );
 
-  const getNextPlayableUnit = useCallback(
-    (unitId: number) => {
-      const idx = playableItems.findIndex((u) => u.id === unitId);
-      return idx >= 0 && idx < playableItems.length - 1 ? playableItems[idx + 1] : null;
-    },
-    [playableItems],
-  );
-
   const onCompleteUnit = useCallback(
     async (id: number, options?: { advance?: boolean }) => {
       const unit = playableItems.find((u) => u.id === id);
       if (!unit) return;
 
       const shouldAdvance = options?.advance !== false;
-      const nextUnit = getNextPlayableUnit(id);
+      const nextUnit = getNextIncompleteUnit(playableItems, id);
 
       if (unit.status < 1) {
         const ok = await handleUnitCompletion(id, unit.duration || 0);
@@ -81,7 +77,7 @@ export function CoursePlayer({ courseId, unitId }: CoursePlayerProps) {
         goTo(nextUnit.id);
       }
     },
-    [playableItems, getNextPlayableUnit, handleUnitCompletion, goTo],
+    [playableItems, handleUnitCompletion, goTo],
   );
 
   if (isLoading) {

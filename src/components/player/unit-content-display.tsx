@@ -2,7 +2,7 @@
 
 import { memo, useEffect, useRef } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { bindVimeoEnded } from "@/lib/player/vimeo-ended";
+import { findVimeoIframe } from "@/lib/player/vimeo-ended";
 import { useUnitContent } from "@/lib/hooks/usePlayer";
 
 interface UnitContentDisplayProps {
@@ -23,48 +23,61 @@ function UnitContentDisplayInner({
   const { data: content, isLoading } = useUnitContent(courseId, unitId);
   const containerRef = useRef<HTMLDivElement>(null);
   const onVideoEndedRef = useRef(onVideoEnded);
-  const boundKeyRef = useRef<string | null>(null);
 
   onVideoEndedRef.current = onVideoEnded;
 
   const htmlBody = content?.content?.trim();
   const videoEmbed = content?.meta?.video?.trim();
   const displayHtml = htmlBody || videoEmbed;
-  const bindKey = displayHtml ? `${courseId}-${unitId}` : null;
 
   useEffect(() => {
-    if (!bindKey || !containerRef.current || !canAutoComplete) return;
-    if (boundKeyRef.current === bindKey) return;
+    if (isLoading || !displayHtml || !canAutoComplete) return;
 
-    const container = containerRef.current;
-    const iframe =
-      container.querySelector<HTMLIFrameElement>('iframe[src*="vimeo"]') ??
-      Array.from(container.querySelectorAll<HTMLIFrameElement>("iframe")).find((el) =>
-        el.src.includes("vimeo.com"),
-      );
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
+    const timers: ReturnType<typeof setTimeout>[] = [];
 
-    if (iframe) {
-      boundKeyRef.current = bindKey;
-      return bindVimeoEnded(iframe, () => onVideoEndedRef.current(unitId));
-    }
+    const tryBind = async (): Promise<boolean> => {
+      const container = containerRef.current;
+      if (cancelled || !container) return false;
 
-    const video = container.querySelector<HTMLVideoElement>("video");
-    if (video) {
-      boundKeyRef.current = bindKey;
-      const handler = () => onVideoEndedRef.current(unitId);
-      video.addEventListener("ended", handler);
-      return () => {
-        video.removeEventListener("ended", handler);
-        if (boundKeyRef.current === bindKey) boundKeyRef.current = null;
-      };
-    }
+      const iframe = findVimeoIframe(container);
+      if (iframe) {
+        const { bindVimeoEnded } = await import("@/lib/player/vimeo-ended");
+        if (cancelled) return true;
+        cleanup?.();
+        cleanup = bindVimeoEnded(iframe, () => onVideoEndedRef.current(unitId));
+        return true;
+      }
 
-    return undefined;
-  }, [bindKey, canAutoComplete, courseId, unitId]);
+      const video = container.querySelector<HTMLVideoElement>("video");
+      if (video) {
+        const handler = () => onVideoEndedRef.current(unitId);
+        cleanup?.();
+        video.addEventListener("ended", handler);
+        cleanup = () => video.removeEventListener("ended", handler);
+        return true;
+      }
 
-  useEffect(() => {
-    boundKeyRef.current = null;
-  }, [bindKey]);
+      return false;
+    };
+
+    const scheduleRetries = () => {
+      void tryBind().then((bound) => {
+        if (bound || cancelled) return;
+        timers.push(setTimeout(() => void tryBind(), 400));
+        timers.push(setTimeout(() => void tryBind(), 1200));
+      });
+    };
+
+    requestAnimationFrame(scheduleRetries);
+
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+      cleanup?.();
+    };
+  }, [isLoading, displayHtml, canAutoComplete, unitId]);
 
   if (isLoading) {
     return (

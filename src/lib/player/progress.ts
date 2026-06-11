@@ -1,4 +1,4 @@
-import { PlayerItemType, type IPlayerCourse } from "@/types/player";
+import { PlayerItemType, type IPlayerCourse, type IPlayerUnit } from "@/types/player";
 
 /** Duration-weighted progress; takes min with WPLMS server value when present. */
 export function calculatePlayerProgress(course: IPlayerCourse): number {
@@ -17,4 +17,18 @@ export function calculatePlayerProgress(course: IPlayerCourse): number {
 
 export function getPlayableUnits(course: IPlayerCourse) {
   return course.courseitems.filter((i) => i.type !== PlayerItemType.Section);
+}
+
+/** First incomplete unit after `afterUnitId` in curriculum order. */
+export function getNextIncompleteUnit(
+  items: IPlayerUnit[],
+  afterUnitId: number,
+): IPlayerUnit | null {
+  const idx = items.findIndex((u) => u.id === afterUnitId);
+  if (idx < 0) return null;
+
+  for (let i = idx + 1; i < items.length; i++) {
+    if (items[i].status < 1) return items[i];
+  }
+  return null;
 }
