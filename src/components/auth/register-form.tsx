@@ -125,7 +125,7 @@ export function RegisterForm() {
                 />
                 <span className="font-open-sans text-base text-[#3b5374]">
                   I agree to the{" "}
-                  <Link href="/terms" className="font-bold text-[#9e6f21] underline">
+                  <Link href="/terms-and-conditions" className="font-bold text-[#9e6f21] underline">
                     terms &amp; conditions
                   </Link>
                 </span>

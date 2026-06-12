@@ -36,14 +36,14 @@
 | Cart                     | `283:12303`  | ⬜ Todo        |
 | Checkout                 | `361:13937`  | ⬜ Todo        |
 | Order Received           | `363:16133`  | ⬜ Todo        |
-| Blog (listing)           | `648:21070`  | ⬜ Todo        |
-| Blog (single)            | `648:31357`  | ⬜ Todo        |
-| About Us                 | `649:22654`  | ⬜ Todo        |
-| Contact Us               | `651:23101`  | ⬜ Todo        |
-| Certificate Verification | `668:34996`  | ⬜ Todo        |
-| Reviews                  | `668:24777`  | ⬜ Todo        |
-| T&C                      | `651:46906`  | ⬜ Todo        |
-| FAQ/Help                 | `651:50517`  | ⬜ Todo        |
+| Blog (listing)           | `648:21070`  | ✅ Done        |
+| Blog (single)            | `648:31357`  | ✅ Done        |
+| About Us                 | `649:22654`  | ✅ Done        |
+| Contact Us               | `651:23101`  | ✅ Done        |
+| Certificate Verification | `668:34996`  | ✅ Done        |
+| Reviews                  | `668:24777`  | ✅ Done        |
+| T&C                      | `651:46906`  | ✅ Done        |
+| FAQ/Help                 | `651:50517`  | ✅ Done        |
 | Pricing                  | `3209:25908` | ⬜ Todo        |
 | Error 404                | `172:11639`  | ⬜ Todo        |
 | Error Maintenance        | `172:10229`  | ⬜ Todo        |

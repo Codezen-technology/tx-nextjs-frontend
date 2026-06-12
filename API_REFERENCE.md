@@ -59,6 +59,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Public.** Authenticates user and returns tokens.
 
 **Request:**
+
 ```json
 {
   "username": "string (required)",
@@ -67,6 +68,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -87,6 +89,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 ```
 
 **Errors:**
+
 - `lms_auth_locked` (429) — Too many login attempts
 - `lms_auth_failed` (401) — Invalid credentials
 
@@ -97,6 +100,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Public.** Creates new user account.
 
 **Request:**
+
 ```json
 {
   "username": "string (required, min 3 chars)",
@@ -108,6 +112,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Response (201):** Same as login response.
 
 **Errors:**
+
 - `lms_registration_disabled` (403) — Registration disabled in WP
 - `lms_register_locked` (429) — Too many attempts
 - `lms_username_exists` (400)
@@ -121,6 +126,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Public.** Exchanges refresh token for new access token. Rotates refresh token.
 
 **Request:**
+
 ```json
 {
   "refresh_token": "string (required)"
@@ -128,6 +134,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -141,6 +148,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 ```
 
 **Errors:**
+
 - `lms_invalid_refresh_token` (401)
 - `lms_refresh_token_expired` (401)
 
@@ -151,6 +159,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Protected.** Revokes refresh token.
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -167,6 +176,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Public.** Triggers password reset email. Always returns 200 to prevent user enumeration.
 
 **Request:**
+
 ```json
 {
   "email": "string (required)"
@@ -174,6 +184,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -190,6 +201,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Public.** Resets password using WP reset key.
 
 **Request:**
+
 ```json
 {
   "login": "string (required, username)",
@@ -199,6 +211,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -209,6 +222,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 ```
 
 **Errors:**
+
 - `lms_invalid_reset_key` (400)
 - `lms_weak_password` (400)
 
@@ -221,6 +235,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Protected.** Returns current user profile.
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -247,6 +262,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Protected.** Updates current user profile.
 
 **Request (all optional):**
+
 ```json
 {
   "display_name": "string",
@@ -260,6 +276,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Response:** Same as GET `/users/me`
 
 **Errors:**
+
 - `lms_invalid_email` (400)
 - `lms_email_exists` (400)
 - `lms_weak_password` (400)
@@ -285,6 +302,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 | `order` | string | — | `ASC` or `DESC` |
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -383,6 +401,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Response:** Same as single item in `/courses` list.
 
 **Errors:**
+
 - `lms_course_not_found` (404)
 
 ---
@@ -392,6 +411,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Public.** Returns ordered curriculum with sections and units.
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -417,6 +437,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Response:** Paginated list of user objects.
 
 **Errors:**
+
 - `lms_course_not_found` (404)
 - `lms_auth_required` (401)
 - `lms_forbidden` (403)
@@ -428,6 +449,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Public.** Returns course instructors.
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -453,6 +475,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Public.** Returns course reviews with rating breakdown.
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -495,6 +518,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Protected.** Creates a review for a course.
 
 **Request:**
+
 ```json
 {
   "rating": 5,
@@ -504,6 +528,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 ```
 
 **Errors:**
+
 - `course_not_found` (404)
 - `already_reviewed` (400)
 
@@ -524,6 +549,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Protected.** Returns unit metadata (no content).
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -545,6 +571,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Protected.** Returns rendered unit content. Requires enrollment or instructor access.
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -556,6 +583,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 ```
 
 **Errors:**
+
 - `lms_unit_not_found` (404)
 - `lms_unit_forbidden` (403) — Not enrolled
 
@@ -566,6 +594,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Protected.** Marks unit complete for current user.
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -579,6 +608,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 ```
 
 **Errors:**
+
 - `lms_unit_not_found` (404)
 - `lms_course_not_found` (404)
 - `lms_unit_forbidden` (403)
@@ -592,6 +622,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Protected.** Enrolls current user in a course (free courses only).
 
 **Response (201):**
+
 ```json
 {
   "success": true,
@@ -608,6 +639,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 ```
 
 **Errors:**
+
 - `lms_course_not_found` (404)
 - `lms_already_enrolled` (400)
 - `lms_enroll_failed` (400)
@@ -633,6 +665,7 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 **Query:** `page`, `per_page`
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -666,6 +699,7 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
 **Protected.** Returns detailed per-unit progress for a course.
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -680,7 +714,13 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
     "course_link": "https://...",
     "units": [
       { "type": "section", "title": "Section 1", "id": null },
-      { "id": 100, "title": "Lesson 1", "type": "unit", "completed": true, "completed_at": 1704153600 },
+      {
+        "id": 100,
+        "title": "Lesson 1",
+        "type": "unit",
+        "completed": true,
+        "completed_at": 1704153600
+      },
       { "id": 101, "title": "Lesson 2", "type": "unit", "completed": false, "completed_at": null },
       { "id": 102, "title": "Quiz", "type": "quiz", "completed": false, "completed_at": null }
     ]
@@ -711,6 +751,7 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
 **Public.** Returns quiz questions (no answers).
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -728,6 +769,7 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
 **Protected.** Starts a quiz attempt.
 
 **Response (201):**
+
 ```json
 {
   "success": true,
@@ -747,6 +789,7 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
 **Protected.** Submits quiz answers.
 
 **Request:**
+
 ```json
 {
   "answers": [
@@ -757,6 +800,7 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -801,6 +845,7 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
 **Protected.** Submits assignment.
 
 **Request:**
+
 ```json
 {
   "content": "string (text submission)",
@@ -809,6 +854,7 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
 ```
 
 **Response (201):**
+
 ```json
 {
   "success": true,
@@ -835,6 +881,7 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
 **Protected.** Grades assignment (instructor/admin only).
 
 **Request:**
+
 ```json
 {
   "user_id": 7,
@@ -866,6 +913,7 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
 **Protected.** Updates own review.
 
 **Request:**
+
 ```json
 {
   "rating": 4,
@@ -891,6 +939,7 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
 **Query:** `parent` (filter by parent term ID)
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -931,6 +980,7 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
 **Public.** Health check endpoint.
 
 **Response (200):**
+
 ```json
 {
   "status": "healthy",
@@ -949,11 +999,21 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
 **Public.** API version info.
 
 **Response (200):**
+
 ```json
 {
   "api_version": "1.0.0",
   "endpoints_count": 45,
-  "controllers": ["auth", "courses", "units", "quizzes", "users", "enrollments", "progress", "taxonomy"],
+  "controllers": [
+    "auth",
+    "courses",
+    "units",
+    "quizzes",
+    "users",
+    "enrollments",
+    "progress",
+    "taxonomy"
+  ],
   "status": "active"
 }
 ```
@@ -964,47 +1024,112 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
 
 These endpoints are documented in `LMS_API_PLAN.md` but not yet built:
 
-| Endpoint | Section | Priority |
-|----------|---------|----------|
-| `/cart/*` | §11 | P0 |
-| `/orders/*` | §11 | P0 |
-| `/payment/*` | §11 | P0 |
-| `/bundles/*` | §12 | P1 |
-| `/memberships/*` | §12 | P1 |
-| `/certificates/*` | §13 | P1 |
-| `/users/me/certificates` | §2 | P1 |
-| `/users/me/badges` | §2 | P2 |
-| `/users/me/notifications` | §2 | P3 |
-| `/instructors/*` | §19 | P2 |
-| `/search` (unified) | §16 | P2 |
-| `/settings` | new (white-label) | P0 |
+| Endpoint                  | Section           | Priority |
+| ------------------------- | ----------------- | -------- |
+| `/cart/*`                 | §11               | P0       |
+| `/orders/*`               | §11               | P0       |
+| `/payment/*`              | §11               | P0       |
+| `/bundles/*`              | §12               | P1       |
+| `/memberships/*`          | §12               | P1       |
+| `/certificates/*`         | §13               | P1       |
+| `/users/me/certificates`  | §2                | P1       |
+| `/users/me/badges`        | §2                | P2       |
+| `/users/me/notifications` | §2                | P3       |
+| `/instructors/*`          | §19               | P2       |
+| `/search` (unified)       | §16               | P2       |
+| `/settings`               | new (white-label) | P0       |
+
+---
+
+## Certificates
+
+### POST `/certificates/verify` (also GET)
+
+Public. Verifies a certificate code in the live-site format `{PREFIX}-{course_id}-{user_id}`.
+
+Body / query: `code` (string, required).
+
+```json
+{
+  "success": true,
+  "data": {
+    "valid": true,
+    "code": "TX-123-456",
+    "certificate_url": "https://…/certificate.pdf",
+    "course": { "id": 123, "title": "…", "slug": "…" },
+    "student_name": "Jane Doe"
+  }
+}
+```
+
+Invalid codes return `valid: false` with null fields (HTTP 200).
+
+---
+
+## Pages
+
+### GET `/pages/{slug}`
+
+Public. Returns a published WP page by slug (legal/marketing copy).
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 12,
+    "slug": "privacy-policy",
+    "title": "Privacy Policy",
+    "content": "<p>…</p>",
+    "excerpt": "…",
+    "modified": "2026-06-12T00:00:00+00:00"
+  }
+}
+```
+
+Errors: `lms_page_not_found` (404).
+
+---
+
+## Contact
+
+### POST `/contact`
+
+Public, IP rate-limited (5/hour). Honeypot field: `website` (must stay empty).
+
+Body: `first_name` (required), `last_name`, `email` (required), `phone`, `message` (required, ≤5000 chars).
+
+```json
+{ "success": true, "data": { "sent": true } }
+```
+
+Errors: `lms_contact_missing_fields` (400), `lms_contact_invalid_email` (400), `lms_contact_message_too_long` (400), `lms_contact_rate_limited` (429), `lms_contact_send_failed` (500).
 
 ---
 
 ## Error Codes Reference
 
-| Code | HTTP | Description |
-|------|------|-------------|
-| `lms_auth_failed` | 401 | Invalid username or password |
-| `lms_auth_locked` | 429 | Too many login attempts |
-| `lms_auth_required` | 401 | Authentication required |
-| `lms_invalid_refresh_token` | 401 | Refresh token invalid or not found |
-| `lms_refresh_token_expired` | 401 | Refresh token expired |
-| `lms_registration_disabled` | 403 | User registration disabled |
-| `lms_register_locked` | 429 | Too many registration attempts |
-| `lms_username_exists` | 400 | Username taken |
-| `lms_email_exists` | 400 | Email already registered |
-| `lms_invalid_email` | 400 | Invalid email address |
-| `lms_weak_password` | 400 | Password too short |
-| `lms_user_not_authenticated` | 401 | User not logged in |
-| `lms_user_not_found` | 404 | User not found |
-| `lms_course_not_found` | 404 | Course not found |
-| `lms_unit_not_found` | 404 | Unit not found |
-| `lms_unit_forbidden` | 403 | Not enrolled in course |
-| `lms_quiz_not_found` | 404 | Quiz not found |
-| `lms_quiz_forbidden` | 403 | Not enrolled for quiz |
-| `lms_already_enrolled` | 400 | Already enrolled in course |
-| `lms_enroll_failed` | 400 | Enrollment failed |
-| `lms_not_enrolled` | 403 | Not enrolled in course |
-| `lms_forbidden` | 403 | Permission denied |
-| `rest_forbidden` | 403 | Generic permission denied |
+| Code                         | HTTP | Description                        |
+| ---------------------------- | ---- | ---------------------------------- |
+| `lms_auth_failed`            | 401  | Invalid username or password       |
+| `lms_auth_locked`            | 429  | Too many login attempts            |
+| `lms_auth_required`          | 401  | Authentication required            |
+| `lms_invalid_refresh_token`  | 401  | Refresh token invalid or not found |
+| `lms_refresh_token_expired`  | 401  | Refresh token expired              |
+| `lms_registration_disabled`  | 403  | User registration disabled         |
+| `lms_register_locked`        | 429  | Too many registration attempts     |
+| `lms_username_exists`        | 400  | Username taken                     |
+| `lms_email_exists`           | 400  | Email already registered           |
+| `lms_invalid_email`          | 400  | Invalid email address              |
+| `lms_weak_password`          | 400  | Password too short                 |
+| `lms_user_not_authenticated` | 401  | User not logged in                 |
+| `lms_user_not_found`         | 404  | User not found                     |
+| `lms_course_not_found`       | 404  | Course not found                   |
+| `lms_unit_not_found`         | 404  | Unit not found                     |
+| `lms_unit_forbidden`         | 403  | Not enrolled in course             |
+| `lms_quiz_not_found`         | 404  | Quiz not found                     |
+| `lms_quiz_forbidden`         | 403  | Not enrolled for quiz              |
+| `lms_already_enrolled`       | 400  | Already enrolled in course         |
+| `lms_enroll_failed`          | 400  | Enrollment failed                  |
+| `lms_not_enrolled`           | 403  | Not enrolled in course             |
+| `lms_forbidden`              | 403  | Permission denied                  |
+| `rest_forbidden`             | 403  | Generic permission denied          |

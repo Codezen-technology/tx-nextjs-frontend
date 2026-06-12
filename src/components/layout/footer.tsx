@@ -7,13 +7,7 @@ import { CertificateForm } from "./certificate-form";
 import type { FooterNavLink, FooterData, WpNavItem } from "@/types/settings";
 const overlayImage = "/images/bg-footer.webp";
 
-function SocialIcon({
-  className,
-  children,
-}: {
-  className?: string;
-  children: React.ReactNode;
-}) {
+function SocialIcon({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
       {children}
@@ -42,7 +36,12 @@ const TikTokIcon = ({ className }: { className?: string }) => (
 const InstagramIcon = ({ className }: { className?: string }) => (
   <SocialIcon className={className}>
     <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-    <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" fill="none" stroke="currentColor" strokeWidth="2" />
+    <path
+      d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    />
     <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="currentColor" strokeWidth="2" />
   </SocialIcon>
 );
@@ -89,7 +88,7 @@ const FALLBACK_NAV_LINKS: FooterNavLink[] = [
   { href: "/contact", label: "Contact us" },
   { href: "/verify-certificate", label: "Verify certificate" },
   { href: "/cancellations", label: "Cancellations and refunds" },
-  { href: "/policies", label: "Policies and terms of use" },
+  { href: "/terms-and-conditions", label: "Policies and terms of use" },
 ];
 
 type NavCol = { header?: string; links: FooterNavLink[] };
@@ -144,8 +143,15 @@ export async function SiteFooter() {
   const logoUrl = settings?.logo_url ?? settings?.logo_dark_url;
 
   return (
-    <footer className="bg-neutral-900 bg-cover bg-bottom relative" style={{ backgroundImage: `url(${overlayImage})` }}>
-      <img src="/images/shape-bg-full.png" className="absolute inset-0 object-contain bg-top" alt="BG Shape" />
+    <footer
+      className="relative bg-neutral-900 bg-cover bg-bottom"
+      style={{ backgroundImage: `url(${overlayImage})` }}
+    >
+      <img
+        src="/images/shape-bg-full.png"
+        className="absolute inset-0 bg-top object-contain"
+        alt="BG Shape"
+      />
       {/* CTA band */}
       <div className="border-b border-neutral-500 px-4 py-16">
         <div className="mx-auto flex max-w-[768px] flex-col items-center gap-10 text-center">
@@ -198,7 +204,9 @@ export async function SiteFooter() {
               )}
             </Link>
             <p className="font-open-sans text-[16px] leading-[1.5] text-neutral-30">
-              Training Excellence delivers CPD-accredited, expert-led online training for businesses and professionals. Our flexible, high-quality courses ensure compliance, workplace safety, and career growth—anytime, anywhere.
+              Training Excellence delivers CPD-accredited, expert-led online training for businesses
+              and professionals. Our flexible, high-quality courses ensure compliance, workplace
+              safety, and career growth—anytime, anywhere.
             </p>
             {socialLinks.length > 0 && (
               <div className="flex items-center gap-3.5">
@@ -242,7 +250,7 @@ export async function SiteFooter() {
               </div>
             )}
           </div>
- 
+
           {/* Links + Certificate validator */}
           <div className="flex flex-1 flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:pl-8">
             {/* Nav columns */}
@@ -295,7 +303,8 @@ export async function SiteFooter() {
         <div className="mx-auto max-w-[1296px] py-8 text-right">
           <p className="font-open-sans text-[16px] leading-[1.5] text-neutral-200">
             © {new Date().getFullYear()} Training Excellence.{" "}
-            {contact.address ?? "Riverside Business Park, Dansk Way, Ilkley, West Yorkshire, LS29 8JZ."}
+            {contact.address ??
+              "Riverside Business Park, Dansk Way, Ilkley, West Yorkshire, LS29 8JZ."}
             <br />
             VAT Reg. No: 923 6593 07 &nbsp;|&nbsp; Registered in England and Wales: 6428976
           </p>
