@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, type FormEvent } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
@@ -67,37 +74,156 @@ function NavDropdown({
   );
 }
 
+interface Suggestion {
+  id?: number;
+  title: string;
+  slug: string;
+}
+
 function CourseSearch() {
   const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [open, setOpen] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function handleSearch(e: FormEvent<HTMLFormElement>) {
+  // Close on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setActiveIdx(-1);
+      }
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Debounced fetch
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (query.trim().length < 2) {
+      setSuggestions([]);
+      setOpen(false);
+      return;
+    }
+    timerRef.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/search/suggestions?q=${encodeURIComponent(query.trim())}`);
+        const data = (await res.json()) as { results: Suggestion[] };
+        setSuggestions(data.results ?? []);
+        setOpen((data.results ?? []).length > 0);
+        setActiveIdx(-1);
+      } catch {
+        setSuggestions([]);
+        setOpen(false);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [query]);
+
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (query.trim()) router.push(`/courses?search=${encodeURIComponent(query.trim())}`);
+    const q = query.trim();
+    if (!q) return;
+    setOpen(false);
+    router.push(`/search?q=${encodeURIComponent(q)}`);
+  }
+
+  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (!open || !suggestions.length) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIdx((i) => Math.min(i + 1, suggestions.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIdx((i) => Math.max(i - 1, -1));
+    } else if (e.key === "Escape") {
+      setOpen(false);
+      setActiveIdx(-1);
+    } else if (e.key === "Enter" && activeIdx >= 0) {
+      e.preventDefault();
+      const s = suggestions[activeIdx];
+      setOpen(false);
+      router.push(`/course/${s.slug}`);
+    }
   }
 
   return (
-    <form onSubmit={handleSearch} className="flex items-center gap-3">
+    <form onSubmit={handleSubmit} className="flex items-center gap-3">
       <label htmlFor="header-search" className="sr-only">
         Find a course
       </label>
       <span className="font-open-sans text-[14px] font-medium text-neutral-30">Find a course:</span>
-      <div className="relative">
+      <div ref={wrapRef} className="relative">
         <input
           id="header-search"
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onFocus={() => suggestions.length > 0 && setOpen(true)}
           placeholder="e.g. food hygiene"
+          autoComplete="off"
+          aria-autocomplete="list"
+          aria-expanded={open}
+          aria-controls="search-suggestions"
           className="h-8 w-[200px] rounded-sm border border-neutral-600 bg-neutral-700 pl-3 pr-8 font-open-sans text-[14px] text-neutral-30 placeholder:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-primary-400"
         />
         <button
           type="submit"
-          aria-label="Search"
+          aria-label="Search courses"
           className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-100 hover:text-primary-300"
         >
-          <Search className="h-4 w-4" />
+          {loading ? (
+            <span className="block h-3.5 w-3.5 animate-spin rounded-full border-2 border-neutral-400 border-t-primary-400" />
+          ) : (
+            <Search className="h-4 w-4" />
+          )}
         </button>
+
+        {open && suggestions.length > 0 && (
+          <ul
+            id="search-suggestions"
+            role="listbox"
+            className="absolute left-0 top-full z-[100] mt-1 w-[320px] overflow-hidden rounded-sm border border-neutral-600 bg-white shadow-xl"
+          >
+            {suggestions.map((s, i) => (
+              <li key={s.slug} role="option" aria-selected={i === activeIdx}>
+                <button
+                  type="button"
+                  onMouseEnter={() => setActiveIdx(i)}
+                  onClick={() => {
+                    setOpen(false);
+                    router.push(`/course/${s.slug}`);
+                  }}
+                  className={cn(
+                    "block w-full px-4 py-2.5 text-left font-open-sans text-sm text-[#00204a] transition-colors",
+                    i === activeIdx ? "bg-primary-50 text-primary-600" : "hover:bg-neutral-50",
+                  )}
+                >
+                  {s.title}
+                </button>
+              </li>
+            ))}
+            <li className="border-t border-neutral-100">
+              <button
+                type="submit"
+                className="block w-full px-4 py-2.5 text-left font-open-sans text-sm font-semibold text-secondary-500 hover:bg-neutral-50"
+              >
+                See all results for &ldquo;{query}&rdquo; →
+              </button>
+            </li>
+          </ul>
+        )}
       </div>
     </form>
   );

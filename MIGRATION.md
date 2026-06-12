@@ -19,50 +19,173 @@
 
 ### Page Node IDs
 
-| Page                     | Figma Node   | Status         |
-| ------------------------ | ------------ | -------------- |
-| Home Page                | `89:9557`    | ✅ Done        |
-| Single Course Page       | `256:11786`  | 🔄 In Progress |
-| All Courses (v2)         | `185:8697`   | ⬜ Todo        |
-| Category Page            | `365:16934`  | ⬜ Todo        |
-| Industry Page            | `394:21834`  | ⬜ Todo        |
-| Course Selector          | `172:15780`  | ⬜ Todo        |
-| Bundle/Career Bundle     | `389:21117`  | ⬜ Todo        |
-| Search (with results)    | `389:14281`  | ⬜ Todo        |
-| Search (no results)      | `389:17343`  | ⬜ Todo        |
-| Login                    | `172:5296`   | ⬜ Todo        |
-| Register                 | `170:6803`   | ⬜ Todo        |
-| Forgot Password          | `172:5611`   | ⬜ Todo        |
-| Cart                     | `283:12303`  | ⬜ Todo        |
-| Checkout                 | `361:13937`  | ⬜ Todo        |
-| Order Received           | `363:16133`  | ⬜ Todo        |
-| Blog (listing)           | `648:21070`  | ✅ Done        |
-| Blog (single)            | `648:31357`  | ✅ Done        |
-| About Us                 | `649:22654`  | ✅ Done        |
-| Contact Us               | `651:23101`  | ✅ Done        |
-| Certificate Verification | `668:34996`  | ✅ Done        |
-| Reviews                  | `668:24777`  | ✅ Done        |
-| T&C                      | `651:46906`  | ✅ Done        |
-| FAQ/Help                 | `651:50517`  | ✅ Done        |
-| Pricing                  | `3209:25908` | ⬜ Todo        |
-| Error 404                | `172:11639`  | ⬜ Todo        |
-| Error Maintenance        | `172:10229`  | ⬜ Todo        |
+#### Marketing (public)
+
+| Page                     | Figma Node   | Route                   | Status         |
+| ------------------------ | ------------ | ----------------------- | -------------- |
+| Home Page                | `89:9557`    | `/`                     | ✅ Done        |
+| All Courses              | `185:8697`   | `/all-courses`          | ✅ Done        |
+| Single Course Page       | `256:11786`  | `/course/[slug]`        | 🔄 In Progress |
+| Category Page            | `365:16934`  | `/course-cat/[slug]`    | ✅ Done        |
+| Industry Page            | `394:21834`  | `/industry/[slug]`      | ⬜ Todo        |
+| Course Selector          | `172:15780`  | `/course-selector`      | ⬜ Todo        |
+| Bundle/Career Bundle     | `389:21117`  | `/bundle/[slug]`        | ⬜ Todo        |
+| Search (results)         | `389:14281`  | `/search?q=...`         | ✅ Done        |
+| Search (no results)      | `389:17343`  | `/search?q=...`         | ✅ Done        |
+| Blog (listing)           | `4900:75788` | `/blog`                 | ✅ Done        |
+| Blog (single post)       | `4040:11134` | `/blog/[slug]`          | ✅ Done        |
+| About Us                 | `649:22654`  | `/about`                | ✅ Done        |
+| Contact Us               | `651:23101`  | `/contact`              | ✅ Done        |
+| Certificate Verification | `668:34996`  | `/verify-certificate`   | ✅ Done        |
+| Reviews                  | `668:24777`  | `/reviews`              | ✅ Done        |
+| Privacy Policy           | —            | `/privacy-policy`       | ✅ Done        |
+| Terms & Conditions       | `651:46906`  | `/terms-and-conditions` | ✅ Done        |
+| FAQ/Help                 | `651:50517`  | `/help`                 | ✅ Done        |
+| Pricing                  | `3209:25908` | `/pricing`              | ⬜ Todo        |
+| Training Teams           | —            | `/training-teams`       | ⬜ Todo        |
+
+#### Auth
+
+| Page            | Figma Node | Route              | Status  |
+| --------------- | ---------- | ------------------ | ------- |
+| Login           | `172:5296` | `/login`           | ✅ Done |
+| Register        | `170:6803` | `/register`        | ✅ Done |
+| Forgot Password | `172:5611` | `/forgot-password` | ✅ Done |
+| Reset Password  | —          | `/reset-password`  | ✅ Done |
+
+#### Shop
+
+| Page           | Figma Node  | Route                      | Status  |
+| -------------- | ----------- | -------------------------- | ------- |
+| Cart           | `283:12303` | `/cart`                    | ✅ Done |
+| Checkout       | `361:13937` | `/checkout`                | ✅ Done |
+| Order Received | `363:16133` | `/order-confirmation/[id]` | ✅ Done |
+
+#### Student (protected)
+
+| Page             | Figma Node | Route                                 | Status  |
+| ---------------- | ---------- | ------------------------------------- | ------- |
+| Dashboard        | —          | `/dashboard`                          | ✅ Done |
+| My Learning      | —          | `/dashboard/my-learning`              | ✅ Done |
+| My Orders        | —          | `/dashboard/my-orders`                | ✅ Done |
+| Profile          | —          | `/dashboard/profile`                  | ✅ Done |
+| Subscription     | —          | `/dashboard/subscription`             | ✅ Done |
+| Course Catalogue | —          | `/dashboard/all-courses`              | ✅ Done |
+| My Courses       | —          | `/courses`                            | ✅ Done |
+| Admin: Plans     | —          | `/dashboard/admin/subscription-plans` | ✅ Done |
+
+#### Learn (full-screen player)
+
+| Page         | Figma Node | Route                        | Status  |
+| ------------ | ---------- | ---------------------------- | ------- |
+| Unit Player  | —          | `/learn/[courseId]/[unitId]` | ✅ Done |
+| Course Start | —          | `/learn/[courseId]/start`    | ✅ Done |
+
+#### Errors
+
+| Page           | Figma Node  | Route / File    | Status  |
+| -------------- | ----------- | --------------- | ------- |
+| 404 Not Found  | `172:11639` | `not-found.tsx` | ✅ Done |
+| Error Boundary | —           | `error.tsx`     | ✅ Done |
+| Maintenance    | `172:10229` | —               | ⬜ Todo |
 
 ---
 
-## Design Tokens (from Figma)
+## Design Tokens (from Figma — verified)
 
-```
-Primary:     #00204A (dark navy)
-Secondary:   #8B6B2A (gold/olive)
-secondary-50: #F5F1E9 (cream — banner wave destination)
-Neutral-10:  light gray strip background
-```
+### Colors
 
-**Fonts:**
+| Token     | Hex      | Usage                                    |
+| --------- | -------- | ---------------------------------------- |
+| `#00204A` | navy     | `neutral-900` — hero bg, headings, nav   |
+| `#00BBF0` | teal     | `primary-500` — category labels, links   |
+| `#9E6F21` | gold     | `secondary-500` — CTAs, "Read more"      |
+| `#3B5374` | slate    | `neutral-500` — body text                |
+| `#667992` | mid-gray | `neutral-400` — meta, dates              |
+| `#EBEDF1` | light    | `neutral-30` — borders, dividers         |
+| `#F5F3EE` | cream    | warm section backgrounds (blog, sidebar) |
+| `#FFFFFF` | white    | card backgrounds                         |
 
-- Headings: `font-suse` (SUSE)
-- Body/UI: `font-open-sans` (Open Sans)
+### Typography
+
+| Token            | Font      | Usage                  |
+| ---------------- | --------- | ---------------------- |
+| `font-suse`      | SUSE      | All headings           |
+| `font-open-sans` | Open Sans | Body, UI, labels, meta |
+
+**Card title:** SUSE Bold 20px (`text-xl font-bold`)  
+**Body text:** Open Sans Regular 16px (`text-base`)  
+**Meta/label:** Open Sans SemiBold 14px (`text-sm font-semibold`)
+
+---
+
+## Blog Implementation Notes
+
+### Blog List (`/blog`) — node `4900:75788`
+
+- Hero: dark navy `#00204A` + dot-grid texture, heading + subtitle left, search bar right
+- "Trending Topics" section on cream `#F5F3EE` — first post as split card (image left / content right)
+- Category sections: each has `font-suse` heading + "View more →" link, 4-col `BlogCard` grid
+- Data: `fetchBlogPageGrouped(40)` — fetches posts + categories, groups by first category (4 per)
+- Fallback: flat grid if WP returns no category data
+
+### Blog Card — Figma node `4095:76556`
+
+- Fixed `h-[200px]` image, rounded top
+- Row: category name `text-primary-500` + `•` + date `text-neutral-400`, `text-sm font-semibold`
+- Title: SUSE Bold `text-xl`, `#00204A`, 2-line clamp
+- Excerpt: Open Sans Regular `text-base`, `#3B5374`, 3-line clamp
+- "Read more →" in `text-secondary-500`
+
+### Blog Single (`/blog/[slug]`) — node `4040:11134`
+
+- Hero: dark navy `#00204A` + dot-grid, breadcrumb (Home → Blog → Category → Title), category pill, author + date
+- Layout: 2-col flex on desktop — sticky `lg:w-72` sidebar (left) + article (right)
+- **ToC**: `parseToc()` in `src/lib/utils/toc.ts` — h2 only, injects IDs, `IntersectionObserver` highlights active
+- **Contributors**: author avatar + name + description from `_embedded.author`
+- Related posts on `#F5F3EE` background
+- `fetchCategories()` used for category name lookup in breadcrumb + related cards
+
+---
+
+## Search Implementation Notes
+
+### Header Autocomplete
+
+- `CourseSearch` component in `src/components/layout/header.tsx`
+- 300ms debounced fetch → `GET /api/search/suggestions?q=...`
+- Dropdown: up to 8 suggestions, keyboard nav (↑↓ Enter Escape), close on outside click
+- Click suggestion → `/course/[slug]`
+- Submit / "See all results" → `/search?q=...`
+
+### BFF Route — `GET /api/search/suggestions`
+
+- File: `src/app/api/search/suggestions/route.ts`
+- Proxies to `lms-backend/v1/courses?search=q&per_page=8` server-side
+- Normalizes WP envelope (`{ success, data: { items } }`) → `{ results: [{id, title, slug}] }`
+
+### Search Results Page — `/search`
+
+- File: `src/app/[locale]/(marketing)/search/page.tsx`
+- `force-dynamic` SSR — reads `searchParams.q`
+- Courses section: `serverApi.courses.list({ search: q, per_page: 12 })` → `CourseCard` grid
+- Articles section: `fetchBlogPage` client-filtered by keyword → `BlogCard` grid
+- Empty state for no results or empty query
+- `robots: { index: false }` — search pages not indexed
+
+---
+
+## URL Slug Decisions
+
+| Live WP URL             | Headless Route          |
+| ----------------------- | ----------------------- |
+| `/privacy-policy`       | `/privacy-policy`       |
+| `/terms-and-conditions` | `/terms-and-conditions` |
+| `/?s=query`             | `/search?q=query`       |
+| `/blog/category/[slug]` | `/blog/category/[slug]` |
+| `/course/[slug]`        | `/course/[slug]`        |
+
+**Rule:** match live WP slug exactly unless Figma specifies otherwise.
 
 ---
 
@@ -78,7 +201,7 @@ Neutral-10:  light gray strip background
 
 - Max content width: `max-w-[1296px] mx-auto px-4`
 - Main column: `lg:max-w-[966px]` (966px)
-- Sidebar: `lg:w-[307px]` (307px)
+- Sidebar: `lg:w-[307px]` (307px) — blog single uses `lg:w-72`
 - Gap between columns: `gap-6`
 - Route group: public pages → `(marketing)`, protected → `(student)`, auth → `(auth)`
 
@@ -122,7 +245,7 @@ Neutral-10:  light gray strip background
 
 For each page:
 
-- [ ] Fetch Figma design context (`get_design_context nodeId=X fileKey=VoTEBKr8x4fWlObjkr7RXg`)
+- [ ] Fetch Figma design context (`get_design_context nodeId=X fileKey=VoTEBKr8x4fWlObjkr7RXg`) <!-- cspell:disable-line -->
 - [ ] Identify API endpoints needed → check `API_REFERENCE.md`
 - [ ] Create page file in correct route group
 - [ ] Build layout from Figma (Server Component)
@@ -156,13 +279,19 @@ WordPress REST API /wp-json/lms-backend/v1/*
 
 ## Completed Decisions (do not re-litigate)
 
-| Decision             | Choice                                                               | Why                                |
-| -------------------- | -------------------------------------------------------------------- | ---------------------------------- |
-| CSS framework        | Tailwind CSS                                                         | Already in codebase                |
-| Component style      | Server Components first                                              | Performance, SEO                   |
-| Image component      | `<SafeImage>` wrapping `next/image`                                  | Handles WP broken image URLs       |
-| Purchase card        | "For me" + "For teams" tabs                                          | Matches Figma 256:14065            |
-| Banner layout        | Course info inside dark banner, sidebar overlaps via `-mt-[428px]`   | Matches Figma node 256:11832/14065 |
-| Below-banner section | None on desktop (banner has full info), `CourseOverview` mobile-only | Avoids content duplication         |
-| Button text          | "Buy this course"                                                    | Matches live production site       |
-| Feature checklist    | 100% online, Duration, CPD Points, Free Digital Certificate          | Matches live production site       |
+| Decision                  | Choice                                                             | Why                                                                                                      |
+| ------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| CSS framework             | Tailwind CSS                                                       | Already in codebase                                                                                      |
+| Component style           | Server Components first                                            | Performance, SEO                                                                                         |
+| Image component           | `<SafeImage>` wrapping `next/image`                                | Handles WP broken image URLs                                                                             |
+| Purchase card             | "For me" + "For teams" tabs                                        | Matches Figma 256:14065                                                                                  |
+| Banner layout             | Course info inside dark banner, sidebar overlaps via `-mt-[428px]` | Matches Figma node 256:11832/14065                                                                       |
+| Below-banner section      | None on desktop, `CourseOverview` mobile-only                      | Avoids content duplication                                                                               |
+| Button text               | "Buy this course"                                                  | Matches live site                                                                                        |
+| Feature checklist         | 100% online, Duration, CPD Points, Free Digital Certificate        | Matches live site                                                                                        |
+| Blog ToC depth            | h2 only (not h3)                                                   | Matches live site `https://trainingexcellence.org.uk/blog/how-to-get-a-nursing-assistant-certification/` |
+| Privacy slug              | `/privacy-policy` (not `/privacy`)                                 | Matches live WP slug                                                                                     |
+| Terms slug                | `/terms-and-conditions` (not `/terms`)                             | Matches live WP slug                                                                                     |
+| Search URL                | `/search?q=...` (not `/?s=...`)                                    | Clean headless URL; WP native `?s=` not used                                                             |
+| Search suggestions source | `lms-backend/v1/courses` (not WP native search)                    | Returns LMS-normalized course data                                                                       |
+| Blog category grouping    | Group by `categories[0]`, show 4 per category                      | Matches Figma blog list section pattern                                                                  |

@@ -4,7 +4,7 @@ import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
 import { env } from "@/lib/env";
 import { CertificateVerifyForm } from "@/components/certificates/certificate-verify-form";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 const VERIFY_SCHEMA = {
   "@context": "https://schema.org",
@@ -24,7 +24,13 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default function VerifyCertificatePage() {
+export default function VerifyCertificatePage({
+  searchParams,
+}: {
+  searchParams: { code?: string };
+}) {
+  const initialCode = searchParams.code?.trim();
+
   return (
     <>
       <script
@@ -47,7 +53,7 @@ export default function VerifyCertificatePage() {
               </p>
             </div>
             <div className="mt-8">
-              <CertificateVerifyForm />
+              <CertificateVerifyForm initialCode={initialCode} />
             </div>
           </div>
         </div>
