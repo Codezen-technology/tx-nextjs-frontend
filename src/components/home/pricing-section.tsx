@@ -1,23 +1,26 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import pricingData from "@/data/home/pricing.json";
+import type { HomePricingSection } from "@/types/home";
+import fallbackPricing from "@/data/home/pricing.json";
 import { cn } from "@/lib/utils/cn";
 
-export function PricingSection() {
-  const { header, plans } = pricingData;
+const FALLBACK_PRICING = fallbackPricing as HomePricingSection;
+
+interface PricingSectionProps {
+  data?: HomePricingSection;
+}
+
+export function PricingSection({ data = FALLBACK_PRICING }: PricingSectionProps) {
+  const { header, plans } = data;
 
   return (
-    <section className="py-20 bg-white">
+    <section className="bg-white py-20">
       <div className="container mx-auto">
         {/* Header */}
-        <div className="mb-12 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-2">
-            <h2 className="font-suse text-[2rem] font-bold text-neutral-900">
-              {header.title}
-            </h2>
-            <p className="font-open-sans text-neutral-500 text-base">
-              {header.description}
-            </p>
+            <h2 className="font-suse text-[2rem] font-bold text-neutral-900">{header.title}</h2>
+            <p className="font-open-sans text-base text-neutral-500">{header.description}</p>
           </div>
           <Link
             href={header.ctaHref}
@@ -29,16 +32,16 @@ export function PricingSection() {
         </div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {plans.map((plan) => (
             <div key={plan.name} className="relative">
               {/* Ribbon Badge */}
               {plan.badge === "best-value" && (
                 <div className="absolute -top-4 right-6 z-20 flex items-start">
-                  <div className="relative bg-white text-secondary-700 font-medium text-sm shadow-md p-4 rounded-b-lg">
+                  <div className="relative rounded-b-lg bg-white p-4 text-sm font-medium text-secondary-700 shadow-md">
                     Best Value
                     <svg
-                      className="absolute top-0 -right-[0.75rem]"
+                      className="absolute -right-[0.75rem] top-0"
                       xmlns="http://www.w3.org/2000/svg"
                       width={12}
                       height={18}
@@ -54,12 +57,12 @@ export function PricingSection() {
               {plan.badge === "most-popular" && (
                 <div className="absolute -top-4 right-6 z-20 flex items-start">
                   <div
-                    className="relative text-neutral-900 font-medium text-sm shadow-md p-4 rounded-b-lg"
+                    className="relative rounded-b-lg p-4 text-sm font-medium text-neutral-900 shadow-md"
                     style={{ background: "linear-gradient(85deg, #01aee0 0%, #00c7ff 100%)" }}
                   >
                     Most Popular
                     <svg
-                      className="absolute top-0 -right-[0.75rem]"
+                      className="absolute -right-[0.75rem] top-0"
                       xmlns="http://www.w3.org/2000/svg"
                       width={12}
                       height={18}
@@ -75,23 +78,23 @@ export function PricingSection() {
               {/* Card */}
               <div
                 className={cn(
-                  "relative flex flex-col gap-6 overflow-hidden rounded-[12px] p-8 h-full",
+                  "relative flex h-full flex-col gap-6 overflow-hidden rounded-[12px] p-8",
                   plan.variant === "default" && "border border-[#ebedf1] bg-white shadow-sm",
                   plan.variant === "beige" && "border border-[#ebedf1] shadow-sm",
-                  plan.variant === "navy" && "border-transparent shadow-lg"
+                  plan.variant === "navy" && "border-transparent shadow-lg",
                 )}
                 style={
                   plan.variant === "beige"
                     ? { background: "linear-gradient(210.15deg, #f5f1e9 14.85%, #e1d2ba 96.39%)" }
                     : plan.variant === "navy"
-                    ? { background: "linear-gradient(30.18deg, #00204a 9.18%, #1c395e 92.41%)" }
-                    : undefined
+                      ? { background: "linear-gradient(30.18deg, #00204a 9.18%, #1c395e 92.41%)" }
+                      : undefined
                 }
               >
                 {/* Navy pattern */}
                 {plan.variant === "navy" && (
                   <div
-                    className="pointer-events-none absolute inset-0 bg-[url('/images/plus-shape.png')] bg-no-repeat bg-contain bg-right"
+                    className="pointer-events-none absolute inset-0 bg-[url('/images/plus-shape.png')] bg-contain bg-right bg-no-repeat"
                     aria-hidden="true"
                   />
                 )}
@@ -103,7 +106,7 @@ export function PricingSection() {
                       "font-suse text-xl font-bold",
                       plan.variant === "default" && "text-neutral-900",
                       plan.variant === "beige" && "text-secondary-500",
-                      plan.variant === "navy" && "text-[#00bbf0]"
+                      plan.variant === "navy" && "text-[#00bbf0]",
                     )}
                   >
                     {plan.name}
@@ -113,7 +116,7 @@ export function PricingSection() {
                     <p
                       className={cn(
                         "font-open-sans text-base",
-                        plan.variant === "navy" && "text-white"
+                        plan.variant === "navy" && "text-white",
                       )}
                     >
                       {plan.subtitle}
@@ -123,14 +126,14 @@ export function PricingSection() {
                   {/* Price */}
                   <div className="flex items-baseline gap-2">
                     {plan.originalPrice && (
-                      <span className="text-[#dc3545] line-through font-bold text-xl">
+                      <span className="text-xl font-bold text-[#dc3545] line-through">
                         {plan.originalPrice}
                       </span>
                     )}
                     <span
                       className={cn(
                         "font-suse font-bold",
-                        plan.variant === "navy" ? "text-white" : "text-neutral-900"
+                        plan.variant === "navy" ? "text-white" : "text-neutral-900",
                       )}
                     >
                       <span className="text-2xl">{plan.price}</span>
@@ -153,7 +156,7 @@ export function PricingSection() {
                         <span
                           className={cn(
                             "font-open-sans text-base",
-                            plan.variant === "navy" ? "text-white" : "text-neutral-900"
+                            plan.variant === "navy" ? "text-white" : "text-neutral-900",
                           )}
                         >
                           {feat.label}
@@ -173,7 +176,7 @@ export function PricingSection() {
                     plan.variant === "beige" &&
                       "border border-secondary-500 bg-white text-secondary-500",
                     plan.variant === "navy" &&
-                      "border border-[#00bbf0] text-neutral-900 font-bold text-base"
+                      "border border-[#00bbf0] text-base font-bold text-neutral-900",
                   )}
                   style={
                     plan.variant === "navy"

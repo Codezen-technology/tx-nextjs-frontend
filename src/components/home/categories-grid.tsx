@@ -1,19 +1,47 @@
 import Link from "next/link";
 import { GraduationCap, ChevronRight } from "lucide-react";
-import categoriesData from "@/data/home/categories.json";
+import { serverApi, type ApiCategory } from "@/lib/api/server";
+import fallbackCategories from "@/data/home/categories.json";
 
-type CategoryItem = (typeof categoriesData)[number];
+interface CategoryItem {
+  id: number;
+  name: string;
+  slug: string;
+  image?: string | null;
+}
+
+interface CategoriesGridProps {
+  categories?: CategoryItem[];
+}
 
 function resolveIcon(cat: CategoryItem): { type: "img"; src: string } | { type: "icon" } {
   return cat.image ? { type: "img", src: cat.image } : { type: "icon" };
 }
 
-async function getCategories(): Promise<CategoryItem[]> {
-  return categoriesData;
+function mapApiCategory(cat: ApiCategory): CategoryItem {
+  return {
+    id: cat.id,
+    name: cat.name,
+    slug: cat.slug,
+    image: cat.image,
+  };
 }
 
-export async function CategoriesGrid() {
-  const categories = await getCategories();
+async function getCategories(provided?: CategoryItem[]): Promise<CategoryItem[]> {
+  if (provided?.length) return provided;
+
+  try {
+    const res = await serverApi.taxonomy.categories({ per_page: 11 });
+    if (res.items?.length) return res.items.map(mapApiCategory);
+  } catch {
+    // fall through to static JSON
+  }
+
+  return fallbackCategories;
+}
+
+export async function CategoriesGrid({ categories: provided }: CategoriesGridProps) {
+  const categories = await getCategories(provided);
 
   if (!categories.length) return null;
 

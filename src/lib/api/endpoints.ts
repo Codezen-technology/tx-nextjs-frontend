@@ -163,6 +163,16 @@ export const endpoints = {
   footer: {
     get: `${lms}/footer`,
   },
+  home: {
+    get: `${lms}/home`,
+    topbar: `${lms}/home/topbar`,
+    hero: `${lms}/home/hero`,
+    pricing: `${lms}/home/pricing`,
+    trustedOrgs: `${lms}/home/trusted-orgs`,
+    popularCoursesHeader: `${lms}/home/popular-courses-header`,
+    why: `${lms}/home/why`,
+    testimonials: `${lms}/home/testimonials`,
+  },
   memberships: {
     plans: `${lms}/memberships/plans`,
     subscribe: `${lms}/memberships/subscribe`,

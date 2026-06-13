@@ -1,10 +1,17 @@
-import trustItems from "@/data/home/topbar.json";
+import type { HomeTopbarItem } from "@/types/home";
+import fallbackItems from "@/data/home/topbar.json";
 
-export function Topbar() {
+interface TopbarProps {
+  items?: HomeTopbarItem[];
+}
+
+export function Topbar({ items = fallbackItems }: TopbarProps) {
+  if (!items.length) return null;
+
   return (
     <div className="bg-white">
       <div className="container flex flex-wrap items-center justify-between py-2">
-        {trustItems.map((item) => (
+        {items.map((item) => (
           <div key={item.label} className="flex items-center gap-1">
             <img
               src={item.icon}
