@@ -12,6 +12,7 @@ interface NavItem {
 interface CourseTabNavProps {
   accreditations: CourseAccreditation[];
   curriculum: CourseFlatCurriculumItem[];
+  hasScreenshots: boolean;
   sections: CourseSections | null;
   courseId: number | string;
 }
@@ -19,6 +20,7 @@ interface CourseTabNavProps {
 export function CourseTabNav({
   accreditations,
   curriculum,
+  hasScreenshots,
   sections,
   courseId: _courseId,
 }: CourseTabNavProps) {
@@ -26,7 +28,8 @@ export function CourseTabNav({
 
   const items: NavItem[] = [
     ...(accreditations.length ? [{ id: "accreditations", label: "Accreditations" }] : []),
-    ...(curriculum.length ? [{ id: "course-content", label: "Course Content" }] : []),
+    ...(hasScreenshots ? [{ id: "course-content", label: "Course Content" }] : []),
+    ...(curriculum.length ? [{ id: "curriculum", label: "Course Curriculum" }] : []),
     ...(sections?.who_should_take?.items?.length
       ? [{ id: "suitable-for", label: "Suitable For" }]
       : []),

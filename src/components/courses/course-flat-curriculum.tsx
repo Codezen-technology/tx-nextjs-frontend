@@ -50,7 +50,11 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
   function toggleSection(i: number) {
     setOpenSections((prev) => {
       const next = new Set(prev);
-      if (next.has(i)) { next.delete(i); } else { next.add(i); }
+      if (next.has(i)) {
+        next.delete(i);
+      } else {
+        next.add(i);
+      }
       return next;
     });
   }
@@ -100,7 +104,7 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
               {/* Section header */}
               <button
                 onClick={() => toggleSection(gi)}
-                className="flex w-full items-center gap-3 bg-neutral-50 px-4 py-3.5 text-left hover:bg-neutral-100 transition-colors"
+                className="flex w-full items-center gap-3 bg-neutral-50 px-4 py-3.5 text-left transition-colors hover:bg-neutral-100"
                 aria-expanded={isOpen}
               >
                 <ChevronDown
@@ -109,7 +113,7 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
                     isOpen && "rotate-180",
                   )}
                 />
-                <span className="flex-1 font-semibold text-sm text-neutral-900">
+                <span className="flex-1 text-sm font-semibold text-neutral-900">
                   {group.section.title}
                 </span>
                 <span className="shrink-0 text-xs text-neutral-500">
@@ -120,30 +124,28 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
                 </span>
               </button>
 
-              {/* Units */}
-              {isOpen ? (
-                <ul className="divide-y divide-[#ebedf1]">
-                  {group.units.map((unit, ui) => (
-                    <li
-                      key={ui}
-                      className="flex items-center justify-between gap-3 px-5 py-3 text-sm"
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <UnitIcon icon={unit.icon} />
-                        <span className="truncate text-neutral-700">{unit.title}</span>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-3 text-xs text-neutral-400">
-                        {unit.is_free_preview ? (
-                          <span className="rounded bg-secondary-50 px-1.5 py-0.5 text-secondary-600 font-medium">
-                            Preview
-                          </span>
-                        ) : null}
-                        {unit.duration ? <span>{formatDuration(unit.duration)}</span> : null}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
+              {/* Units — always in DOM for SEO; visually hidden when collapsed */}
+              <ul className={cn("divide-y divide-[#ebedf1]", !isOpen && "hidden")}>
+                {group.units.map((unit, ui) => (
+                  <li
+                    key={ui}
+                    className="flex items-center justify-between gap-3 px-5 py-3 text-sm"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <UnitIcon icon={unit.icon} />
+                      <span className="truncate text-neutral-700">{unit.title}</span>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-3 text-xs text-neutral-400">
+                      {unit.is_free_preview ? (
+                        <span className="rounded bg-secondary-50 px-1.5 py-0.5 font-medium text-secondary-600">
+                          Preview
+                        </span>
+                      ) : null}
+                      {unit.duration ? <span>{formatDuration(unit.duration)}</span> : null}
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           );
         })}

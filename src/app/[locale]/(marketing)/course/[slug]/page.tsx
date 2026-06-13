@@ -65,19 +65,40 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 function buildCourseSchema(course: CourseRichData, url: string): Record<string, unknown> {
+  const org = {
+    "@type": "Organization",
+    name: env.SITE_NAME || "Training Excellence",
+    url: env.SITE_URL,
+  };
+
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Course",
     name: course.title,
     description: truncate(stripHtml(course.excerpt ?? course.content ?? ""), 300),
     url,
-    provider: {
-      "@type": "Organization",
-      name: env.SITE_NAME || "Training Excellence",
-      url: env.SITE_URL,
+    provider: org,
+    // Required by Google (May 2023) for Course rich results
+    hasCourseInstance: {
+      "@type": "CourseInstance",
+      courseMode: "Online",
+      courseWorkload: "Self-paced",
+      instructor: org,
     },
   };
+
   if (course.featuredImage) schema.image = course.featuredImage;
+
+  if (course.price != null) {
+    schema.offers = {
+      "@type": "Offer",
+      price: course.price,
+      priceCurrency: "GBP",
+      availability: "https://schema.org/InStock",
+      url,
+    };
+  }
+
   if (course.rating != null && course.ratingCount) {
     schema.aggregateRating = {
       "@type": "AggregateRating",
@@ -87,6 +108,7 @@ function buildCourseSchema(course: CourseRichData, url: string): Record<string, 
       worstRating: 1,
     };
   }
+
   return schema;
 }
 
@@ -156,6 +178,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
             <CourseTabNav
               accreditations={accreditations}
               curriculum={curriculum}
+              hasScreenshots={screenshots.length > 0}
               sections={sections}
               courseId={course.id}
             />
@@ -183,10 +206,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
             {/* ── Curriculum ── */}
             {curriculum.length > 0 ? (
-              <section
-                id={screenshots.length === 0 ? "course-content" : "curriculum"}
-                className="mt-16 scroll-mt-28"
-              >
+              <section id="curriculum" className="mt-16 scroll-mt-28">
                 <CourseFlatCurriculum items={curriculum} />
               </section>
             ) : null}
