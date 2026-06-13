@@ -1,5 +1,4 @@
 export function CourseRequirements({ html }: { html: string }) {
-  console.log("CourseRequirements", { html });
   return (
     <section id="requirements" className="scroll-mt-28">
       <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900 sm:text-[38px]">

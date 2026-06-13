@@ -212,18 +212,6 @@ export default async function CourseDetailPage({ params }: PageProps) {
               </div>
             ) : null}
 
-            {/* ── FAQ ── */}
-            {sections?.faq?.length ? (
-              <section id="faq" className="mt-16 scroll-mt-28">
-                <CourseFaq heading={sections.faq_heading} items={sections.faq} />
-              </section>
-            ) : null}
-
-            {/* ── Reviews ── */}
-            <section id="reviews" className="mt-16 scroll-mt-28">
-              <CourseReviews courseId={course.id} />
-            </section>
-
             {/* ── Suitable for ── */}
             {sections?.who_should_take?.items?.length ? (
               <section id="suitable-for" className="mt-16 scroll-mt-28">
@@ -236,13 +224,25 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
             {/* ── Job Opportunities ── */}
             {sections?.job_opportunities?.items?.length ? (
-              <div className="mt-16">
+              <section id="job-opportunities" className="mt-16 scroll-mt-28">
                 <CourseJobOpportunities
                   heading={sections.job_opportunities.heading}
                   items={sections.job_opportunities.items}
                 />
-              </div>
+              </section>
             ) : null}
+
+            {/* ── FAQ ── */}
+            {sections?.faq?.length ? (
+              <section id="faq" className="mt-16 scroll-mt-28">
+                <CourseFaq heading={sections.faq_heading} items={sections.faq} />
+              </section>
+            ) : null}
+
+            {/* ── Reviews ── */}
+            <section id="reviews" className="mt-16 scroll-mt-28">
+              <CourseReviews courseId={course.id} />
+            </section>
 
             {/* ── Related courses ── */}
             <div className="mt-16">

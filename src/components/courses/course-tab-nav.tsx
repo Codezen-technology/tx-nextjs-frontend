@@ -27,17 +27,17 @@ export function CourseTabNav({
   const items: NavItem[] = [
     ...(accreditations.length ? [{ id: "accreditations", label: "Accreditations" }] : []),
     ...(curriculum.length ? [{ id: "course-content", label: "Course Content" }] : []),
-    ...(sections?.why_take ? [{ id: "why-take", label: "Why Take?" }] : []),
-    ...(sections?.requirements ? [{ id: "requirements", label: "Requirements" }] : []),
-    ...(sections?.assessment ? [{ id: "assessment", label: "Assessment" }] : []),
-    ...(sections?.faq?.length ? [{ id: "faq", label: "FAQs" }] : []),
-    { id: "reviews", label: "Reviews" },
     ...(sections?.who_should_take?.items?.length
       ? [{ id: "suitable-for", label: "Suitable For" }]
       : []),
     ...(sections?.job_opportunities?.items?.length
       ? [{ id: "job-opportunities", label: "Job Opportunities" }]
       : []),
+    ...(sections?.why_take ? [{ id: "why-take", label: "Why Take?" }] : []),
+    ...(sections?.requirements ? [{ id: "requirements", label: "Requirements" }] : []),
+    ...(sections?.assessment ? [{ id: "assessment", label: "Assessment" }] : []),
+    ...(sections?.faq?.length ? [{ id: "faq", label: "FAQs" }] : []),
+    { id: "reviews", label: "Reviews" },
   ];
 
   useEffect(() => {
@@ -73,18 +73,18 @@ export function CourseTabNav({
   }
 
   return (
-    <div className="sticky top-[72px] z-30 -mx-4 mt-12 border-b border-neutral-30 bg-white px-4 sm:top-20 lg:top-24">
-      <nav className="flex gap-0 overflow-x-auto" aria-label="Course sections">
+    <div className="sticky top-0 z-30 -mx-4 mt-12 bg-white px-4 py-4">
+      <nav className="flex flex-wrap gap-2.5 overflow-x-auto" aria-label="Course sections">
         {items.map((item) => (
           <button
             key={item.id}
             type="button"
             onClick={() => scrollTo(item.id)}
             className={cn(
-              "shrink-0 border-b-2 px-4 py-4 font-open-sans text-[13px] font-medium uppercase tracking-wide transition-colors sm:text-[15px]",
+              "shrink-0 rounded px-5 py-2 font-open-sans text-sm font-semibold transition-colors",
               active === item.id
-                ? "border-secondary-500 text-secondary-600"
-                : "border-transparent text-neutral-500 hover:text-neutral-800",
+                ? "bg-primary-600 text-white"
+                : "bg-primary-500 text-white hover:bg-primary-600",
             )}
           >
             {item.label}

@@ -31,12 +31,7 @@ interface CourseTabsProps {
   sections: CourseSections | null;
 }
 
-export function CourseTabs({
-  courseId,
-  accreditations,
-  curriculum,
-  sections,
-}: CourseTabsProps) {
+export function CourseTabs({ courseId, accreditations, curriculum, sections }: CourseTabsProps) {
   const visibleTabs = TABS.filter((tab) => {
     if (tab.id === "accreditations" && !accreditations.length) return false;
     if (tab.id === "content" && !curriculum.length) return false;
@@ -49,7 +44,7 @@ export function CourseTabs({
 
   return (
     <div className="space-y-8">
-      <div className="sticky top-[72px] z-30 -mx-4 border-b border-neutral-30 bg-white px-4 sm:top-20 lg:top-24">
+      <div className="sticky z-30 -mx-4 border-b border-neutral-30 bg-white px-4">
         <nav className="flex gap-8 overflow-x-auto">
           {visibleTabs.map((tab) => (
             <button
@@ -70,9 +65,7 @@ export function CourseTabs({
       </div>
 
       <div>
-        {activeTab === "accreditations" && (
-          <CourseAccreditations accreditations={accreditations} />
-        )}
+        {activeTab === "accreditations" && <CourseAccreditations accreditations={accreditations} />}
         {activeTab === "content" && <CourseFlatCurriculum items={curriculum} />}
         {activeTab === "faq" && (
           <CourseFaq heading={sections?.faq_heading} items={sections?.faq ?? []} />
