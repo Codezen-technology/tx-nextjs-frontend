@@ -212,6 +212,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
               accreditations={accreditations}
               curriculum={curriculum}
               hasScreenshots={screenshots.length > 0}
+              hasReviews={!!course.ratingCount}
               sections={sections}
               courseId={course.id}
             />
@@ -293,9 +294,11 @@ export default async function CourseDetailPage({ params }: PageProps) {
             ) : null}
 
             {/* ── Reviews ── */}
-            <section id="reviews" className="mt-16 scroll-mt-28">
-              <CourseReviews courseId={course.id} />
-            </section>
+            {course.ratingCount ? (
+              <section id="reviews" className="mt-16 scroll-mt-28">
+                <CourseReviews courseId={course.id} />
+              </section>
+            ) : null}
 
             {/* ── Related courses ── */}
             <div className="mt-16">

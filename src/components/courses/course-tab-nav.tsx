@@ -13,6 +13,7 @@ interface CourseTabNavProps {
   accreditations: CourseAccreditation[];
   curriculum: CourseFlatCurriculumItem[];
   hasScreenshots: boolean;
+  hasReviews: boolean;
   sections: CourseSections | null;
   courseId: number | string;
 }
@@ -21,6 +22,7 @@ export function CourseTabNav({
   accreditations,
   curriculum,
   hasScreenshots,
+  hasReviews,
   sections,
   courseId: _courseId,
 }: CourseTabNavProps) {
@@ -40,7 +42,7 @@ export function CourseTabNav({
     ...(sections?.requirements ? [{ id: "requirements", label: "Requirements" }] : []),
     ...(sections?.assessment ? [{ id: "assessment", label: "Assessment" }] : []),
     ...(sections?.faq?.length ? [{ id: "faq", label: "FAQs" }] : []),
-    { id: "reviews", label: "Reviews" },
+    ...(hasReviews ? [{ id: "reviews", label: "Reviews" }] : []),
   ];
 
   useEffect(() => {
