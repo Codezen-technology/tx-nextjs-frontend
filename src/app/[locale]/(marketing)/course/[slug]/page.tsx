@@ -250,9 +250,9 @@ export default async function CourseDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* ── Desktop sticky sidebar — z-20 so it sits above banner's z-10 overlay ── */}
-          <aside className="relative z-20 hidden shrink-0 lg:-mt-[428px] lg:block lg:w-[307px]">
-            <div className="sticky top-24">
+          {/* ── Desktop sticky sidebar ── */}
+          <aside className="hidden shrink-0 lg:-mt-[428px] lg:block lg:w-[307px] lg:self-stretch">
+            <div className="sticky top-24 z-20">
               <CoursePurchaseCard course={course} />
             </div>
           </aside>

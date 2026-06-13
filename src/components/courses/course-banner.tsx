@@ -40,6 +40,18 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
   const primaryAccreditation = course?.accreditations?.[0];
   const showFeatured = hasImage && !isRenderableImageSrc(primaryAccreditation?.logo);
 
+  const updatedLabel = (() => {
+    if (!course?.updatedAt) return null;
+    try {
+      return new Date(course.updatedAt).toLocaleDateString("en-GB", {
+        month: "long",
+        year: "numeric",
+      });
+    } catch {
+      return null;
+    }
+  })();
+
   return (
     <section
       className={cn(
@@ -48,7 +60,7 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
       )}
       aria-label="Course banner"
     >
-      {/* Background */}
+      {/* Background: featured image */}
       <div className="absolute inset-0">
         {hasImage ? (
           <SafeImage
@@ -60,7 +72,7 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
             className="object-cover object-center"
           />
         ) : (
-          <div className="absolute inset-0 bg-neutral-900" aria-hidden />
+          <div className="absolute inset-0 bg-[#00204a]" aria-hidden />
         )}
       </div>
 
@@ -71,7 +83,7 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
         aria-hidden
       />
 
-      {/* Course overview overlay — Figma 256:11832, rendered on dark background */}
+      {/* Course overview — Figma 256:11832 */}
       {course && (
         <div className="relative z-10 mx-auto max-w-[1296px] px-4 pb-20 pt-10 lg:pb-24 lg:pt-14">
           <div className="flex flex-col gap-6 lg:max-w-[966px] lg:flex-row lg:gap-6">
@@ -99,15 +111,21 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                 )}
               </div>
 
-              <p className="font-open-sans text-xs font-semibold leading-snug text-white">
-                A Trusted Assessed, Audited and Endorsed Training Provider
-              </p>
+              {updatedLabel ? (
+                <p className="font-open-sans text-xs text-white/80">
+                  Last updated: <span className="font-semibold text-white">{updatedLabel}</span>
+                </p>
+              ) : (
+                <p className="font-open-sans text-xs font-semibold leading-snug text-white">
+                  A Trusted Assessed, Audited and Endorsed Training Provider
+                </p>
+              )}
 
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 {TRUST_BADGES.map((badge) => (
                   <div
                     key={badge.src}
-                    className="flex h-14 w-[70px] items-center justify-center rounded border border-white/20 bg-white"
+                    className="flex h-[56px] w-[70px] items-center justify-center rounded border border-white/20 bg-white"
                   >
                     {publicImageExists(badge.src) ? (
                       <SafeImage
@@ -128,7 +146,7 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                   isRenderableImageSrc(acc.logo) ? (
                     <div
                       key={acc.slug}
-                      className="flex h-14 w-[70px] items-center justify-center rounded border border-white/20 bg-white p-1"
+                      className="flex h-[56px] w-[70px] items-center justify-center rounded border border-white/20 bg-white p-1"
                     >
                       <SafeImage
                         src={acc.logo}
@@ -209,8 +227,8 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
         </div>
       )}
 
-      {/* Decorative wave + pattern (Figma 256:11795–11797), fill secondary-50 #F5F1E9 */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 overflow-hidden sm:h-20">
+      {/* Decorative wave + pattern — Figma 256:11795–11797 */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 overflow-hidden opacity-10 sm:h-20">
         <div className="absolute left-1/2 top-0 flex h-[405.89px] w-[max(100%,1920px)] -translate-x-1/2 items-center justify-center">
           <div className="shrink-0 -rotate-90">
             <img
