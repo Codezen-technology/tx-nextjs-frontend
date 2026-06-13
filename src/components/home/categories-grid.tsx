@@ -23,20 +23,20 @@ export async function CategoriesGrid() {
   return (
     <div className="container">
       {/* Header — Figma: SUSE Bold 32px, "View all" secondary-500 */}
-      <div className="mb-6 flex flex-col md:flex-row items-end md:items-center justify-between">
+      <div className="mb-6 flex flex-col items-end justify-between md:flex-row md:items-center">
         <h3 className="font-suse text-[32px] font-bold leading-normal text-neutral-900">
           Explore courses by category
         </h3>
         <Link
-          href="/courses"
-          className="flex items-end md:items-center gap-1 font-open-sans text-base font-normal text-secondary-500 transition-colors hover:text-secondary-600"
+          href="/all-courses"
+          className="flex items-end gap-1 font-open-sans text-base font-normal text-secondary-500 transition-colors hover:text-secondary-600 md:items-center"
         >
           View all courses
           <ChevronRight className="h-4 w-4" />
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+      <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
         {displayed.map((cat) => {
           const icon = resolveIcon(cat);
           return (
@@ -58,7 +58,7 @@ export async function CategoriesGrid() {
                   <GraduationCap className="h-8 w-8 text-neutral-300" />
                 )}
               </div>
-              <span className="px-2 text-center font-open-sans text-base text-neutral-300 group-hover:text-neutral-500">
+              <span className="px-2 text-center font-open-sans text-base text-neutral-700 group-hover:text-neutral-900">
                 {cat.name}
               </span>
             </Link>

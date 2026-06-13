@@ -85,7 +85,7 @@ export default async function HomePage() {
       <ReviewsSection />
 
       {/* 8. Blog */}
-      {/* <BlogSection /> */}
+      <BlogSection />
     </>
   );
 }

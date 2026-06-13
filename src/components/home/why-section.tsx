@@ -17,9 +17,7 @@ export function WhySection() {
               {/* Text block */}
               <div
                 className={`flex flex-col gap-4 lg:col-span-7 ${
-                  isImageLeft
-                    ? "lg:col-start-6 lg:order-2"
-                    : "lg:col-start-1 lg:order-1"
+                  isImageLeft ? "lg:order-2 lg:col-start-6" : "lg:order-1 lg:col-start-1"
                 }`}
               >
                 <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900">
@@ -58,15 +56,13 @@ export function WhySection() {
               {/* Image block */}
               <div
                 className={`relative h-72 w-full overflow-hidden rounded-2xl lg:col-span-3 lg:h-80 ${
-                  isImageLeft
-                    ? "lg:col-start-1 lg:order-1"
-                    : "lg:col-start-10 lg:order-2"
+                  isImageLeft ? "lg:order-1 lg:col-start-1" : "lg:order-2 lg:col-start-10"
                 }`}
               >
                 <img
                   src={panel.gif}
                   alt={panel.gifAlt}
-                  className="absolute inset-0 h-[320px] w-[320px] object-cover"
+                  className="absolute inset-0 h-full w-full object-cover"
                 />
               </div>
             </div>
