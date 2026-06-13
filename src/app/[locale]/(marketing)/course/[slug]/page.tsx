@@ -60,7 +60,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: `${siteUrl}/course/${params.slug}`,
     });
   } catch {
-    return { title: "Course" };
+    const siteUrl = env.SITE_URL.replace(/\/$/, "");
+    return {
+      title: "Online Training Course | Training Excellence",
+      description:
+        "Professional online training courses. Instant digital certificate on completion.",
+      alternates: { canonical: `${siteUrl}/course/${params.slug}` },
+    };
   }
 }
 
@@ -112,6 +118,29 @@ function buildCourseSchema(course: CourseRichData, url: string): Record<string, 
   return schema;
 }
 
+function buildBreadcrumbSchema(course: CourseRichData, siteUrl: string): Record<string, unknown> {
+  const items: { name: string; url: string }[] = [
+    { name: "Home", url: siteUrl },
+    { name: "Courses", url: `${siteUrl}/all-courses` },
+    ...(course.breadcrumb ?? []).map((crumb) => ({
+      name: crumb.name,
+      url: `${siteUrl}/course-cat/${crumb.slug}`,
+    })),
+    { name: course.title, url: `${siteUrl}/course/${course.slug}` },
+  ];
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
 export default async function CourseDetailPage({ params }: PageProps) {
   setRequestLocale(await getLocale());
 
@@ -136,7 +165,11 @@ export default async function CourseDetailPage({ params }: PageProps) {
   const siteUrl = env.SITE_URL.replace(/\/$/, "");
   // Prefer canonical from Rank Math so JSON-LD url matches the canonical tag exactly
   const courseUrl = rmSeo?.canonical ?? `${siteUrl}/course/${course.slug}`;
-  const jsonLd = rmSeo?.jsonLd?.length ? rmSeo.jsonLd : [buildCourseSchema(course, courseUrl)];
+  // RankMath provides Course + BreadcrumbList schemas when configured.
+  // Fallback: emit both manually so Google always has structured data.
+  const jsonLd = rmSeo?.jsonLd?.length
+    ? rmSeo.jsonLd
+    : [buildCourseSchema(course, courseUrl), buildBreadcrumbSchema(course, siteUrl)];
 
   return (
     <div className="min-h-screen bg-white">
