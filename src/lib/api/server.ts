@@ -11,7 +11,7 @@
 import { coursePath, courseSlugPath } from "@/lib/api/endpoints";
 import { getServerWpJsonBase, env } from "@/lib/env";
 import type { FooterData } from "@/types/settings";
-import type { CourseSections } from "@/types/course";
+import type { CourseSections, CourseFlatCurriculumItem } from "@/types/course";
 
 const lms = `/${env.LMS_NAMESPACE}`;
 
@@ -107,15 +107,11 @@ export type ApiCourse = {
   primary_instructor: ApiCourseInstructor | null;
   author: ApiCourseInstructor | null;
   menu_order: number;
+  product_id: number | null;
 };
 
-/**
- * Curriculum item from Courses_Controller::get_curriculum().
- * Sections have id=null; units/quizzes have numeric id.
- */
-export type ApiCurriculumItem =
-  | { id: null; title: string; type: "section" }
-  | { id: number; title: string; type: "unit" | "quiz" | string };
+/** @deprecated Use CourseFlatCurriculumItem from @/types/course */
+export type ApiCurriculumItem = CourseFlatCurriculumItem;
 
 // ── User ──────────────────────────────────────────────────────────────────────
 
@@ -382,7 +378,7 @@ export const serverApi = {
       }),
 
     curriculum: (slug: string) =>
-      serverFetch<ApiCurriculumItem[]>(courseSlugPath(slug, "curriculum"), {
+      serverFetch<CourseFlatCurriculumItem[]>(courseSlugPath(slug, "curriculum"), {
         revalidate: 600,
         tags: [`course:${slug}:curriculum`],
       }),

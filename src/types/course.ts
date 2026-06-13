@@ -126,17 +126,27 @@ export interface CourseRichData extends Course {
   seo?: CourseSeo;
 }
 
+export interface CourseSuitableForItem {
+  title: string;
+  icon?: string | null;
+}
+
 export interface CourseSections {
-  what_you_will_learn?: string[] | null;
+  /** Sanitized HTML from `what_youll_learn` WYSIWYG field. */
+  what_you_will_learn?: string | null;
   description_heading?: string | null;
   at_a_glance?: string | null;
-  who_should_take?: { summary: string; items: string[] } | null;
+  who_should_take?: { summary: string; items: CourseSuitableForItem[] } | null;
   why_take?: string | null;
   requirements?: string | null;
   assessment?: string | null;
+  how_courses_work?: string | null;
+  accredited_by?: string | null;
   faq?: { question: string; answer: string }[] | null;
   faq_heading?: string | null;
   screenshots?: string[] | null;
+  /** Text from `empower_and_engage.add_text`. */
+  sneak_peek_text?: string | null;
   job_opportunities?: { heading: string; items: { title: string; description: string }[] } | null;
 }
 

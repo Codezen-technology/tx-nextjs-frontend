@@ -21,8 +21,12 @@ import { CourseFlatCurriculum } from "@/components/courses/course-flat-curriculu
 import { CourseFaq } from "@/components/courses/course-faq";
 import { CourseReviews } from "@/components/courses/course-reviews";
 import { CourseSuitableFor } from "@/components/courses/course-suitable-for";
+import { CourseWhyTake } from "@/components/courses/course-why-take";
+import { CourseRequirements } from "@/components/courses/course-requirements";
+import { CourseAssessment } from "@/components/courses/course-assessment";
+import { CourseJobOpportunities } from "@/components/courses/course-job-opportunities";
 import { CourseRelated } from "@/components/courses/course-related";
-import type { CourseFlatCurriculumItem, CourseSections, CourseRichData } from "@/types/course";
+import type { CourseRichData } from "@/types/course";
 
 interface PageProps {
   params: { locale: string; slug: string };
@@ -97,19 +101,15 @@ export default async function CourseDetailPage({ params }: PageProps) {
   ]);
 
   if (courseResult.status === "rejected") notFound();
-
   const course = normalizeRichCourse(courseResult.value);
   const sections = sectionsResult.status === "fulfilled" ? sectionsResult.value : null;
-  const curriculum =
-    curriculumResult.status === "fulfilled"
-      ? ((curriculumResult.value ?? []) as CourseFlatCurriculumItem[])
-      : [];
+  const curriculum = curriculumResult.status === "fulfilled" ? (curriculumResult.value ?? []) : [];
   const rmSeo = seoResult.status === "fulfilled" ? seoResult.value : null;
 
   const accreditations = course.accreditations ?? [];
   const experts = course.experts ?? [];
   const screenshots = sections?.screenshots ?? [];
-  const whatYouLearn = sections?.what_you_will_learn ?? [];
+  const whatYouLearn = sections?.what_you_will_learn ?? null;
 
   const siteUrl = env.SITE_URL.replace(/\/$/, "");
   // Prefer canonical from Rank Math so JSON-LD url matches the canonical tag exactly
@@ -143,9 +143,9 @@ export default async function CourseDetailPage({ params }: PageProps) {
             </div>
 
             {/* ── What you'll learn + About ── */}
-            {whatYouLearn.length > 0 || sections?.at_a_glance ? (
+            {whatYouLearn || sections?.at_a_glance ? (
               <div className="mt-10 space-y-10">
-                {whatYouLearn.length > 0 ? <CourseWhatYouLearn items={whatYouLearn} /> : null}
+                {whatYouLearn ? <CourseWhatYouLearn html={whatYouLearn} /> : null}
                 {sections?.at_a_glance ? (
                   <CourseAbout heading={sections.description_heading} html={sections.at_a_glance} />
                 ) : null}
@@ -191,6 +191,27 @@ export default async function CourseDetailPage({ params }: PageProps) {
               </section>
             ) : null}
 
+            {/* ── Why take ── */}
+            {sections?.why_take ? (
+              <div className="mt-16">
+                <CourseWhyTake html={sections.why_take} />
+              </div>
+            ) : null}
+
+            {/* ── Requirements ── */}
+            {sections?.requirements ? (
+              <div className="mt-16">
+                <CourseRequirements html={sections.requirements} />
+              </div>
+            ) : null}
+
+            {/* ── Assessment ── */}
+            {sections?.assessment ? (
+              <div className="mt-16">
+                <CourseAssessment html={sections.assessment} />
+              </div>
+            ) : null}
+
             {/* ── FAQ ── */}
             {sections?.faq?.length ? (
               <section id="faq" className="mt-16 scroll-mt-28">
@@ -211,6 +232,16 @@ export default async function CourseDetailPage({ params }: PageProps) {
                   items={sections.who_should_take.items}
                 />
               </section>
+            ) : null}
+
+            {/* ── Job Opportunities ── */}
+            {sections?.job_opportunities?.items?.length ? (
+              <div className="mt-16">
+                <CourseJobOpportunities
+                  heading={sections.job_opportunities.heading}
+                  items={sections.job_opportunities.items}
+                />
+              </div>
             ) : null}
 
             {/* ── Related courses ── */}

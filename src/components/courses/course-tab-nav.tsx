@@ -27,10 +27,16 @@ export function CourseTabNav({
   const items: NavItem[] = [
     ...(accreditations.length ? [{ id: "accreditations", label: "Accreditations" }] : []),
     ...(curriculum.length ? [{ id: "course-content", label: "Course Content" }] : []),
+    ...(sections?.why_take ? [{ id: "why-take", label: "Why Take?" }] : []),
+    ...(sections?.requirements ? [{ id: "requirements", label: "Requirements" }] : []),
+    ...(sections?.assessment ? [{ id: "assessment", label: "Assessment" }] : []),
     ...(sections?.faq?.length ? [{ id: "faq", label: "FAQs" }] : []),
     { id: "reviews", label: "Reviews" },
     ...(sections?.who_should_take?.items?.length
       ? [{ id: "suitable-for", label: "Suitable For" }]
+      : []),
+    ...(sections?.job_opportunities?.items?.length
+      ? [{ id: "job-opportunities", label: "Job Opportunities" }]
       : []),
   ];
 
