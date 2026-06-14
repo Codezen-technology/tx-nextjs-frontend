@@ -4,14 +4,15 @@ import { normalizeCourse } from "@/lib/services/courses";
 import { CourseCard } from "@/components/courses/course-card";
 import { ChevronRight } from "lucide-react";
 import type { HomePopularCoursesHeader } from "@/types/home";
-import fallbackHeader from "@/data/home/popular-courses.json";
 
 interface PopularCoursesProps {
   limit?: number;
   header?: HomePopularCoursesHeader;
 }
 
-export async function PopularCourses({ limit = 8, header = fallbackHeader }: PopularCoursesProps) {
+export async function PopularCourses({ limit = 8, header }: PopularCoursesProps) {
+  if (!header) return null;
+
   let data: Awaited<ReturnType<typeof serverApi.courses.popular>> | null = null;
 
   try {

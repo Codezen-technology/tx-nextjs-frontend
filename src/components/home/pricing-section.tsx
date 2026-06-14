@@ -1,22 +1,20 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { HomePricingSection } from "@/types/home";
-import fallbackPricing from "@/data/home/pricing.json";
 import { cn } from "@/lib/utils/cn";
-
-const FALLBACK_PRICING = fallbackPricing as HomePricingSection;
 
 interface PricingSectionProps {
   data?: HomePricingSection;
 }
 
-export function PricingSection({ data = FALLBACK_PRICING }: PricingSectionProps) {
+export function PricingSection({ data }: PricingSectionProps) {
+  if (!data?.plans?.length) return null;
+
   const { header, plans } = data;
 
   return (
     <section className="bg-white py-20">
       <div className="container mx-auto">
-        {/* Header */}
         <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-2">
             <h2 className="font-suse text-[2rem] font-bold text-neutral-900">{header.title}</h2>
@@ -31,11 +29,9 @@ export function PricingSection({ data = FALLBACK_PRICING }: PricingSectionProps)
           </Link>
         </div>
 
-        {/* Cards Grid */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {plans.map((plan) => (
             <div key={plan.name} className="relative">
-              {/* Ribbon Badge */}
               {plan.badge === "best-value" && (
                 <div className="absolute -top-4 right-6 z-20 flex items-start">
                   <div className="relative rounded-b-lg bg-white p-4 text-sm font-medium text-secondary-700 shadow-md">
@@ -75,7 +71,6 @@ export function PricingSection({ data = FALLBACK_PRICING }: PricingSectionProps)
                 </div>
               )}
 
-              {/* Card */}
               <div
                 className={cn(
                   "relative flex h-full flex-col gap-6 overflow-hidden rounded-[12px] p-8",
@@ -91,7 +86,6 @@ export function PricingSection({ data = FALLBACK_PRICING }: PricingSectionProps)
                       : undefined
                 }
               >
-                {/* Navy pattern */}
                 {plan.variant === "navy" && (
                   <div
                     className="pointer-events-none absolute inset-0 bg-[url('/images/plus-shape.png')] bg-contain bg-right bg-no-repeat"
@@ -99,7 +93,6 @@ export function PricingSection({ data = FALLBACK_PRICING }: PricingSectionProps)
                   />
                 )}
 
-                {/* Plan content */}
                 <div className="flex flex-col gap-4">
                   <p
                     className={cn(
@@ -123,7 +116,6 @@ export function PricingSection({ data = FALLBACK_PRICING }: PricingSectionProps)
                     </p>
                   )}
 
-                  {/* Price */}
                   <div className="flex items-baseline gap-2">
                     {plan.originalPrice && (
                       <span className="text-xl font-bold text-[#dc3545] line-through">
@@ -141,7 +133,6 @@ export function PricingSection({ data = FALLBACK_PRICING }: PricingSectionProps)
                     </span>
                   </div>
 
-                  {/* Features */}
                   <ul className="flex flex-col gap-3">
                     {plan.features.map((feat) => (
                       <li key={feat.label} className="flex items-center gap-2">
@@ -166,7 +157,6 @@ export function PricingSection({ data = FALLBACK_PRICING }: PricingSectionProps)
                   </ul>
                 </div>
 
-                {/* CTA Button */}
                 <Link
                   href={plan.ctaHref}
                   className={cn(

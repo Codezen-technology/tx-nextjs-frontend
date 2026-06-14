@@ -1,16 +1,13 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { HomeWhyPanel } from "@/types/home";
-import fallbackWhy from "@/data/home/why.json";
-
-const FALLBACK_WHY = fallbackWhy as HomeWhyPanel[];
 
 interface WhySectionProps {
   panels?: HomeWhyPanel[];
 }
 
-export function WhySection({ panels = FALLBACK_WHY }: WhySectionProps) {
-  if (!panels.length) return null;
+export function WhySection({ panels }: WhySectionProps) {
+  if (!panels?.length) return null;
 
   return (
     <section className="py-16 lg:py-20">
@@ -23,7 +20,6 @@ export function WhySection({ panels = FALLBACK_WHY }: WhySectionProps) {
               key={`${panel.title}-${idx}`}
               className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-0"
             >
-              {/* Text block */}
               <div
                 className={`flex flex-col gap-4 lg:col-span-7 ${
                   isImageLeft ? "lg:order-2 lg:col-start-6" : "lg:order-1 lg:col-start-1"
@@ -62,7 +58,6 @@ export function WhySection({ panels = FALLBACK_WHY }: WhySectionProps) {
                 </Link>
               </div>
 
-              {/* Image block */}
               <div
                 className={`relative h-72 w-full overflow-hidden rounded-2xl lg:col-span-3 lg:h-80 ${
                   isImageLeft ? "lg:order-1 lg:col-start-1" : "lg:order-2 lg:col-start-10"

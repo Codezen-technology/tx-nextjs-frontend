@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ChevronRight, Star } from "lucide-react";
 import type { HomeTestimonial } from "@/types/home";
-import fallbackReviews from "@/data/home/reviews.json";
 import { cn } from "@/lib/utils/cn";
 
 interface ReviewsSectionProps {
@@ -35,24 +34,8 @@ function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
   );
 }
 
-function mapFallbackReview(
-  review: (typeof fallbackReviews)[number],
-  index: number,
-): HomeTestimonial {
-  return {
-    id: index + 1,
-    name: review.name,
-    designation: null,
-    rating: review.rating,
-    text: review.text,
-    photo: null,
-  };
-}
-
-export function ReviewsSection({
-  testimonials = fallbackReviews.map((review, index) => mapFallbackReview(review, index)),
-}: ReviewsSectionProps) {
-  if (!testimonials.length) return null;
+export function ReviewsSection({ testimonials }: ReviewsSectionProps) {
+  if (!testimonials?.length) return null;
 
   return (
     <section className="flex flex-col gap-4 bg-primary-50 py-16">

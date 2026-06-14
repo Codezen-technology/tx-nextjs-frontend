@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { GraduationCap, ChevronRight } from "lucide-react";
 import { serverApi, type ApiCategory } from "@/lib/api/server";
-import fallbackCategories from "@/data/home/categories.json";
 
 interface CategoryItem {
   id: number;
@@ -34,10 +33,10 @@ async function getCategories(provided?: CategoryItem[]): Promise<CategoryItem[]>
     const res = await serverApi.taxonomy.categories({ per_page: 11 });
     if (res.items?.length) return res.items.map(mapApiCategory);
   } catch {
-    // fall through to static JSON
+    return [];
   }
 
-  return fallbackCategories;
+  return [];
 }
 
 export async function CategoriesGrid({ categories: provided }: CategoriesGridProps) {
@@ -45,12 +44,10 @@ export async function CategoriesGrid({ categories: provided }: CategoriesGridPro
 
   if (!categories.length) return null;
 
-  // Static Figma order: 11 tiles (6 + 5)
   const displayed = categories.slice(0, 11);
 
   return (
     <div className="container">
-      {/* Header — Figma: SUSE Bold 32px, "View all" secondary-500 */}
       <div className="mb-6 flex flex-col items-end justify-between md:flex-row md:items-center">
         <h3 className="font-suse text-[32px] font-bold leading-normal text-neutral-900">
           Explore courses by category

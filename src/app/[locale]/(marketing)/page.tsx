@@ -36,7 +36,7 @@ export default async function HomePage() {
     <>
       <Topbar items={home?.topbar} />
 
-      <HeroSection />
+      <HeroSection headline={home?.hero_headline} />
 
       <PricingSection data={home?.pricing} />
 

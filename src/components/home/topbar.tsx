@@ -1,12 +1,11 @@
 import type { HomeTopbarItem } from "@/types/home";
-import fallbackItems from "@/data/home/topbar.json";
 
 interface TopbarProps {
   items?: HomeTopbarItem[];
 }
 
-export function Topbar({ items = fallbackItems }: TopbarProps) {
-  if (!items.length) return null;
+export function Topbar({ items }: TopbarProps) {
+  if (!items?.length) return null;
 
   return (
     <div className="bg-white">

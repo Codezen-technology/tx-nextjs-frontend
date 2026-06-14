@@ -167,6 +167,7 @@ export const endpoints = {
     get: `${lms}/home`,
     topbar: `${lms}/home/topbar`,
     hero: `${lms}/home/hero`,
+    heroHeadline: `${lms}/home/hero-headline`,
     pricing: `${lms}/home/pricing`,
     trustedOrgs: `${lms}/home/trusted-orgs`,
     popularCoursesHeader: `${lms}/home/popular-courses-header`,

@@ -5,10 +5,13 @@ import { SafeImage } from "@/components/ui/safe-image";
 import { coursesService } from "@/lib/services/courses";
 import { publicImageExists } from "@/lib/utils/public-image.server";
 import type { Course, CourseCategory } from "@/types/course";
-import heroData from "@/data/home/hero.json";
+import type { HomeHeroHeadline } from "@/types/home";
 
 const overlayImage = "/images/Overlay-Image.webp";
-const HERO_ACCREDITATIONS = heroData.accreditations;
+
+interface HeroSectionProps {
+  headline?: HomeHeroHeadline;
+}
 
 async function getPopularCourses(): Promise<Course[]> {
   try {
@@ -27,8 +30,11 @@ async function getCategories(): Promise<CourseCategory[]> {
   }
 }
 
-export async function HeroSection() {
+export async function HeroSection({ headline }: HeroSectionProps) {
+  if (!headline?.title) return null;
+
   const [courses, categories] = await Promise.all([getPopularCourses(), getCategories()]);
+  const accreditations = headline.accreditations ?? [];
 
   return (
     <section
@@ -39,35 +45,39 @@ export async function HeroSection() {
         <div className="flex w-full min-w-0 flex-col gap-6 lg:max-w-[636px]">
           <div className="flex flex-col gap-4">
             <h1 className="font-suse text-[40px] font-bold leading-[1.2] text-neutral-900 md:text-[48px] lg:text-[56px]">
-              {heroData.title}
+              {headline.title}
             </h1>
-            <p className="font-open-sans text-base font-normal leading-[1.5] text-neutral-500">
-              {heroData.description}
-            </p>
+            {headline.description && (
+              <p className="font-open-sans text-base font-normal leading-[1.5] text-neutral-500">
+                {headline.description}
+              </p>
+            )}
           </div>
 
-          <div className="flex items-center gap-4">
-            {HERO_ACCREDITATIONS.map((badge) => (
-              <div
-                key={badge.src}
-                className="flex h-[80px] w-[100px] items-center justify-center overflow-hidden rounded-[8px] border border-[#eaecee] bg-white px-2"
-              >
-                {publicImageExists(badge.src) ? (
-                  <SafeImage
-                    src={badge.src}
-                    alt={badge.alt}
-                    width={badge.width}
-                    height={badge.height}
-                    className="object-contain"
-                  />
-                ) : (
-                  <span className="text-center font-open-sans text-[11px] font-semibold leading-tight text-[#00204a]">
-                    {badge.label}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+          {accreditations.length > 0 && (
+            <div className="flex items-center gap-4">
+              {accreditations.map((badge) => (
+                <div
+                  key={badge.src}
+                  className="flex h-[80px] w-[100px] items-center justify-center overflow-hidden rounded-[8px] border border-[#eaecee] bg-white px-2"
+                >
+                  {publicImageExists(badge.src) ? (
+                    <SafeImage
+                      src={badge.src}
+                      alt={badge.alt}
+                      width={badge.width}
+                      height={badge.height}
+                      className="object-contain"
+                    />
+                  ) : (
+                    <span className="text-center font-open-sans text-[11px] font-semibold leading-tight text-[#00204a]">
+                      {badge.label}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="overflow-hidden rounded-[4px] bg-[rgba(0,32,74,0.4)] backdrop-blur-[8px]">
             <form

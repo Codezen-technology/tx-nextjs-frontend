@@ -11,8 +11,7 @@ export interface HomeHeroAccreditation {
   label: string;
 }
 
-/** Static hero headline content — not yet returned by GET /home/hero (slides-only). */
-export interface HomeHeroContent {
+export interface HomeHeroHeadline {
   title: string;
   description: string;
   accreditations: HomeHeroAccreditation[];
@@ -85,6 +84,7 @@ export interface HomeTestimonial {
 export interface HomePageData {
   topbar: HomeTopbarItem[];
   hero: HomeWhyPanel[];
+  hero_headline: HomeHeroHeadline;
   pricing: HomePricingSection;
   trusted_orgs: HomeTrustedOrg[];
   popular_courses_header: HomePopularCoursesHeader;
