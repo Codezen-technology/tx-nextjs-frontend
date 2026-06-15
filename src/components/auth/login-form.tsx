@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useLogin } from "@/lib/hooks/useAuth";
 import { loginSchema, type LoginInput } from "@/lib/schemas/auth";
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
@@ -21,7 +21,10 @@ export function LoginForm() {
   });
   const login = useLogin();
 
-  const onSubmit = (values: LoginInput) => login.mutate(values);
+  const onSubmit = (values: LoginInput) => {
+    login.reset();
+    login.mutate(values);
+  };
 
   return (
     <div className="w-full max-w-[416px] rounded-lg border border-[#ebedf1] bg-white p-10 text-[#3b5374] shadow-[0px_8px_8px_rgb(0_0_0/0.15)]">
@@ -39,7 +42,7 @@ export function LoginForm() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-6">
           <div className="flex flex-col gap-4">
             <div>
               <label
@@ -105,6 +108,15 @@ export function LoginForm() {
               )}
             </div>
           </div>
+
+          {login.isError && (
+            <div className="flex items-center gap-2 rounded border border-red-200 bg-red-50 px-3 py-2.5">
+              <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+              <p className="font-open-sans text-sm text-red-600">
+                {login.error?.message || "Invalid credentials. Please try again."}
+              </p>
+            </div>
+          )}
 
           <button
             type="submit"

@@ -58,6 +58,7 @@ interface RawCourse {
   total_lessons?: number;
   total_units?: number;
   // Real API field name
+  modules_count?: number;
   total_students?: number;
   students_count?: number;
   // Real API uses average_rating
@@ -170,6 +171,7 @@ export function normalizeCourse(raw: RawCourse): Course {
     durationSeconds: raw?.duration_seconds ?? raw?.duration ?? raw?.total_duration ?? undefined,
     unitsCount: raw?.units_count ?? raw?.lessons_count ?? raw?.total_units ?? raw?.total_lessons,
     lessonsCount: raw?.lessons_count ?? raw?.total_lessons ?? raw?.units_count ?? raw?.total_units,
+    modules_count: typeof raw?.modules_count === "number" ? raw.modules_count : undefined,
     // Real API field is total_students
     studentsCount: raw?.total_students ?? raw?.students_count,
     // Real API field is average_rating

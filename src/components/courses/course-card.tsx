@@ -1,9 +1,9 @@
-import Image from "next/image";
-import Link from "next/link";
-import { BookOpen, Bookmark, Check, Clock, Star, Users } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { formatDuration, pluralize } from "@/lib/utils/format";
 import type { Course } from "@/types/course";
+import { BookOpen, Check, Clock, Users } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 interface CourseCardProps {
   course: Course;
@@ -16,7 +16,7 @@ export function CourseCard({ course, className }: CourseCardProps) {
   return (
     <div
       className={cn(
-        "flex flex-col overflow-hidden rounded-lg border border-[#ebedf1] bg-white shadow-sm transition-shadow hover:shadow-md group",
+        "group flex flex-col overflow-hidden rounded-lg border border-[#ebedf1] bg-white shadow-sm transition-shadow hover:shadow-md",
         className,
       )}
     >
@@ -40,7 +40,8 @@ export function CourseCard({ course, className }: CourseCardProps) {
 
       <div className="flex flex-1 flex-col gap-4 p-4">
         {/* Rating + bookmark */}
-        <div className="flex items-center justify-between">
+        {/* Hide until bookmark section is implemented */}
+        {/* <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-neutral-400">
             <span>{course.rating?.toFixed(1) ?? "4.5"}</span>
             <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
@@ -54,7 +55,7 @@ export function CourseCard({ course, className }: CourseCardProps) {
           >
             <Bookmark className="h-4 w-4" />
           </button>
-        </div>
+        </div> */}
 
         {/* Title */}
         <Link href={`/course/${course.slug}`}>
@@ -65,11 +66,11 @@ export function CourseCard({ course, className }: CourseCardProps) {
 
         {/* Accreditation badges */}
         {badges.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-2 overflow-x-auto py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {badges.map((cat) => (
               <span
                 key={cat.id}
-                className="inline-flex items-center gap-1 rounded-full bg-secondary-50 px-2 py-0.5 font-open-sans text-xs text-secondary-900 whitespace-nowrap"
+                className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-secondary-50 px-2 py-0.5 font-open-sans text-xs text-secondary-900"
               >
                 <Check className="h-2.5 w-2.5 shrink-0" />
                 {cat.name}
@@ -80,16 +81,15 @@ export function CourseCard({ course, className }: CourseCardProps) {
 
         {/* Meta row */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#667992]">
-          {(course.unitsCount ?? course.lessonsCount) ? (
-            <span className="inline-flex items-center gap-1">
-              <BookOpen className="h-3 w-3" />
-              {pluralize(course.unitsCount ?? course.lessonsCount ?? 0, "Module")}
-            </span>
-          ) : null}
+          <span className="inline-flex items-center gap-1">
+            <BookOpen className="h-3 w-3" />
+            {course.modules_count ?? 0} {pluralize(course.modules_count ?? 0, "Module")}
+          </span>
+
           {course.durationSeconds ? (
             <span className="inline-flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              {formatDuration(course.durationSeconds)}
+              {formatDuration(course.durationSeconds ?? 0)}
             </span>
           ) : null}
           {course.studentsCount ? (
@@ -103,7 +103,7 @@ export function CourseCard({ course, className }: CourseCardProps) {
           ) : null}
         </div>
 
-        <div className="mt-auto border-dashed border border-secondary-100" />
+        <div className="mt-auto border border-dashed border-secondary-100" />
 
         {/* Price + CTA */}
         <div className="flex items-center justify-between">
@@ -126,7 +126,7 @@ export function CourseCard({ course, className }: CourseCardProps) {
           </div>
           <Link
             href={`/course/${course.slug}`}
-            className="inline-flex items-center gap-1 rounded-full border border-secondary-500 px-4 py-1.5 text-sm text-secondary-500 transition-colors hover:bg-secondary-50 group-hover:bg-primary-500 group-hover:border-primary-600 group-hover:text-white"
+            className="inline-flex items-center gap-1 rounded-full border border-secondary-500 px-4 py-1.5 text-sm text-secondary-500 transition-colors hover:bg-secondary-50 group-hover:border-primary-600 group-hover:bg-primary-500 group-hover:text-white"
           >
             View Course →
           </Link>

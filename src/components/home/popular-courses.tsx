@@ -26,7 +26,6 @@ export async function PopularCourses({ limit = 8, header }: PopularCoursesProps)
   const courses = data.items.map((raw) =>
     normalizeCourse(raw as Parameters<typeof normalizeCourse>[0]),
   );
-
   return (
     <section>
       <div className="container">

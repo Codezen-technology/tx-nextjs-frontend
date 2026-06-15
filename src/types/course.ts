@@ -43,6 +43,7 @@ export interface Course {
   instructor?: CourseInstructor;
   createdAt?: string;
   updatedAt?: string;
+  modules_count?: number;
 }
 
 export interface CourseSection {
