@@ -25,7 +25,7 @@ function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
           className={cn(
             "h-4 w-4",
             i < Math.round(rating)
-              ? "fill-amber-400 text-amber-400"
+              ? "fill-green-500 text-green-500"
               : "fill-neutral-200 text-neutral-200",
           )}
         />
@@ -41,7 +41,7 @@ export function ReviewsSection({ testimonials }: ReviewsSectionProps) {
     <section className="flex flex-col gap-4 bg-primary-50 py-16">
       <div className="container flex items-center justify-between">
         <h2 className="font-suse text-3xl font-bold text-neutral-900 md:text-[2rem]">
-          What our learners have to say
+          What Our Learners Have to Say
         </h2>
         <Link
           href="/reviews"

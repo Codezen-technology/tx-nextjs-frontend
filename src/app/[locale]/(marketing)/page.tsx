@@ -9,7 +9,6 @@ import { TrustedOrgs } from "@/components/home/trusted-orgs";
 import { CategoriesGrid } from "@/components/home/categories-grid";
 import { WhySection } from "@/components/home/why-section";
 import { ReviewsSection } from "@/components/home/reviews-section";
-import { BlogSection } from "@/components/home/blog-section";
 import { PopularCourses } from "@/components/home/popular-courses";
 import { Topbar } from "@/components/home/topbar";
 
@@ -51,8 +50,6 @@ export default async function HomePage() {
       <WhySection panels={home?.why} />
 
       <ReviewsSection testimonials={home?.testimonials} />
-
-      <BlogSection />
     </>
   );
 }
