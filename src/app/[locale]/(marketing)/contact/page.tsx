@@ -21,8 +21,8 @@ export const revalidate = 3600;
 
 const FALLBACK_CONTACT = {
   email: "hi@trainingexcellence.org.uk",
-  phone: "+1 (555) 000-0000",
-  address: "100 Smith Street, Collingwood VIC 3066 AU",
+  phone: "",
+  address: "",
 };
 
 export default async function ContactPage() {

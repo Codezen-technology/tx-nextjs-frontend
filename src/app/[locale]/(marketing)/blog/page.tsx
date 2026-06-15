@@ -125,7 +125,7 @@ export default async function BlogPage() {
               </p>
             </div>
             <form
-              action="/blog/search"
+              action="/search"
               method="get"
               className="flex w-full max-w-sm shrink-0 overflow-hidden rounded-lg shadow-lg"
             >

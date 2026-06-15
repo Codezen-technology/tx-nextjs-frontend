@@ -1,16 +1,37 @@
 import type { Metadata } from "next";
+import { getLocale, setRequestLocale } from "next-intl/server";
+import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { env } from "@/lib/env";
 import { serverApi } from "@/lib/api/server";
 import { normalizeCourse } from "@/lib/services/courses";
 import { AllCoursesHero } from "@/components/courses/all-courses-hero";
 import { AllCoursesClient } from "@/components/courses/all-courses-client";
 
-export const metadata: Metadata = {
-  title: "Explore Our Courses",
-  description:
-    "Browse our full range of fully accredited online courses across health & safety, food hygiene, safeguarding, mental health, and more.",
-};
-
 export const revalidate = 300;
+
+export async function generateMetadata(): Promise<Metadata> {
+  setRequestLocale(await getLocale());
+  const seo = await fetchRankMathSeo("/all-courses");
+  return buildPageMetadata(seo, {
+    title: "All Online Courses | Training Excellence",
+    description:
+      "Browse our full range of fully accredited online courses across health & safety, food hygiene, safeguarding, mental health, and more. Instant digital certificate on completion.",
+    canonical: `${env.SITE_URL.replace(/\/$/, "")}/all-courses`,
+  });
+}
+
+const ALL_COURSES_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: "All Online Courses",
+  description: "Browse the full Training Excellence catalogue of accredited online courses.",
+  url: `${env.SITE_URL.replace(/\/$/, "")}/all-courses`,
+  isPartOf: {
+    "@type": "WebSite",
+    name: "Training Excellence",
+    url: env.SITE_URL,
+  },
+};
 
 export default async function AllCoursesPage() {
   const result = await serverApi.taxonomy.categories({ per_page: 100 }).catch(() => null);
@@ -30,6 +51,10 @@ export default async function AllCoursesPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ALL_COURSES_SCHEMA) }}
+      />
       <AllCoursesHero />
       <AllCoursesClient categoryData={categoryData.filter((d) => d.courses.length > 0)} />
     </>

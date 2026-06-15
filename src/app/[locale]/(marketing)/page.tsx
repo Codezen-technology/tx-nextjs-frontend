@@ -25,6 +25,35 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
+const siteUrl = env.SITE_URL.replace(/\/$/, "");
+
+const HOME_SCHEMA = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: env.SITE_NAME || "Training Excellence",
+    url: siteUrl,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: { "@type": "EntryPoint", urlTemplate: `${siteUrl}/search?q={search_term_string}` },
+      "query-input": "required name=search_term_string",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: env.SITE_NAME || "Training Excellence",
+    url: siteUrl,
+    logo: `${siteUrl}/logo.png`,
+    sameAs: [],
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      url: `${siteUrl}/contact`,
+    },
+  },
+];
+
 export default async function HomePage() {
   const [home, categoriesRes] = await Promise.all([
     serverApi.home.get().catch(() => null),
@@ -33,6 +62,13 @@ export default async function HomePage() {
 
   return (
     <>
+      {HOME_SCHEMA.map((schema, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
       <Topbar items={home?.topbar} />
 
       <HeroSection headline={home?.hero_headline} />

@@ -15,6 +15,7 @@ const REVIEWS_SCHEMA = {
   "@type": "WebPage",
   name: "Course Reviews | Training Excellence",
   description: "Genuine reviews from Training Excellence learners across the UK.",
+  url: `${env.SITE_URL.replace(/\/$/, "")}/reviews`,
 };
 
 export async function generateMetadata(): Promise<Metadata> {
