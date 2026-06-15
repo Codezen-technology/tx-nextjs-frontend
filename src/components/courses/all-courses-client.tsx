@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { CourseCategoryFilter } from "@/components/courses/course-category-filter";
 import { CoursesByCategorySection } from "@/components/courses/courses-by-category-section";
 import type { ApiCategory } from "@/lib/api/server";
@@ -17,11 +17,14 @@ interface AllCoursesClientProps {
 
 export function AllCoursesClient({ categoryData }: AllCoursesClientProps) {
   const [selected, setSelected] = useState<string[]>([]);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [selected]);
 
   function handleToggle(slug: string) {
-    setSelected((prev) =>
-      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug],
-    );
+    setSelected((prev) => (prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]));
   }
 
   const categories = categoryData.map((d) => d.category);
@@ -44,28 +47,28 @@ export function AllCoursesClient({ categoryData }: AllCoursesClientProps) {
 
   return (
     <div className="bg-white">
-    <div className="mx-auto max-w-[1296px] px-4 py-12">
-      <div className="flex items-start gap-6">
-        <aside className="sticky top-4 w-[306px] shrink-0">
-          <CourseCategoryFilter
-            categories={categories}
-            selected={selected}
-            onChange={handleToggle}
-            onClear={() => setSelected([])}
-          />
-        </aside>
+      <div className="mx-auto max-w-[1296px] px-4 py-12">
+        <div className="flex items-start gap-6">
+          <aside className="sticky top-4 w-[306px] shrink-0">
+            <CourseCategoryFilter
+              categories={categories}
+              selected={selected}
+              onChange={handleToggle}
+              onClear={() => setSelected([])}
+            />
+          </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-16">
-          {visible.length === 0 ? (
-            <p className="font-open-sans text-[16px] text-neutral-400">No categories selected.</p>
-          ) : (
-            visible.map(({ category, courses }) => (
-              <CoursesByCategorySection key={category.id} category={category} courses={courses} />
-            ))
-          )}
+          <div ref={contentRef} className="flex min-w-0 flex-1 flex-col gap-16">
+            {visible.length === 0 ? (
+              <p className="font-open-sans text-[16px] text-neutral-400">No categories selected.</p>
+            ) : (
+              visible.map(({ category, courses }) => (
+                <CoursesByCategorySection key={category.id} category={category} courses={courses} />
+              ))
+            )}
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }
