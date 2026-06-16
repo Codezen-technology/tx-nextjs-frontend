@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { PartyPopper } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ParsedHtml } from "@/components/ui/parsed-html";
@@ -46,7 +47,7 @@ export function CompletionModal({ courseId: _courseId }: { courseId: number }) {
             >
               Leave a review
             </button>
-            <a
+            <Link
               href="/certificate"
               className="rounded-lg px-6 py-4 text-center text-lg font-semibold text-white transition-opacity hover:opacity-90 sm:text-2xl"
               style={{
@@ -55,7 +56,7 @@ export function CompletionModal({ courseId: _courseId }: { courseId: number }) {
               }}
             >
               Order your certificate
-            </a>
+            </Link>
           </div>
         </div>
       </DialogContent>

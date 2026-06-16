@@ -44,7 +44,7 @@ function rewriteWithDefaultLocale(req: NextRequest): NextResponse | null {
   return response;
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const strippedPathname = stripLocale(pathname);
   const loggedIn = req.cookies.get("user_logged_in")?.value === "1";
