@@ -10,7 +10,7 @@ import {
   HeartHandshake,
 } from "lucide-react";
 import { getLocale, setRequestLocale } from "next-intl/server";
-import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
 import { Button } from "@/components/ui/button";
 
@@ -122,7 +122,7 @@ export default function AboutPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(ABOUT_SCHEMA) }}
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(ABOUT_SCHEMA) }}
       />
 
       <section className="bg-primary-50 py-16 text-center">

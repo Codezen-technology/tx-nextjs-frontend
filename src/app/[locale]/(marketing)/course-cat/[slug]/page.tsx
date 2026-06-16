@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { serverApi } from "@/lib/api/server";
 import { normalizeCourse } from "@/lib/services/courses";
-import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
 import { CategoryHero } from "@/components/courses/category-hero";
 import { CategoryCourses } from "@/components/courses/category-courses";
@@ -144,7 +144,7 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
         <script
           key={i}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          dangerouslySetInnerHTML={{ __html: stringifyJsonLd(schema) }}
         />
       ))}
       <CategoryHero category={category} />

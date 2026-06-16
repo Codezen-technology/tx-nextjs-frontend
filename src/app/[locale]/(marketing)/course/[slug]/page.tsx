@@ -4,7 +4,7 @@ import { getLocale, setRequestLocale } from "next-intl/server";
 import { serverApi } from "@/lib/api/server";
 import { normalizeRichCourse } from "@/lib/services/courses";
 import { truncate, stripHtml } from "@/lib/utils/format";
-import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
 import { CourseAnnouncement } from "@/components/courses/course-announcement";
 import { CourseBreadcrumb } from "@/components/courses/course-breadcrumb";
@@ -179,7 +179,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
         <script
           key={i}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          dangerouslySetInnerHTML={{ __html: stringifyJsonLd(schema) }}
         />
       ))}
       <CourseBreadcrumb course={course} />

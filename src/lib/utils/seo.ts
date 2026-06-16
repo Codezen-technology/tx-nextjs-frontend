@@ -41,6 +41,17 @@ function extractJsonLd(html: string): Record<string, unknown>[] {
   return out;
 }
 
+/**
+ * Serialize a JSON-LD object for embedding in a `<script type="application/ld+json">` tag.
+ * Escapes the `<` character to its unicode form to prevent a closing-script-tag
+ * breakout / XSS injection from user-controlled content (WP titles, descriptions,
+ * Rank Math payloads).
+ * Per https://nextjs.org/docs/app/guides/json-ld
+ */
+export function stringifyJsonLd(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
 /** Parse the Rank Math `head` HTML string returned by `/wp-json/rankmath/v1/getHead`. */
 export function parseRankMathHead(html: string): ParsedSeo {
   return {

@@ -19,10 +19,11 @@
 
 import type { Metadata } from "next";
 import { serverApi } from "@/lib/api/server";
-import { parseRankMathHead, type ParsedSeo } from "@/lib/utils/seo";
+import { parseRankMathHead, stringifyJsonLd, type ParsedSeo } from "@/lib/utils/seo";
 import { env } from "@/lib/env";
 
 export type { ParsedSeo };
+export { stringifyJsonLd };
 
 /**
  * Fetch + parse Rank Math SEO for a WP page path.

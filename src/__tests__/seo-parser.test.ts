@@ -1,6 +1,21 @@
 import { describe, it, expect } from "vitest";
-import { parseRankMathHead } from "@/lib/utils/seo";
+import { parseRankMathHead, stringifyJsonLd } from "@/lib/utils/seo";
 import { makeRankMathHead } from "./fixtures/courses";
+
+describe("stringifyJsonLd", () => {
+  it("escapes < to prevent </script> breakout (XSS)", () => {
+    const payload = { "@type": "Course", name: "Evil </script><script>alert(1)</script>" };
+    const out = stringifyJsonLd(payload);
+    expect(out).not.toContain("</script>");
+    expect(out).not.toContain("<script>");
+    expect(out).toContain("\\u003c");
+  });
+
+  it("produces valid JSON that round-trips after unescaping", () => {
+    const payload = { "@context": "https://schema.org", "@type": "Course", name: "A < B" };
+    expect(JSON.parse(stringifyJsonLd(payload))).toEqual(payload);
+  });
+});
 
 describe("parseRankMathHead", () => {
   it("extracts title", () => {

@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Star } from "lucide-react";
 import { getLocale, setRequestLocale } from "next-intl/server";
-import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
 import { serverApi, type ApiReview } from "@/lib/api/server";
 import { decodeEntities } from "@/lib/api/parsers";
@@ -115,7 +115,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(REVIEWS_SCHEMA) }}
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(REVIEWS_SCHEMA) }}
       />
       <section className="bg-primary-50 py-14 text-center">
         <div className="container">
