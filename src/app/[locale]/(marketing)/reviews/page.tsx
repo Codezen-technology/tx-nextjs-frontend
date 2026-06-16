@@ -34,7 +34,7 @@ export const revalidate = 300;
 const PER_PAGE = 12;
 
 interface ReviewsPageProps {
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }>;
 }
 
 function Stars({ rating }: { rating: number }) {
@@ -104,7 +104,8 @@ function ReviewCard({ review }: { review: ApiReview }) {
 }
 
 export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
-  const page = Math.max(1, Number(searchParams.page ?? 1) || 1);
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam ?? 1) || 1);
   const result = await serverApi.reviews.list({ page, per_page: PER_PAGE }).catch(() => null);
 
   const reviews = result?.items ?? [];

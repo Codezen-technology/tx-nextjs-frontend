@@ -48,7 +48,7 @@ export async function POST(request: Request) {
 
   const data = json.data;
   if (data?.access_token) {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const secure = process.env.NODE_ENV === "production";
     const maxAge = typeof data.expires_in === "number" ? data.expires_in : 86400;
 

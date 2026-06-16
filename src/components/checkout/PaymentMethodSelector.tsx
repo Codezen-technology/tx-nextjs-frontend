@@ -10,7 +10,7 @@ import type { WCStoreCheckoutResponse } from "@/lib/services/checkout";
 import type { BillingFormHandle } from "./BillingForm";
 
 interface PaymentMethodSelectorProps {
-  billingRef: React.RefObject<BillingFormHandle>;
+  billingRef: React.RefObject<BillingFormHandle | null>;
   onSuccess: (orderId: number, orderKey: string) => void;
 }
 

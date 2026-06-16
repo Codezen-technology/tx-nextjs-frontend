@@ -62,8 +62,8 @@ export async function fetchWCOrder(orderId: number): Promise<WCOrderRecord | nul
   return parsed.ok ? parsed.data : null;
 }
 
-export function getAuthenticatedUserId(): number | null {
-  const token = cookies().get("access_token")?.value;
+export async function getAuthenticatedUserId(): Promise<number | null> {
+  const token = (await cookies()).get("access_token")?.value;
   if (!token) return null;
   return getUserIdFromToken(token);
 }
@@ -123,9 +123,7 @@ export async function validateCouponCode(code: string): Promise<string | null> {
   return null;
 }
 
-export type CreateWCOrderResult =
-  | { ok: true; order: WCOrderRecord }
-  | { ok: false; error: string };
+export type CreateWCOrderResult = { ok: true; order: WCOrderRecord } | { ok: false; error: string };
 
 export async function createWCOrder(payload: unknown): Promise<CreateWCOrderResult> {
   const res = await fetch(wcRestUrl("/orders"), {
@@ -142,10 +140,7 @@ export async function createWCOrder(payload: unknown): Promise<CreateWCOrderResu
   return { ok: true, order: parsed.data };
 }
 
-export async function updateWCOrder(
-  orderId: number,
-  body: unknown,
-): Promise<WCOrderRecord | null> {
+export async function updateWCOrder(orderId: number, body: unknown): Promise<WCOrderRecord | null> {
   const res = await fetch(wcRestUrl(`/orders/${orderId}`), {
     method: "PUT",
     headers: {
@@ -207,9 +202,9 @@ export async function verifyStripePaymentForOrder(
 }
 
 /** Guest checkout: store order key in an httpOnly cookie (hash only in cookie value is overkill; store key with order id). */
-export function setGuestOrderKeyCookie(orderId: number, orderKey: string): void {
+export async function setGuestOrderKeyCookie(orderId: number, orderKey: string): Promise<void> {
   const secure = process.env.NODE_ENV === "production";
-  cookies().set(`guest_order_key_${orderId}`, orderKey, {
+  (await cookies()).set(`guest_order_key_${orderId}`, orderKey, {
     httpOnly: true,
     secure,
     sameSite: "lax",
@@ -218,6 +213,6 @@ export function setGuestOrderKeyCookie(orderId: number, orderKey: string): void 
   });
 }
 
-export function getGuestOrderKeyFromCookies(orderId: number): string | null {
-  return cookies().get(`guest_order_key_${orderId}`)?.value ?? null;
+export async function getGuestOrderKeyFromCookies(orderId: number): Promise<string | null> {
+  return (await cookies()).get(`guest_order_key_${orderId}`)?.value ?? null;
 }

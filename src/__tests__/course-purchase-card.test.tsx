@@ -5,8 +5,10 @@ import { CoursePurchaseCard } from "@/components/courses/course-purchase-card";
 import { makeRichCourse } from "./fixtures/courses";
 
 const mockPush = vi.fn();
-const mockMutate = vi.fn();
-const mockSetBuyNow = vi.fn();
+// useAddToCart().mutate(vars, { onSuccess }) — invoke onSuccess so buy-now navigates.
+const mockMutate = vi.fn((_vars: unknown, opts?: { onSuccess?: () => void }) =>
+  opts?.onSuccess?.(),
+);
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush, replace: vi.fn(), prefetch: vi.fn() }),
@@ -16,15 +18,9 @@ vi.mock("@/lib/hooks/useCart", () => ({
   useAddToCart: () => ({ mutate: mockMutate, isPending: false }),
 }));
 
-vi.mock("@/lib/stores/buy-now.store", () => ({
-  useBuyNowStore: (selector: (s: { set: typeof mockSetBuyNow }) => unknown) =>
-    selector({ set: mockSetBuyNow }),
-}));
-
 beforeEach(() => {
   mockPush.mockReset();
-  mockMutate.mockReset();
-  mockSetBuyNow.mockReset();
+  mockMutate.mockClear();
 });
 
 describe("CoursePurchaseCard", () => {
@@ -63,8 +59,11 @@ describe("CoursePurchaseCard", () => {
     const course = makeRichCourse({ product_id: 42 });
     render(<CoursePurchaseCard course={course} />);
     fireEvent.click(screen.getByRole("button", { name: /buy this course/i }));
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ product_id: 42 }),
+      expect.any(Object),
+    );
     expect(mockPush).toHaveBeenCalledWith("/checkout");
-    expect(mockSetBuyNow).toHaveBeenCalledWith(expect.objectContaining({ product_id: 42 }));
   });
 
   it("switches to teams tab on click", () => {

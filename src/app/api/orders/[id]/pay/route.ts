@@ -9,11 +9,12 @@ import {
 } from "@/lib/api/wc-orders";
 
 interface RouteContext {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function POST(req: Request, { params }: RouteContext) {
-  const orderId = Number(params.id);
+  const { id } = await params;
+  const orderId = Number(id);
   if (!Number.isFinite(orderId) || orderId <= 0) {
     return NextResponse.json({ error: "Invalid order id" }, { status: 400 });
   }
@@ -32,11 +33,11 @@ export async function POST(req: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
-  const userId = getAuthenticatedUserId();
+  const userId = await getAuthenticatedUserId();
   const orderKey =
     body.order_key?.trim() ||
     new URL(req.url).searchParams.get("key") ||
-    getGuestOrderKeyFromCookies(orderId);
+    (await getGuestOrderKeyFromCookies(orderId));
 
   if (!canAccessOrder(order, userId, orderKey)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

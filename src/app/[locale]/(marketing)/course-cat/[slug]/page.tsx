@@ -17,8 +17,8 @@ const fetchCategories = cache(() => serverApi.taxonomy.categories({ per_page: 10
 const PER_PAGE = 30;
 
 interface PageProps {
-  params: { locale: string; slug: string };
-  searchParams: { page?: string | string[] };
+  params: Promise<{ locale: string; slug: string }>;
+  searchParams: Promise<{ page?: string | string[] }>;
 }
 
 export async function generateStaticParams() {
@@ -31,14 +31,15 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
   setRequestLocale(await getLocale());
   const siteUrl = env.SITE_URL.replace(/\/$/, "");
   try {
     const [categoriesResult, seo] = await Promise.all([
       fetchCategories(),
-      fetchRankMathSeo(`/course-category/${params.slug}`),
+      fetchRankMathSeo(`/course-category/${slug}`),
     ]);
-    const category = categoriesResult.items.find((c) => c.slug === params.slug);
+    const category = categoriesResult.items.find((c) => c.slug === slug);
     if (!category) return {};
     return buildPageMetadata(seo, {
       title: `${category.name} Courses | Training Excellence`,
@@ -46,13 +47,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         category.description ||
         `Browse our accredited ${category.name} online courses. Flexible, CPD-certified training for professionals.`,
       image: category.image ?? undefined,
-      canonical: `${siteUrl}/course-cat/${params.slug}`,
+      canonical: `${siteUrl}/course-cat/${slug}`,
     });
   } catch {
     return {
       title: "Online Courses | Training Excellence",
       description: "Browse accredited online training courses.",
-      alternates: { canonical: `${siteUrl}/course-cat/${params.slug}` },
+      alternates: { canonical: `${siteUrl}/course-cat/${slug}` },
     };
   }
 }
@@ -95,20 +96,21 @@ function buildBreadcrumbSchema(
 export const revalidate = 300;
 
 export default async function CourseCategoryPage({ params, searchParams }: PageProps) {
+  const [{ slug }, sp] = await Promise.all([params, searchParams]);
   setRequestLocale(await getLocale());
 
-  const rawPage = Array.isArray(searchParams.page) ? searchParams.page[0] : searchParams.page;
+  const rawPage = Array.isArray(sp.page) ? sp.page[0] : sp.page;
   const page = Math.max(1, Number(rawPage) || 1);
 
   const [categoriesResult, coursesResult, seoResult] = await Promise.allSettled([
     fetchCategories(),
-    serverApi.courses.list({ category: params.slug, per_page: PER_PAGE, page }),
-    fetchRankMathSeo(`/course-category/${params.slug}`),
+    serverApi.courses.list({ category: slug, per_page: PER_PAGE, page }),
+    fetchRankMathSeo(`/course-category/${slug}`),
   ]);
 
   const category =
     categoriesResult.status === "fulfilled"
-      ? categoriesResult.value.items.find((c) => c.slug === params.slug)
+      ? categoriesResult.value.items.find((c) => c.slug === slug)
       : undefined;
   if (!category) notFound();
 
@@ -128,7 +130,7 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
   };
 
   const siteUrl = env.SITE_URL.replace(/\/$/, "");
-  const categoryUrl = rmSeo?.canonical ?? `${siteUrl}/course-cat/${params.slug}`;
+  const categoryUrl = rmSeo?.canonical ?? `${siteUrl}/course-cat/${slug}`;
   const jsonLd = rmSeo?.jsonLd?.length
     ? rmSeo.jsonLd
     : [
@@ -151,7 +153,7 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
         categoryName={category.name}
         categoryDescription={category.description || null}
         currentPage={page}
-        basePath={`/course-cat/${params.slug}`}
+        basePath={`/course-cat/${slug}`}
       />
       <CategoryWhyChooseUs image={category.image} categoryName={category.name} />
     </>

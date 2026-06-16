@@ -1,5 +1,9 @@
 import createNextIntlPlugin from "next-intl/plugin";
 import { withSentryConfig } from "@sentry/nextjs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Bypass TLS verification when backend is a local .test domain (Valet self-signed cert).
 // Safe: real production WP_API_URL never contains ".test" or "localhost".
@@ -43,18 +47,12 @@ remotePatterns.push({ protocol: "https", hostname: "*.wp.com" });
 const nextConfig = {
   reactStrictMode: true,
   images: { remotePatterns },
-  // Enable instrumentation.ts (Sentry, OpenTelemetry, etc.)
-  experimental: { instrumentationHook: true },
+  turbopack: { root: __dirname },
 };
 
 const sentryConfig = {
   silent: !process.env.SENTRY_DSN,
   hideSourceMaps: false,
-  webpack: {
-    autoInstrumentServerFunctions: false,
-    autoInstrumentMiddleware: false,
-    treeshake: { removeDebugLogging: true },
-  },
 };
 
 export default withSentryConfig(withNextIntl(nextConfig), sentryConfig);

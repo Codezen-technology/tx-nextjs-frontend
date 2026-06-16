@@ -70,6 +70,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${suse.variable} ${openSans.variable} font-sans antialiased`}
         style={cssVars as React.CSSProperties}
+        suppressHydrationWarning
       >
         <Providers>
           <SiteSettingsProvider settings={settings}>{children}</SiteSettingsProvider>

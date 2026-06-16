@@ -24,12 +24,13 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default function VerifyCertificatePage({
+export default async function VerifyCertificatePage({
   searchParams,
 }: {
-  searchParams: { code?: string };
+  searchParams: Promise<{ code?: string }>;
 }) {
-  const initialCode = searchParams.code?.trim();
+  const { code } = await searchParams;
+  const initialCode = code?.trim();
 
   return (
     <>

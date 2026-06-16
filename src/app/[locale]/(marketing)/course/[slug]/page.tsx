@@ -29,7 +29,7 @@ import { CourseRelated } from "@/components/courses/course-related";
 import type { CourseRichData } from "@/types/course";
 
 interface PageProps {
-  params: { locale: string; slug: string };
+  params: Promise<{ locale: string; slug: string }>;
 }
 
 export async function generateStaticParams() {
@@ -45,11 +45,12 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
   setRequestLocale(await getLocale());
   try {
     const [raw, seo] = await Promise.all([
-      serverApi.courses.richDetail(params.slug),
-      fetchRankMathSeo(`/course/${params.slug}`),
+      serverApi.courses.richDetail(slug),
+      fetchRankMathSeo(`/course/${slug}`),
     ]);
     const course = normalizeRichCourse(raw);
     const siteUrl = env.SITE_URL.replace(/\/$/, "");
@@ -57,7 +58,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: course.title,
       description: truncate(stripHtml(course.excerpt ?? course.content), 160),
       image: course.featuredImage,
-      canonical: `${siteUrl}/course/${params.slug}`,
+      canonical: `${siteUrl}/course/${slug}`,
     });
   } catch {
     const siteUrl = env.SITE_URL.replace(/\/$/, "");
@@ -65,7 +66,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: "Online Training Course | Training Excellence",
       description:
         "Professional online training courses. Instant digital certificate on completion.",
-      alternates: { canonical: `${siteUrl}/course/${params.slug}` },
+      alternates: { canonical: `${siteUrl}/course/${slug}` },
     };
   }
 }
@@ -142,13 +143,14 @@ function buildBreadcrumbSchema(course: CourseRichData, siteUrl: string): Record<
 }
 
 export default async function CourseDetailPage({ params }: PageProps) {
+  const { slug } = await params;
   setRequestLocale(await getLocale());
 
   const [courseResult, sectionsResult, curriculumResult, seoResult] = await Promise.allSettled([
-    serverApi.courses.richDetail(params.slug),
-    serverApi.courses.sections(params.slug),
-    serverApi.courses.curriculum(params.slug),
-    fetchRankMathSeo(`/course/${params.slug}`),
+    serverApi.courses.richDetail(slug),
+    serverApi.courses.sections(slug),
+    serverApi.courses.curriculum(slug),
+    fetchRankMathSeo(`/course/${slug}`),
   ]);
 
   if (courseResult.status === "rejected") notFound();

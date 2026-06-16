@@ -1,5 +1,10 @@
 import { redirect } from "next/navigation";
 
-export default function StudentCoursesRedirect({ params }: { params: { locale: string } }) {
-  redirect(`/${params.locale}/dashboard/all-courses`);
+export default async function StudentCoursesRedirect({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  redirect(`/${locale}/dashboard/all-courses`);
 }

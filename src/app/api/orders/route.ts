@@ -63,9 +63,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const lineItems = body.line_items?.filter(
-    (li) => li.product_id > 0 && li.quantity > 0,
-  );
+  const lineItems = body.line_items?.filter((li) => li.product_id > 0 && li.quantity > 0);
   if (!lineItems?.length) {
     return NextResponse.json({ error: "At least one line item is required" }, { status: 400 });
   }
@@ -85,14 +83,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: productError }, { status: 400 });
   }
 
-  const userId = getAuthenticatedUserId();
+  const userId = await getAuthenticatedUserId();
 
-  const couponCode =
-    body.coupon_code?.trim() || body.coupon_lines?.[0]?.code?.trim() || "";
+  const couponCode = body.coupon_code?.trim() || body.coupon_lines?.[0]?.code?.trim() || "";
   const discountTotal =
-    typeof body.discount_total === "number" && body.discount_total > 0
-      ? body.discount_total
-      : 0;
+    typeof body.discount_total === "number" && body.discount_total > 0 ? body.discount_total : 0;
 
   if (couponCode) {
     const couponError = await validateCouponCode(couponCode);
@@ -134,17 +129,14 @@ export async function POST(req: Request) {
   const wcOrder = wcResult.order;
 
   if (!userId && wcOrder.order_key) {
-    setGuestOrderKeyCookie(wcOrder.id, wcOrder.order_key);
+    await setGuestOrderKeyCookie(wcOrder.id, wcOrder.order_key);
   }
 
   const amountPence = Math.round(parseFloat(wcOrder.total) * 100);
   const intent = await createStripePaymentIntent(amountPence, wcOrder.currency, wcOrder.id);
 
   if (!intent?.client_secret) {
-    return NextResponse.json(
-      { error: "Stripe is not configured on the server" },
-      { status: 503 },
-    );
+    return NextResponse.json({ error: "Stripe is not configured on the server" }, { status: 503 });
   }
 
   return NextResponse.json({
@@ -159,7 +151,7 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const userId = getAuthenticatedUserId();
+  const userId = await getAuthenticatedUserId();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

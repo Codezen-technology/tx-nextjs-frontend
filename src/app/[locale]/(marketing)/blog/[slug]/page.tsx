@@ -17,7 +17,7 @@ import type { BlogPost } from "@/types/blog";
 export const revalidate = 300;
 
 interface BlogPostPageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 function getPostImage(post: BlogPost): { url?: string; alt?: string } {
@@ -50,12 +50,10 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+  const { slug } = await params;
   setRequestLocale(await getLocale());
   try {
-    const [post, seo] = await Promise.all([
-      fetchBlogPost(params.slug),
-      fetchRankMathSeo(`/${params.slug}`),
-    ]);
+    const [post, seo] = await Promise.all([fetchBlogPost(slug), fetchRankMathSeo(`/${slug}`)]);
     if (!post) return { title: "Post not found" };
     return buildPageMetadata(seo, {
       title: decodeEntities(post.title.rendered),
@@ -64,7 +62,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
         .trim()
         .slice(0, 160),
       image: getPostImage(post).url,
-      canonical: `${env.SITE_URL.replace(/\/$/, "")}/blog/${params.slug}`,
+      canonical: `${env.SITE_URL.replace(/\/$/, "")}/blog/${slug}`,
     });
   } catch {
     return { title: "Post not found" };
@@ -72,9 +70,10 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const { slug } = await params;
   const [pR, sR, rR, catsR] = await Promise.allSettled([
-    fetchBlogPost(params.slug),
-    fetchRankMathSeo(`/${params.slug}`),
+    fetchBlogPost(slug),
+    fetchRankMathSeo(`/${slug}`),
     fetchBlogPage(1, 5),
     fetchCategories(),
   ]);

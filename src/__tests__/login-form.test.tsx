@@ -15,6 +15,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/hooks/useAuth", () => ({
   useLogin: () => ({
     mutate: mockMutate,
+    reset: vi.fn(),
     isPending: false,
     isError: false,
     error: null,
