@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { ChevronRight, Search } from "lucide-react";
-import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
 import { fetchBlogPageGrouped } from "@/lib/services/blog.server";
 import { BlogCard } from "@/components/home/blog-card";
@@ -99,7 +99,7 @@ export default async function BlogPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(BLOG_LIST_SCHEMA) }}
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(BLOG_LIST_SCHEMA) }}
       />
 
       {/* Hero */}

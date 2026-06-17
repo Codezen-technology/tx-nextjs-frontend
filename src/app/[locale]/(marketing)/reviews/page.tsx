@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Star } from "lucide-react";
 import { getLocale, setRequestLocale } from "next-intl/server";
-import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
 import { serverApi, type ApiReview } from "@/lib/api/server";
 import { decodeEntities } from "@/lib/api/parsers";
@@ -34,7 +34,7 @@ export const revalidate = 300;
 const PER_PAGE = 12;
 
 interface ReviewsPageProps {
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }>;
 }
 
 function Stars({ rating }: { rating: number }) {
@@ -104,7 +104,8 @@ function ReviewCard({ review }: { review: ApiReview }) {
 }
 
 export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
-  const page = Math.max(1, Number(searchParams.page ?? 1) || 1);
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam ?? 1) || 1);
   const result = await serverApi.reviews.list({ page, per_page: PER_PAGE }).catch(() => null);
 
   const reviews = result?.items ?? [];
@@ -114,7 +115,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(REVIEWS_SCHEMA) }}
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(REVIEWS_SCHEMA) }}
       />
       <section className="bg-primary-50 py-14 text-center">
         <div className="container">

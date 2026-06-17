@@ -1,12 +1,13 @@
 import { CoursePlayer } from "@/components/player/course-player";
 
 interface PageProps {
-  params: { courseId: string; unitId: string };
+  params: Promise<{ courseId: string; unitId: string }>;
 }
 
-export default function LearnUnitPage({ params }: PageProps) {
-  const courseId = Number(params.courseId);
-  const unitId = Number(params.unitId);
+export default async function LearnUnitPage({ params }: PageProps) {
+  const { courseId: courseIdStr, unitId: unitIdStr } = await params;
+  const courseId = Number(courseIdStr);
+  const unitId = Number(unitIdStr);
 
   if (!Number.isFinite(courseId) || !Number.isFinite(unitId)) {
     return (

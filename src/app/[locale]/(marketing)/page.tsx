@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale, setRequestLocale } from "next-intl/server";
-import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
 import { serverApi } from "@/lib/api/server";
 import { HeroSection } from "@/components/home/hero-section";
@@ -66,7 +66,7 @@ export default async function HomePage() {
         <script
           key={i}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          dangerouslySetInnerHTML={{ __html: stringifyJsonLd(schema) }}
         />
       ))}
       <Topbar items={home?.topbar} />

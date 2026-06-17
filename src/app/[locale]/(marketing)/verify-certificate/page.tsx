@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale, setRequestLocale } from "next-intl/server";
-import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
 import { CertificateVerifyForm } from "@/components/certificates/certificate-verify-form";
 
@@ -24,18 +24,19 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default function VerifyCertificatePage({
+export default async function VerifyCertificatePage({
   searchParams,
 }: {
-  searchParams: { code?: string };
+  searchParams: Promise<{ code?: string }>;
 }) {
-  const initialCode = searchParams.code?.trim();
+  const { code } = await searchParams;
+  const initialCode = code?.trim();
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(VERIFY_SCHEMA) }}
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(VERIFY_SCHEMA) }}
       />
       <section className="bg-primary-50 py-20">
         <div className="container max-w-lg">

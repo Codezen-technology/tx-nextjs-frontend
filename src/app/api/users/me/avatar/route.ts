@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { env, getServerWpJsonBase } from "@/lib/env";
 
 export async function POST(req: Request) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("access_token")?.value;
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

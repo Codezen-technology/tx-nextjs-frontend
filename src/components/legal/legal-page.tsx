@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ParsedHtml } from "@/components/ui/parsed-html";
 import type { WpPageContent } from "@/lib/services/pages.server";
 
@@ -36,9 +37,9 @@ export function LegalPage({ eyebrow, defaultTitle, defaultIntro, page }: LegalPa
           ) : (
             <p className="font-open-sans text-neutral-500">
               This page is being updated. Please check back soon or{" "}
-              <a href="/contact" className="font-semibold text-secondary-500 underline">
+              <Link href="/contact" className="font-semibold text-secondary-500 underline">
                 contact us
-              </a>{" "}
+              </Link>{" "}
               if you need this information right away.
             </p>
           )}

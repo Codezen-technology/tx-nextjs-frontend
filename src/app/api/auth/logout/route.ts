@@ -5,7 +5,7 @@ import { getServerWpJsonBase } from "@/lib/env";
 
 export async function POST() {
   const base = getServerWpJsonBase();
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const refresh = cookieStore.get("refresh_token")?.value;
   const access = cookieStore.get("access_token")?.value;
 

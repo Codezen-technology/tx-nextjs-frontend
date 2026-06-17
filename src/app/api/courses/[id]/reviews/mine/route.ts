@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { proxyToWP } from "@/lib/api/bff";
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const courseId = Number(params.id);
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const courseId = Number(id);
   if (!Number.isFinite(courseId) || courseId <= 0) {
     return NextResponse.json({ error: "Missing course id" }, { status: 400 });
   }

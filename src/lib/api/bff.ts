@@ -61,7 +61,7 @@ export async function proxyToWCStore(
   }
 
   // Attach JWT for logged-in user cart association.
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const jwt = cookieStore.get("access_token")?.value;
   if (jwt) headers["Authorization"] = `Bearer ${jwt}`;
 
@@ -161,7 +161,7 @@ function wpJsonUrl(path: string): string {
 }
 
 async function tryRefresh(): Promise<string | null> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const refreshToken = cookieStore.get("refresh_token")?.value;
   if (!refreshToken) return null;
 
@@ -209,7 +209,7 @@ async function tryRefresh(): Promise<string | null> {
 
 export async function proxyToWP(wpPath: string, options: ProxyOptions = {}): Promise<NextResponse> {
   const { method = "GET", body, requiresAuth = true, wcSession = false, request } = options;
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
   const accessFromCookie = cookieStore.get("access_token")?.value;
 
@@ -289,7 +289,7 @@ export async function proxyToWP(wpPath: string, options: ProxyOptions = {}): Pro
  * so fetch derives the correct multipart boundary.
  */
 export async function proxyFormDataToWP(wpPath: string, formData: FormData): Promise<NextResponse> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const accessFromCookie = cookieStore.get("access_token")?.value;
 
   if (!accessFromCookie) {

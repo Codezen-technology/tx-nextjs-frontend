@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale, setRequestLocale } from "next-intl/server";
-import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
 import { serverApi } from "@/lib/api/server";
 import { normalizeCourse } from "@/lib/services/courses";
@@ -53,7 +53,7 @@ export default async function AllCoursesPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(ALL_COURSES_SCHEMA) }}
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(ALL_COURSES_SCHEMA) }}
       />
       <AllCoursesHero />
       <AllCoursesClient categoryData={categoryData.filter((d) => d.courses.length > 0)} />

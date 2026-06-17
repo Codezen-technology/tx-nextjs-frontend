@@ -10,11 +10,12 @@ import type { ApiCourse } from "@/lib/api/server";
 export const dynamic = "force-dynamic";
 
 interface SearchPageProps {
-  searchParams: { q?: string };
+  searchParams: Promise<{ q?: string }>;
 }
 
 export async function generateMetadata({ searchParams }: SearchPageProps): Promise<Metadata> {
-  const q = searchParams.q?.trim() ?? "";
+  const { q: qParam } = await searchParams;
+  const q = qParam?.trim() ?? "";
   return {
     title: q ? `Search results for "${q}" | Training Excellence` : "Search | Training Excellence",
     robots: { index: false },
@@ -22,7 +23,8 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const q = searchParams.q?.trim() ?? "";
+  const { q: qParam } = await searchParams;
+  const q = qParam?.trim() ?? "";
 
   const [coursesResult, blogResult] = await Promise.allSettled([
     q.length >= 2 ? serverApi.courses.list({ search: q, per_page: 12 }) : Promise.resolve(null),

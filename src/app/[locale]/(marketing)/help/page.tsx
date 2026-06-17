@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, setRequestLocale } from "next-intl/server";
-import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
 import {
   Accordion,
@@ -80,7 +80,7 @@ export default function HelpPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_SCHEMA) }}
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(FAQ_SCHEMA) }}
       />
       <section className="bg-primary-50 py-16 text-center">
         <div className="container">

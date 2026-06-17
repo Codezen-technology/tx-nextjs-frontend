@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale, setRequestLocale } from "next-intl/server";
-import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
 import { fetchWpPage } from "@/lib/services/pages.server";
 import { LegalPage } from "@/components/legal/legal-page";
@@ -32,7 +32,7 @@ export default async function TermsPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(TERMS_SCHEMA) }}
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(TERMS_SCHEMA) }}
       />
       <LegalPage
         eyebrow="Terms of use"

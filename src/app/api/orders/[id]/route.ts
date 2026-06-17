@@ -8,7 +8,7 @@ import {
 } from "@/lib/api/wc-orders";
 
 interface RouteContext {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 function parseOrderId(id: string): number | null {
@@ -16,14 +16,15 @@ function parseOrderId(id: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-function resolveOrderKey(req: Request, orderId: number): string | null {
+async function resolveOrderKey(req: Request, orderId: number): Promise<string | null> {
   const fromQuery = new URL(req.url).searchParams.get("key");
   if (fromQuery) return fromQuery;
   return getGuestOrderKeyFromCookies(orderId);
 }
 
 export async function GET(req: Request, { params }: RouteContext) {
-  const orderId = parseOrderId(params.id);
+  const { id } = await params;
+  const orderId = parseOrderId(id);
   if (!orderId) {
     return NextResponse.json({ error: "Invalid order id" }, { status: 400 });
   }
@@ -33,8 +34,8 @@ export async function GET(req: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
-  const userId = getAuthenticatedUserId();
-  const orderKey = resolveOrderKey(req, orderId);
+  const userId = await getAuthenticatedUserId();
+  const orderKey = await resolveOrderKey(req, orderId);
 
   if (!canAccessOrder(order, userId, orderKey)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

@@ -1,6 +1,25 @@
-# AGENTS.md
+<!-- BEGIN:nextjs-agent-rules -->
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+# Next.js: ALWAYS read docs before coding
+
+Before any Next.js work, read the relevant doc from `node_modules/next/dist/docs/` — bundled with Next.js 16, always version-matched.
+
+Structure:
+
+- `node_modules/next/dist/docs/01-app/` — App Router (routing, data fetching, rendering, caching, auth)
+- `node_modules/next/dist/docs/02-pages/` — Pages Router (legacy)
+- `node_modules/next/dist/docs/03-architecture/` — internals (Turbopack, compiler, Fast Refresh)
+- `node_modules/next/dist/docs/index.md` — table of contents / entry point
+
+Your training data is outdated — these bundled docs are the source of truth.
+
+<!-- END:nextjs-agent-rules -->
+
+---
+
+# Project: tx-headless-frontend
+
+This file provides guidance to AI coding agents when working with code in this repository.
 
 ## Commands
 
@@ -49,7 +68,7 @@ All pages live under `src/app/[locale]/`. i18n uses next-intl with `localePrefix
 | `(student)`   | `/dashboard`, `/courses`, `/profile`, etc. | Protected, uses `SiteShell` layout          |
 | `(learn)`     | `/learn/[courseId]/[unitId]`               | Full-screen unit player                     |
 
-Middleware (`src/middleware.ts`) reads the non-httpOnly `user_logged_in=1` cookie as the auth signal. It runs next-intl for all non-protected, non-auth routes.
+Proxy (`src/proxy.ts`, formerly `middleware.ts` — renamed per Next.js 16) reads the non-httpOnly `user_logged_in=1` cookie as the auth signal. It runs next-intl for all non-protected, non-auth routes. Runs on the `nodejs` runtime (proxy does not support edge).
 
 ### BFF security model
 
@@ -122,7 +141,7 @@ All Axios errors are converted to `ApiError` (`src/lib/api/error.ts`) by the res
 | `src/lib/env.ts`               | All env var definitions and `getServerWpJsonBase()`  |
 | `src/lib/utils/query-keys.ts`  | Centralized TanStack Query keys                      |
 | `src/lib/stores/auth.store.ts` | Zustand auth store (user display data only)          |
-| `src/middleware.ts`            | Route guards + next-intl integration                 |
+| `src/proxy.ts`                 | Route guards + next-intl integration (Next 16 proxy) |
 
 ## Conventions
 
