@@ -8,12 +8,12 @@ import { ContactForm } from "@/components/contact/contact-form";
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
-  const seo = await fetchRankMathSeo("/contact");
+  const seo = await fetchRankMathSeo("/contact-us");
   return buildPageMetadata(seo, {
     title: "Contact Us | Training Excellence",
     description:
       "Have questions about our courses, corporate training solutions, or enrolment process? Contact Training Excellence — our team will assist you promptly.",
-    canonical: `${env.SITE_URL.replace(/\/$/, "")}/contact`,
+    canonical: `${env.SITE_URL.replace(/\/$/, "")}/contact-us`,
   });
 }
 
@@ -63,8 +63,10 @@ export default async function ContactPage() {
     name: "Contact Training Excellence",
     description:
       "Have questions about our courses or corporate training? Get in touch with our team.",
-    url: `${env.SITE_URL.replace(/\/$/, "")}/contact`,
+    url: `${env.SITE_URL.replace(/\/$/, "")}/contact-us`,
   };
+
+  const visibleCards = cards.filter((card) => Boolean(card.value?.trim()));
 
   return (
     <>
@@ -85,8 +87,8 @@ export default async function ContactPage() {
             We&apos;re here to help! Contact us anytime, and our team will assist you promptly.
           </p>
 
-          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
-            {cards.map(({ icon: Icon, title, description, value, href }) => (
+          <div className="mx-auto mt-12 grid max-w-3xl grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {visibleCards.map(({ icon: Icon, title, description, value, href }) => (
               <div key={title} className="flex flex-col items-center">
                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-secondary-500">
                   <Icon className="h-5 w-5" />
@@ -114,12 +116,10 @@ export default async function ContactPage() {
       <section className="pb-20">
         <div className="container max-w-xl">
           <div className="text-center">
-            <p className="font-open-sans text-sm font-semibold uppercase tracking-wide text-secondary-500">
-              Contact us
-            </p>
-            <h2 className="mt-2 font-suse text-3xl font-bold text-neutral-900">Get in touch</h2>
+            <h2 className="font-suse text-3xl font-bold text-neutral-900">Send us a message</h2>
             <p className="mt-3 font-open-sans text-neutral-500">
-              We&apos;d love to hear from you. Please fill out this form.
+              We&apos;d love to hear from you. Fill out the form and we&apos;ll get back to you
+              promptly.
             </p>
           </div>
           <div className="mt-10">

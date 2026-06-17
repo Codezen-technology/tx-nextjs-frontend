@@ -141,7 +141,7 @@ export default function AboutPage() {
               <Link href="/all-courses">Find a course</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/contact">Contact us</Link>
+              <Link href="/contact-us">Contact us</Link>
             </Button>
           </div>
         </div>
@@ -199,7 +199,7 @@ export default function AboutPage() {
             </p>
             <CheckList points={WORKFORCE_POINTS} />
             <Button asChild className="mt-8 bg-secondary-500 text-white hover:bg-secondary-600">
-              <Link href="/contact?enquiry=teams">Talk to our team</Link>
+              <Link href="/contact-us?enquiry=teams">Talk to our team</Link>
             </Button>
           </div>
           <SectionImage label="Built for teams" />

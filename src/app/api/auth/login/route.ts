@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { endpoints } from "@/lib/api/endpoints";
+import { sanitizeWpErrorMessage } from "@/lib/api/error";
 import { getServerWpJsonBase } from "@/lib/env";
 
 export async function POST(request: Request) {
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
 
   if (!wpRes.ok || json.success === false || !json.data?.access_token) {
     return NextResponse.json(
-      { error: json.message ?? "Login failed" },
+      { error: sanitizeWpErrorMessage(json.message, "Invalid credentials. Please try again.") },
       { status: wpRes.ok ? 401 : wpRes.status },
     );
   }

@@ -356,12 +356,12 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
             </Link>
             <NavDropdown label="Resources" links={resourcesLinks} />
             <Link
-              href="/contact"
+              href="/contact-us"
               className={cn(
                 "font-open-sans text-[14px] font-medium text-neutral-30 transition-colors hover:text-primary-300",
-                pathname === "/contact" && "text-primary-400",
+                pathname === "/contact-us" && "text-primary-400",
               )}
-              aria-current={pathname === "/contact" ? "page" : undefined}
+              aria-current={pathname === "/contact-us" ? "page" : undefined}
             >
               Contact us
             </Link>
@@ -449,7 +449,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
               Resources
             </Link>
             <Link
-              href="/contact"
+              href="/contact-us"
               onClick={() => setMobileOpen(false)}
               className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
             >

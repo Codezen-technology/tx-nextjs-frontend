@@ -8,6 +8,7 @@ import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useLogin } from "@/lib/hooks/useAuth";
 import { loginSchema, type LoginInput } from "@/lib/schemas/auth";
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
+import { ParsedHtml } from "@/components/ui/parsed-html";
 import { cn } from "@/lib/utils/cn";
 
 export function LoginForm() {
@@ -112,9 +113,11 @@ export function LoginForm() {
           {login.isError && (
             <div className="flex items-center gap-2 rounded border border-red-200 bg-red-50 px-3 py-2.5">
               <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
-              <p className="font-open-sans text-sm text-red-600">
-                {login.error?.message || "Invalid credentials. Please try again."}
-              </p>
+              <ParsedHtml
+                as="p"
+                className="font-open-sans text-sm text-red-600 [&_a]:underline"
+                content={login.error?.message || "Invalid credentials. Please try again."}
+              />
             </div>
           )}
 

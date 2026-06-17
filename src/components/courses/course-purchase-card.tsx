@@ -166,7 +166,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
               </button>
             ) : (
               <Link
-                href="/contact"
+                href="/contact-us"
                 className="block w-full rounded bg-secondary-500 py-2.5 text-center font-open-sans text-sm font-semibold text-white transition-colors hover:bg-secondary-600"
               >
                 Get in Touch

@@ -37,7 +37,7 @@ export function LegalPage({ eyebrow, defaultTitle, defaultIntro, page }: LegalPa
           ) : (
             <p className="font-open-sans text-neutral-500">
               This page is being updated. Please check back soon or{" "}
-              <Link href="/contact" className="font-semibold text-secondary-500 underline">
+              <Link href="/contact-us" className="font-semibold text-secondary-500 underline">
                 contact us
               </Link>{" "}
               if you need this information right away.
