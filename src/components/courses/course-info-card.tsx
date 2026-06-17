@@ -4,15 +4,7 @@ import { useState } from "react";
 import { SafeImage } from "@/components/ui/safe-image";
 import { isRenderableImageSrc } from "@/lib/utils/image";
 import Link from "next/link";
-import {
-  Check,
-  Star,
-  Users,
-  Share2,
-  Facebook,
-  Linkedin,
-  Twitter,
-} from "lucide-react";
+import { Check, Star, Users, Share2, Facebook, Linkedin, Twitter } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import type { CourseRichData } from "@/types/course";
 
@@ -61,7 +53,7 @@ function PurchaseCard({ course }: PurchaseCardProps) {
         ))}
       </div>
 
-      <div className="p-5 space-y-5">
+      <div className="space-y-5 p-5">
         {tab === "me" ? (
           <>
             {pricing ? (
@@ -81,7 +73,7 @@ function PurchaseCard({ course }: PurchaseCardProps) {
               </div>
             ) : (
               <div>
-                <p className="text-sm text-neutral-600 mb-3">Contact us for pricing.</p>
+                <p className="mb-3 text-sm text-neutral-600">Contact us for pricing.</p>
               </div>
             )}
 
@@ -94,7 +86,7 @@ function PurchaseCard({ course }: PurchaseCardProps) {
               </Link>
             ) : (
               <Link
-                href="/contact"
+                href="/contact-us"
                 className="block w-full rounded-lg bg-secondary-500 py-3 text-center text-sm font-bold text-white transition-colors hover:bg-secondary-600"
               >
                 Get in Touch
@@ -103,7 +95,7 @@ function PurchaseCard({ course }: PurchaseCardProps) {
 
             <p className="text-center text-xs text-neutral-500">14 Days Money-Back Guarantee</p>
 
-            <div className="border-t border-[#ebedf1] pt-4 space-y-2.5">
+            <div className="space-y-2.5 border-t border-[#ebedf1] pt-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
                 This course includes:
               </p>
@@ -147,14 +139,14 @@ function PurchaseCard({ course }: PurchaseCardProps) {
             </div>
           </>
         ) : (
-          <div className="space-y-4 text-center py-4">
-            <Share2 className="h-10 w-10 mx-auto text-neutral-300" />
+          <div className="space-y-4 py-4 text-center">
+            <Share2 className="mx-auto h-10 w-10 text-neutral-300" />
             <h3 className="font-semibold text-neutral-900">Team Training</h3>
             <p className="text-sm text-neutral-600">
               Get volume discounts and centralised reporting for teams of 5 or more.
             </p>
             <Link
-              href="/contact?enquiry=teams"
+              href="/contact-us?enquiry=teams"
               className="block w-full rounded-lg bg-secondary-500 py-3 text-center text-sm font-bold text-white transition-colors hover:bg-secondary-600"
             >
               Get a Team Quote
@@ -177,7 +169,7 @@ export function CourseInfoCard({ course }: CourseInfoCardProps) {
     <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
       {/* Left — accreditation logos */}
       {hasAccreditations ? (
-        <div className="rounded-xl border border-[#ebedf1] bg-white p-5 shadow-sm space-y-4">
+        <div className="space-y-4 rounded-xl border border-[#ebedf1] bg-white p-5 shadow-sm">
           <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-500">
             Accredited By
           </h3>
@@ -195,7 +187,7 @@ export function CourseInfoCard({ course }: CourseInfoCardProps) {
                     />
                   </div>
                 ) : null}
-                <span className="text-xs text-neutral-600 leading-tight">{acc.label}</span>
+                <span className="text-xs leading-tight text-neutral-600">{acc.label}</span>
               </div>
             ))}
           </div>
@@ -205,7 +197,7 @@ export function CourseInfoCard({ course }: CourseInfoCardProps) {
       )}
 
       {/* Centre — details + features */}
-      <div className="rounded-xl border border-[#ebedf1] bg-white p-5 shadow-sm space-y-4">
+      <div className="space-y-4 rounded-xl border border-[#ebedf1] bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold text-neutral-900">{course.title}</h2>
         {course.rating !== undefined ? (
           <div className="flex items-center gap-2 text-sm">
@@ -229,7 +221,7 @@ export function CourseInfoCard({ course }: CourseInfoCardProps) {
         <div className="space-y-2">
           {FEATURES.map((feat) => (
             <div key={feat} className="flex items-start gap-2.5 text-sm text-neutral-700">
-              <Check className="h-4 w-4 shrink-0 mt-0.5 text-secondary-500" />
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-secondary-500" />
               {feat}
             </div>
           ))}

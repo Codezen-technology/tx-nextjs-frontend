@@ -9,6 +9,13 @@ import { Label } from "@/components/ui/label";
 
 const MESSAGE_MAX = 1000;
 
+// Marketing pages use a fixed light palette, but the shared Input/Label/textarea
+// read theme tokens (bg-background, foreground) which flip to navy under the
+// system dark theme. Pin explicit light styles so the form stays readable.
+const FIELD_CLASS =
+  "bg-white border-neutral-300 text-neutral-900 placeholder:text-neutral-400 focus-visible:ring-primary-500";
+const LABEL_CLASS = "text-neutral-700";
+
 type Status = "idle" | "sending" | "sent" | "error";
 
 export function ContactForm() {
@@ -78,28 +85,36 @@ export function ContactForm() {
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="contact-first-name">First name</Label>
+          <Label htmlFor="contact-first-name" className={LABEL_CLASS}>
+            First name
+          </Label>
           <Input
             id="contact-first-name"
             name="first_name"
             placeholder="First name"
             required
             autoComplete="given-name"
+            className={FIELD_CLASS}
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="contact-last-name">Last name</Label>
+          <Label htmlFor="contact-last-name" className={LABEL_CLASS}>
+            Last name
+          </Label>
           <Input
             id="contact-last-name"
             name="last_name"
             placeholder="Last name"
             autoComplete="family-name"
+            className={FIELD_CLASS}
           />
         </div>
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="contact-email">Email</Label>
+        <Label htmlFor="contact-email" className={LABEL_CLASS}>
+          Email
+        </Label>
         <Input
           id="contact-email"
           name="email"
@@ -107,22 +122,28 @@ export function ContactForm() {
           placeholder="you@company.com"
           required
           autoComplete="email"
+          className={FIELD_CLASS}
         />
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="contact-phone">Phone number</Label>
+        <Label htmlFor="contact-phone" className={LABEL_CLASS}>
+          Phone number
+        </Label>
         <Input
           id="contact-phone"
           name="phone"
           type="tel"
           placeholder="Phone number"
           autoComplete="tel"
+          className={FIELD_CLASS}
         />
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="contact-message">Message</Label>
+        <Label htmlFor="contact-message" className={LABEL_CLASS}>
+          Message
+        </Label>
         <textarea
           id="contact-message"
           name="message"
@@ -132,7 +153,7 @@ export function ContactForm() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Leave us a message..."
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="flex w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 ring-offset-background placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
         />
         <p className="text-right font-open-sans text-xs text-neutral-400">
           {message.length} / {MESSAGE_MAX}

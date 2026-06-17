@@ -94,7 +94,7 @@ export default function HelpPage() {
             Have questions? We&apos;re here to help.
           </p>
           <Button asChild className="mt-6 bg-secondary-500 text-white hover:bg-secondary-600">
-            <Link href="/contact">Get started</Link>
+            <Link href="/contact-us">Get started</Link>
           </Button>
         </div>
       </section>
@@ -131,7 +131,7 @@ export default function HelpPage() {
               Can&apos;t find the answer you&apos;re looking for? Please chat to our friendly team.
             </p>
             <Button asChild className="mt-6 bg-secondary-500 text-white hover:bg-secondary-600">
-              <Link href="/contact">Get in touch</Link>
+              <Link href="/contact-us">Get in touch</Link>
             </Button>
           </div>
         </div>

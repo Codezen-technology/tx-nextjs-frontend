@@ -85,7 +85,7 @@ const FALLBACK_NAV_LINKS: FooterNavLink[] = [
   { href: "/force-for-good", label: "Force for Good" },
   { href: "/reviews", label: "Reviews" },
   { href: "/help", label: "Help and FAQs" },
-  { href: "/contact", label: "Contact us" },
+  { href: "/contact-us", label: "Contact us" },
   { href: "/verify-certificate", label: "Verify certificate" },
   { href: "/cancellations", label: "Cancellations and refunds" },
   { href: "/terms-and-conditions", label: "Policies and terms of use" },
@@ -166,7 +166,7 @@ export async function SiteFooter() {
           </div>
           <div className="flex flex-wrap items-center justify-center gap-6">
             <Link
-              href="/contact"
+              href="/contact-us"
               className="rounded-[4.8px] border border-secondary-500 bg-white px-6 py-4 font-open-sans text-[16px] leading-[1.5] text-secondary-500 transition-colors hover:bg-secondary-50"
             >
               Chat to us

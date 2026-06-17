@@ -49,7 +49,7 @@ const HOME_SCHEMA = [
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer support",
-      url: `${siteUrl}/contact`,
+      url: `${siteUrl}/contact-us`,
     },
   },
 ];
