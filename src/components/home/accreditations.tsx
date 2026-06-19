@@ -1,0 +1,66 @@
+import Image from "next/image";
+
+interface AccreditationItem {
+  src: string;
+  alt: string;
+  title: string;
+  description: string;
+}
+
+const DEFAULT_ITEMS: AccreditationItem[] = [
+  {
+    src: "/images/cpd-logo.png",
+    alt: "CPD Certified",
+    title: "CPD Service Accredited",
+    description:
+      "Our courses are fully accredited by the CPD Certification Service, ensuring they meet recognised standards for Continuing Professional Development and align with UK professional learning guidelines.",
+  },
+  {
+    src: "/images/ukrlp-logo.png",
+    alt: "UKRLP Registered",
+    title: "UKRLP Registered Provider",
+    description:
+      "We are registered with the UK Register of Learning Providers (UKRLP), confirming our status as a recognised training provider and reinforcing the credibility and transparency of our courses.",
+  },
+];
+
+interface AccreditationsProps {
+  items?: AccreditationItem[];
+}
+
+export function Accreditations({ items = DEFAULT_ITEMS }: AccreditationsProps) {
+  if (!items.length) return null;
+
+  return (
+    <section className="bg-white py-16">
+      <div className="container mx-auto">
+        <h2 className="mb-8 font-suse text-[2rem] font-bold text-neutral-900">Accreditations</h2>
+
+        <div className="overflow-hidden rounded-[12px] border border-[#ebedf1]">
+          {items.map((item, i) => (
+            <div
+              key={i}
+              className="flex flex-col items-center gap-6 border-b border-[#ebedf1] p-6 last:border-b-0 sm:flex-row sm:items-start"
+            >
+              <div className="flex h-[108px] w-[152px] shrink-0 items-center justify-center">
+                <Image
+                  src={item.src}
+                  alt={item.alt}
+                  width={80}
+                  height={80}
+                  className="h-auto max-h-20 w-auto object-contain"
+                />
+              </div>
+              <div className="flex flex-col gap-2 text-center sm:text-left">
+                <h3 className="font-suse text-lg font-bold text-neutral-900">{item.title}</h3>
+                <p className="font-open-sans text-base leading-[1.6] text-neutral-600">
+                  {item.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}

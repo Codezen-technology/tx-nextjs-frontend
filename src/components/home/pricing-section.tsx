@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { HomePricingSection } from "@/types/home";
 import { cn } from "@/lib/utils/cn";
+import { PricingCta } from "./pricing-cta";
 
 interface PricingSectionProps {
   data?: HomePricingSection;
@@ -157,8 +158,8 @@ export function PricingSection({ data }: PricingSectionProps) {
                   </ul>
                 </div>
 
-                <Link
-                  href={plan.ctaHref}
+                <PricingCta
+                  plan={plan}
                   className={cn(
                     "mt-auto flex h-10 items-center justify-center rounded-full font-open-sans text-sm font-medium transition-transform hover:scale-105",
                     plan.variant === "default" &&
@@ -173,9 +174,7 @@ export function PricingSection({ data }: PricingSectionProps) {
                       ? { background: "linear-gradient(90deg, #00bbf0, #8AE0F8)" }
                       : undefined
                   }
-                >
-                  {plan.ctaLabel}
-                </Link>
+                />
               </div>
             </div>
           ))}

@@ -11,7 +11,7 @@
 import { coursePath, courseSlugPath } from "@/lib/api/endpoints";
 import { getServerWpJsonBase, env } from "@/lib/env";
 import type { FooterData } from "@/types/settings";
-import type { HomePageData } from "@/types/home";
+import type { HomePageData, PricingPageData } from "@/types/home";
 import type { CourseSections, CourseFlatCurriculumItem } from "@/types/course";
 
 const lms = `/${env.LMS_NAMESPACE}`;
@@ -496,6 +496,14 @@ export const serverApi = {
       serverFetch<HomePageData["testimonials"]>(`${lms}/home/testimonials${qs({ limit })}`, {
         revalidate: 300,
         tags: ["home:testimonials"],
+      }),
+  },
+
+  pricing: {
+    get: () =>
+      serverFetch<PricingPageData>(`${lms}/pricing`, {
+        revalidate: 300,
+        tags: ["pricing"],
       }),
   },
 

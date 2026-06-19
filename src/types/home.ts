@@ -37,6 +37,20 @@ export interface HomePricingFeature {
   included: boolean;
 }
 
+export interface HomePricingProduct {
+  id: number;
+  name: string;
+  price: number | null;
+  priceFormatted: string | null;
+  regularPrice: number | null;
+  regularPriceFormatted: string | null;
+  salePrice: number | null;
+  isOnSale: boolean;
+  currency: string;
+  permalink: string;
+  addToCartUrl: string;
+}
+
 export interface HomePricingPlan {
   name: string;
   subtitle?: string;
@@ -44,10 +58,11 @@ export interface HomePricingPlan {
   priceUnit?: string;
   originalPrice?: string;
   badge?: "best-value" | "most-popular";
-  ctaHref: string;
+  ctaHref?: string;
   ctaLabel: string;
   variant: "default" | "beige" | "navy";
   features: HomePricingFeature[];
+  product?: HomePricingProduct;
 }
 
 export interface HomePricingSection {
@@ -58,6 +73,11 @@ export interface HomePricingSection {
     ctaHref: string;
   };
   plans: HomePricingPlan[];
+}
+
+export interface HomeFaqItem {
+  question: string;
+  answer: string;
 }
 
 export interface HomeTrustedOrg {
@@ -90,4 +110,10 @@ export interface HomePageData {
   popular_courses_header: HomePopularCoursesHeader;
   why: HomeWhyPanel[];
   testimonials: HomeTestimonial[];
+}
+
+/** Dedicated /pricing page payload (decoupled from home). */
+export interface PricingPageData {
+  pricing: HomePricingSection;
+  faq: HomeFaqItem[];
 }

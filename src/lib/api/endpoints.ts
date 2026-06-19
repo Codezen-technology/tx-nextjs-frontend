@@ -174,6 +174,11 @@ export const endpoints = {
     why: `${lms}/home/why`,
     testimonials: `${lms}/home/testimonials`,
   },
+  pricing: {
+    get: `${lms}/pricing`,
+    plans: `${lms}/pricing/plans`,
+    faq: `${lms}/pricing/faq`,
+  },
   memberships: {
     plans: `${lms}/memberships/plans`,
     subscribe: `${lms}/memberships/subscribe`,
