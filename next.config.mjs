@@ -46,7 +46,13 @@ remotePatterns.push({ protocol: "https", hostname: "*.wp.com" });
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  images: { remotePatterns },
+  images: {
+    remotePatterns,
+    // Dev machines on NAT64/DNS64 networks resolve public S3 hosts to
+    // `64:ff9b::/96` IPv6 addrs, which Next 16 misflags as local IPs and
+    // blocks (SSRF guard). Allow only in dev — never in production.
+    dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
+  },
   turbopack: { root: __dirname },
 };
 
