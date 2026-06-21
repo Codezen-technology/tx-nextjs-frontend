@@ -368,6 +368,16 @@ export const coursesService = {
     return { ...parsed, items: parsed.items.map(normalizeCourse) };
   },
 
+  async popular(perPage = 8): Promise<PaginatedResponse<Course>> {
+    const params = { per_page: perPage, page: 1 };
+    const res = await api.get<RawCourse[] | { items?: RawCourse[]; total?: number }>(
+      endpoints.courses.popular,
+      { params },
+    );
+    const parsed = paginate<RawCourse>(res, 1, perPage);
+    return { ...parsed, items: parsed.items.map(normalizeCourse) };
+  },
+
   async sections(idOrSlug: string | number): Promise<CourseSections> {
     const { data } = await api.get<CourseSections>(endpoints.courses.sections(idOrSlug));
     return data ?? {};

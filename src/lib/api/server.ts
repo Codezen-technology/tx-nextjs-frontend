@@ -14,6 +14,8 @@ import type { FooterData } from "@/types/settings";
 import type { HomePageData, PricingPageData } from "@/types/home";
 import type { CourseSections, CourseFlatCurriculumItem } from "@/types/course";
 import type { RawBundle } from "@/lib/services/bundles";
+import type { RawPage } from "@/lib/services/pages";
+import type { PageListItem } from "@/types/page";
 
 const lms = `/${env.LMS_NAMESPACE}`;
 
@@ -439,6 +441,20 @@ export const serverApi = {
       serverFetch<RawBundle>(`${lms}/bundles/slug/${encodeURIComponent(slug)}`, {
         revalidate: 600,
         tags: [`bundle:${slug}`, "bundles:list"],
+      }),
+  },
+
+  pages: {
+    list: (template?: string) =>
+      serverFetch<{ items: PageListItem[] }>(
+        `${lms}/pages${template ? `?template=${encodeURIComponent(template)}` : ""}`,
+        { revalidate: 600, tags: ["pages:list"] },
+      ),
+
+    detail: (slug: string) =>
+      serverFetch<RawPage>(`${lms}/pages/${encodeURIComponent(slug)}`, {
+        revalidate: 300,
+        tags: [`page:${slug}`, "pages:list"],
       }),
   },
 

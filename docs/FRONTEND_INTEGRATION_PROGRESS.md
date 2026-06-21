@@ -35,19 +35,23 @@ Keep feature IDs (F0–F4) in sync with the plan.
 
 ## F2 — Block-composed Pages / promos (P1)
 
-- [ ] `types/page.ts` (`PageContent`, `PageBlock` union)
-- [ ] `lib/services/pages.ts` + extend `pages.server.ts`
-- [ ] `components/blocks/*` + `block-renderer.tsx` (reuse home sections)
-- [ ] catch-all `(marketing)/[slug]/page.tsx` (blocks vs content; generateStaticParams)
-- [ ] verify route precedence (catch-all resolves last)
-- [ ] rebuild promos in wp-admin (hot-deals, lucky-learner, halloween, halloween-mega-sale)
+- [x] `types/page.ts` (`PageContent`, `PageBlock` discriminated union — keys match backend)
+- [x] `lib/services/pages.ts` (`getPage`/`listPages` + `normalizePage`, exports `RawPage`)
+- [x] `lib/api/server.ts`: added `serverApi.pages` (list/detail, ISR-tagged) for SSR
+- [x] `components/blocks/block-renderer.tsx` (server switch) + `popular-courses-block.tsx` (client, fetches `/courses/popular`)
+- [x] catch-all `(marketing)/[slug]/page.tsx` — blocks vs plain content; `generateStaticParams` (landing-blocks only); 404
+- [x] route precedence OK — explicit segments beat the `[slug]` dynamic
+- [x] `coursesService.popular` added (for popular_courses block)
+- [x] type-clean (`tsc --noEmit` 0 errors)
+- [ ] rebuild promos in wp-admin (hot-deals, lucky-learner, halloween, halloween-mega-sale) — content task
 
 ## F3 — Bulk-discount tiers UI (P1)
 
-- [ ] `types/cart-rules.ts` + `lib/services/cart-rules.ts`
-- [ ] `lib/hooks/useBulkTiers.ts`
-- [ ] `components/courses/bulk-discount-table.tsx`
-- [ ] integrate into `course-purchase-card.tsx` (For Team) + bundle sidebar
+- [x] `types/cart-rules.ts` + `lib/services/cart-rules.ts`
+- [x] `lib/hooks/useBulkTiers.ts` (1h stale)
+- [x] `components/courses/bulk-discount-table.tsx` (self-fetching; price = unit × (1−%/100))
+- [x] integrated into `course-purchase-card.tsx` (For teams tab) + bundle sidebar
+- [x] type-clean
 
 ## F4 — Blog enrichment (P2)
 
@@ -75,8 +79,10 @@ Block `type`s: `hero`, `rich_text`, `popular_courses`, `membership`, `testimonia
 
 ## Changelog
 
-| Date       | Item                    | Status | Notes                                                                         |
-| ---------- | ----------------------- | ------ | ----------------------------------------------------------------------------- |
-| 2026-06-21 | Plan + progress created | x      | Scoped to backend Phase 1/3 features                                          |
-| 2026-06-21 | F0 endpoints/keys wired | x      | bundles/pages/cartRules in endpoints + query-keys                             |
-| 2026-06-21 | F1 Bundles implemented  | x      | types/service/serverApi/hooks/components/routes; SSR + add-to-cart; tsc clean |
+| Date       | Item                        | Status | Notes                                                                            |
+| ---------- | --------------------------- | ------ | -------------------------------------------------------------------------------- |
+| 2026-06-21 | Plan + progress created     | x      | Scoped to backend Phase 1/3 features                                             |
+| 2026-06-21 | F0 endpoints/keys wired     | x      | bundles/pages/cartRules in endpoints + query-keys                                |
+| 2026-06-21 | F1 Bundles implemented      | x      | types/service/serverApi/hooks/components/routes; SSR + add-to-cart; tsc clean    |
+| 2026-06-21 | F2 Block pages implemented  | x      | page types/service/serverApi; block-renderer + popular-courses; catch-all [slug] |
+| 2026-06-21 | F3 Bulk-tier UI implemented | x      | cart-rules service/hook + table; purchase card (teams) + bundle sidebar          |

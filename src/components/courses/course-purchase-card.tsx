@@ -7,6 +7,7 @@ import { Check, Facebook, Linkedin, Twitter } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useAddToCart } from "@/lib/hooks/useCart";
 import { resolveCourseProductId } from "@/lib/services/courses";
+import { BulkDiscountTable } from "@/components/courses/bulk-discount-table";
 import type { CourseRichData } from "@/types/course";
 
 function formatCoursePrice(amount: number, currency: string): string {
@@ -151,6 +152,11 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                 +
               </button>
             </div>
+          )}
+
+          {/* Bulk discount tiers — teams tab only */}
+          {tab === "teams" && pricing && (
+            <BulkDiscountTable unitPrice={pricing.price} currency="£" />
           )}
 
           {/* CTA buttons */}

@@ -3,6 +3,7 @@ import { Award, BookOpen, Check, Clock, Layers, Star } from "lucide-react";
 import { ParsedHtml } from "@/components/ui/parsed-html";
 import { CourseCard } from "@/components/courses/course-card";
 import { BundleAddToCart } from "./bundle-add-to-cart";
+import { BulkDiscountTable } from "@/components/courses/bulk-discount-table";
 import type { BundleDetail } from "@/types/bundle";
 
 function Section({ title, html }: { title?: string; html: string }) {
@@ -165,6 +166,15 @@ export function BundleDetail({ bundle }: { bundle: BundleDetail }) {
               <div className="mt-5">
                 <BundleAddToCart productId={bundle.id} />
               </div>
+
+              {pricing.price != null && (
+                <div className="mt-5">
+                  <p className="mb-2 font-suse text-sm font-semibold text-neutral-700">
+                    Buying for a team?
+                  </p>
+                  <BulkDiscountTable unitPrice={pricing.price} currency="£" />
+                </div>
+              )}
 
               {bundle.benefits.length > 0 && (
                 <ul className="mt-6 flex flex-col gap-3">
