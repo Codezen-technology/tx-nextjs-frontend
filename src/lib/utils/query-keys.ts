@@ -40,6 +40,20 @@ export const queryKeys = {
   blog: {
     posts: (perPage?: number) => ["blog", "posts", perPage] as const,
   },
+  bundles: {
+    all: ["bundles"] as const,
+    list: (filters: { page?: number; perPage?: number; search?: string } = {}) =>
+      ["bundles", "list", filters] as const,
+    featured: (limit?: number) => ["bundles", "featured", limit] as const,
+    detail: (slugOrId: string | number) => ["bundles", "detail", slugOrId] as const,
+  },
+  pages: {
+    detail: (slug: string) => ["pages", "detail", slug] as const,
+    list: (template?: string) => ["pages", "list", template ?? ""] as const,
+  },
+  cartRules: {
+    bulkTiers: ["cart-rules", "bulk-tiers"] as const,
+  },
   cart: {
     detail: ["cart"] as const,
   },

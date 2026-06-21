@@ -13,6 +13,7 @@ import { getServerWpJsonBase, env } from "@/lib/env";
 import type { FooterData } from "@/types/settings";
 import type { HomePageData, PricingPageData } from "@/types/home";
 import type { CourseSections, CourseFlatCurriculumItem } from "@/types/course";
+import type { RawBundle } from "@/lib/services/bundles";
 
 const lms = `/${env.LMS_NAMESPACE}`;
 
@@ -418,6 +419,26 @@ export const serverApi = {
       serverFetch<ApiPaginated<ApiCourse>>(`${lms}/courses/free${qs(params)}`, {
         revalidate: 300,
         tags: ["courses:free"],
+      }),
+  },
+
+  bundles: {
+    list: (params?: Record<string, string | number>) =>
+      serverFetch<ApiPaginated<RawBundle>>(`${lms}/bundles${qs(params)}`, {
+        revalidate: 300,
+        tags: ["bundles:list"],
+      }),
+
+    featured: (limit = 4) =>
+      serverFetch<{ items: RawBundle[] }>(`${lms}/bundles/featured${qs({ limit })}`, {
+        revalidate: 300,
+        tags: ["bundles:featured"],
+      }),
+
+    bySlug: (slug: string) =>
+      serverFetch<RawBundle>(`${lms}/bundles/slug/${encodeURIComponent(slug)}`, {
+        revalidate: 600,
+        tags: [`bundle:${slug}`, "bundles:list"],
       }),
   },
 

@@ -131,7 +131,16 @@ export const endpoints = {
   bundles: {
     list: `${lms}/bundles`,
     detail: (id: number) => `${lms}/bundles/${id}`,
+    bySlug: (slug: string) => `${lms}/bundles/slug/${encodeURIComponent(slug)}`,
     featured: `${lms}/bundles/featured`,
+  },
+  pages: {
+    list: `${lms}/pages`,
+    byTemplate: (template: string) => `${lms}/pages?template=${encodeURIComponent(template)}`,
+    detail: (slug: string) => `${lms}/pages/${encodeURIComponent(slug)}`,
+  },
+  cartRules: {
+    bulkTiers: `${lms}/bulk-discount-tiers`,
   },
   instructors: {
     list: `${lms}/instructors`,
