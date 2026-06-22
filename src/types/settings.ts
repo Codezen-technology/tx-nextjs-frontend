@@ -64,6 +64,18 @@ export interface MembershipUpsell {
   permalink: string | null;
 }
 
+/** Student-dashboard sidebar promo banner (admin "Promo banner" settings). */
+export interface PromoBanner {
+  title: string;
+  subtitle: string;
+  /** Custom uploaded image; null → frontend uses its built-in graphic. */
+  image_url: string | null;
+  price: number | null;
+  regular_price: number | null;
+  currency: string;
+  button_url: string | null;
+}
+
 export interface SiteSettings {
   site_name: string;
   tagline?: string;
@@ -82,6 +94,7 @@ export interface SiteSettings {
   locale: string;
   features: SiteFeatures;
   membership_upsell?: MembershipUpsell | null;
+  promo_banner?: PromoBanner | null;
 }
 
 /** Merged effective settings: API response overridden by env vars. */

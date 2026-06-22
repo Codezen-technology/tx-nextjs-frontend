@@ -3,6 +3,7 @@
 import { ChevronLeft } from "lucide-react";
 import { DashboardLogo } from "@/components/dashboard/dashboard-search";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
+import { DashboardPromoCard } from "@/components/dashboard/dashboard-promo-card";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils/cn";
 
@@ -49,10 +50,8 @@ function SidebarPanel({
       </div>
       <DashboardNav expanded={open} />
       {open && (
-        <div className="mt-auto p-4">
-          <div className="rounded-lg bg-white/10 p-3 text-center text-xs text-white/80">
-            Unlimited access to all courses
-          </div>
+        <div className="mt-auto overflow-y-auto p-4">
+          <DashboardPromoCard />
         </div>
       )}
     </aside>
@@ -75,6 +74,9 @@ export function DashboardSidebar({
               <DashboardLogo />
             </div>
             <DashboardNav expanded onNavigate={onMobileClose} />
+            <div className="mt-auto overflow-y-auto p-4">
+              <DashboardPromoCard />
+            </div>
           </div>
         </SheetContent>
       </Sheet>
