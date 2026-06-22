@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { CalendarDays, ChevronRight, UserRound } from "lucide-react";
+import { CalendarDays, ChevronRight, Clock, UserRound } from "lucide-react";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
@@ -177,6 +177,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <CalendarDays className="h-4 w-4" />
               {formatDate(post.date)}
             </span>
+            {post.reading_time ? (
+              <span className="flex items-center gap-1.5">
+                <Clock className="h-4 w-4" />
+                {post.reading_time} min read
+              </span>
+            ) : null}
           </div>
         </div>
       </section>

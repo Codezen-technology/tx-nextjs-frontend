@@ -55,8 +55,11 @@ Keep feature IDs (F0–F4) in sync with the plan.
 
 ## F4 — Blog enrichment (P2)
 
-- [ ] `types/blog.ts`: add `reading_time`
-- [ ] use `featured_image_url` + `reading_time` in blog components
+- [x] `types/blog.ts`: added `reading_time?: number`
+- [x] `reading_time` shown in `components/home/blog-card.tsx` meta row + blog post header (`blog/[slug]`)
+- [x] `featured_image_url` already consumed (card + post) — no change needed
+- [x] no service change — `wp/v2/posts` returns the new fields (no `_fields` restriction)
+- [x] type-clean
 
 ---
 
@@ -86,3 +89,5 @@ Block `type`s: `hero`, `rich_text`, `popular_courses`, `membership`, `testimonia
 | 2026-06-21 | F1 Bundles implemented      | x      | types/service/serverApi/hooks/components/routes; SSR + add-to-cart; tsc clean    |
 | 2026-06-21 | F2 Block pages implemented  | x      | page types/service/serverApi; block-renderer + popular-courses; catch-all [slug] |
 | 2026-06-21 | F3 Bulk-tier UI implemented | x      | cart-rules service/hook + table; purchase card (teams) + bundle sidebar          |
+| 2026-06-21 | F4 Blog enrichment          | x      | reading_time in card + post header; featured_image_url already used              |
+| 2026-06-21 | **Frontend F0–F4 complete** | x      | bundles, block pages, bulk tiers, blog all wired; tsc clean                      |

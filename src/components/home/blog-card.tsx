@@ -61,6 +61,12 @@ export function BlogCard({ post, category, className }: BlogCardProps) {
           {category ? <span className="text-primary-500">{category.name}</span> : null}
           {category && <span className="mx-2 text-neutral-400">•</span>}
           <span className="text-neutral-400">{formatDate(post.date)}</span>
+          {post.reading_time ? (
+            <>
+              <span className="mx-2 text-neutral-400">•</span>
+              <span className="text-neutral-400">{post.reading_time} min read</span>
+            </>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-2">

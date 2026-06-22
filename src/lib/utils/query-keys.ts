@@ -5,6 +5,9 @@ export const queryKeys = {
   auth: {
     me: ["auth", "me"] as const,
   },
+  settings: {
+    promoBanner: ["settings", "promo-banner"] as const,
+  },
   courses: {
     all: ["courses"] as const,
     list: (filters: CourseListFilters = {}) => ["courses", "list", filters] as const,

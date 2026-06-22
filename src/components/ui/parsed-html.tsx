@@ -1,6 +1,26 @@
 import type { ElementType, ReactNode } from "react";
-import parse from "html-react-parser";
+import parse, { type HTMLReactParserOptions, Element } from "html-react-parser";
 import { decodeEntities } from "@/lib/api/parsers";
+
+/** WP outputs lowercase HTML attrs (e.g. `fetchpriority`) that React expects camelCased. */
+const ATTR_FIXES: Record<string, string> = {
+  fetchpriority: "fetchPriority",
+  crossorigin: "crossOrigin",
+};
+
+const parseOptions: HTMLReactParserOptions = {
+  replace(node) {
+    if (node instanceof Element && node.attribs) {
+      for (const [lower, camel] of Object.entries(ATTR_FIXES)) {
+        if (lower !== camel && lower in node.attribs) {
+          node.attribs[camel] = node.attribs[lower];
+          delete node.attribs[lower];
+        }
+      }
+    }
+    return undefined;
+  },
+};
 
 export interface ParsedHtmlProps {
   /** Raw string from WordPress / WooCommerce (may include HTML entities or tags). */
@@ -16,5 +36,5 @@ export interface ParsedHtmlProps {
 export function ParsedHtml({ content, as: Tag = "span", className }: ParsedHtmlProps): ReactNode {
   if (!content) return null;
   const decoded = decodeEntities(content);
-  return <Tag className={className}>{parse(decoded)}</Tag>;
+  return <Tag className={className}>{parse(decoded, parseOptions)}</Tag>;
 }

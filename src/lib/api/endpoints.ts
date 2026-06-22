@@ -168,6 +168,7 @@ export const endpoints = {
   },
   settings: {
     get: `${lms}/settings`,
+    promoBanner: `${lms}/promo-banner`,
   },
   footer: {
     get: `${lms}/footer`,

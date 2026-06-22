@@ -14,6 +14,8 @@ export interface BlogPost {
   excerpt: { rendered: string };
   content?: { rendered: string };
   featured_image_url?: string;
+  /** Estimated reading time in minutes (added by the backend Blog_Fields). */
+  reading_time?: number;
   link: string;
   categories?: number[];
   _embedded?: {
