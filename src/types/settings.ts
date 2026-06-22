@@ -70,6 +70,8 @@ export interface PromoBanner {
   subtitle: string;
   /** Custom uploaded image; null → frontend uses its built-in graphic. */
   image_url: string | null;
+  /** Linked WooCommerce product; null when none configured. */
+  product_id: number | null;
   price: number | null;
   regular_price: number | null;
   currency: string;

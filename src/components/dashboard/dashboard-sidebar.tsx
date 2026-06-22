@@ -4,7 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { DashboardLogo } from "@/components/dashboard/dashboard-search";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { DashboardPromoCard } from "@/components/dashboard/dashboard-promo-card";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils/cn";
 
 interface DashboardSidebarProps {
@@ -69,6 +69,7 @@ export function DashboardSidebar({
       <SidebarPanel open={open} onClose={onClose} className="hidden md:flex" />
       <Sheet open={mobileOpen} onOpenChange={(v) => !v && onMobileClose()}>
         <SheetContent side="left" className="w-[280px] border-none bg-lms-primary p-0 text-white">
+          <SheetTitle className="sr-only">Navigation menu</SheetTitle>
           <div className="flex h-full flex-col">
             <div className="flex justify-center py-6">
               <DashboardLogo />
