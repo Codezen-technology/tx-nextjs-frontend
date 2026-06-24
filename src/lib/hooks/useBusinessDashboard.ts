@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { businessDashboardService } from "@/lib/services/business-dashboard";
+import { useDebounce } from "@/lib/hooks/useDebounce";
 import { queryKeys } from "@/lib/utils/query-keys";
 import type {
   AddLearnerPayload,
@@ -228,6 +229,18 @@ export function useBusinessReviewHas() {
 }
 
 // ─── Mutations ─────────────────────────────────────────────────────────────────
+
+export function useCheckLearnerEmail(email: string, enabled: boolean) {
+  const debounced = useDebounce(email.trim(), 500);
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(debounced);
+
+  return useQuery({
+    queryKey: ["business", "check-email", debounced],
+    queryFn: () => businessDashboardService.checkLearnerEmail(debounced),
+    enabled: enabled && valid && debounced.length > 0,
+    staleTime: 30_000,
+  });
+}
 
 export function useAddBusinessLearner() {
   const qc = useQueryClient();

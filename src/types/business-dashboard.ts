@@ -432,15 +432,26 @@ export interface SubmitReviewPayload {
 
 export interface AddLearnerPayload {
   email: string;
-  display_name?: string;
-  first_name?: string;
-  last_name?: string;
+  first_name: string;
+  last_name: string;
+  /** Defaults to learner; required by b2b_team_members.role (NOT NULL). */
+  role?: "learner" | "manager";
+}
+
+export interface CheckEmailUserData {
+  id: number;
+  first_name: string;
+  last_name: string;
+  display_name: string;
 }
 
 export interface CheckEmailResponse {
   exists: boolean;
-  available: boolean;
+  available?: boolean;
+  is_team_member?: boolean;
+  is_manager?: boolean;
   message?: string;
+  user_data?: CheckEmailUserData;
 }
 
 export interface AssignCoursePayload {

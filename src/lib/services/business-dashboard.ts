@@ -93,7 +93,7 @@ export const businessDashboardService = {
   async addLearner(payload: AddLearnerPayload): Promise<Learner> {
     return bffJson<Learner>("/api/business/team", {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, role: payload.role ?? "learner" }),
     });
   },
 
