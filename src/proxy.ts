@@ -6,6 +6,7 @@ const intlMiddleware = createIntlMiddleware(routing);
 
 const PROTECTED = [
   /^\/dashboard/,
+  /^\/business-dashboard/,
   /^\/learn/,
   /^\/profile/,
   /^\/orders/,

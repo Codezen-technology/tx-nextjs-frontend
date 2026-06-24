@@ -1,5 +1,6 @@
 import type { CourseListFilters } from "@/types/course";
 import type { CertificatesParams, StudentCoursesParams } from "@/types/student-dashboard";
+import type { BusinessListParams } from "@/types/business-dashboard";
 
 export const queryKeys = {
   auth: {
@@ -85,5 +86,27 @@ export const queryKeys = {
     categories: ["admin", "categories"] as const,
     subscriptionPlanSettings: ["admin", "subscriptionPlanSettings"] as const,
     products: ["admin", "products"] as const,
+  },
+  business: {
+    summary: ["business", "summary"] as const,
+    profile: ["business", "profile"] as const,
+    creditBalance: ["business", "credit-balance"] as const,
+    learners: (params: BusinessListParams = {}) => ["business", "learners", params] as const,
+    learner: (id: number) => ["business", "learner", id] as const,
+    assignments: (params: BusinessListParams = {}) => ["business", "assignments", params] as const,
+    courses: (params: BusinessListParams = {}) => ["business", "courses", params] as const,
+    courseLearners: (id: number, params: BusinessListParams = {}) =>
+      ["business", "course-learners", id, params] as const,
+    licenceCourses: (params: BusinessListParams = {}) =>
+      ["business", "licence-courses", params] as const,
+    licenceBalance: ["business", "licence-balance"] as const,
+    reportCourses: (params: BusinessListParams = {}) =>
+      ["business", "report-courses", params] as const,
+    reportMembers: (params: BusinessListParams = {}) =>
+      ["business", "report-members", params] as const,
+    reportCertificates: (params: BusinessListParams = {}) =>
+      ["business", "report-certificates", params] as const,
+    certificates: (params: BusinessListParams = {}) =>
+      ["business", "certificates", params] as const,
   },
 } as const;

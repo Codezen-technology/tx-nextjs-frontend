@@ -15,9 +15,8 @@ import {
   Briefcase,
 } from "lucide-react";
 import { useAuth, useLogout, useMe } from "@/lib/hooks/useAuth";
+import { hasBusinessAccess } from "@/components/business/business-access-guard";
 import { cn } from "@/lib/utils/cn";
-
-const INSTRUCTOR_ROLES = ["administrator", "instructor", "wplms_instructor"];
 
 function getInitials(name: string): string {
   return name
@@ -75,7 +74,7 @@ export function ProfileMenu() {
   const logout = useLogout();
   const { data: wpUser } = useMe();
 
-  const isInstructor = wpUser?.roles?.some((r) => INSTRUCTOR_ROLES.includes(r)) ?? false;
+  const isBusinessUser = hasBusinessAccess(wpUser?.roles);
   const initials = user ? getInitials(user.displayName) : "?";
   const avatarSrc =
     wpUser?.avatar_urls?.["48"] ?? wpUser?.avatar_urls?.["96"] ?? wpUser?.avatar_urls?.["24"];
@@ -140,9 +139,9 @@ export function ProfileMenu() {
               <LayoutDashboard className="h-4 w-4 shrink-0" />
               Go to My Dashboard
             </Link>
-            {isInstructor && (
+            {isBusinessUser && (
               <Link
-                href="/instructor/dashboard"
+                href="/business-dashboard"
                 onClick={() => setOpen(false)}
                 role="menuitem"
                 className="flex items-center justify-center gap-2 rounded border border-neutral-300 px-3 py-2 font-open-sans text-[13px] font-medium text-neutral-800 transition-colors hover:border-primary-400 hover:text-primary-400"
@@ -225,7 +224,7 @@ export function ProfileNavLinks({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
   const logout = useLogout();
   const { data: wpUser } = useMe();
-  const isInstructor = wpUser?.roles?.some((r) => INSTRUCTOR_ROLES.includes(r)) ?? false;
+  const isBusinessUser = hasBusinessAccess(wpUser?.roles);
 
   if (!user) return null;
 
@@ -238,9 +237,9 @@ export function ProfileNavLinks({ onClose }: { onClose: () => void }) {
       >
         My Dashboard
       </Link>
-      {isInstructor && (
+      {isBusinessUser && (
         <Link
-          href="/instructor/dashboard"
+          href="/business-dashboard"
           onClick={onClose}
           className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
         >

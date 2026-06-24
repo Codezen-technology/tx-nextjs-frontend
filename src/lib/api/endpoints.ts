@@ -6,6 +6,10 @@ const swca = `/swca/v1`;
 const wcStore = `/wc/store/v1`;
 const wcRest = `/wc/v3`;
 
+/** REST namespace for the B2B business dashboard facade plugin. */
+export const B2B_NAMESPACE = env.B2B_NAMESPACE;
+const b2b = `/${B2B_NAMESPACE}`;
+
 /** REST path segment for a course by numeric ID or post slug. */
 export function coursePath(idOrSlug: string | number, subpath?: string): string {
   const segment = encodeURIComponent(String(idOrSlug));
@@ -211,6 +215,26 @@ export const endpoints = {
     allCategories: `${lms}/admin/all-categories`,
   },
   subscriptionPlans: `${lms}/subscription-plans`,
+  /**
+   * B2B business dashboard facade (`lms-b2b/v1`). Read-only Phase 1 surface.
+   * These are full WP REST paths; BFF routes call `proxyToB2B(path)`.
+   */
+  business: {
+    summary: `${b2b}/reports/summary`,
+    current: `${b2b}/businesses/current`,
+    creditBalance: `${b2b}/credits/balance`,
+    team: `${b2b}/team`,
+    teamMember: (id: number) => `${b2b}/team/${id}`,
+    courses: `${b2b}/courses`,
+    assignments: `${b2b}/courses/assignments`,
+    courseLearners: (id: number) => `${b2b}/courses/${id}/learners`,
+    licenceCourses: `${b2b}/licences/courses`,
+    licenceBalance: `${b2b}/licences/balance`,
+    reportCourses: `${b2b}/reports/courses`,
+    reportMembers: `${b2b}/reports/members`,
+    reportCertificates: `${b2b}/reports/certificates`,
+    certificates: `${b2b}/certificates`,
+  },
   partners: {
     list: `${wp}/partner_logo`,
   },

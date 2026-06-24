@@ -151,13 +151,15 @@ type ProxyOptions = {
   wcSession?: boolean;
   /** Incoming Request — required when wcSession is true. */
   request?: Request;
+  /** Override the WP REST namespace (defaults to env.LMS_NAMESPACE, e.g. lms-backend/v1). */
+  namespace?: string;
 };
 
-function wpJsonUrl(path: string): string {
+function wpJsonUrl(path: string, namespace: string = env.LMS_NAMESPACE): string {
   const base = getServerWpJsonBase();
   if (!base) throw new Error("WP API URL is not configured (NEXT_PUBLIC_WP_API_URL or WP_API_URL)");
   const p = path.startsWith("/") ? path : `/${path}`;
-  return `${base}/${env.LMS_NAMESPACE}${p}`.replace(/([^:]\/)\/+/g, "$1");
+  return `${base}/${namespace}${p}`.replace(/([^:]\/)\/+/g, "$1");
 }
 
 async function tryRefresh(): Promise<string | null> {
@@ -208,7 +210,14 @@ async function tryRefresh(): Promise<string | null> {
 }
 
 export async function proxyToWP(wpPath: string, options: ProxyOptions = {}): Promise<NextResponse> {
-  const { method = "GET", body, requiresAuth = true, wcSession = false, request } = options;
+  const {
+    method = "GET",
+    body,
+    requiresAuth = true,
+    wcSession = false,
+    request,
+    namespace = env.LMS_NAMESPACE,
+  } = options;
   const cookieStore = await cookies();
 
   const accessFromCookie = cookieStore.get("access_token")?.value;
@@ -232,7 +241,7 @@ export async function proxyToWP(wpPath: string, options: ProxyOptions = {}): Pro
     if (wcCookie) headers["Cookie"] = wcCookie;
   }
 
-  const url = wpJsonUrl(wpPath.startsWith("/") ? wpPath : `/${wpPath}`);
+  const url = wpJsonUrl(wpPath.startsWith("/") ? wpPath : `/${wpPath}`, namespace);
   const fetchBody = body !== undefined ? JSON.stringify(body) : undefined;
 
   let res = await fetch(url, { method, headers, body: fetchBody });
@@ -282,13 +291,26 @@ export async function proxyToWP(wpPath: string, options: ProxyOptions = {}): Pro
   return nextRes;
 }
 
+/** Proxy to the B2B business dashboard namespace (`lms-b2b/v1` by default). */
+export async function proxyToB2B(
+  wpPath: string,
+  options: Omit<ProxyOptions, "namespace"> = {},
+): Promise<NextResponse> {
+  return proxyToWP(wpPath, { ...options, namespace: env.B2B_NAMESPACE });
+}
+
 /**
  * Proxy a multipart/form-data request (e.g. assignment file uploads) to the LMS
  * backend. Mirrors proxyToWP's auth (httpOnly access_token → Bearer, refresh on
  * 401) but streams the raw FormData instead of JSON. Content-Type is left unset
  * so fetch derives the correct multipart boundary.
  */
-export async function proxyFormDataToWP(wpPath: string, formData: FormData): Promise<NextResponse> {
+export async function proxyFormDataToWP(
+  wpPath: string,
+  formData: FormData,
+  options: { namespace?: string } = {},
+): Promise<NextResponse> {
+  const { namespace = env.LMS_NAMESPACE } = options;
   const cookieStore = await cookies();
   const accessFromCookie = cookieStore.get("access_token")?.value;
 
@@ -296,7 +318,7 @@ export async function proxyFormDataToWP(wpPath: string, formData: FormData): Pro
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const url = wpJsonUrl(wpPath.startsWith("/") ? wpPath : `/${wpPath}`);
+  const url = wpJsonUrl(wpPath.startsWith("/") ? wpPath : `/${wpPath}`, namespace);
 
   const doFetch = (token: string) =>
     fetch(url, {

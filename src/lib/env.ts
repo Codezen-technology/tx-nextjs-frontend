@@ -7,6 +7,8 @@ export const env = {
   WP_API_URL: process.env.NEXT_PUBLIC_WP_API_URL ?? "",
   SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   LMS_NAMESPACE: process.env.NEXT_PUBLIC_LMS_NAMESPACE ?? "lms-backend/v1",
+  /** B2B business dashboard REST namespace (wp-lms-b2b-rest-api plugin). */
+  B2B_NAMESPACE: process.env.NEXT_PUBLIC_B2B_NAMESPACE ?? "lms-b2b/v1",
   CDN_URL: process.env.NEXT_PUBLIC_CDN_URL ?? "",
 
   // Payments
@@ -46,9 +48,7 @@ export const env = {
   FEATURE_BLOG: boolFlag(process.env.NEXT_PUBLIC_FEATURE_BLOG),
 } as const;
 
-export const WP_REST_BASE = env.WP_API_URL
-  ? `${env.WP_API_URL.replace(/\/$/, "")}/wp-json`
-  : "";
+export const WP_REST_BASE = env.WP_API_URL ? `${env.WP_API_URL.replace(/\/$/, "")}/wp-json` : "";
 
 /** Server-side WordPress origin (no /wp-json). Uses private WP_API_URL env when set. */
 export function getServerWpOrigin(): string {
