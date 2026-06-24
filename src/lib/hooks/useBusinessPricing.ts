@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { businessDashboardService } from "@/lib/services/business-dashboard";
 import { useDebounce } from "@/lib/hooks/useDebounce";
@@ -40,6 +41,16 @@ function getTierDiscount(qty: number, tiers: LicencePricingTier[]): number {
   return discount;
 }
 
+function toCheckoutUrl(orderId: number, orderKey: string, total: number): string {
+  const qs = new URLSearchParams({
+    order: String(orderId),
+    key: orderKey,
+    total: total.toFixed(2),
+    return: "/business-dashboard/licences",
+  });
+  return `/checkout/pay?${qs.toString()}`;
+}
+
 export function useBusinessPricing() {
   const [tab, setTab] = useState<PricingTab>("licence");
   const [cart, setCart] = useState<LicenceCartItem[]>([]);
@@ -49,6 +60,8 @@ export function useBusinessPricing() {
   const [seatQty, setSeatQty] = useState(1);
   const [subQuoteOpen, setSubQuoteOpen] = useState(false);
   const [subContactOpen, setSubContactOpen] = useState(false);
+
+  const router = useRouter();
 
   const { data: pricingConfig } = useQuery({
     queryKey: pricingQueryKeys.config,
@@ -87,16 +100,25 @@ export function useBusinessPricing() {
     mutationFn: (items: Array<{ course_id: number; qty: number }>) =>
       businessDashboardService.checkoutLicences(items),
     onSuccess: (data) => {
+      if (data.order_id && data.order_key) {
+        router.push(toCheckoutUrl(data.order_id, data.order_key, summary?.total ?? 0));
+        return;
+      }
+      // Fallback to the hosted WooCommerce checkout if the order key is unavailable.
       const url = data.pay_url ?? data.checkout_url;
-      if (url) window.location.href = url;
+      if (url) window.location.assign(url);
     },
   });
 
   const subCheckoutMutation = useMutation({
     mutationFn: (qty: number) => businessDashboardService.checkoutSubscriptionLicences(qty),
     onSuccess: (data) => {
+      if (data.order_id && data.order_key) {
+        router.push(toCheckoutUrl(data.order_id, data.order_key, subTotal));
+        return;
+      }
       const url = data.pay_url ?? data.checkout_url;
-      if (url) window.location.href = url;
+      if (url) window.location.assign(url);
     },
   });
 

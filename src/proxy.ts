@@ -13,6 +13,7 @@ const PROTECTED = [
   /^\/certificates/,
   /^\/badges/,
   /^\/notifications/,
+  /^\/checkout\/pay/,
 ];
 const AUTH_ROUTES = [/^\/login/, /^\/register/];
 

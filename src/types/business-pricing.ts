@@ -47,6 +47,8 @@ export interface UpsellHint {
 
 export interface LicenceCheckoutResult {
   order_id?: number;
+  /** Order key — required to pay the order via the WC Store API checkout-order endpoint. */
+  order_key?: string;
   pay_url?: string;
   checkout_url?: string;
 }

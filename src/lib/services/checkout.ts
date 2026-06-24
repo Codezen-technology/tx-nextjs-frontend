@@ -1,4 +1,5 @@
 import { bffJson, cartFetch } from "@/lib/api/bff-client";
+import { decodeEntities } from "@/lib/api/parsers";
 
 // ─── Billing / Shipping ───────────────────────────────────────────────────────
 
@@ -153,6 +154,43 @@ export interface PaymentGateway {
 
 // ─── Service ──────────────────────────────────────────────────────────────────
 
+// ─── WC Store API order (pay-for-order summary) ───────────────────────────────
+
+interface WCStoreOrderRaw {
+  id: number;
+  status: string;
+  items?: Array<{
+    name: string;
+    quantity: number;
+    totals?: { line_total?: string; line_subtotal?: string };
+  }>;
+  totals?: {
+    total_price?: string;
+    total_tax?: string;
+    currency_minor_unit?: number;
+    currency_symbol?: string;
+  };
+}
+
+export interface StoreOrderItem {
+  name: string;
+  quantity: number;
+  total: number;
+}
+
+export interface StoreOrderSummary {
+  id: number;
+  status: string;
+  currencySymbol: string;
+  total: number;
+  items: StoreOrderItem[];
+}
+
+/** WC Store API amounts are integer strings in the currency's minor unit (e.g. pence). */
+function fromMinorUnit(value: string | undefined, minorUnit: number): number {
+  return Number(value ?? 0) / 10 ** minorUnit;
+}
+
 // ─── WC Store API checkout ────────────────────────────────────────────────────
 
 export interface WCStoreCheckoutPayload {
@@ -207,5 +245,45 @@ export const checkoutService = {
       }),
     }),
 
+  /**
+   * Pay an already-created WC order via the WC Store API checkout-order endpoint
+   * (`POST /wc/store/v1/checkout/{id}`). Runs the configured Stripe gateway, so the
+   * order's status transitions natively. Used by the global order-pay checkout page
+   * (B2B licences/subscriptions, and retry-pay for any pending order).
+   */
+  payOrderViaStore: (
+    orderId: number,
+    payload: {
+      key: string;
+      billing_address: BillingAddress;
+      shipping_address?: Partial<BillingAddress>;
+      payment_method: string;
+      payment_data: Array<{ key: string; value: string | boolean }>;
+    },
+  ) =>
+    cartFetch<WCStoreCheckoutResponse>(`/api/orders/${orderId}/store-pay`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
   getPaymentGateways: () => bffJson<PaymentGateway[]>("/api/payment-gateways"),
+
+  /** Read an order's line items + totals via the WC Store API (key-authorized, no consumer keys). */
+  getStoreOrder: async (orderId: number, key: string): Promise<StoreOrderSummary> => {
+    const raw = await bffJson<WCStoreOrderRaw>(
+      `/api/orders/${orderId}/store-order?key=${encodeURIComponent(key)}`,
+    );
+    const minorUnit = raw.totals?.currency_minor_unit ?? 2;
+    return {
+      id: raw.id,
+      status: raw.status,
+      currencySymbol: decodeEntities(raw.totals?.currency_symbol ?? "£"),
+      total: fromMinorUnit(raw.totals?.total_price, minorUnit),
+      items: (raw.items ?? []).map((i) => ({
+        name: decodeEntities(i.name),
+        quantity: i.quantity,
+        total: fromMinorUnit(i.totals?.line_total, minorUnit),
+      })),
+    };
+  },
 };
