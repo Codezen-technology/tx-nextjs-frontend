@@ -250,3 +250,201 @@ export interface CertificatesResponse {
   page?: number;
   per_page?: number;
 }
+
+// ─── Assignment list (WP parity) ───────────────────────────────────────────────
+
+export interface AssignmentListCompletionStats {
+  completed: number;
+  active: number;
+  expired: number;
+  certificate_count: number;
+}
+
+export interface AssignmentListCourse {
+  course_id: number;
+  course_name: string;
+  course_slug?: string;
+  total_learners: number;
+  completion_stats: AssignmentListCompletionStats;
+  first_assigned?: string | null;
+  last_assigned?: string | null;
+  total_credits_used?: number;
+  status?: string[];
+}
+
+export interface AssignmentListResponse {
+  items?: AssignmentListCourse[];
+  courses?: AssignmentListCourse[];
+  total: number;
+  pages?: number;
+  page?: number;
+  per_page?: number;
+}
+
+// ─── Learner courses (detail) ────────────────────────────────────────────────────
+
+export interface LearnerCourseItem {
+  id?: number;
+  course_id: number;
+  course_name: string;
+  status?: string;
+  progress?: number;
+  certificate_url?: string | null;
+  start_date?: string | null;
+  completion_date?: string | null;
+  created_at?: string;
+}
+
+export interface LearnerCoursesResponse {
+  courses?: LearnerCourseItem[];
+  items?: LearnerCourseItem[];
+  total?: number;
+  pages?: number;
+}
+
+// ─── Orders ─────────────────────────────────────────────────────────────────────
+
+export interface BusinessOrderItem {
+  name: string;
+  qty: number;
+}
+
+export interface BusinessOrder {
+  order_id: number;
+  order_number: string;
+  date: string | null;
+  status: string;
+  total: string | number;
+  currency: string;
+  items_count: number;
+  items_summary?: BusinessOrderItem[];
+  payment_method?: string;
+  view_url?: string;
+}
+
+export interface BusinessOrdersResponse {
+  items?: BusinessOrder[];
+  orders?: BusinessOrder[];
+  total: number;
+  pages?: number;
+  page?: number;
+  per_page?: number;
+}
+
+// ─── Pricing / credits ─────────────────────────────────────────────────────────
+
+export interface BusinessSystemType {
+  system_type: "credits" | "subscription";
+}
+
+export interface CreditDiscountTier {
+  id?: number;
+  min_quantity: number;
+  discount_percent: number;
+}
+
+export interface CreditProduct {
+  id: number;
+  name: string;
+  price: number;
+  currency?: string;
+}
+
+export interface LicencePricingTier {
+  min_quantity: number;
+  discount_percent: number;
+}
+
+export interface LicencePricing {
+  tiers?: LicencePricingTier[];
+  base_price?: number;
+  currency?: string;
+}
+
+// ─── Credit transactions ─────────────────────────────────────────────────────────
+
+export interface CreditTransaction {
+  id: number;
+  type: string;
+  amount: number;
+  balance_after?: number;
+  description?: string;
+  created_at: string;
+}
+
+export interface CreditTransactionsResponse {
+  items?: CreditTransaction[];
+  transactions?: CreditTransaction[];
+  total: number;
+  pages?: number;
+}
+
+// ─── Subscriptions ───────────────────────────────────────────────────────────────
+
+export interface SubscriptionSummary {
+  total_seats?: number;
+  used_seats?: number;
+  available_seats?: number;
+  plan_name?: string;
+  status?: string;
+}
+
+export interface AssignedSubscription {
+  id: number;
+  user_id?: number;
+  user_name?: string;
+  user_email?: string;
+  plan_name?: string;
+  status?: string;
+  assigned_at?: string;
+}
+
+// ─── Managers ──────────────────────────────────────────────────────────────────
+
+export interface BusinessManager {
+  id: number;
+  user_id: number;
+  display_name: string;
+  email: string;
+  status: string;
+  role?: string;
+}
+
+export interface ManagersResponse {
+  items?: BusinessManager[];
+  managers?: BusinessManager[];
+  total?: number;
+}
+
+// ─── Reviews ───────────────────────────────────────────────────────────────────
+
+export interface ReviewHasResponse {
+  has_review: boolean;
+}
+
+export interface SubmitReviewPayload {
+  rating: number;
+  feedback?: string;
+  showcase_consent?: boolean;
+}
+
+// ─── Team mutations ──────────────────────────────────────────────────────────────
+
+export interface AddLearnerPayload {
+  email: string;
+  display_name?: string;
+  first_name?: string;
+  last_name?: string;
+}
+
+export interface CheckEmailResponse {
+  exists: boolean;
+  available: boolean;
+  message?: string;
+}
+
+export interface AssignCoursePayload {
+  course_id: number;
+  user_ids: number[];
+  use_licence?: boolean;
+}

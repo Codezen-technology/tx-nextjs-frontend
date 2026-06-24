@@ -2,16 +2,70 @@
 
 import { use } from "react";
 import Link from "next/link";
-import { ArrowLeft, Mail } from "lucide-react";
+import { ArrowLeft, ExternalLink, Mail } from "lucide-react";
 import { BusinessPageHeader } from "@/components/business/business-page-header";
 import { StatusBadge } from "@/components/business/status-badge";
+import { UsageBar } from "@/components/business/usage-bar";
+import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
 import { Button } from "@/components/ui/button";
-import { useBusinessLearner } from "@/lib/hooks/useBusinessDashboard";
+import { useBusinessLearner, useBusinessLearnerCourses } from "@/lib/hooks/useBusinessDashboard";
+import type { LearnerCourseItem } from "@/types/business-dashboard";
+
+function formatDate(value?: string | null) {
+  if (!value) return "—";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-GB");
+}
+
+function progressLabel(progress?: number): string {
+  const p = progress ?? 0;
+  if (p >= 100) return "Passed";
+  if (p > 0) return "In Progress";
+  return "Not Started";
+}
 
 export default function BusinessLearnerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const learnerId = Number(id);
   const { data: learner, isLoading, isError } = useBusinessLearner(learnerId);
+  const { data: coursesData, isLoading: coursesLoading } = useBusinessLearnerCourses(learnerId);
+
+  const courses = coursesData?.courses ?? coursesData?.items ?? [];
+
+  const columns: Column<LearnerCourseItem>[] = [
+    { key: "course", header: "Course", cell: (row) => row.course_name },
+    {
+      key: "status",
+      header: "Status",
+      cell: (row) => <StatusBadge status={progressLabel(row.progress)} />,
+    },
+    {
+      key: "progress",
+      header: "Progress",
+      className: "min-w-[120px]",
+      cell: (row) => <UsageBar used={row.progress ?? 0} total={100} color="bg-[#3F576F]" />,
+    },
+    { key: "start", header: "Start", cell: (row) => formatDate(row.start_date) },
+    { key: "completion", header: "Completed", cell: (row) => formatDate(row.completion_date) },
+    {
+      key: "cert",
+      header: "Certificate",
+      cell: (row) =>
+        row.certificate_url ? (
+          <a
+            href={row.certificate_url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 text-sm text-[#3F576F] hover:underline"
+          >
+            View
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        ) : (
+          "—"
+        ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -66,6 +120,18 @@ export default function BusinessLearnerDetailPage({ params }: { params: Promise<
           </dl>
         </div>
       )}
+
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold text-neutral-900">Assigned Courses</h3>
+        <BusinessDataTable<LearnerCourseItem>
+          columns={columns}
+          rows={courses}
+          rowKey={(row) => row.course_id}
+          isLoading={coursesLoading}
+          emptyTitle="No courses assigned"
+          emptyDescription="Courses assigned to this learner will appear here."
+        />
+      </div>
     </div>
   );
 }

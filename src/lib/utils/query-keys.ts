@@ -108,5 +108,29 @@ export const queryKeys = {
       ["business", "report-certificates", params] as const,
     certificates: (params: BusinessListParams = {}) =>
       ["business", "certificates", params] as const,
+    assignmentList: (params: BusinessListParams = {}) =>
+      ["business", "assignment-list", params] as const,
+    learnerCourses: (id: number, params: BusinessListParams = {}) =>
+      ["business", "learner-courses", id, params] as const,
+    availableLearners: (courseId: number, params: BusinessListParams = {}) =>
+      ["business", "available-learners", courseId, params] as const,
+    orders: (params: BusinessListParams = {}) => ["business", "orders", params] as const,
+    systemType: ["business", "system-type"] as const,
+    creditTransactions: (page: number) => ["business", "credit-transactions", page] as const,
+    creditDiscountTiers: ["business", "credit-discount-tiers"] as const,
+    creditProduct: ["business", "credit-product"] as const,
+    licencePricing: ["business", "licence-pricing"] as const,
+    licenceOrder: (itemsKey: string) => ["business", "licence-order", itemsKey] as const,
+    licenceCourseSearch: (search: string) => ["business", "licence-course-search", search] as const,
+    activeSubscription: ["business", "active-subscription"] as const,
+    subscriptions: ["business", "subscriptions"] as const,
+    subscriptionSummary: ["business", "subscription-summary"] as const,
+    subscriptionAssigned: (params: BusinessListParams = {}) =>
+      ["business", "subscription-assigned", params] as const,
+    excludedCategories: ["business", "excluded-categories"] as const,
+    managers: (businessId: number) => ["business", "managers", businessId] as const,
+    reviewHas: ["business", "review-has"] as const,
+    courseLicenceBalance: (courseId: number) =>
+      ["business", "course-licence-balance", courseId] as const,
   },
 } as const;

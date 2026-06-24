@@ -9,7 +9,10 @@ import { UsageBar } from "@/components/business/usage-bar";
 import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useBusinessCourseLearners } from "@/lib/hooks/useBusinessDashboard";
+import {
+  useGenerateBusinessCertificate,
+  useBusinessCourseLearners,
+} from "@/lib/hooks/useBusinessDashboard";
 import type { Learner } from "@/types/business-dashboard";
 
 const PER_PAGE = 10;
@@ -38,11 +41,12 @@ export default function BusinessCourseCertificatesPage({
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
 
-  const { data, isLoading, isError } = useBusinessCourseLearners(id, {
+  const { data, isLoading, isError, refetch } = useBusinessCourseLearners(id, {
     page,
     per_page: PER_PAGE,
     search,
   });
+  const generateCert = useGenerateBusinessCertificate();
 
   const rows = data?.items ?? data?.learners ?? data?.members ?? [];
   const totalPages = data?.pages ?? 1;
@@ -105,6 +109,21 @@ export default function BusinessCourseCertificatesPage({
             Download
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
+        ) : (row.progress ?? 0) >= 100 ? (
+          <button
+            type="button"
+            className="text-sm font-medium text-[#3F576F] hover:underline"
+            disabled={generateCert.isPending}
+            onClick={async () => {
+              await generateCert.mutateAsync({
+                user_id: row.user_id,
+                course_id: id,
+              });
+              refetch();
+            }}
+          >
+            Generate
+          </button>
         ) : (
           <span className="text-neutral-300">—</span>
         ),

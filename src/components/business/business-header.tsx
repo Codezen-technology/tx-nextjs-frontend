@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Coins, Home, LogOut, Menu, User } from "lucide-react";
+import { Coins, Home, LogOut, Menu, Star, User } from "lucide-react";
 import { useLogout, useMe } from "@/lib/hooks/useAuth";
-import { useBusinessCreditBalance } from "@/lib/hooks/useBusinessDashboard";
+import { useBusinessCreditBalance, useBusinessReviewHas } from "@/lib/hooks/useBusinessDashboard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +36,8 @@ export function BusinessHeader({
   const { data: user } = useMe();
   const logout = useLogout();
   const { data: credit } = useBusinessCreditBalance();
+  const { data: reviewStatus } = useBusinessReviewHas();
+  const showReviewCta = reviewStatus && !reviewStatus.has_review;
 
   const profileMenu = (
     <DropdownMenu>
@@ -124,6 +126,18 @@ export function BusinessHeader({
           </button>
         )}
         <div className="ml-auto flex items-center gap-4">
+          {showReviewCta ? (
+            <Button
+              asChild
+              variant="outline"
+              className="hidden border-[#F9A31A] text-[#B9760A] hover:bg-[#F9A31A]/10 sm:inline-flex"
+            >
+              <Link href="/business-dashboard/reviews">
+                <Star className="mr-2 h-4 w-4" />
+                Leave feedback
+              </Link>
+            </Button>
+          ) : null}
           {credit ? (
             <div className="flex items-center gap-2 rounded-full bg-[#F9A31A]/15 px-4 py-1.5 text-sm font-semibold text-[#B9760A]">
               <Coins className="h-4 w-4" />

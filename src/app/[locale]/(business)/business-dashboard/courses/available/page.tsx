@@ -1,17 +1,20 @@
 "use client";
 
-import { useMemo } from "react";
-import { KeyRound, Layers, PackageCheck } from "lucide-react";
+import { useMemo, useState } from "react";
+import { KeyRound, Layers, PackageCheck, UserPlus } from "lucide-react";
+import { AssignCourseModal } from "@/components/business/assign-course-modal";
 import { BusinessPageHeader } from "@/components/business/business-page-header";
 import { KpiCard } from "@/components/business/kpi-card";
 import { StatusBadge } from "@/components/business/status-badge";
 import { UsageBar } from "@/components/business/usage-bar";
 import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
+import { Button } from "@/components/ui/button";
 import { useBusinessLicenceBalance } from "@/lib/hooks/useBusinessDashboard";
 import type { LicencePool } from "@/types/business-dashboard";
 
 export default function BusinessAvailableCoursesPage() {
   const { data, isLoading, isError } = useBusinessLicenceBalance();
+  const [assignTarget, setAssignTarget] = useState<LicencePool | null>(null);
 
   const pools = data?.pools ?? [];
 
@@ -46,6 +49,19 @@ export default function BusinessAvailableCoursesPage() {
     },
     { key: "pool", header: "Pool", cell: (row) => `${row.used} / ${row.quantity}` },
     { key: "status", header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
+    {
+      key: "actions",
+      header: "",
+      cell: (row) =>
+        row.available > 0 ? (
+          <Button size="sm" variant="outline" onClick={() => setAssignTarget(row)}>
+            <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+            Assign
+          </Button>
+        ) : (
+          <span className="text-neutral-300">—</span>
+        ),
+    },
   ];
 
   return (
@@ -79,6 +95,13 @@ export default function BusinessAvailableCoursesPage() {
         isError={isError}
         emptyTitle="No licences yet"
         emptyDescription="Purchased course licences will appear here."
+      />
+
+      <AssignCourseModal
+        courseId={assignTarget?.course_id ?? null}
+        courseName={assignTarget?.course_name ?? ""}
+        open={assignTarget != null}
+        onOpenChange={(open) => !open && setAssignTarget(null)}
       />
     </div>
   );

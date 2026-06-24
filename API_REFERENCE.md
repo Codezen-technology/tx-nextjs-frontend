@@ -1133,3 +1133,226 @@ Errors: `lms_contact_missing_fields` (400), `lms_contact_invalid_email` (400), `
 | `lms_not_enrolled`           | 403  | Not enrolled in course             |
 | `lms_forbidden`              | 403  | Permission denied                  |
 | `rest_forbidden`             | 403  | Generic permission denied          |
+
+---
+
+# B2B Business Dashboard REST API Reference
+
+> **Source:** `wp-lms-b2b-rest-api` WordPress plugin (facade over `b2b-dashboard/v1`)
+> **Namespace:** `lms-b2b/v1` (configure via `NEXT_PUBLIC_B2B_NAMESPACE`)
+> **Base URL:** `https://<your-domain>/wp-json/lms-b2b/v1`
+
+The Next.js business dashboard calls these endpoints through BFF routes at `/api/business/*` via `proxyToB2B()`. All protected routes require `Authorization: Bearer <access_token>`.
+
+## Response Format
+
+Same envelope as `lms-backend/v1`: `{ success, data }` or paginated `{ success, data: { items, total, page, per_page, pages } }`.
+
+---
+
+## Reports & Summary
+
+| Method | Path                    | Description              |
+| ------ | ----------------------- | ------------------------ |
+| GET    | `/reports/summary`      | Dashboard KPIs           |
+| GET    | `/reports/courses`      | Course assignment report |
+| GET    | `/reports/members`      | Learner activity report  |
+| GET    | `/reports/certificates` | Certificate report       |
+
+---
+
+## Business Profile
+
+| Method | Path                      | Description                                    |
+| ------ | ------------------------- | ---------------------------------------------- |
+| GET    | `/businesses/current`     | Current business profile                       |
+| PATCH  | `/businesses/{id}`        | Update profile fields                          |
+| POST   | `/businesses/{id}/logo`   | Upload logo (multipart)                        |
+| DELETE | `/businesses/{id}/logo`   | Remove logo                                    |
+| GET    | `/businesses/orders`      | WooCommerce order history (paginated)          |
+| GET    | `/business/system-type`   | `{ system_type: "credits" \| "subscription" }` |
+| POST   | `/business/switch-system` | Switch billing system                          |
+
+---
+
+## Team / Learners
+
+| Method | Path                       | Description                   |
+| ------ | -------------------------- | ----------------------------- |
+| GET    | `/team`                    | List team members (paginated) |
+| POST   | `/team`                    | Add learner                   |
+| PATCH  | `/team/{id}`               | Update member (e.g. status)   |
+| POST   | `/team/{id}/convert-role`  | Convert learner ↔ manager     |
+| GET    | `/team/check-email?email=` | Email availability check      |
+
+---
+
+## Courses & Assignments
+
+| Method | Path                               | Description                            |
+| ------ | ---------------------------------- | -------------------------------------- |
+| GET    | `/courses`                         | Course catalogue for assignment        |
+| GET    | `/courses/assignments`             | Assignment history                     |
+| GET    | `/courses/assignment-list`         | Assigned courses with completion stats |
+| GET    | `/courses/learner/{id}`            | Courses assigned to a learner          |
+| GET    | `/courses/{id}/learners`           | Learners on a course                   |
+| GET    | `/courses/{id}/available-learners` | Learners not yet on course             |
+| POST   | `/courses/assign`                  | Assign course to learners              |
+
+**POST `/courses/assign` body:**
+
+```json
+{
+  "course_id": 123,
+  "user_ids": [1, 2, 3],
+  "use_licence": true
+}
+```
+
+**GET `/courses/assignment-list` response shape:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "course_id": 123,
+        "course_name": "Course Title",
+        "total_learners": 10,
+        "completion_stats": {
+          "completed": 3,
+          "active": 5,
+          "expired": 2,
+          "certificate_count": 3
+        },
+        "first_assigned": "2024-01-01",
+        "last_assigned": "2024-06-01"
+      }
+    ],
+    "total": 1,
+    "pages": 1,
+    "page": 1,
+    "per_page": 10
+  }
+}
+```
+
+---
+
+## Licences & Credits
+
+| Method | Path                              | Description                   |
+| ------ | --------------------------------- | ----------------------------- |
+| GET    | `/licences/balance`               | Licence pools summary         |
+| GET    | `/licences/balance/{course_id}`   | Per-course licence pool       |
+| GET    | `/licences/courses`               | Purchasable licence catalogue |
+| GET    | `/licences/pricing`               | Volume discount tiers         |
+| POST   | `/licences/pricing/calculate`     | Price calculation             |
+| POST   | `/licences/checkout`              | Licence checkout              |
+| POST   | `/licences/subscription/checkout` | Subscription checkout         |
+| GET    | `/credits/balance`                | Credit balance                |
+| GET    | `/credits/transactions`           | Credit transaction log        |
+| GET    | `/credits/discount-tiers`         | Credit volume discounts       |
+| GET    | `/credits/product`                | Credit product info           |
+| POST   | `/credits/purchase`               | Credit purchase checkout      |
+
+---
+
+## Subscriptions
+
+| Method | Path                                            | Description                |
+| ------ | ----------------------------------------------- | -------------------------- |
+| GET    | `/businesses/subscriptions`                     | Subscription list          |
+| GET    | `/businesses/subscriptions/summary`             | Seat summary KPIs          |
+| GET    | `/businesses/subscriptions/assigned`            | Assigned seats             |
+| POST   | `/businesses/subscriptions/assign-user`         | Assign seat to user        |
+| PATCH  | `/businesses/subscriptions/{id}/status`         | Update subscription status |
+| DELETE | `/businesses/subscriptions/{id}/seats/{seatId}` | Revoke seat                |
+
+---
+
+## Certificates
+
+| Method | Path                    | Description                          |
+| ------ | ----------------------- | ------------------------------------ |
+| GET    | `/certificates`         | Certificate list (legacy)            |
+| POST   | `/certificate/generate` | Generate certificate for user+course |
+
+**POST `/certificate/generate` body:**
+
+```json
+{ "user_id": 42, "course_id": 123 }
+```
+
+---
+
+## Managers & Permissions
+
+| Method | Path                                | Description              |
+| ------ | ----------------------------------- | ------------------------ |
+| GET    | `/managers`                         | List managers            |
+| GET    | `/managers/business/{id}`           | Managers for business    |
+| POST   | `/managers`                         | Add manager              |
+| PATCH  | `/managers/{id}`                    | Update manager           |
+| DELETE | `/managers/{id}`                    | Remove manager           |
+| GET    | `/permissions/manager/capabilities` | Manager capability flags |
+
+---
+
+## Reviews
+
+| Method | Path           | Description               |
+| ------ | -------------- | ------------------------- |
+| GET    | `/reviews/has` | `{ has_review: boolean }` |
+| POST   | `/reviews`     | Submit feedback           |
+
+---
+
+## Course Categories
+
+| Method | Path                          | Description                          |
+| ------ | ----------------------------- | ------------------------------------ |
+| GET    | `/course-categories/excluded` | Category IDs excluded from catalogue |
+
+---
+
+## BFF Route Map (Next.js)
+
+| BFF route                                           | Proxies to                           |
+| --------------------------------------------------- | ------------------------------------ |
+| `GET /api/business/summary`                         | `/reports/summary`                   |
+| `GET /api/business/profile`                         | `/businesses/current`                |
+| `PATCH /api/business/profile/[id]`                  | `/businesses/{id}`                   |
+| `GET /api/business/credit-balance`                  | `/credits/balance`                   |
+| `GET/POST /api/business/team`                       | `/team`                              |
+| `PATCH /api/business/team/[id]`                     | `/team/{id}`                         |
+| `POST /api/business/team/[id]/convert-role`         | `/team/{id}/convert-role`            |
+| `GET /api/business/team/check-email`                | `/team/check-email`                  |
+| `GET /api/business/courses`                         | `/courses`                           |
+| `GET /api/business/courses/assignment-list`         | `/courses/assignment-list`           |
+| `GET /api/business/courses/learner/[id]`            | `/courses/learner/{id}`              |
+| `GET /api/business/courses/[id]/learners`           | `/courses/{id}/learners`             |
+| `GET /api/business/courses/[id]/available-learners` | `/courses/{id}/available-learners`   |
+| `POST /api/business/courses/assign`                 | `/courses/assign`                    |
+| `GET /api/business/licences/balance`                | `/licences/balance`                  |
+| `GET /api/business/licences/pricing`                | `/licences/pricing`                  |
+| `POST /api/business/licences/pricing/calculate`     | `/licences/pricing/calculate`        |
+| `POST /api/business/licences/checkout`              | `/licences/checkout`                 |
+| `POST /api/business/licences/subscription/checkout` | `/licences/subscription/checkout`    |
+| `POST /api/business/licences/quote`                 | `/licences/quote`                    |
+| `GET /api/business/subscriptions`                   | `/businesses/subscriptions`          |
+| `GET /api/business/orders`                          | `/businesses/orders`                 |
+| `GET /api/business/system-type`                     | `/business/system-type`              |
+| `POST /api/business/system-type/switch`             | `/business/switch-system`            |
+| `GET /api/business/credits/transactions`            | `/credits/transactions`              |
+| `GET /api/business/credits/discount-tiers`          | `/credits/discount-tiers`            |
+| `GET /api/business/credits/product`                 | `/credits/product`                   |
+| `POST /api/business/credits/purchase`               | `/credits/purchase`                  |
+| `GET /api/business/subscriptions/summary`           | `/businesses/subscriptions/summary`  |
+| `GET /api/business/subscriptions/assigned`          | `/businesses/subscriptions/assigned` |
+| `GET /api/business/course-categories/excluded`      | `/course-categories/excluded`        |
+| `POST /api/business/certificate/generate`           | `/certificate/generate`              |
+| `GET /api/business/managers`                        | `/managers`                          |
+| `GET /api/business/reviews/has`                     | `/reviews/has`                       |
+| `POST /api/business/reviews`                        | `/reviews`                           |

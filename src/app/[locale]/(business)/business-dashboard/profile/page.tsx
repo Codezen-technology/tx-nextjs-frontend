@@ -1,10 +1,17 @@
 "use client";
 
-import { Building2, Coins, CalendarDays } from "lucide-react";
+import { useState } from "react";
+import { Building2, Coins, CalendarDays, Pencil } from "lucide-react";
 import { BusinessPageHeader } from "@/components/business/business-page-header";
 import { KpiCard } from "@/components/business/kpi-card";
 import { StatusBadge } from "@/components/business/status-badge";
-import { useBusinessCreditBalance, useBusinessProfile } from "@/lib/hooks/useBusinessDashboard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  useBusinessCreditBalance,
+  useBusinessProfile,
+  useUpdateBusinessProfile,
+} from "@/lib/hooks/useBusinessDashboard";
 
 const INDUSTRY_LABELS: Record<string, string> = {
   technology: "Technology",
@@ -22,11 +29,7 @@ function formatDate(value?: string) {
   const d = new Date(value);
   return Number.isNaN(d.getTime())
     ? "—"
-    : d.toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
+    : d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 }
 
 function ProfileField({ label, value }: { label: string; value?: string | number | null }) {
@@ -41,6 +44,35 @@ function ProfileField({ label, value }: { label: string; value?: string | number
 export default function BusinessProfilePage() {
   const { data: business, isLoading, isError } = useBusinessProfile();
   const { data: credit } = useBusinessCreditBalance();
+  const updateProfile = useUpdateBusinessProfile();
+  const [editing, setEditing] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [taxId, setTaxId] = useState("");
+  const [companySize, setCompanySize] = useState("");
+
+  const startEdit = () => {
+    if (!business) return;
+    setPhone(business.phone ?? "");
+    setAddress(business.address ?? "");
+    setTaxId(business.tax_id ?? "");
+    setCompanySize(String(business.company_size ?? ""));
+    setEditing(true);
+  };
+
+  const onSave = async () => {
+    if (!business) return;
+    await updateProfile.mutateAsync({
+      id: business.id,
+      data: {
+        phone,
+        address,
+        tax_id: taxId,
+        company_size: companySize ? Number(companySize) : undefined,
+      },
+    });
+    setEditing(false);
+  };
 
   if (isLoading) {
     return (
@@ -70,6 +102,27 @@ export default function BusinessProfilePage() {
       <BusinessPageHeader
         title="Business Profile"
         description="Your company information and account status."
+        actions={
+          editing ? (
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setEditing(false)}>
+                Cancel
+              </Button>
+              <Button
+                className="bg-[#3F576F] hover:bg-[#33485d]"
+                onClick={onSave}
+                disabled={updateProfile.isPending}
+              >
+                Save
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" onClick={startEdit}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
+          )
+        }
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -105,21 +158,52 @@ export default function BusinessProfilePage() {
           </div>
         </div>
 
-        <dl className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <ProfileField label="Company Name" value={business.company_name} />
-          <ProfileField label="Business Email" value={business.business_email} />
-          <ProfileField label="Phone" value={business.phone} />
-          <ProfileField label="Tax ID" value={business.tax_id} />
-          <ProfileField label="Industry" value={industry} />
-          <ProfileField label="Company Size" value={business.company_size} />
-          <ProfileField label="Address" value={business.address} />
-          {business.system_type ? (
-            <ProfileField
-              label="Billing System"
-              value={business.system_type === "credits" ? "Credits" : "Subscription"}
-            />
-          ) : null}
-        </dl>
+        {editing ? (
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="text-xs font-medium uppercase text-neutral-300">Phone</label>
+              <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" />
+            </div>
+            <div>
+              <label className="text-xs font-medium uppercase text-neutral-300">Tax ID</label>
+              <Input value={taxId} onChange={(e) => setTaxId(e.target.value)} className="mt-1" />
+            </div>
+            <div>
+              <label className="text-xs font-medium uppercase text-neutral-300">Company size</label>
+              <Input
+                type="number"
+                value={companySize}
+                onChange={(e) => setCompanySize(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-xs font-medium uppercase text-neutral-300">Address</label>
+              <textarea
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                rows={3}
+                className="mt-1 w-full rounded-md border border-neutral-40 px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+        ) : (
+          <dl className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <ProfileField label="Company Name" value={business.company_name} />
+            <ProfileField label="Business Email" value={business.business_email} />
+            <ProfileField label="Phone" value={business.phone} />
+            <ProfileField label="Tax ID" value={business.tax_id} />
+            <ProfileField label="Industry" value={industry} />
+            <ProfileField label="Company Size" value={business.company_size} />
+            <ProfileField label="Address" value={business.address} />
+            {business.system_type ? (
+              <ProfileField
+                label="Billing System"
+                value={business.system_type === "credits" ? "Credits" : "Subscription"}
+              />
+            ) : null}
+          </dl>
+        )}
       </div>
     </div>
   );
