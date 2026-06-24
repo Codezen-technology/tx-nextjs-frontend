@@ -5,6 +5,7 @@ import type {
   AssignmentListResponse,
   AssignmentsResponse,
   AssignedSubscription,
+  AvailableLearnersResponse,
   Business,
   BusinessListParams,
   BusinessManager,
@@ -168,13 +169,15 @@ export const businessDashboardService = {
   async getAvailableLearners(
     courseId: number,
     params: BusinessListParams = {},
-  ): Promise<TeamResponse> {
+  ): Promise<AvailableLearnersResponse> {
     const qs = buildQuery({
       page: params.page,
       per_page: params.per_page,
       search: params.search,
     });
-    return bffJson<TeamResponse>(`/api/business/courses/${courseId}/available-learners${qs}`);
+    return bffJson<AvailableLearnersResponse>(
+      `/api/business/courses/${courseId}/available-learners${qs}`,
+    );
   },
 
   async assignCourse(payload: AssignCoursePayload): Promise<unknown> {

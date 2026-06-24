@@ -110,6 +110,24 @@ export interface TeamResponse {
   };
 }
 
+/** Learner row from GET /courses/{id}/available-learners */
+export interface AvailableLearner {
+  id: number;
+  display_name: string;
+  email: string;
+  status?: string | number;
+  is_available: boolean;
+  assignment_status?: "assigned" | "enrolled" | "available" | "wplms_enrolled";
+}
+
+export interface AvailableLearnersResponse {
+  items: AvailableLearner[];
+  total: number;
+  pages?: number;
+  page?: number;
+  per_page?: number;
+}
+
 // ─── Course assignments ──────────────────────────────────────────────────────────
 
 export interface CourseAssignment {

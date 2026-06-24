@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import {
   Dialog,
@@ -17,12 +17,19 @@ import {
   useBusinessAvailableLearners,
   useBusinessSystemType,
 } from "@/lib/hooks/useBusinessDashboard";
+import { cn } from "@/lib/utils/cn";
 
 interface AssignCourseModalProps {
   courseId: number | null;
   courseName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+function unavailableLabel(status?: string): string {
+  if (status === "assigned") return "Assigned";
+  if (status === "wplms_enrolled") return "Already enrolled";
+  return "Unavailable";
 }
 
 export function AssignCourseModal({
@@ -42,7 +49,7 @@ export function AssignCourseModal({
   });
   const assign = useAssignBusinessCourse();
 
-  const members = data?.members ?? [];
+  const learners = useMemo(() => data?.items ?? [], [data?.items]);
   const useLicence = systemType?.system_type !== "credits";
 
   useEffect(() => {
@@ -100,29 +107,42 @@ export function AssignCourseModal({
         <div className="max-h-64 overflow-y-auto rounded-lg border border-neutral-30">
           {isLoading ? (
             <p className="p-4 text-sm text-neutral-300">Loading learners…</p>
-          ) : !members.length ? (
-            <p className="p-4 text-sm text-neutral-300">No available learners found.</p>
+          ) : !learners.length ? (
+            <p className="p-4 text-sm text-neutral-300">No learners found.</p>
           ) : (
             <ul className="divide-y divide-neutral-20">
-              {members.map((m) => {
-                const uid = m.user_id ?? m.id;
+              {learners.map((learner) => {
+                const disabled = !learner.is_available;
                 return (
-                  <li key={uid}>
-                    <label className="flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-neutral-10">
+                  <li key={learner.id}>
+                    <label
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-3",
+                        disabled
+                          ? "cursor-not-allowed opacity-60"
+                          : "cursor-pointer hover:bg-neutral-10",
+                      )}
+                    >
                       <input
                         type="checkbox"
-                        checked={selected.has(uid)}
-                        onChange={() => toggle(uid)}
-                        className="h-4 w-4 rounded border-neutral-40"
+                        checked={selected.has(learner.id)}
+                        disabled={disabled}
+                        onChange={() => !disabled && toggle(learner.id)}
+                        className="h-4 w-4 rounded border-neutral-40 disabled:cursor-not-allowed"
                       />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-neutral-900">
-                          {m.display_name}
+                          {learner.display_name}
                         </span>
                         <span className="block truncate text-xs text-neutral-300">
-                          {m.email || m.user_email}
+                          {learner.email}
                         </span>
                       </span>
+                      {disabled ? (
+                        <span className="shrink-0 rounded-full bg-neutral-20 px-2 py-0.5 text-xs font-medium text-neutral-500">
+                          {unavailableLabel(learner.assignment_status)}
+                        </span>
+                      ) : null}
                     </label>
                   </li>
                 );
