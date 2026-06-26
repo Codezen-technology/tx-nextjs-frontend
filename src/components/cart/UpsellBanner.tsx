@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle } from "lucide-react";
-import { useSiteSettings } from "@/components/providers/site-settings-provider";
+import { useMembershipUpsell } from "@/lib/hooks/useMembershipUpsell";
 import { useAddToCart } from "@/lib/hooks/useCart";
 import { useCartStore } from "@/lib/stores/cart.store";
 
@@ -10,7 +10,7 @@ interface UpsellBannerProps {
 }
 
 export function UpsellBanner({ variant = "cart" }: UpsellBannerProps) {
-  const { membership_upsell: upsell } = useSiteSettings();
+  const { data: upsell } = useMembershipUpsell();
   const addToCart = useAddToCart();
   const cartItems = useCartStore((s) => s.items);
 

@@ -8,6 +8,7 @@ export const queryKeys = {
   },
   settings: {
     promoBanner: ["settings", "promo-banner"] as const,
+    membershipUpsell: ["settings", "membership-upsell"] as const,
   },
   courses: {
     all: ["courses"] as const,
