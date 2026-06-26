@@ -4,7 +4,6 @@ import { useState } from "react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { cn } from "@/lib/utils/cn";
 import { useWcStoreCheckout } from "@/lib/hooks/useCheckout";
-import { useCartStore } from "@/lib/stores/cart.store";
 import { stripeCardPaymentData, findClientSecret } from "@/lib/services/checkout";
 import { SecurePaymentBadge } from "./SecurePaymentBadge";
 import type { BillingFormHandle } from "./BillingForm";
@@ -22,7 +21,6 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
   const stripe = useStripe();
   const elements = useElements();
   const { mutateAsync: wcStoreCheckout } = useWcStoreCheckout();
-  const clearCart = useCartStore((s) => s.clearCart);
 
   // ─── Store API checkout (standard cart) ────────────────────────────────────
 
@@ -79,7 +77,6 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
         throw new Error("Payment was not completed. Please try again.");
       }
 
-      clearCart();
       onSuccess(result.order_id, result.order_key);
       return;
     }
@@ -88,7 +85,6 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
       throw new Error("Payment was not successful. Please try again.");
     }
 
-    clearCart();
     onSuccess(result.order_id, result.order_key);
   };
 

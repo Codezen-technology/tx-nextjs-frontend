@@ -3,10 +3,13 @@
 import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Elements } from "@stripe/react-stripe-js";
 import { stripePromise } from "@/lib/stripe";
 import { useCartQuery } from "@/lib/hooks/useCart";
 import { useCartStore } from "@/lib/stores/cart.store";
+import { cartService } from "@/lib/services/cart";
+import { queryKeys } from "@/lib/utils/query-keys";
 import { hasUserLoggedInCookie } from "@/lib/api/bff-client";
 import { BillingForm } from "@/components/checkout/BillingForm";
 import { CheckoutOrderSummary } from "@/components/checkout/CheckoutOrderSummary";
@@ -16,26 +19,47 @@ import type { BillingFormHandle } from "@/components/checkout/BillingForm";
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const billingRef = useRef<BillingFormHandle>(null);
   const itemCount = useCartStore((s) => s.itemCount);
   const cartHydrated = useCartStore((s) => s.hasHydrated);
+  const clearCart = useCartStore((s) => s.clearCart);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Set once an order is placed so the "empty cart → /cart" redirect below
+  // doesn't fire when we clear the cart and navigate to order-confirmation.
+  const [orderPlaced, setOrderPlaced] = useState(false);
 
   useEffect(() => {
     setIsLoggedIn(hasUserLoggedInCookie());
   }, []);
 
-  // Pre-fetch cart so CheckoutOrderSummary has data.
-  useCartQuery();
+  // Pre-fetch cart so CheckoutOrderSummary has data + customer billing for prefill.
+  const { data: cart } = useCartQuery();
+
+  // Only prefill for logged-in customers with a saved billing address.
+  const billingDefaults = isLoggedIn ? cart?.billingAddress : undefined;
 
   // Redirect to cart if nothing to checkout — wait for cart store to rehydrate first.
+  // Skip once an order is placed (clearing the cart must not bounce us to /cart).
   useEffect(() => {
-    if (cartHydrated && itemCount === 0) {
+    if (!orderPlaced && cartHydrated && itemCount === 0) {
       router.replace("/cart");
     }
-  }, [cartHydrated, itemCount, router]);
+  }, [orderPlaced, cartHydrated, itemCount, router]);
 
   const handleOrderSuccess = (orderId: number, orderKey: string) => {
+    setOrderPlaced(true);
+    // Empty the WooCommerce cart server-side, then mirror locally + refetch so the
+    // basket badge and /cart reflect the completed purchase. Fire-and-forget — the
+    // order is already placed, so navigation must not wait on this.
+    void cartService
+      .emptyCart()
+      .catch(() => {})
+      .finally(() => {
+        clearCart();
+        queryClient.invalidateQueries({ queryKey: queryKeys.cart.detail });
+      });
+
     const params = new URLSearchParams();
     if (orderKey) params.set("key", orderKey);
     const qs = params.toString();
@@ -79,7 +103,7 @@ export default function CheckoutPage() {
           {/* Billing details */}
           <div className="rounded-lg bg-white p-8 shadow-sm">
             <h2 className="mb-6 font-suse text-2xl font-medium text-[#00204a]">Billing Details</h2>
-            <BillingForm ref={billingRef} />
+            <BillingForm ref={billingRef} defaultValues={billingDefaults} />
           </div>
 
           {/* Order summary */}
@@ -100,8 +124,7 @@ export default function CheckoutPage() {
               </Elements>
             ) : (
               <div className="rounded border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-                Payment is not configured.{" "}
-                <code className="text-xs">NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code> is missing.
+                Payment is not configured. is missing.
               </div>
             )}
           </div>
