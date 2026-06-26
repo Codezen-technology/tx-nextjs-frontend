@@ -1,4 +1,5 @@
 import { bffJson } from "@/lib/api/bff-client";
+import { toFrontendPath, toFrontendUrl } from "@/lib/utils/url";
 import type {
   AllCategoriesResponse,
   CertificatesParams,
@@ -71,7 +72,14 @@ export const studentDashboardService = {
     });
     const raw = await bffJson<PaginatedEnvelope<Certificate>>(`/api/student/certificates${qs}`);
     return {
-      certificates: raw.items ?? [],
+      // Rewrite the course content link to the frontend. Use an ABSOLUTE frontend
+      // URL — course_permalink also feeds social share links, which need a full URL.
+      // The certificate/transcript PDF download URLs are functional backend
+      // endpoints and stay untouched.
+      certificates: (raw.items ?? []).map((c) => ({
+        ...c,
+        course_permalink: toFrontendUrl(c.course_permalink),
+      })),
       total: raw.total,
       page: raw.page,
       per_page: raw.per_page,
@@ -130,7 +138,11 @@ export const studentDashboardService = {
   },
 
   async getPromos(): Promise<SubscriptionPromosResponse> {
-    return bffJson<SubscriptionPromosResponse>("/api/admin/subscription-promo-settings");
+    const raw = await bffJson<SubscriptionPromosResponse>("/api/admin/subscription-promo-settings");
+    return {
+      ...raw,
+      promos: (raw.promos ?? []).map((p) => ({ ...p, button_url: toFrontendPath(p.button_url) })),
+    };
   },
 
   async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {

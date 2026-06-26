@@ -123,6 +123,12 @@ export const endpoints = {
     removeCoupon: `${wcStore}/cart/remove-coupon`,
     empty: `${wcStore}/cart/items`,
   },
+  products: {
+    /** WooCommerce Store API products (public read). Append `?slug=` / `?id=` etc. */
+    list: `${wcStore}/products`,
+    bySlug: (slug: string) => `${wcStore}/products?slug=${encodeURIComponent(slug)}`,
+    detail: (id: number) => `${wcStore}/products/${id}`,
+  },
   orders: {
     create: `${wcRest}/orders`,
     list: `${wcRest}/orders`,

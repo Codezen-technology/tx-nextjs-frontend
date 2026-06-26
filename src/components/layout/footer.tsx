@@ -4,6 +4,7 @@ import Image from "next/image";
 import { serverApi } from "@/lib/api/server";
 import { fetchSettings } from "@/lib/services/settings.server";
 import { CertificateForm } from "./certificate-form";
+import { toFrontendPath } from "@/lib/utils/url";
 import type { FooterNavLink, FooterData, WpNavItem } from "@/types/settings";
 const overlayImage = "/images/bg-footer.webp";
 
@@ -101,7 +102,10 @@ function buildNavColumns(nav: FooterData["nav"] | undefined): NavCol[] {
     ];
   }
   if (Array.isArray(nav)) {
-    const items = (nav as WpNavItem[]).map((item) => ({ label: item.title, href: item.url }));
+    const items = (nav as WpNavItem[]).map((item) => ({
+      label: item.title,
+      href: toFrontendPath(item.url),
+    }));
     const mid = Math.ceil(items.length / 2);
     return [{ links: items.slice(0, mid) }, { links: items.slice(mid) }];
   }

@@ -4,6 +4,7 @@ import { CheckCircle } from "lucide-react";
 import { useMembershipUpsell } from "@/lib/hooks/useMembershipUpsell";
 import { useAddToCart } from "@/lib/hooks/useCart";
 import { useCartStore } from "@/lib/stores/cart.store";
+import { isExternalUrl } from "@/lib/utils/url";
 
 interface UpsellBannerProps {
   variant?: "cart" | "checkout";
@@ -86,6 +87,9 @@ export function UpsellBanner({ variant = "cart" }: UpsellBannerProps) {
           {upsell.permalink && (
             <a
               href={upsell.permalink}
+              {...(isExternalUrl(upsell.permalink)
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
               className="text-xs text-white underline underline-offset-2 hover:text-gray-300"
             >
               View more details

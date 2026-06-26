@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { toFrontendPath } from "@/lib/utils/url";
 import type { SiteSettings, SiteFeatures } from "@/types/settings";
 
 /** Default fallback settings — all pulled from env vars. */
@@ -31,9 +32,20 @@ export function mergeSettings(api: Partial<SiteSettings>): SiteSettings {
     ...(api.features ?? {}),
   };
 
+  // Content links from the API arrive on the WP backend origin — rewrite to the
+  // frontend so they don't bounce users to the old WP site.
+  const membership_upsell = api.membership_upsell
+    ? { ...api.membership_upsell, permalink: toFrontendPath(api.membership_upsell.permalink) }
+    : api.membership_upsell;
+  const promo_banner = api.promo_banner
+    ? { ...api.promo_banner, button_url: toFrontendPath(api.promo_banner.button_url) }
+    : api.promo_banner;
+
   return {
     ...fallback,
     ...api,
+    membership_upsell,
+    promo_banner,
     site_name: env.SITE_NAME || api.site_name || fallback.site_name,
     logo_url: env.LOGO_URL || api.logo_url || fallback.logo_url,
     logo_dark_url: env.LOGO_DARK_URL || api.logo_dark_url || fallback.logo_dark_url,
@@ -44,4 +56,3 @@ export function mergeSettings(api: Partial<SiteSettings>): SiteSettings {
     features,
   };
 }
-

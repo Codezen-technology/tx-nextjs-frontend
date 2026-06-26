@@ -20,6 +20,7 @@
 import type { Metadata } from "next";
 import { serverApi } from "@/lib/api/server";
 import { parseRankMathHead, stringifyJsonLd, type ParsedSeo } from "@/lib/utils/seo";
+import { toFrontendUrl, replaceWpOrigin } from "@/lib/utils/url";
 import { env } from "@/lib/env";
 
 export type { ParsedSeo };
@@ -35,30 +36,21 @@ export { stringifyJsonLd };
  */
 export async function fetchRankMathSeo(wpPath: string): Promise<ParsedSeo | null> {
   const wpBase = env.WP_API_URL.replace(/\/$/, "");
-  const siteOrigin = env.SITE_URL.replace(/\/$/, "");
 
   const head = await serverApi.rankmath.getHead(`${wpBase}${wpPath}`);
   if (!head) return null;
 
   const seo = parseRankMathHead(head);
 
-  try {
-    const wpOrigin = new URL(wpBase).origin;
+  // Rewrite all backend-origin URLs to the headless frontend origin.
+  // See src/lib/utils/url.ts for the shared rewriting rules.
+  if (seo.canonical) {
+    seo.canonical = toFrontendUrl(seo.canonical);
+  }
 
-    // Always override canonical to point to headless frontend, not WP backend
-    if (seo.canonical) {
-      const parsed = new URL(seo.canonical);
-      seo.canonical = `${siteOrigin}${parsed.pathname}${parsed.search}`;
-    }
-
-    // Patch WP domain in JSON-LD (affects @id, url, mainEntityOfPage, etc.)
-    if (seo.jsonLd?.length) {
-      seo.jsonLd = JSON.parse(
-        JSON.stringify(seo.jsonLd).replaceAll(wpOrigin, siteOrigin),
-      ) as typeof seo.jsonLd;
-    }
-  } catch {
-    // URL parse failure — keep values as-is rather than crash
+  // Patch WP domain in JSON-LD (affects @id, url, mainEntityOfPage, etc.)
+  if (seo.jsonLd?.length) {
+    seo.jsonLd = JSON.parse(replaceWpOrigin(JSON.stringify(seo.jsonLd))) as typeof seo.jsonLd;
   }
 
   return seo;

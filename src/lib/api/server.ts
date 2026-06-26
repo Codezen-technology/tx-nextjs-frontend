@@ -8,8 +8,9 @@
  *  - Throws `ServerFetchError` on non-2xx so RSC can call `notFound()` or `error.tsx`.
  */
 
-import { coursePath, courseSlugPath } from "@/lib/api/endpoints";
+import { coursePath, courseSlugPath, endpoints } from "@/lib/api/endpoints";
 import { getServerWpJsonBase, env } from "@/lib/env";
+import type { WCStoreProduct } from "@/types/product";
 import type { FooterData } from "@/types/settings";
 import type { HomePageData, PricingPageData } from "@/types/home";
 import type { CourseSections, CourseFlatCurriculumItem } from "@/types/course";
@@ -455,6 +456,15 @@ export const serverApi = {
       serverFetch<RawPage>(`${lms}/pages/${encodeURIComponent(slug)}`, {
         revalidate: 300,
         tags: [`page:${slug}`, "pages:list"],
+      }),
+  },
+
+  products: {
+    /** WooCommerce Store API — fetch a single published product by slug. */
+    bySlug: (slug: string) =>
+      serverFetch<WCStoreProduct[]>(endpoints.products.bySlug(slug), {
+        revalidate: 300,
+        tags: [`product:${slug}`, "products:list"],
       }),
   },
 
