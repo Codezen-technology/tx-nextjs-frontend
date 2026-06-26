@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 import { stripePromise } from "@/lib/stripe";
 import { Button } from "@/components/ui/button";
 import { BillingForm, type BillingFormHandle } from "@/components/checkout/BillingForm";
-import { checkoutService } from "@/lib/services/checkout";
+import { checkoutService, stripeCardPaymentData, findClientSecret } from "@/lib/services/checkout";
 
 interface OrderPaymentFormProps {
   orderId: number;
@@ -101,40 +101,35 @@ function PaymentFields({ orderId, orderKey, total, onPaid, onCancel }: OrderPaym
         throw new Error(pmError?.message ?? "Failed to process card details.");
       }
 
-      const base = {
+      const result = await checkoutService.payOrderViaStore(orderId, {
         key: orderKey,
         billing_address: billing,
         shipping_address: billing,
         payment_method: "stripe",
-      };
-
-      let result = await checkoutService.payOrderViaStore(orderId, {
-        ...base,
-        payment_data: [{ key: "stripe_payment_method", value: paymentMethod.id }],
+        payment_data: stripeCardPaymentData(paymentMethod.id),
       });
 
-      // Handle 3DS / SCA.
+      // Deferred-intent SCA: order + PaymentIntent already exist server-side. On
+      // `requires_action` we finish 3DS client-side; the gateway finalizes the
+      // order — no second checkout POST (would duplicate the charge).
       if (result.payment_result.payment_status === "requires_action") {
-        const clientSecret = result.payment_result.payment_details.find(
-          (d) => d.key === "client_secret",
-        )?.value;
-
+        const clientSecret = findClientSecret(result.payment_result.payment_details);
         if (!clientSecret) {
-          throw new Error("3D Secure required but no client secret was provided.");
+          throw new Error("Card authentication required but no client secret was provided.");
         }
 
-        const { error: actionError, paymentIntent } = await stripe.handleCardAction(clientSecret);
-        if (actionError) {
-          throw new Error(actionError.message ?? "3D Secure verification failed.");
-        }
-
-        result = await checkoutService.payOrderViaStore(orderId, {
-          ...base,
-          payment_data: [
-            { key: "stripe_payment_method", value: paymentMethod.id },
-            { key: "stripe_payment_intent", value: paymentIntent!.id },
-          ],
+        const { error: actionError, paymentIntent } = await stripe.handleNextAction({
+          clientSecret,
         });
+        if (actionError) {
+          throw new Error(actionError.message ?? "Card authentication failed.");
+        }
+        if (paymentIntent?.status !== "succeeded") {
+          throw new Error("Payment was not completed. Please try again.");
+        }
+
+        onPaid();
+        return;
       }
 
       if (result.payment_result.payment_status !== "success") {

@@ -193,12 +193,51 @@ function fromMinorUnit(value: string | undefined, minorUnit: number): number {
 
 // ─── WC Store API checkout ────────────────────────────────────────────────────
 
+export type PaymentDataEntry = { key: string; value: string | boolean };
+
 export interface WCStoreCheckoutPayload {
   billing_address: BillingAddress;
   shipping_address?: Partial<BillingAddress>;
   payment_method: string;
-  payment_data?: Array<{ key: string; value: string | boolean }>;
+  payment_data?: PaymentDataEntry[];
   customer_note?: string;
+}
+
+/**
+ * `payment_data` for the official WooCommerce Stripe gateway (`stripe`) over the
+ * WC Store API, verified against woocommerce-gateway-stripe v10.7.0 + WC core
+ * v10.7.0. The contract is non-obvious:
+ *
+ * WC core (`StoreApi/Legacy.php`) sets `$_POST = $context->payment_data` — i.e.
+ * the gateway sees ONLY these entries as `$_POST`. The top-level checkout
+ * `payment_method` field selects the gateway but does NOT populate
+ * `$_POST['payment_method']`. The UPE gateway derives the payment-method type
+ * from `$_POST['payment_method']` (`get_selected_payment_method_type_from_request`):
+ * a value of `stripe` ⇒ type `card`. So `payment_method` MUST be repeated here,
+ * or the type resolves empty and checkout fails with
+ * "The selected payment method type is invalid" (order created, left `failed`).
+ *
+ * - `payment_method` — the gateway id `stripe`; drives the type derivation.
+ * - `wc-stripe-payment-method` — the `pm_…` id (read at `$_POST['wc-stripe-payment-method']`).
+ * - `wc_payment_intent_id` — empty for a fresh charge (reused on SCA retry).
+ * - `save_payment_method` — `no`; we don't vault cards.
+ *
+ * Mirrors the keys the plugin's own block checkout JS emits (`build/upe-blocks.js`).
+ */
+export function stripeCardPaymentData(paymentMethodId: string): PaymentDataEntry[] {
+  return [
+    { key: "payment_method", value: "stripe" },
+    { key: "wc-stripe-payment-method", value: paymentMethodId },
+    { key: "wc_payment_intent_id", value: "" },
+    { key: "save_payment_method", value: "no" },
+  ];
+}
+
+/** Read the PaymentIntent client secret from a `requires_action` checkout response. */
+export function findClientSecret(
+  details: Array<{ key: string; value: string }>,
+): string | undefined {
+  return details.find((d) => d.key === "payment_intent_secret" || d.key === "client_secret")?.value;
 }
 
 export interface WCStoreCheckoutResponse {
@@ -258,7 +297,7 @@ export const checkoutService = {
       billing_address: BillingAddress;
       shipping_address?: Partial<BillingAddress>;
       payment_method: string;
-      payment_data: Array<{ key: string; value: string | boolean }>;
+      payment_data: PaymentDataEntry[];
     },
   ) =>
     cartFetch<WCStoreCheckoutResponse>(`/api/orders/${orderId}/store-pay`, {

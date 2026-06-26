@@ -37,8 +37,25 @@ export interface CartTotals {
   currency: string;
 }
 
+/** Customer billing/shipping returned by the WC Store API (logged-in customers). */
+export interface CartAddress {
+  first_name?: string;
+  last_name?: string;
+  company?: string;
+  address_1?: string;
+  address_2?: string;
+  city?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+  email?: string;
+  phone?: string;
+}
+
 export interface Cart extends CartTotals {
   items: CartItem[];
+  /** Saved billing address for the logged-in customer; empty strings for guests. */
+  billingAddress?: CartAddress;
 }
 
 // ─── WC Store API raw types ───────────────────────────────────────────────────
@@ -97,6 +114,8 @@ export interface WCStoreCart {
     tax_lines: Array<{ name: string; price: string; rate: string }>;
   };
   items_count: number;
+  billing_address?: CartAddress;
+  shipping_address?: CartAddress;
 }
 
 // ─── Normalization ────────────────────────────────────────────────────────────
@@ -154,6 +173,7 @@ export function normalizeWCCart(wc: WCStoreCart): Cart {
     coupon_code: wc.coupons?.[0]?.code ?? null,
     item_count: wc.items_count,
     currency: decodeEntities(wc.totals.currency_symbol),
+    billingAddress: wc.billing_address,
   };
 }
 

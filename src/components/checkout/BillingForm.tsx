@@ -1,8 +1,9 @@
 "use client";
 
-import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { cn } from "@/lib/utils/cn";
+import { COUNTRIES } from "@/lib/constants/countries";
 import type { BillingDetails } from "@/lib/services/checkout";
 
 export interface BillingFormHandle {
@@ -13,18 +14,6 @@ export interface BillingFormHandle {
 interface BillingFormProps {
   defaultValues?: Partial<BillingDetails>;
 }
-
-const COUNTRIES = [
-  { code: "GB", name: "United Kingdom" },
-  { code: "US", name: "United States" },
-  { code: "CA", name: "Canada" },
-  { code: "AU", name: "Australia" },
-  { code: "IE", name: "Ireland" },
-  { code: "DE", name: "Germany" },
-  { code: "FR", name: "France" },
-  { code: "NL", name: "Netherlands" },
-  { code: "IN", name: "India" },
-];
 
 const inputClass =
   "w-full rounded-[4.8px] border border-[#ced4da] bg-white px-4 py-2.5 text-[#00204a] placeholder:text-[#6c757d] focus:border-[#9e6f21] focus:outline-none focus:ring-1 focus:ring-[#9e6f21] text-base";
@@ -37,12 +26,24 @@ export const BillingForm = forwardRef<BillingFormHandle, BillingFormProps>(
       register,
       getValues,
       trigger,
+      reset,
       formState: { errors },
     } = useForm<BillingDetails>({
       defaultValues: { country: "GB", ...defaultValues },
     });
 
     useImperativeHandle(ref, () => ({ getValues, trigger }));
+
+    // Prefill once when customer billing arrives (cart loads after mount).
+    // Guard with a ref so later edits are never clobbered by a refetch.
+    const prefilled = useRef(false);
+    useEffect(() => {
+      if (prefilled.current || !defaultValues) return;
+      const hasData = Object.values(defaultValues).some((v) => v);
+      if (!hasData) return;
+      reset({ country: "GB", ...defaultValues });
+      prefilled.current = true;
+    }, [defaultValues, reset]);
 
     return (
       <div className="space-y-6">
@@ -68,11 +69,7 @@ export const BillingForm = forwardRef<BillingFormHandle, BillingFormProps>(
 
         {/* Company (optional) */}
         <div>
-          <input
-            {...register("company")}
-            placeholder="Company (optional)"
-            className={inputClass}
-          />
+          <input {...register("company")} placeholder="Company (optional)" className={inputClass} />
         </div>
 
         {/* Address row */}
