@@ -1,9 +1,11 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type RegisterOptions } from "react-hook-form";
 import { cn } from "@/lib/utils/cn";
 import { COUNTRIES } from "@/lib/constants/countries";
+import { useCheckoutFields } from "@/lib/hooks/useCheckoutFields";
+import type { CheckoutField, CheckoutFieldOption } from "@/lib/services/checkout-fields";
 import type { BillingDetails } from "@/lib/services/checkout";
 
 export interface BillingFormHandle {
@@ -20,8 +22,70 @@ const inputClass =
 
 const errorClass = "mt-1 text-xs text-[#dc3545]";
 
+/** Used only if the checkout-fields endpoint fails, so checkout still works. */
+const FALLBACK_FIELDS: CheckoutField[] = [
+  {
+    key: "first_name",
+    label: "First name",
+    type: "text",
+    required: true,
+    priority: 10,
+    placeholder: "First Name *",
+    class: ["form-row-first"],
+    options: null,
+  },
+  {
+    key: "last_name",
+    label: "Last name",
+    type: "text",
+    required: true,
+    priority: 20,
+    placeholder: "Last Name *",
+    class: ["form-row-last"],
+    options: null,
+  },
+  {
+    key: "country",
+    label: "Country",
+    type: "country",
+    required: true,
+    priority: 40,
+    placeholder: "",
+    class: ["form-row-wide"],
+    options: null,
+  },
+  {
+    key: "email",
+    label: "Email address",
+    type: "email",
+    required: true,
+    priority: 100,
+    placeholder: "Email Address *",
+    class: ["form-row-wide"],
+    options: null,
+  },
+  {
+    key: "phone",
+    label: "Phone",
+    type: "tel",
+    required: false,
+    priority: 110,
+    placeholder: "Phone (optional)",
+    class: ["form-row-wide"],
+    options: null,
+  },
+];
+
+const COUNTRY_FALLBACK: CheckoutFieldOption[] = COUNTRIES.map((c) => ({
+  value: c.code,
+  label: c.name,
+}));
+
 export const BillingForm = forwardRef<BillingFormHandle, BillingFormProps>(
   ({ defaultValues }, ref) => {
+    const { data, isLoading, isError } = useCheckoutFields();
+    const fields = data && data.length > 0 ? data : isError ? FALLBACK_FIELDS : [];
+
     const {
       register,
       getValues,
@@ -45,117 +109,66 @@ export const BillingForm = forwardRef<BillingFormHandle, BillingFormProps>(
       prefilled.current = true;
     }, [defaultValues, reset]);
 
+    if (isLoading && fields.length === 0) {
+      return (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-[46px] animate-pulse rounded-[4.8px] bg-gray-100" />
+          ))}
+        </div>
+      );
+    }
+
     return (
-      <div className="space-y-6">
-        {/* Name row */}
-        <div className="flex gap-6">
-          <div className="flex-1">
-            <input
-              {...register("first_name", { required: "First name is required" })}
-              placeholder="First Name *"
-              className={cn(inputClass, errors.first_name && "border-[#dc3545]")}
-            />
-            {errors.first_name && <p className={errorClass}>{errors.first_name.message}</p>}
-          </div>
-          <div className="flex-1">
-            <input
-              {...register("last_name", { required: "Last name is required" })}
-              placeholder="Last Name *"
-              className={cn(inputClass, errors.last_name && "border-[#dc3545]")}
-            />
-            {errors.last_name && <p className={errorClass}>{errors.last_name.message}</p>}
-          </div>
-        </div>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        {fields.map((field) => {
+          const name = field.key as keyof BillingDetails;
+          const placeholder =
+            field.placeholder ||
+            (field.required ? `${field.label} *` : `${field.label} (optional)`);
+          const rules: RegisterOptions<BillingDetails> = {
+            required: field.required ? `${field.label} is required` : false,
+            ...(field.type === "email"
+              ? { pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email address" } }
+              : {}),
+          };
+          const error = errors[name];
+          const hasError = Boolean(error);
+          const options = field.options ?? (field.type === "country" ? COUNTRY_FALLBACK : null);
 
-        {/* Company (optional) */}
-        <div>
-          <input {...register("company")} placeholder="Company (optional)" className={inputClass} />
-        </div>
-
-        {/* Address row */}
-        <div>
-          <input
-            {...register("address_1", { required: "Address is required" })}
-            placeholder="Street Address *"
-            className={cn(inputClass, errors.address_1 && "border-[#dc3545]")}
-          />
-          {errors.address_1 && <p className={errorClass}>{errors.address_1.message}</p>}
-        </div>
-        <div>
-          <input
-            {...register("address_2")}
-            placeholder="Apartment, suite, etc. (optional)"
-            className={inputClass}
-          />
-        </div>
-
-        {/* City + Postcode */}
-        <div className="flex gap-6">
-          <div className="flex-1">
-            <input
-              {...register("city", { required: "City is required" })}
-              placeholder="City *"
-              className={cn(inputClass, errors.city && "border-[#dc3545]")}
-            />
-            {errors.city && <p className={errorClass}>{errors.city.message}</p>}
-          </div>
-          <div className="flex-1">
-            <input
-              {...register("postcode", { required: "Postcode is required" })}
-              placeholder="Postcode *"
-              className={cn(inputClass, errors.postcode && "border-[#dc3545]")}
-            />
-            {errors.postcode && <p className={errorClass}>{errors.postcode.message}</p>}
-          </div>
-        </div>
-
-        {/* Country + State */}
-        <div className="flex gap-6">
-          <div className="flex-1">
-            <select
-              {...register("country", { required: "Country is required" })}
-              className={cn(inputClass, "cursor-pointer", errors.country && "border-[#dc3545]")}
-            >
-              {COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            {errors.country && <p className={errorClass}>{errors.country.message}</p>}
-          </div>
-          <div className="flex-1">
-            <input
-              {...register("state")}
-              placeholder="State / County (optional)"
-              className={inputClass}
-            />
-          </div>
-        </div>
-
-        {/* Email + Phone */}
-        <div className="flex gap-6">
-          <div className="flex-1">
-            <input
-              {...register("email", {
-                required: "Email is required",
-                pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email address" },
-              })}
-              type="email"
-              placeholder="Email Address *"
-              className={cn(inputClass, errors.email && "border-[#dc3545]")}
-            />
-            {errors.email && <p className={errorClass}>{errors.email.message}</p>}
-          </div>
-          <div className="flex-1">
-            <input
-              {...register("phone")}
-              type="tel"
-              placeholder="Phone (optional)"
-              className={inputClass}
-            />
-          </div>
-        </div>
+          return (
+            <div key={field.key}>
+              {options && options.length > 0 ? (
+                <select
+                  {...register(name, rules)}
+                  className={cn(inputClass, "cursor-pointer", hasError && "border-[#dc3545]")}
+                  aria-label={field.label}
+                >
+                  {options.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              ) : field.type === "textarea" ? (
+                <textarea
+                  {...register(name, rules)}
+                  placeholder={placeholder}
+                  rows={3}
+                  className={cn(inputClass, hasError && "border-[#dc3545]")}
+                />
+              ) : (
+                <input
+                  {...register(name, rules)}
+                  type={field.type === "email" ? "email" : field.type === "tel" ? "tel" : "text"}
+                  placeholder={placeholder}
+                  className={cn(inputClass, hasError && "border-[#dc3545]")}
+                />
+              )}
+              {error && <p className={errorClass}>{String(error.message)}</p>}
+            </div>
+          );
+        })}
       </div>
     );
   },

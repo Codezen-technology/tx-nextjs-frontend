@@ -180,6 +180,7 @@ export const endpoints = {
     get: `${lms}/settings`,
     promoBanner: `${lms}/promo-banner`,
     membershipUpsell: `${lms}/membership-upsell`,
+    checkoutFields: `${lms}/checkout-fields`,
   },
   footer: {
     get: `${lms}/footer`,
