@@ -71,7 +71,7 @@ const ACCOUNT_LINKS = [
 export function ProfileMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const logout = useLogout();
   const { data: wpUser } = useMe();
 
@@ -90,7 +90,7 @@ export function ProfileMenu() {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
-  if (!user) return null;
+  if (!isAuthenticated || !user) return null;
 
   return (
     <div ref={ref} className="relative">
@@ -224,14 +224,14 @@ export function ProfileMenu() {
 
 /** Flat list of profile nav links for mobile drawer — no dropdown */
 export function ProfileNavLinks({ onClose }: { onClose: () => void }) {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const logout = useLogout();
   const { data: wpUser } = useMe();
   const isBusinessUser = hasBusinessAccess(wpUser?.roles);
   const b2bPluginActive = useB2BPluginActive();
   const showBusinessDashboard = isBusinessUser && b2bPluginActive;
 
-  if (!user) return null;
+  if (!isAuthenticated || !user) return null;
 
   return (
     <>

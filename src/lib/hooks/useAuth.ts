@@ -24,15 +24,25 @@ function wpUserToAuthUser(u: WpUser) {
 export function useAuth() {
   const user = useAuthStore((s) => s.user);
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const clearUser = useAuthStore((s) => s.logout);
   const [cookieAuthed, setCookieAuthed] = useState(false);
 
   useEffect(() => {
-    setCookieAuthed(hasUserLoggedInCookie());
-  }, [user]);
+    const authed = hasUserLoggedInCookie();
+    setCookieAuthed(authed);
+    // Reconcile split-brain: the `user_logged_in` cookie is the authoritative
+    // session signal (it's what the proxy trusts). If a persisted user survives
+    // in localStorage but the cookie is gone (expiry / logout elsewhere), the
+    // session is over — clear the stale user so UI matches the route guards.
+    if (hasHydrated && user && !authed) {
+      clearUser();
+    }
+  }, [user, hasHydrated, clearUser]);
 
   return {
     user,
-    isAuthenticated: Boolean(user) || cookieAuthed,
+    // Authoritative on the cookie, not the persisted display data.
+    isAuthenticated: hasHydrated && cookieAuthed,
     hasHydrated,
   };
 }
