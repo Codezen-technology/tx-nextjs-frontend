@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { CourseCard } from "@/components/courses/course-card";
@@ -32,33 +32,57 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
   const [active, setActive] = useState(0);
   const total = courses.length;
 
-  if (total === 0) return null;
-
   const prev = () => setActive((a) => (a - 1 + total) % total);
   const next = () => setActive((a) => (a + 1) % total);
 
-  // active course sits at FRONT (index 1 of CARD_OFFSETS)
-  // ordered[0] = active-1  → behind-left
-  // ordered[1] = active    → FRONT
-  // ordered[2] = active+1  → right
-  // ordered[3] = active+2  → far-right
-  const count = Math.min(total, 4);
-  const ordered = Array.from(
-    { length: count },
-    (_, j) => courses[(active - 1 + j + total) % total],
-  );
+  // Each course maps to a slot relative to the active card:
+  //   slot 0 = behind-left, 1 = FRONT (active), 2 = right, 3 = far-right.
+  // Courses whose slot falls outside CARD_OFFSETS are off-window and not rendered.
+  const slotOf = (ci: number) => (ci - (active - 1) + total) % total;
+
+  // Cards are rendered in STABLE course order (never reordered) and positioned purely by
+  // transform. Reordering keyed nodes makes React insertBefore them, which interrupts the
+  // CSS transition (this is why prev used to snap with no animation). Fixed DOM order keeps
+  // both directions gliding.
+  //
+  // With `count` cards filling `count` slots, every step forces exactly one card to recycle
+  // from one end of the strip to the other. Animating that sweep reads as a jarring "jump to
+  // the end", so the recycling card snaps (transition off) while the rest glide one slot.
+  const SNAP_THRESHOLD = 300;
+  const lastX = useRef<Map<number, number>>(new Map());
+  const snap = new Set<number>();
+  courses.forEach((course, ci) => {
+    const offset = CARD_OFFSETS[slotOf(ci)];
+    if (!offset) return;
+    const prevX = lastX.current.get(course.id);
+    if (prevX !== undefined && Math.abs(offset.x - prevX) > SNAP_THRESHOLD) snap.add(course.id);
+  });
+  useEffect(() => {
+    const m = new Map<number, number>();
+    courses.forEach((course, ci) => {
+      const offset = CARD_OFFSETS[slotOf(ci)];
+      if (offset) m.set(course.id, offset.x);
+    });
+    lastX.current = m;
+  });
+
+  if (total === 0) return null;
 
   return (
     <div className="relative hidden lg:flex lg:flex-1 lg:flex-col">
       {/* Stacked cards — anchored at behind-left card origin */}
       <div className="relative h-[500px] w-full overflow-visible">
-        {ordered.map((course, idx) => {
-          const offset = CARD_OFFSETS[idx];
+        {courses.map((course, ci) => {
+          const offset = CARD_OFFSETS[slotOf(ci)];
           if (!offset) return null;
           return (
             <div
               key={course.id}
-              className={cn("absolute w-[306px] transition-all duration-500", offset.shadow)}
+              className={cn(
+                "absolute w-[306px]",
+                snap.has(course.id) ? "transition-none" : "transition-all duration-500",
+                offset.shadow,
+              )}
               style={{
                 transform: `translateX(${offset.x}px) translateY(${offset.y}px) scale(${offset.scale})`,
                 zIndex: offset.z,

@@ -58,13 +58,13 @@ export function CartItemRow({ item }: CartItemRowProps) {
   return (
     <div
       className={cn(
-        "flex items-center justify-between border-b border-gray-100 py-6 transition-opacity",
+        "flex flex-col gap-4 border-b border-gray-100 py-6 transition-opacity sm:flex-row sm:items-center sm:justify-between",
         isRemoving && "pointer-events-none opacity-50",
       )}
     >
       {/* Thumbnail + title */}
-      <div className="flex items-center gap-4">
-        <div className="relative h-20 w-[120px] shrink-0 overflow-hidden rounded bg-gray-100">
+      <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+        <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded bg-gray-100 sm:h-20 sm:w-[120px]">
           {item.thumbnail ? (
             <Image
               src={item.thumbnail}
@@ -101,7 +101,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
       </div>
 
       {/* Controls */}
-      <div className="flex shrink-0 items-center gap-6 pl-4">
+      <div className="flex shrink-0 items-center gap-4 pl-0 sm:gap-6 sm:pl-4">
         {showStepper ? (
           <div
             className={cn(
