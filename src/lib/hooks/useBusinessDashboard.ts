@@ -344,3 +344,19 @@ export function useAddBusinessManager() {
     },
   });
 }
+
+/** Probe wp-lms-b2b-rest-api via GET /status — null when plugin inactive (404). */
+export function useB2BPluginStatus() {
+  return useQuery({
+    queryKey: queryKeys.business.pluginStatus,
+    queryFn: () => businessDashboardService.getPluginStatus(),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+}
+
+/** True when the B2B REST API plugin is loaded (active). */
+export function useB2BPluginActive(): boolean {
+  const { data } = useB2BPluginStatus();
+  return !!data?.active;
+}

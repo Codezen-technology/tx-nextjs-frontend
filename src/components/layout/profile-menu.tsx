@@ -15,6 +15,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import { useAuth, useLogout, useMe } from "@/lib/hooks/useAuth";
+import { useB2BPluginActive } from "@/lib/hooks/useBusinessDashboard";
 import { hasBusinessAccess } from "@/components/business/business-access-guard";
 import { cn } from "@/lib/utils/cn";
 
@@ -75,6 +76,8 @@ export function ProfileMenu() {
   const { data: wpUser } = useMe();
 
   const isBusinessUser = hasBusinessAccess(wpUser?.roles);
+  const b2bPluginActive = useB2BPluginActive();
+  const showBusinessDashboard = isBusinessUser && b2bPluginActive;
   const initials = user ? getInitials(user.displayName) : "?";
   const avatarSrc =
     wpUser?.avatar_urls?.["48"] ?? wpUser?.avatar_urls?.["96"] ?? wpUser?.avatar_urls?.["24"];
@@ -139,7 +142,7 @@ export function ProfileMenu() {
               <LayoutDashboard className="h-4 w-4 shrink-0" />
               Go to My Dashboard
             </Link>
-            {isBusinessUser && (
+            {showBusinessDashboard && (
               <Link
                 href="/business-dashboard"
                 onClick={() => setOpen(false)}
@@ -225,6 +228,8 @@ export function ProfileNavLinks({ onClose }: { onClose: () => void }) {
   const logout = useLogout();
   const { data: wpUser } = useMe();
   const isBusinessUser = hasBusinessAccess(wpUser?.roles);
+  const b2bPluginActive = useB2BPluginActive();
+  const showBusinessDashboard = isBusinessUser && b2bPluginActive;
 
   if (!user) return null;
 
@@ -237,7 +242,7 @@ export function ProfileNavLinks({ onClose }: { onClose: () => void }) {
       >
         My Dashboard
       </Link>
-      {isBusinessUser && (
+      {showBusinessDashboard && (
         <Link
           href="/business-dashboard"
           onClick={onClose}

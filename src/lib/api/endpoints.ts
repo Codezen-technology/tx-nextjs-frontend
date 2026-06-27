@@ -228,6 +228,7 @@ export const endpoints = {
    * These are full WP REST paths; BFF routes call `proxyToB2B(path)`.
    */
   business: {
+    status: `${b2b}/status`,
     summary: `${b2b}/reports/summary`,
     current: `${b2b}/businesses/current`,
     creditBalance: `${b2b}/credits/balance`,

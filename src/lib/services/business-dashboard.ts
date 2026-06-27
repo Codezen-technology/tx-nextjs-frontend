@@ -6,6 +6,7 @@ import type {
   AssignmentsResponse,
   AssignedSubscription,
   AvailableLearnersResponse,
+  B2BPluginStatus,
   Business,
   BusinessListParams,
   BusinessManager,
@@ -52,6 +53,15 @@ function buildQuery(params: Record<string, string | number | boolean | undefined
 }
 
 export const businessDashboardService = {
+  /** Public probe — GET lms-b2b/v1/status (no auth). Returns null when plugin inactive. */
+  async getPluginStatus(): Promise<B2BPluginStatus | null> {
+    try {
+      return await bffJson<B2BPluginStatus>("/api/business/status");
+    } catch {
+      return null;
+    }
+  },
+
   async getSummary(): Promise<BusinessSummary> {
     return bffJson<BusinessSummary>("/api/business/summary");
   },

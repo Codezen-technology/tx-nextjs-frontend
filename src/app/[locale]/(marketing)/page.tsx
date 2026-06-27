@@ -15,14 +15,24 @@ import { Topbar } from "@/components/home/topbar";
 export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
-  setRequestLocale(await getLocale());
-  const seo = await fetchRankMathSeo("/");
-  return buildPageMetadata(seo, {
-    title: env.SITE_NAME || "Training Excellence — Online Courses",
-    description:
-      "Fully accredited online training courses in health & safety, food hygiene, safeguarding, mental health and more. Trusted by thousands across the UK.",
-    canonical: env.SITE_URL.replace(/\/$/, ""),
-  });
+  try {
+    setRequestLocale(await getLocale());
+    const seo = await fetchRankMathSeo("/");
+    console.log({ seo });
+    return buildPageMetadata(seo, {
+      title: env.SITE_NAME || "Training Excellence — Online Courses",
+      description:
+        "Fully accredited online training courses in health & safety, food hygiene, safeguarding, mental health and more. Trusted by thousands across the UK.",
+      canonical: env.SITE_URL.replace(/\/$/, ""),
+    });
+  } catch (error) {
+    console.error("Error generating metadata:", error);
+    return {
+      title: env.SITE_NAME || "Training Excellence — Online Courses",
+      description:
+        "Fully accredited online training courses in health & safety, food hygiene, safeguarding, mental health and more. Trusted by thousands across the UK.",
+    };
+  }
 }
 
 const siteUrl = env.SITE_URL.replace(/\/$/, "");

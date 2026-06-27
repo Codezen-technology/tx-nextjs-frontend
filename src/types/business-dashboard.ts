@@ -448,6 +448,18 @@ export interface SubmitReviewPayload {
 
 // ─── Team mutations ──────────────────────────────────────────────────────────────
 
+/** Response from GET lms-b2b/v1/status — public plugin activation probe. */
+export interface B2BPluginStatus {
+  active: boolean;
+  ready: boolean;
+  plugin?: string;
+  version?: string;
+  namespace?: string;
+  mode?: "standalone" | "proxy";
+  missing_dependencies?: string[];
+  timestamp?: string;
+}
+
 export interface AddLearnerPayload {
   email: string;
   first_name: string;

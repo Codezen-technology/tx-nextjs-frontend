@@ -35,25 +35,30 @@ export { stringifyJsonLd };
  * @returns Parsed SEO data, or null if Rank Math is unreachable or disabled
  */
 export async function fetchRankMathSeo(wpPath: string): Promise<ParsedSeo | null> {
-  const wpBase = env.WP_API_URL.replace(/\/$/, "");
+  try {
+    const wpBase = env.WP_API_URL.replace(/\/$/, "");
+    console.log({ wpBase, wpPath });
+    const head = await serverApi.rankmath.getHead(`${wpBase}${wpPath}`);
+    if (!head) return null;
 
-  const head = await serverApi.rankmath.getHead(`${wpBase}${wpPath}`);
-  if (!head) return null;
+    const seo = parseRankMathHead(head);
 
-  const seo = parseRankMathHead(head);
+    // Rewrite all backend-origin URLs to the headless frontend origin.
+    // See src/lib/utils/url.ts for the shared rewriting rules.
+    if (seo.canonical) {
+      seo.canonical = toFrontendUrl(seo.canonical);
+    }
 
-  // Rewrite all backend-origin URLs to the headless frontend origin.
-  // See src/lib/utils/url.ts for the shared rewriting rules.
-  if (seo.canonical) {
-    seo.canonical = toFrontendUrl(seo.canonical);
+    // Patch WP domain in JSON-LD (affects @id, url, mainEntityOfPage, etc.)
+    if (seo.jsonLd?.length) {
+      seo.jsonLd = JSON.parse(replaceWpOrigin(JSON.stringify(seo.jsonLd))) as typeof seo.jsonLd;
+    }
+
+    return seo;
+  } catch (error) {
+    console.error("Error fetching Rank Math SEO:", error);
+    return null;
   }
-
-  // Patch WP domain in JSON-LD (affects @id, url, mainEntityOfPage, etc.)
-  if (seo.jsonLd?.length) {
-    seo.jsonLd = JSON.parse(replaceWpOrigin(JSON.stringify(seo.jsonLd))) as typeof seo.jsonLd;
-  }
-
-  return seo;
 }
 
 interface MetadataFallback {

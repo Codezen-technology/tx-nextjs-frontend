@@ -134,5 +134,6 @@ export const queryKeys = {
     reviewHas: ["business", "review-has"] as const,
     courseLicenceBalance: (courseId: number) =>
       ["business", "course-licence-balance", courseId] as const,
+    pluginStatus: ["business", "plugin-status"] as const,
   },
 } as const;
