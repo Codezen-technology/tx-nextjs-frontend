@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft , ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { CourseCard } from "@/components/courses/course-card";
 import type { Course } from "@/types/course";
@@ -16,8 +16,14 @@ interface HeroCarouselProps {
 //   right-1     x=383 y=+20  scale=0.905  z=30
 //   far-right   x=560 y=+44  scale=0.797  z=10
 const CARD_OFFSETS = [
-  { x: 0,   y: 20, scale: 0.905, z: 20, shadow: "" },
-  { x: 177, y: 0,  scale: 1.0,   z: 40, shadow: "[filter:drop-shadow(0px_16px_48px_rgba(0,0,0,0.18))]" },
+  { x: 0, y: 20, scale: 0.905, z: 20, shadow: "" },
+  {
+    x: 177,
+    y: 0,
+    scale: 1.0,
+    z: 40,
+    shadow: "[filter:drop-shadow(0px_16px_48px_rgba(0,0,0,0.18))]",
+  },
   { x: 383, y: 20, scale: 0.905, z: 30, shadow: "" },
   { x: 560, y: 44, scale: 0.797, z: 10, shadow: "" },
 ] as const;
@@ -25,6 +31,8 @@ const CARD_OFFSETS = [
 export function HeroCarousel({ courses }: HeroCarouselProps) {
   const [active, setActive] = useState(0);
   const total = courses.length;
+
+  if (total === 0) return null;
 
   const prev = () => setActive((a) => (a - 1 + total) % total);
   const next = () => setActive((a) => (a + 1) % total);
@@ -35,8 +43,9 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
   // ordered[2] = active+1  → right
   // ordered[3] = active+2  → far-right
   const count = Math.min(total, 4);
-  const ordered = Array.from({ length: count }, (_, j) =>
-    courses[(active - 1 + j + total) % total],
+  const ordered = Array.from(
+    { length: count },
+    (_, j) => courses[(active - 1 + j + total) % total],
   );
 
   return (
@@ -49,10 +58,7 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
           return (
             <div
               key={course.id}
-              className={cn(
-                "absolute w-[306px] transition-all duration-500",
-                offset.shadow,
-              )}
+              className={cn("absolute w-[306px] transition-all duration-500", offset.shadow)}
               style={{
                 transform: `translateX(${offset.x}px) translateY(${offset.y}px) scale(${offset.scale})`,
                 zIndex: offset.z,
@@ -66,9 +72,7 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
       </div>
 
       {/* Navigation — aligned below the FRONT card centre (front starts at x=177, width=306 → centre=330) */}
-      <div
-        className="flex items-center gap-6 justify-center"
-      >
+      <div className="flex items-center justify-center gap-6">
         <button
           onClick={prev}
           aria-label="Previous course"
@@ -86,7 +90,7 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
                 "h-2 w-2 rounded-full transition-all duration-200",
                 i === active
                   ? "scale-125 bg-black"
-                  : "bg-transparent border border-[#3B5374] hover:bg-black",
+                  : "border border-[#3B5374] bg-transparent hover:bg-black",
               )}
             />
           ))}

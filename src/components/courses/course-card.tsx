@@ -8,9 +8,11 @@ import Link from "next/link";
 interface CourseCardProps {
   course: Course;
   className?: string;
+  /** Eager-load + high fetchpriority for above-the-fold (LCP) cards */
+  priority?: boolean;
 }
 
-export function CourseCard({ course, className }: CourseCardProps) {
+export function CourseCard({ course, className, priority = false }: CourseCardProps) {
   const badges = course.categories?.slice(0, 3) ?? [];
 
   return (
@@ -27,6 +29,7 @@ export function CourseCard({ course, className }: CourseCardProps) {
               src={course.featuredImage}
               alt={course.title}
               fill
+              priority={priority}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
               className="object-cover transition-transform duration-300 hover:scale-105"
             />

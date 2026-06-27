@@ -18,7 +18,6 @@ export async function generateMetadata(): Promise<Metadata> {
   try {
     setRequestLocale(await getLocale());
     const seo = await fetchRankMathSeo("/");
-    console.log({ seo });
     return buildPageMetadata(seo, {
       title: env.SITE_NAME || "Training Excellence — Online Courses",
       description:
@@ -26,7 +25,6 @@ export async function generateMetadata(): Promise<Metadata> {
       canonical: env.SITE_URL.replace(/\/$/, ""),
     });
   } catch (error) {
-    console.error("Error generating metadata:", error);
     return {
       title: env.SITE_NAME || "Training Excellence — Online Courses",
       description:

@@ -107,7 +107,7 @@ export async function HeroSection({ headline }: HeroSectionProps) {
           <>
             <HeroCarousel courses={courses} />
             <div className="w-full lg:hidden">
-              <CourseCard course={courses[0]} />
+              <CourseCard course={courses[0]} priority />
             </div>
           </>
         )}

@@ -49,8 +49,8 @@ export async function PopularCourses({ limit = 8, header }: PopularCoursesProps)
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {courses.map((course) => (
-            <CourseCard key={course.id} course={course} />
+          {courses.map((course, i) => (
+            <CourseCard key={course.id} course={course} priority={i < 4} />
           ))}
         </div>
       </div>

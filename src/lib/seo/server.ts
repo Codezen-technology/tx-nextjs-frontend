@@ -37,7 +37,6 @@ export { stringifyJsonLd };
 export async function fetchRankMathSeo(wpPath: string): Promise<ParsedSeo | null> {
   try {
     const wpBase = env.WP_API_URL.replace(/\/$/, "");
-    console.log({ wpBase, wpPath });
     const head = await serverApi.rankmath.getHead(`${wpBase}${wpPath}`);
     if (!head) return null;
 
@@ -56,7 +55,6 @@ export async function fetchRankMathSeo(wpPath: string): Promise<ParsedSeo | null
 
     return seo;
   } catch (error) {
-    console.error("Error fetching Rank Math SEO:", error);
     return null;
   }
 }
