@@ -85,7 +85,7 @@ export function CategoriesScroller({ categories }: { categories?: CourseCategory
 
 function Item({ name, slug }: { name: string; slug: string }) {
   return (
-    <span className="flex shrink-0 items-center gap-6">
+    <span className="ml-2 flex shrink-0 items-center gap-6">
       <Link
         href={`/course-cat/${slug}`}
         className="whitespace-nowrap font-open-sans text-base font-normal leading-[1.5] text-white transition-colors hover:text-white/80"

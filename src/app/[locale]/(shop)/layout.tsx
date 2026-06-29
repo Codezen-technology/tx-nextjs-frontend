@@ -1,5 +1,8 @@
-import { SiteShell } from "@/components/layout/site-shell";
-
+/**
+ * Passthrough — each shop sub-route picks its own chrome:
+ *  - product, order-confirmation → full SiteShell
+ *  - cart, checkout → logo-only MinimalShell
+ */
 export default function ShopLayout({ children }: { children: React.ReactNode }) {
-  return <SiteShell>{children}</SiteShell>;
+  return <>{children}</>;
 }
