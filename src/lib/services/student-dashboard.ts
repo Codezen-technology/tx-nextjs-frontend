@@ -19,6 +19,12 @@ import type {
   SubscriptionPromosResponse,
   SubscriptionResponse,
   WcProduct,
+  UnlockCertificateResponse,
+  GenerateCertificateResponse,
+  CertificateOrderConfig,
+  CertificateOrderPayload,
+  CertificateOrderResponse,
+  MiscellaneousSettings,
 } from "@/types/student-dashboard";
 
 /** Shape `paginated_success` always returns from the PHP backend. */
@@ -100,6 +106,43 @@ export const studentDashboardService = {
         ...(message ? { message } : {}),
       }),
     });
+  },
+
+  async unlockCertificate(courseId: number): Promise<UnlockCertificateResponse> {
+    return bffJson<UnlockCertificateResponse>("/api/student/certificates/unlock", {
+      method: "POST",
+      body: JSON.stringify({ course_id: courseId }),
+    });
+  },
+
+  async generateCertificate(courseId: number): Promise<GenerateCertificateResponse> {
+    return bffJson<GenerateCertificateResponse>("/api/student/certificates/generate", {
+      method: "POST",
+      body: JSON.stringify({ course_id: courseId }),
+    });
+  },
+
+  async getCertificateOrderConfig(): Promise<CertificateOrderConfig> {
+    return bffJson<CertificateOrderConfig>("/api/student/certificate-orders/config");
+  },
+
+  async submitCertificateOrder(
+    payload: CertificateOrderPayload,
+  ): Promise<CertificateOrderResponse> {
+    return bffJson<CertificateOrderResponse>("/api/student/certificate-orders", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getMiscellaneousSettings(): Promise<MiscellaneousSettings> {
+    const raw = await bffJson<MiscellaneousSettings>("/api/admin/miscellaneous-settings");
+    return {
+      ...raw,
+      certificate_order_link: raw.certificate_order_link
+        ? toFrontendPath(raw.certificate_order_link)
+        : "/dashboard/certificate",
+    };
   },
 
   async getSubscription(): Promise<SubscriptionResponse> {

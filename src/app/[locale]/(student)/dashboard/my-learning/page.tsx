@@ -24,6 +24,9 @@ import {
   useStudentCertificates,
   useStudentCourses,
   useStudentSummary,
+  useUnlockCertificate,
+  useGenerateCertificate,
+  useMiscellaneousSettings,
 } from "@/lib/hooks/useStudentDashboard";
 import type { Certificate } from "@/types/student-dashboard";
 
@@ -59,11 +62,21 @@ export default function MyLearningPage() {
   const gridRef = useRef<HTMLDivElement>(null);
 
   const summaryQuery = useStudentSummary();
+  const miscQuery = useMiscellaneousSettings();
+  const unlockMutation = useUnlockCertificate();
+  const generateMutation = useGenerateCertificate();
   const counters = summaryQuery.data?.counters ?? {
     active: 0,
     completed: 0,
     certificates: 0,
   };
+  const creditsAvailable = summaryQuery.data?.certificate_credits_available ?? 0;
+  const hasActiveSubscription = summaryQuery.data?.has_active_subscription ?? false;
+  const certificateOrderLink = miscQuery.data?.certificate_order_link ?? "/dashboard/certificate";
+  const transcriptOrderLink = miscQuery.data?.transcript_order_link ?? "";
+
+  const handleClaim = (courseId: number) => unlockMutation.mutateAsync(courseId);
+  const handleGenerate = (courseId: number) => generateMutation.mutateAsync(courseId);
 
   const activeQuery = useStudentCourses({
     access: "active",
@@ -220,6 +233,18 @@ export default function MyLearningPage() {
         {/* ── Completed Training ── */}
         <TabsContent value="completed" className="mt-4">
           {completedQuery.isError && <DashboardErrorBanner />}
+
+          {hasActiveSubscription ? (
+            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-[#2e4450]">
+              Your active subscription includes certificate claims for completed courses.
+            </div>
+          ) : creditsAvailable > 0 ? (
+            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-[#2e4450]">
+              You have {creditsAvailable} certificate credit
+              {creditsAvailable !== 1 ? "s" : ""} available. Claim one on a completed course below.
+            </div>
+          ) : null}
+
           {completedQuery.isLoading ? (
             <>
               {/* Column headers */}
@@ -258,7 +283,19 @@ export default function MyLearningPage() {
               <hr className="mt-1 border-[#eaecee]" />
               <div>
                 {completedQuery.data.courses.map((course) => (
-                  <CompletedCourseRow key={course.id} course={course} />
+                  <CompletedCourseRow
+                    key={course.id}
+                    course={course}
+                    certificateOrderLink={certificateOrderLink}
+                    creditsAvailable={creditsAvailable}
+                    hasActiveSubscription={hasActiveSubscription}
+                    onClaim={handleClaim}
+                    onGenerate={handleGenerate}
+                    isClaiming={unlockMutation.isPending}
+                    isGenerating={generateMutation.isPending}
+                    claimingCourseId={unlockMutation.variables}
+                    generatingCourseId={generateMutation.variables}
+                  />
                 ))}
               </div>
               <Pagination
@@ -344,6 +381,16 @@ export default function MyLearningPage() {
                   key={cert.course_id}
                   certificate={cert}
                   onShare={setSelectedCert}
+                  certificateOrderLink={certificateOrderLink}
+                  transcriptOrderLink={transcriptOrderLink}
+                  creditsAvailable={creditsAvailable}
+                  hasActiveSubscription={hasActiveSubscription}
+                  onClaim={handleClaim}
+                  onGenerate={handleGenerate}
+                  isClaiming={unlockMutation.isPending}
+                  isGenerating={generateMutation.isPending}
+                  claimingCourseId={unlockMutation.variables}
+                  generatingCourseId={generateMutation.variables}
                 />
               ))}
               {certFilter === "all" && (

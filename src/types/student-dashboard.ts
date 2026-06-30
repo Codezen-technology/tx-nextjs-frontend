@@ -16,6 +16,8 @@ export interface StudentSummaryCounters {
 export interface StudentSummary {
   header: StudentSummaryHeader;
   counters: StudentSummaryCounters;
+  certificate_credits_available?: number;
+  has_active_subscription?: boolean;
 }
 
 export interface StudentCourse {
@@ -44,6 +46,9 @@ export interface StudentCourse {
   display_start_date: string;
   instructor?: (string | number)[];
   menu_order?: number;
+  is_certificate_unlocked?: string;
+  is_certificate_generated?: boolean;
+  certificate_url?: string;
 }
 
 export interface StudentCoursesResponse {
@@ -275,4 +280,52 @@ export interface CourseCategory {
 
 export interface AllCategoriesResponse {
   categories: CourseCategory[];
+}
+
+export interface UnlockCertificateResponse {
+  course_id: number;
+  credits_remaining: number;
+  is_certificate_unlocked: string;
+  is_certificate_generated: boolean;
+  claimed_via_subscription?: boolean;
+}
+
+export interface GenerateCertificateResponse {
+  course_id: number;
+  is_certificate_unlocked?: string;
+  is_certificate_generated: boolean;
+  certificate_url?: string;
+}
+
+export interface CertificateOrderConfig {
+  enabled: boolean;
+  product_id: number;
+  product_name: string;
+  price: number | null;
+  regular_price: number | null;
+  currency: string;
+}
+
+export interface CertificateOrderPayload {
+  course_id: number;
+  full_name: string;
+  email: string;
+  phone?: string;
+  address_line_1: string;
+  city: string;
+  postcode: string;
+  country: string;
+  delivery_notes?: string;
+}
+
+export interface CertificateOrderResponse {
+  request_id: number;
+  product_id: number;
+  course_id: number;
+}
+
+export interface MiscellaneousSettings {
+  order_certificate?: boolean;
+  certificate_order_link?: string;
+  transcript_order_link?: string;
 }

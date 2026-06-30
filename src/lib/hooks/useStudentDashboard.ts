@@ -7,6 +7,7 @@ import type {
   CertificatesParams,
   StudentCoursesParams,
   SubscriptionPlanSettings,
+  CertificateOrderPayload,
 } from "@/types/student-dashboard";
 
 export function useStudentSummary() {
@@ -103,6 +104,50 @@ export function useShareCertificate() {
       email: string;
       message?: string;
     }) => studentDashboardService.shareCertificate(courseId, email, message),
+  });
+}
+
+function invalidateCertificateQueries(qc: ReturnType<typeof useQueryClient>) {
+  void qc.invalidateQueries({ queryKey: queryKeys.student.summary });
+  void qc.invalidateQueries({ queryKey: ["student", "courses"] });
+  void qc.invalidateQueries({ queryKey: ["student", "certificates"] });
+}
+
+export function useUnlockCertificate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (courseId: number) => studentDashboardService.unlockCertificate(courseId),
+    onSuccess: () => invalidateCertificateQueries(qc),
+  });
+}
+
+export function useGenerateCertificate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (courseId: number) => studentDashboardService.generateCertificate(courseId),
+    onSuccess: () => invalidateCertificateQueries(qc),
+  });
+}
+
+export function useCertificateOrderConfig() {
+  return useQuery({
+    queryKey: ["student", "certificate-order-config"],
+    queryFn: () => studentDashboardService.getCertificateOrderConfig(),
+  });
+}
+
+export function useSubmitCertificateOrder() {
+  return useMutation({
+    mutationFn: (payload: CertificateOrderPayload) =>
+      studentDashboardService.submitCertificateOrder(payload),
+  });
+}
+
+export function useMiscellaneousSettings() {
+  return useQuery({
+    queryKey: ["admin", "miscellaneous-settings"],
+    queryFn: () => studentDashboardService.getMiscellaneousSettings(),
+    staleTime: 5 * 60 * 1000,
   });
 }
 
