@@ -3,8 +3,12 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
-import { serverApi } from "@/lib/api/server";
+import { fetchContactPage } from "@/lib/services/contact.server";
+import { GravityFormLoader } from "@/components/forms/gravity-form-loader";
 import { ContactForm } from "@/components/contact/contact-form";
+import type { ContactCard } from "@/types/contact";
+
+export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
@@ -17,56 +21,24 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export const revalidate = 3600;
-
-const FALLBACK_CONTACT = {
-  email: "hi@trainingexcellence.org.uk",
-  phone: "",
-  address: "",
-};
+function CardIcon({ icon }: { icon: string }) {
+  const cls = "h-5 w-5 text-[#00bbf0]";
+  if (icon === "office") return <MapPin className={cls} />;
+  if (icon === "phone") return <Phone className={cls} />;
+  return <Mail className={cls} />;
+}
 
 export default async function ContactPage() {
-  const footer = await serverApi.footer.get().catch(() => null);
-  const contact = {
-    email: footer?.contact?.email ?? FALLBACK_CONTACT.email,
-    phone: footer?.contact?.phone ?? FALLBACK_CONTACT.phone,
-    address: footer?.contact?.address ?? FALLBACK_CONTACT.address,
-  };
-
-  const cards = [
-    {
-      icon: Mail,
-      title: "Email",
-      description: "Our friendly team is here to help.",
-      value: contact.email,
-      href: `mailto:${contact.email}`,
-    },
-    {
-      icon: MapPin,
-      title: "Office",
-      description: "Come say hello at our office HQ.",
-      value: contact.address,
-      href: undefined,
-    },
-    {
-      icon: Phone,
-      title: "Phone",
-      description: "Mon-Fri from 8am to 5pm.",
-      value: contact.phone,
-      href: `tel:${contact.phone.replace(/[^+\d]/g, "")}`,
-    },
-  ];
+  setRequestLocale(await getLocale());
+  const content = await fetchContactPage();
 
   const contactSchema = {
     "@context": "https://schema.org",
     "@type": "ContactPage",
     name: "Contact Training Excellence",
-    description:
-      "Have questions about our courses or corporate training? Get in touch with our team.",
+    description: content.hero.text,
     url: `${env.SITE_URL.replace(/\/$/, "")}/contact-us`,
   };
-
-  const visibleCards = cards.filter((card) => Boolean(card.value?.trim()));
 
   return (
     <>
@@ -74,59 +46,80 @@ export default async function ContactPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: stringifyJsonLd(contactSchema) }}
       />
-      <section className="py-16">
-        <div className="container text-center">
-          <p className="font-open-sans text-sm font-semibold uppercase tracking-wide text-secondary-500">
-            Contact us
-          </p>
-          <h1 className="mt-2 font-suse text-4xl font-bold text-neutral-900">
-            Get in Touch with Us
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl font-open-sans text-neutral-500">
-            Have questions about our courses, corporate training solutions, or enrolment process?
-            We&apos;re here to help! Contact us anytime, and our team will assist you promptly.
-          </p>
 
-          <div className="mx-auto mt-12 grid max-w-3xl grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {visibleCards.map(({ icon: Icon, title, description, value, href }) => (
-              <div key={title} className="flex flex-col items-center">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-secondary-500">
-                  <Icon className="h-5 w-5" />
-                </span>
-                <h2 className="mt-4 font-suse text-lg font-bold text-neutral-900">{title}</h2>
-                <p className="mt-1 font-open-sans text-sm text-neutral-500">{description}</p>
-                {href ? (
-                  <a
-                    href={href}
-                    className="mt-3 font-open-sans text-sm font-semibold text-secondary-500 hover:text-secondary-600"
-                  >
-                    {value}
-                  </a>
-                ) : (
-                  <p className="mt-3 font-open-sans text-sm font-semibold text-secondary-500">
-                    {value}
-                  </p>
-                )}
-              </div>
+      {/* ── Hero ──────────────────────────────────────────────────────── */}
+      <section className="bg-white py-16">
+        <div className="container max-w-3xl text-center">
+          <p className="font-open-sans text-sm font-semibold uppercase tracking-wide text-[#00bbf0]">
+            {content.hero.eyebrow}
+          </p>
+          <h1 className="mt-3 font-suse text-3xl font-bold text-neutral-900 md:text-4xl">
+            {content.hero.heading}
+          </h1>
+          <p className="mt-4 font-open-sans text-neutral-600">{content.hero.text}</p>
+        </div>
+      </section>
+
+      {/* ── Contact cards ─────────────────────────────────────────────── */}
+      <section className="pb-6">
+        <div className="container">
+          <div className="mx-auto grid max-w-4xl gap-10 sm:grid-cols-3">
+            {content.cards.map((card, i) => (
+              <ContactInfoCard key={i} card={card} />
             ))}
           </div>
         </div>
       </section>
 
-      <section className="pb-20">
+      {/* ── Form ──────────────────────────────────────────────────────── */}
+      <section className="py-14">
         <div className="container max-w-xl">
           <div className="text-center">
-            <h2 className="font-suse text-3xl font-bold text-neutral-900">Send us a message</h2>
-            <p className="mt-3 font-open-sans text-neutral-500">
-              We&apos;d love to hear from you. Fill out the form and we&apos;ll get back to you
-              promptly.
+            <p className="font-open-sans text-sm font-semibold uppercase tracking-wide text-[#00bbf0]">
+              {content.form.eyebrow}
             </p>
+            <h2 className="mt-3 font-suse text-2xl font-bold text-neutral-900 md:text-3xl">
+              {content.form.heading}
+            </h2>
+            <p className="mt-3 font-open-sans text-neutral-600">{content.form.text}</p>
           </div>
-          <div className="mt-10">
-            <ContactForm />
+          <div className="mt-8">
+            {content.form.formId ? (
+              <GravityFormLoader formId={content.form.formId} fallback={<ContactForm />} />
+            ) : (
+              <ContactForm />
+            )}
           </div>
         </div>
       </section>
     </>
+  );
+}
+
+function ContactInfoCard({ card }: { card: ContactCard }) {
+  return (
+    <div className="flex flex-col items-center text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#e6f7fe]">
+        <CardIcon icon={card.icon} />
+      </div>
+      <h3 className="mt-4 font-suse text-base font-bold text-neutral-900">{card.title}</h3>
+      {card.description ? (
+        <p className="mt-1 font-open-sans text-sm text-neutral-500">{card.description}</p>
+      ) : null}
+      {card.value ? (
+        card.href ? (
+          <a
+            href={card.href}
+            className="mt-2 font-open-sans text-sm font-semibold text-secondary-500 hover:underline"
+          >
+            {card.value}
+          </a>
+        ) : (
+          <p className="mt-2 font-open-sans text-sm font-semibold text-secondary-500">
+            {card.value}
+          </p>
+        )
+      ) : null}
+    </div>
   );
 }
