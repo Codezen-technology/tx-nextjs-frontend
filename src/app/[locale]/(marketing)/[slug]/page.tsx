@@ -6,6 +6,7 @@ import { env } from "@/lib/env";
 import { serverApi } from "@/lib/api/server";
 import { normalizePage } from "@/lib/services/pages";
 import { BlockRenderer } from "@/components/blocks/block-renderer";
+import { GravityFormLoader } from "@/components/forms/gravity-form-loader";
 import { ParsedHtml } from "@/components/ui/parsed-html";
 
 export const revalidate = 300;
@@ -59,7 +60,7 @@ export default async function DynamicPage({ params }: PageProps) {
     return <BlockRenderer blocks={page.blocks} />;
   }
 
-  // Plain WP page → render rendered content.
+  // Plain WP page → render rendered content, then any [gravityform] embeds.
   return (
     <article className="py-12">
       <div className="container max-w-3xl">
@@ -71,6 +72,12 @@ export default async function DynamicPage({ params }: PageProps) {
           className="prose-wp font-open-sans text-[#3b5374]"
           content={page.content}
         />
+
+        {page.formIds.map((formId) => (
+          <div key={formId} className="mt-10">
+            <GravityFormLoader formId={formId} />
+          </div>
+        ))}
       </div>
     </article>
   );

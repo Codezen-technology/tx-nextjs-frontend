@@ -77,6 +77,13 @@ export interface CtaBannerBlock {
   button: PageCta | null;
 }
 
+/** Embeds a live Gravity Form (rendered via <GravityFormLoader>). */
+export interface GravityFormBlock {
+  type: "gravity_form";
+  form_id: number;
+  title: string;
+}
+
 /** Discriminated union of all landing-page block types (keys match the backend). */
 export type PageBlock =
   | HeroBlock
@@ -86,7 +93,8 @@ export type PageBlock =
   | TestimonialsBlock
   | SponsorsBlock
   | FaqBlock
-  | CtaBannerBlock;
+  | CtaBannerBlock
+  | GravityFormBlock;
 
 export interface PageContent {
   id: number;
@@ -97,6 +105,8 @@ export interface PageContent {
   content: string;
   excerpt: string;
   blocks: PageBlock[];
+  /** Gravity Forms embedded via [gravityform] in the page content. */
+  formIds: number[];
   modified: string | null;
 }
 

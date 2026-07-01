@@ -27,6 +27,15 @@ export function courseSlugPath(slug: string, subpath?: string): string {
 }
 
 export const endpoints = {
+  forms: {
+    detail: (id: number | string) => `${lms}/forms/${encodeURIComponent(String(id))}`,
+    validate: (id: number | string) => `${lms}/forms/${encodeURIComponent(String(id))}/validate`,
+    submit: (id: number | string) => `${lms}/forms/${encodeURIComponent(String(id))}/submissions`,
+  },
+  certificate: {
+    config: `${lms}/certificate/config`,
+    quote: `${lms}/certificate/quote`,
+  },
   auth: {
     login: `${lms}/auth/login`,
     register: `${lms}/auth/register`,

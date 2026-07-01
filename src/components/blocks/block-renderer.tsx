@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Quote, Star } from "lucide-react";
 import { ParsedHtml } from "@/components/ui/parsed-html";
 import { PopularCoursesBlock } from "./popular-courses-block";
+import { GravityFormLoader } from "@/components/forms/gravity-form-loader";
 import type { PageBlock } from "@/types/page";
 
 /**
@@ -232,6 +233,18 @@ function Block({ block }: { block: PageBlock }) {
                 </Link>
               )}
             </div>
+          </div>
+        </section>
+      );
+
+    case "gravity_form":
+      return (
+        <section className="py-12">
+          <div className="container max-w-2xl">
+            {block.title && (
+              <h2 className="mb-6 font-suse text-2xl font-bold text-neutral-900">{block.title}</h2>
+            )}
+            <GravityFormLoader formId={block.form_id} />
           </div>
         </section>
       );

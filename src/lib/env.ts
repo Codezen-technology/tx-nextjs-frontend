@@ -27,6 +27,13 @@ export const env = {
   // Stripe server-side secret key (server-only)
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ?? "",
 
+  // Stripe webhook signing secret (server-only) — verifies /api/certificate/webhook.
+  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET ?? "",
+
+  // Shared secret for server-to-server calls into the WP plugin (server-only).
+  // Must match wp-config `LMS_BACKEND_API_INTERNAL_SECRET`.
+  WP_INTERNAL_SECRET: process.env.WP_INTERNAL_SECRET ?? "",
+
   // Newsletter integration
   NEWSLETTER_PROVIDER_API_KEY: process.env.NEWSLETTER_PROVIDER_API_KEY ?? "",
 

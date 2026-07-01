@@ -12,6 +12,7 @@ export interface RawPage {
   content?: string;
   excerpt?: string;
   blocks?: PageBlock[];
+  form_ids?: number[];
   modified?: string | null;
 }
 
@@ -25,6 +26,7 @@ export function normalizePage(raw: RawPage): PageContent {
     content: raw.content ?? "",
     excerpt: decodeEntities(raw.excerpt ?? ""),
     blocks: Array.isArray(raw.blocks) ? raw.blocks : [],
+    formIds: Array.isArray(raw.form_ids) ? raw.form_ids : [],
     modified: raw.modified ?? null,
   };
 }
