@@ -17,17 +17,11 @@ interface CertSelection {
   shipping?: string | null;
 }
 
-interface CertCustomer {
-  full_name?: string;
-  email?: string;
-  phone?: string;
-  course?: string;
-  notes?: string;
-  address?: Record<string, string>;
-}
-
 interface CertIntentBody extends CertSelection {
-  customer?: CertCustomer;
+  /** Dynamic GF field values keyed by input name (input_6, input_78_1, …). */
+  fields?: Record<string, string>;
+  /** Derived contact for the email requirement + confirmation email. */
+  contact?: { email?: string; name?: string };
 }
 
 interface Quote {
@@ -98,7 +92,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const email = body.customer?.email?.trim();
+  const email = body.contact?.email?.trim();
   if (!email) {
     return NextResponse.json({ error: "Email is required" }, { status: 400 });
   }
@@ -111,20 +105,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Select at least one certificate option" }, { status: 400 });
   }
 
-  // Stash the order fields for the webhook → GF record + email.
+  // Stash the order for the record step (confirm + webhook forward this metadata).
+  // Dynamic GF field values go in as `f_<inputname>` — one key each, so no single
+  // value is truncated (Stripe caps each metadata value at 500 chars).
   const metadata: Record<string, string> = {
     cert_email: email,
-    cert_name: body.customer?.full_name ?? "",
-    cert_phone: body.customer?.phone ?? "",
-    cert_course: body.customer?.course ?? "",
-    cert_notes: body.customer?.notes ?? "",
+    cert_name: body.contact?.name ?? "",
     cert_total_minor: String(quote.total_minor),
     cert_selection: JSON.stringify({
       products: body.products ?? {},
       shipping: body.shipping ?? null,
     }),
-    cert_address: body.customer?.address ? JSON.stringify(body.customer.address) : "",
   };
+  for (const [name, value] of Object.entries(body.fields ?? {})) {
+    if (typeof value === "string" && value !== "") {
+      metadata[`f_${name}`] = value.slice(0, 500);
+    }
+  }
 
   const intent = await createPaymentIntent(quote.total_minor, quote.currency, metadata);
   if (!intent?.client_secret) {

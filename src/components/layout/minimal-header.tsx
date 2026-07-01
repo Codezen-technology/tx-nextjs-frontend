@@ -25,8 +25,8 @@ export function MinimalHeader() {
               src={logoUrl}
               alt="Training Excellence"
               width={160}
-              height={64}
-              className="h-14 w-auto object-contain"
+              height={80}
+              className="h-20 w-auto object-contain"
               priority
             />
           ) : (

@@ -3,6 +3,7 @@
  * Mirrors the plugin's `/certificate/config` + `/certificate/quote` (sourced from
  * Gravity Form 23) and the BFF `/api/certificate/intent`.
  */
+import type { GravityField } from "./form";
 
 export interface CertChoice {
   value: string;
@@ -39,6 +40,8 @@ export interface CertConfig {
   currency: string;
   products: CertProduct[];
   shipping: CertShipping | null;
+  /** Non-pricing GF fields (name/email/phone/course/address/notes/…) — render dynamically. */
+  fields: GravityField[];
 }
 
 /** Selection keyed by product field id. */
@@ -65,13 +68,13 @@ export interface CertQuote {
   total_minor: number;
 }
 
-export interface CertCustomer {
-  full_name: string;
+/** Dynamic GF field values keyed by input name (input_6, input_78_1, …). */
+export type CertFieldValues = Record<string, string>;
+
+/** Derived contact for the intent's email requirement + confirmation email. */
+export interface CertContact {
   email: string;
-  phone: string;
-  course: string;
-  notes?: string;
-  address?: Record<string, string>;
+  name: string;
 }
 
 export interface CertIntent {

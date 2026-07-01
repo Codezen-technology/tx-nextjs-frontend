@@ -2,7 +2,8 @@ import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import type {
   CertConfig,
-  CertCustomer,
+  CertContact,
+  CertFieldValues,
   CertIntent,
   CertQuote,
   CertSelection,
@@ -27,7 +28,8 @@ export const certificateService = {
    */
   async createIntent(input: {
     selection: CertSelection;
-    customer: CertCustomer;
+    fields: CertFieldValues;
+    contact: CertContact;
   }): Promise<CertIntent> {
     const res = await fetch("/api/certificate/intent", {
       method: "POST",
@@ -35,7 +37,8 @@ export const certificateService = {
       body: JSON.stringify({
         products: input.selection.products,
         shipping: input.selection.shipping,
-        customer: input.customer,
+        fields: input.fields,
+        contact: input.contact,
       }),
     });
     const json = (await res.json().catch(() => ({}))) as Partial<CertIntent> & { error?: string };

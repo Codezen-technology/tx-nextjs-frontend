@@ -18,9 +18,6 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-[#fafbfb]">
-      {/* Trust badges */}
-      <CourseTrustedStrip />
-
       {/* Breadcrumb */}
       <div className="bg-[#00204a] py-2.5">
         <div className="container">

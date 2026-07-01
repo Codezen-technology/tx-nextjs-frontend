@@ -14,16 +14,16 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { stripePromise } from "@/lib/stripe";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils/cn";
 import { certificateService } from "@/lib/services/certificate";
+import {
+  GfField,
+  FieldShell,
+  FIELD_CLASS,
+  LABEL_CLASS,
+  SECTION_CLASS,
+} from "@/components/gf-fields";
 import type { CertProduct, CertSelection } from "@/types/certificate";
-
-const FIELD =
-  "bg-white border-neutral-300 text-neutral-900 placeholder:text-neutral-400 focus-visible:ring-primary-500";
-const LABEL = "text-neutral-700";
-const SECTION = "font-suse text-lg font-semibold text-neutral-900";
 
 const STRIPE_ELEMENT_OPTIONS = {
   style: {
@@ -37,30 +37,13 @@ const STRIPE_ELEMENT_OPTIONS = {
   },
 } as const;
 
-const COUNTRIES = ["United Kingdom", "Ireland", "United States", "Canada", "Australia", "Other"];
-
 function money(currency: string, amount: number) {
   const symbol = currency === "GBP" ? "£" : currency === "USD" ? "$" : "";
   return `${symbol}${amount.toFixed(2)}`;
 }
 
-interface Customer {
-  full_name: string;
-  email: string;
-  phone: string;
-  course: string;
-  notes: string;
-  country: string;
-}
-
-const EMPTY_CUSTOMER: Customer = {
-  full_name: "",
-  email: "",
-  phone: "",
-  course: "",
-  notes: "",
-  country: "United Kingdom",
-};
+/** GF field types that render no input (display/structure only). */
+const NON_INPUT_TYPES = new Set(["html", "section", "page"]);
 
 export function CertificateForm() {
   if (!stripePromise) {
@@ -94,7 +77,8 @@ function CertificateFormInner() {
   // Selection keyed by product field id, plus shipping + customer.
   const [choices, setChoices] = useState<Record<string, { choice: string; qty: number }>>({});
   const [shipping, setShipping] = useState<string>("");
-  const [customer, setCustomer] = useState<Customer>(EMPTY_CUSTOMER);
+  // Dynamic GF field values, keyed by input name (input_6, input_78_1, …).
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -128,6 +112,28 @@ function CertificateFormInner() {
   const currency = config?.currency ?? "GBP";
   const total = quote?.total ?? 0;
 
+  const setField = (name: string, value: string) =>
+    setFieldValues((prev) => ({ ...prev, [name]: value }));
+
+  // Derive the buyer's email + name from the dynamic GF fields — for the intent's
+  // email requirement, Stripe billing_details, and the confirmation email.
+  const emailField = config?.fields.find((f) => f.type === "email");
+  const nameField =
+    config?.fields.find((f) => f.type === "name") ??
+    config?.fields.find((f) => f.type === "text" && /name/i.test(f.label));
+  const contactEmail = emailField ? (fieldValues[emailField.name] ?? "") : "";
+  const contactName = nameField ? (fieldValues[nameField.name] ?? "") : "";
+
+  function firstMissingRequired(): string | null {
+    if (!config) return null;
+    for (const f of config.fields) {
+      if (!f.isRequired || NON_INPUT_TYPES.has(f.type) || f.inputs?.length) continue;
+      if (!(fieldValues[f.name] ?? "").trim()) return `${f.label || "This field"} is required.`;
+    }
+    if (!contactEmail.trim()) return "Email is required.";
+    return null;
+  }
+
   function update(productId: number, patch: Partial<{ choice: string; qty: number }>) {
     setChoices((prev) => ({
       ...prev,
@@ -144,8 +150,9 @@ function CertificateFormInner() {
 
   async function handlePay() {
     setError(null);
-    if (!customer.full_name || !customer.email || !customer.phone || !customer.course) {
-      setError("Please fill in your name, email, phone and course.");
+    const missing = firstMissingRequired();
+    if (missing) {
+      setError(missing);
       return;
     }
     if (!quote || quote.total_minor <= 0) {
@@ -166,23 +173,16 @@ function CertificateFormInner() {
     try {
       const intent = await certificateService.createIntent({
         selection,
-        customer: {
-          full_name: customer.full_name,
-          email: customer.email,
-          phone: customer.phone,
-          course: customer.course,
-          notes: customer.notes,
-          address: { country: customer.country },
-        },
+        fields: fieldValues,
+        contact: { email: contactEmail, name: contactName },
       });
 
       const result = await stripe.confirmCardPayment(intent.client_secret, {
         payment_method: {
           card: cardNumber,
           billing_details: {
-            name: customer.full_name,
-            email: customer.email,
-            phone: customer.phone || undefined,
+            name: contactName || undefined,
+            email: contactEmail || undefined,
           },
         },
       });
@@ -227,8 +227,8 @@ function CertificateFormInner() {
         <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
         <h3 className="mt-4 font-suse text-2xl font-bold text-neutral-900">Payment confirmed</h3>
         <p className="mt-2 font-open-sans text-sm text-neutral-600">
-          Thank you, {customer.full_name.split(" ")[0] || "there"}. Your certificate order is
-          confirmed — we&apos;ve emailed your receipt and will be in touch shortly.
+          Thank you, {contactName.split(" ")[0] || "there"}. Your certificate order is confirmed —
+          we&apos;ve emailed your receipt and will be in touch shortly.
         </p>
       </div>
     );
@@ -256,9 +256,11 @@ function CertificateFormInner() {
 
         {config.shipping && hardcopyChosen(hardcopy, effectiveChoices) && (
           <fieldset className="space-y-2">
-            <legend className={cn("text-sm font-medium", LABEL)}>{config.shipping.label}</legend>
+            <legend className={cn("text-sm font-medium", LABEL_CLASS)}>
+              {config.shipping.label}
+            </legend>
             <select
-              className={cn("h-10 w-full rounded-md border px-3 text-sm", FIELD)}
+              className={cn("h-10 w-full rounded-md border px-3 text-sm", FIELD_CLASS)}
               value={shipping}
               onChange={(e) => setShipping(e.target.value)}
             >
@@ -281,93 +283,33 @@ function CertificateFormInner() {
         </span>
       </div>
 
-      {/* ── Personal details ────────────────────────────────────────── */}
+      {/* ── Dynamic GF fields (name / email / phone / course / address / notes) ── */}
       <div className="space-y-4">
-        <h3 className={SECTION}>Enter Personal Details</h3>
-        <Field label="Full Name" required>
-          <Input
-            className={FIELD}
-            value={customer.full_name}
-            onChange={(e) => setCustomer((c) => ({ ...c, full_name: e.target.value }))}
-          />
-        </Field>
-        <Field label="Email" required>
-          <Input
-            type="email"
-            className={FIELD}
-            value={customer.email}
-            onChange={(e) => setCustomer((c) => ({ ...c, email: e.target.value }))}
-          />
-        </Field>
-        <Field label="Phone Number" required>
-          <Input
-            type="tel"
-            className={FIELD}
-            value={customer.phone}
-            onChange={(e) => setCustomer((c) => ({ ...c, phone: e.target.value }))}
-          />
-        </Field>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className={SECTION}>Course Details</h3>
-        <Field label="Course(s) Name" required>
-          <textarea
-            rows={3}
-            className={cn(
-              "w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1",
-              FIELD,
-            )}
-            value={customer.course}
-            onChange={(e) => setCustomer((c) => ({ ...c, course: e.target.value }))}
-          />
-        </Field>
+        {config.fields.map((field) => (
+          <GfField key={field.id} field={field} values={fieldValues} onChange={setField} />
+        ))}
       </div>
 
       {/* ── Payment ─────────────────────────────────────────────────── */}
       <div className="space-y-4">
-        <h3 className={SECTION}>Payment</h3>
-        <Field label="Card number" required>
-          <div className={cn("flex h-10 items-center rounded-md border px-3", FIELD)}>
+        <h3 className={SECTION_CLASS}>Payment</h3>
+        <FieldShell label="Card number" required>
+          <div className={cn("flex h-10 items-center rounded-md border px-3", FIELD_CLASS)}>
             <CardNumberElement options={STRIPE_ELEMENT_OPTIONS} className="w-full" />
           </div>
-        </Field>
+        </FieldShell>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Expiry date" required>
-            <div className={cn("flex h-10 items-center rounded-md border px-3", FIELD)}>
+          <FieldShell label="Expiry date" required>
+            <div className={cn("flex h-10 items-center rounded-md border px-3", FIELD_CLASS)}>
               <CardExpiryElement options={STRIPE_ELEMENT_OPTIONS} className="w-full" />
             </div>
-          </Field>
-          <Field label="Security code" required>
-            <div className={cn("flex h-10 items-center rounded-md border px-3", FIELD)}>
+          </FieldShell>
+          <FieldShell label="Security code" required>
+            <div className={cn("flex h-10 items-center rounded-md border px-3", FIELD_CLASS)}>
               <CardCvcElement options={STRIPE_ELEMENT_OPTIONS} className="w-full" />
             </div>
-          </Field>
+          </FieldShell>
         </div>
-        <Field label="Country" required>
-          <select
-            className={cn("h-10 w-full rounded-md border px-3 text-sm", FIELD)}
-            value={customer.country}
-            onChange={(e) => setCustomer((c) => ({ ...c, country: e.target.value }))}
-          >
-            {COUNTRIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Order notes">
-          <textarea
-            rows={2}
-            className={cn(
-              "w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1",
-              FIELD,
-            )}
-            value={customer.notes}
-            onChange={(e) => setCustomer((c) => ({ ...c, notes: e.target.value }))}
-          />
-        </Field>
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
@@ -426,7 +368,7 @@ function ProductGroup({
         <div className="flex items-center gap-2 pt-1">
           <span className="text-sm text-neutral-600">How many</span>
           <select
-            className={cn("h-9 w-24 rounded-md border px-2 text-sm", FIELD)}
+            className={cn("h-9 w-24 rounded-md border px-2 text-sm", FIELD_CLASS)}
             value={qty}
             onChange={(e) => onQty(Number(e.target.value))}
           >
@@ -439,26 +381,6 @@ function ProductGroup({
         </div>
       )}
     </fieldset>
-  );
-}
-
-function Field({
-  label,
-  required,
-  children,
-}: {
-  label: string;
-  required?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label className={LABEL}>
-        {label}
-        {required && <span className="ml-0.5 text-red-500">*</span>}
-      </Label>
-      {children}
-    </div>
   );
 }
 
