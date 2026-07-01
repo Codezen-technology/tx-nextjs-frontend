@@ -38,6 +38,7 @@ export const endpoints = {
   },
   auth: {
     login: `${lms}/auth/login`,
+    checkoutSession: `${lms}/auth/checkout-session`,
     register: `${lms}/auth/register`,
     logout: `${lms}/auth/logout`,
     logoutAll: `${lms}/auth/logout-all`,

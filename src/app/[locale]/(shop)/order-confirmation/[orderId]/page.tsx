@@ -1,9 +1,15 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Check, CreditCard } from "lucide-react";
 import { useOrderDetail } from "@/lib/hooks/useCheckout";
+import { checkoutService, type CheckoutSessionResult } from "@/lib/services/checkout";
+import { hasUserLoggedInCookie } from "@/lib/api/bff-client";
+import { useAuthStore } from "@/lib/stores/auth.store";
+import { queryKeys } from "@/lib/utils/query-keys";
 import { UpsellBanner } from "@/components/cart/UpsellBanner";
 
 const CURRENCY_SYMBOLS: Record<string, string> = { GBP: "£", USD: "$", EUR: "€" };
@@ -35,9 +41,35 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
 export default function OrderConfirmationPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+  const setUser = useAuthStore((s) => s.setUser);
   const id = Number(orderId);
   const orderKey = searchParams.get("key");
   const { data: order, isLoading, isError } = useOrderDetail(id, orderKey);
+  const [sessionResult, setSessionResult] = useState<CheckoutSessionResult | null>(null);
+  const sessionAttempted = useRef(false);
+
+  useEffect(() => {
+    if (sessionAttempted.current || !orderKey || id <= 0 || hasUserLoggedInCookie()) {
+      return;
+    }
+
+    sessionAttempted.current = true;
+
+    void checkoutService
+      .bootstrapCheckoutSession(id, orderKey)
+      .then((result) => {
+        setSessionResult(result);
+        if (result.auto_login && result.user) {
+          setUser(result.user);
+          void queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
+          void queryClient.invalidateQueries({ queryKey: queryKeys.enrollments.me });
+        }
+      })
+      .catch(() => {
+        // Non-fatal — order confirmation still renders; user can log in manually.
+      });
+  }, [id, orderKey, queryClient, setUser]);
 
   if (isError) {
     return (
@@ -69,6 +101,10 @@ export default function OrderConfirmationPage() {
   const discount = order?.discount ?? 0;
   const tax = order?.tax ?? 0;
   const total = order?.total ?? 0;
+  const isLoggedIn = hasUserLoggedInCookie() || sessionResult?.auto_login === true;
+  const accountExists = sessionResult?.account_exists === true;
+  const loginEmail = sessionResult?.email ?? order?.billing?.email;
+  const loginHref = loginEmail ? `/login?email=${encodeURIComponent(loginEmail)}` : "/login";
 
   return (
     <div className="min-h-screen bg-[#fafbfb]">
@@ -147,6 +183,17 @@ export default function OrderConfirmationPage() {
 
           <div className="h-px w-full bg-[#ebedf1]" />
 
+          {accountExists && !isLoggedIn && loginEmail && (
+            <p className="w-full text-center text-base text-[#3b5374]">
+              An account already exists for <strong className="text-[#00204a]">{loginEmail}</strong>
+              .{" "}
+              <Link href={loginHref} className="font-bold text-[#9e6f21] underline">
+                Log in
+              </Link>{" "}
+              to access your courses.
+            </p>
+          )}
+
           {/* Actions */}
           <div className="flex w-full flex-col gap-4 sm:flex-row sm:gap-6">
             <Link
@@ -155,12 +202,21 @@ export default function OrderConfirmationPage() {
             >
               Browse more courses
             </Link>
-            <Link
-              href="/dashboard"
-              className="flex flex-1 items-center justify-center rounded border border-[#9e6f21] bg-[#9e6f21] px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#7d5819]"
-            >
-              Start Learning
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                href="/dashboard"
+                className="flex flex-1 items-center justify-center rounded border border-[#9e6f21] bg-[#9e6f21] px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#7d5819]"
+              >
+                Start Learning
+              </Link>
+            ) : (
+              <Link
+                href={loginHref}
+                className="flex flex-1 items-center justify-center rounded border border-[#9e6f21] bg-[#9e6f21] px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#7d5819]"
+              >
+                Log in to start learning
+              </Link>
+            )}
           </div>
         </div>
 

@@ -252,6 +252,17 @@ export interface WCStoreCheckoutResponse {
   };
 }
 
+export interface CheckoutSessionResult {
+  auto_login: boolean;
+  account_exists: boolean;
+  email?: string;
+  user?: {
+    email: string;
+    displayName: string;
+    nicename: string;
+  };
+}
+
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 export const checkoutService = {
@@ -306,6 +317,16 @@ export const checkoutService = {
     }),
 
   getPaymentGateways: () => bffJson<PaymentGateway[]>("/api/payment-gateways"),
+
+  /**
+   * After guest Store API checkout, verify the order key and optionally mint a
+   * JWT session (new accounts only). Sets httpOnly cookies via the BFF on auto_login.
+   */
+  bootstrapCheckoutSession: (orderId: number, orderKey: string) =>
+    bffJson<CheckoutSessionResult>("/api/auth/checkout-session", {
+      method: "POST",
+      body: JSON.stringify({ order_id: orderId, order_key: orderKey }),
+    }),
 
   /** Read an order's line items + totals via the WC Store API (key-authorized, no consumer keys). */
   getStoreOrder: async (orderId: number, key: string): Promise<StoreOrderSummary> => {
