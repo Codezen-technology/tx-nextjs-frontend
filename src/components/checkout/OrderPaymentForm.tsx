@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { stripePromise } from "@/lib/stripe";
 import { Button } from "@/components/ui/button";
 import { BillingForm, type BillingFormHandle } from "@/components/checkout/BillingForm";
+import { CheckoutProcessingOverlay } from "@/components/checkout/CheckoutProcessingOverlay";
 import { checkoutService, stripeCardPaymentData, findClientSecret } from "@/lib/services/checkout";
 
 interface OrderPaymentFormProps {
@@ -146,6 +147,8 @@ function PaymentFields({ orderId, orderKey, total, onPaid, onCancel }: OrderPaym
 
   return (
     <div className="space-y-5">
+      <CheckoutProcessingOverlay show={submitting} />
+
       <BillingForm />
 
       <div>

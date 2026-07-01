@@ -5,6 +5,7 @@ import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { cn } from "@/lib/utils/cn";
 import { useWcStoreCheckout } from "@/lib/hooks/useCheckout";
 import { stripeCardPaymentData, findClientSecret } from "@/lib/services/checkout";
+import { CheckoutProcessingOverlay } from "./CheckoutProcessingOverlay";
 import { SecurePaymentBadge } from "./SecurePaymentBadge";
 import type { BillingFormHandle } from "./BillingForm";
 
@@ -110,6 +111,8 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
 
   return (
     <div className="space-y-4">
+      <CheckoutProcessingOverlay show={isSubmitting} />
+
       {/* Method list */}
       <div className="overflow-hidden rounded border border-[#e1d2ba]">
         {/* Credit/Debit Card */}
