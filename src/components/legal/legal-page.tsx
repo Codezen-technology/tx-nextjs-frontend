@@ -7,11 +7,21 @@ interface LegalPageProps {
   /** Fallbacks when the WP page is missing. */
   defaultTitle: string;
   defaultIntro: string;
+  /** Baked-in HTML body rendered when the WP page has no content. */
+  defaultContent?: string;
   page: WpPageContent | null;
 }
 
 /** Shared layout for WP-managed legal pages (Terms, Privacy). */
-export function LegalPage({ eyebrow, defaultTitle, defaultIntro, page }: LegalPageProps) {
+export function LegalPage({
+  eyebrow,
+  defaultTitle,
+  defaultIntro,
+  defaultContent,
+  page,
+}: LegalPageProps) {
+  const bodyHtml = page?.content || defaultContent;
+
   return (
     <>
       <section className="bg-primary-50 py-14 text-center">
@@ -28,11 +38,11 @@ export function LegalPage({ eyebrow, defaultTitle, defaultIntro, page }: LegalPa
 
       <section className="py-14">
         <div className="container max-w-3xl">
-          {page?.content ? (
+          {bodyHtml ? (
             <ParsedHtml
               as="div"
               className="prose-wp font-open-sans text-neutral-700"
-              content={page.content}
+              content={bodyHtml}
             />
           ) : (
             <p className="font-open-sans text-neutral-500">

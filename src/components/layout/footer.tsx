@@ -92,6 +92,17 @@ const FALLBACK_NAV_LINKS: FooterNavLink[] = [
   { href: "/terms-and-conditions", label: "Policies and terms of use" },
 ];
 
+/** WP menu permalinks that differ from the headless route slug. */
+const NAV_HREF_REMAP: Record<string, string> = {
+  "/contact": "/contact-us",
+  "/policies": "/privacy-policy",
+};
+
+/** Normalise a WP-menu href to the matching headless route (trailing slash tolerant). */
+function remapNavHref(href: string): string {
+  return NAV_HREF_REMAP[href.replace(/\/$/, "")] ?? href;
+}
+
 type NavCol = { header?: string; links: FooterNavLink[] };
 
 function buildNavColumns(nav: FooterData["nav"] | undefined): NavCol[] {
@@ -270,7 +281,7 @@ export async function SiteFooter() {
                     {col.links.map(({ href, label, badge }) => (
                       <li key={href} className="flex items-center gap-2">
                         <a
-                          href={href}
+                          href={remapNavHref(href)}
                           className="font-suse text-[16px] font-medium leading-[1.2] text-neutral-30 transition-colors hover:text-primary-400"
                         >
                           {label}

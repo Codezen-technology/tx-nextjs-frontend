@@ -4,6 +4,8 @@ import { useState } from "react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { cn } from "@/lib/utils/cn";
 import { useWcStoreCheckout } from "@/lib/hooks/useCheckout";
+import { useCartQuery } from "@/lib/hooks/useCart";
+import { useCartStore } from "@/lib/stores/cart.store";
 import { stripeCardPaymentData, findClientSecret } from "@/lib/services/checkout";
 import { CheckoutProcessingOverlay } from "./CheckoutProcessingOverlay";
 import { SecurePaymentBadge } from "./SecurePaymentBadge";
@@ -22,6 +24,32 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
   const stripe = useStripe();
   const elements = useElements();
   const { mutateAsync: wcStoreCheckout } = useWcStoreCheckout();
+
+  // Zero-total orders (e.g. 100% coupon) need no card — WC processes them as free.
+  const { data: cart } = useCartQuery();
+  const storeTotal = useCartStore((s) => s.totals?.total);
+  const orderTotal = cart?.total ?? storeTotal ?? 0;
+  const isFreeOrder = orderTotal <= 0;
+
+  // ─── Free order checkout (no payment) ──────────────────────────────────────
+
+  const handleFreeCheckout = async () => {
+    const billing = billingRef.current!.getValues();
+
+    // Omit payment_method/payment_data: WC's Store API sees the order as
+    // needs_payment=false and completes it without invoking a gateway.
+    const result = await wcStoreCheckout({
+      billing_address: billing,
+      shipping_address: billing,
+      payment_method: "",
+    });
+
+    if (result.payment_result.payment_status !== "success") {
+      throw new Error("Order could not be completed. Please try again.");
+    }
+
+    onSuccess(result.order_id, result.order_key);
+  };
 
   // ─── Store API checkout (standard cart) ────────────────────────────────────
 
@@ -101,7 +129,11 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
     setIsSubmitting(true);
 
     try {
-      await handleStoreApiCheckout();
+      if (isFreeOrder) {
+        await handleFreeCheckout();
+      } else {
+        await handleStoreApiCheckout();
+      }
     } catch (err) {
       setStripeError((err as Error).message ?? "Something went wrong.");
     } finally {
@@ -113,78 +145,85 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
     <div className="space-y-4">
       <CheckoutProcessingOverlay show={isSubmitting} />
 
-      {/* Method list */}
-      <div className="overflow-hidden rounded border border-[#e1d2ba]">
-        {/* Credit/Debit Card */}
-        <div
-          className={cn(
-            "border-b border-[#e1d2ba] bg-white px-4 py-3.5 transition-colors",
-            method === "stripe" && "bg-[#fdfaf5]",
-          )}
-        >
-          <button
-            type="button"
-            onClick={() => setMethod("stripe")}
-            className="flex w-full items-center justify-between"
-          >
-            <div className="flex items-center gap-3">
-              <span
-                className={cn(
-                  "flex h-4 w-4 items-center justify-center rounded-full border-2",
-                  method === "stripe"
-                    ? "border-[#0d6efd] bg-[#0d6efd]"
-                    : "border-gray-300 bg-white",
-                )}
-              >
-                {method === "stripe" && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
-              </span>
-              <span className="text-sm font-medium text-[#1a171b]">Credit/Debit Card</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {["VISA", "MC", "AMEX", "DISC"].map((l) => (
-                <span
-                  key={l}
-                  className="rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[8px] font-bold text-gray-500"
-                >
-                  {l}
-                </span>
-              ))}
-            </div>
-          </button>
-
-          {method === "stripe" && (
-            <div className="mt-4 px-7">
-              <p className="mb-2 text-xs font-semibold text-[#1a171b]">Card number</p>
-              <div className="rounded border border-[#e1d2ba] bg-white px-4 py-3.5">
-                <CardElement
-                  options={{
-                    style: {
-                      base: {
-                        fontSize: "16px",
-                        color: "#00204a",
-                        fontFamily: "Open Sans, sans-serif",
-                        "::placeholder": { color: "#838284" },
-                      },
-                      invalid: { color: "#dc3545" },
-                    },
-                  }}
-                />
-              </div>
-            </div>
-          )}
+      {isFreeOrder ? (
+        /* Free order — no payment required */
+        <div className="rounded border border-green-200 bg-green-50 px-4 py-3.5 text-sm text-green-700">
+          No payment required — your order total is £0.00. Click below to complete your order.
         </div>
+      ) : (
+        /* Method list */
+        <div className="overflow-hidden rounded border border-[#e1d2ba]">
+          {/* Credit/Debit Card */}
+          <div
+            className={cn(
+              "border-b border-[#e1d2ba] bg-white px-4 py-3.5 transition-colors",
+              method === "stripe" && "bg-[#fdfaf5]",
+            )}
+          >
+            <button
+              type="button"
+              onClick={() => setMethod("stripe")}
+              className="flex w-full items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className={cn(
+                    "flex h-4 w-4 items-center justify-center rounded-full border-2",
+                    method === "stripe"
+                      ? "border-[#0d6efd] bg-[#0d6efd]"
+                      : "border-gray-300 bg-white",
+                  )}
+                >
+                  {method === "stripe" && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                </span>
+                <span className="text-sm font-medium text-[#1a171b]">Credit/Debit Card</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {["VISA", "MC", "AMEX", "DISC"].map((l) => (
+                  <span
+                    key={l}
+                    className="rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[8px] font-bold text-gray-500"
+                  >
+                    {l}
+                  </span>
+                ))}
+              </div>
+            </button>
 
-        {/* PayPal — coming soon */}
-        <div className="bg-white px-4 py-3.5 opacity-50">
-          <div className="flex items-center gap-3">
-            <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-gray-300 bg-white" />
-            <span className="text-sm font-medium text-[#1a171b]">PayPal</span>
-            <span className="ml-auto rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[9px] font-medium text-gray-400">
-              Coming soon
-            </span>
+            {method === "stripe" && (
+              <div className="mt-4 px-7">
+                <p className="mb-2 text-xs font-semibold text-[#1a171b]">Card number</p>
+                <div className="rounded border border-[#e1d2ba] bg-white px-4 py-3.5">
+                  <CardElement
+                    options={{
+                      style: {
+                        base: {
+                          fontSize: "16px",
+                          color: "#00204a",
+                          fontFamily: "Open Sans, sans-serif",
+                          "::placeholder": { color: "#838284" },
+                        },
+                        invalid: { color: "#dc3545" },
+                      },
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* PayPal — coming soon */}
+          <div className="bg-white px-4 py-3.5 opacity-50">
+            <div className="flex items-center gap-3">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-gray-300 bg-white" />
+              <span className="text-sm font-medium text-[#1a171b]">PayPal</span>
+              <span className="ml-auto rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[9px] font-medium text-gray-400">
+                Coming soon
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {stripeError && (
         <p className="rounded bg-red-50 px-4 py-2.5 text-sm text-red-600">{stripeError}</p>
@@ -193,10 +232,10 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={isSubmitting || !stripe}
+        disabled={isSubmitting || (!isFreeOrder && !stripe)}
         className="w-full rounded bg-[#9e6f21] px-6 py-4 text-base font-medium text-white transition-colors hover:bg-[#7d5819] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isSubmitting ? "Processing…" : "Proceed to Checkout"}
+        {isSubmitting ? "Processing…" : isFreeOrder ? "Complete Order" : "Proceed to Checkout"}
       </button>
 
       <SecurePaymentBadge />

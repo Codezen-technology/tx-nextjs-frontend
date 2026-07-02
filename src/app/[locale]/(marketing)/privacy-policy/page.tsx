@@ -4,6 +4,10 @@ import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/
 import { env } from "@/lib/env";
 import { fetchWpPage } from "@/lib/services/pages.server";
 import { LegalPage } from "@/components/legal/legal-page";
+import {
+  PRIVACY_POLICY_INTRO,
+  PRIVACY_POLICY_CONTENT_HTML,
+} from "@/components/legal/privacy-policy-content";
 
 const PRIVACY_SCHEMA = {
   "@context": "https://schema.org",
@@ -36,8 +40,9 @@ export default async function PrivacyPage() {
       />
       <LegalPage
         eyebrow="Privacy policy"
-        defaultTitle="We care about your privacy"
-        defaultIntro="Your privacy is important to us at Training Excellence. We respect your privacy regarding any information we may collect from you across our website."
+        defaultTitle="Privacy Policy"
+        defaultIntro={PRIVACY_POLICY_INTRO}
+        defaultContent={PRIVACY_POLICY_CONTENT_HTML}
         page={page}
       />
     </>
