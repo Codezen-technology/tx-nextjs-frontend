@@ -8,8 +8,6 @@ import { CartItemRow } from "@/components/cart/CartItemRow";
 import { CartSummary } from "@/components/cart/CartSummary";
 import { CouponInput } from "@/components/cart/CouponInput";
 import { UpsellBanner } from "@/components/cart/UpsellBanner";
-import { RelatedCourses } from "@/components/cart/RelatedCourses";
-import { CourseTrustedStrip } from "@/components/courses/course-trusted-strip";
 
 export default function CartPage() {
   const { isLoading } = useCartQuery();

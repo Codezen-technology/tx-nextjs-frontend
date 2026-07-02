@@ -9,6 +9,7 @@ import { userService } from "@/lib/services/user";
 import { useAuthStore } from "@/lib/stores/auth.store";
 import { queryKeys } from "@/lib/utils/query-keys";
 import {
+  clearCartToken,
   getImpersonatingDisplayName,
   hasUserLoggedInCookie,
   isImpersonating,
@@ -61,8 +62,12 @@ export function useLogin() {
     mutationFn: (input: LoginInput) => authService.login(input),
     onSuccess: ({ user }) => {
       setUser(user);
+      // Drop the anonymous Cart-Token so the next cart fetch resolves against
+      // this user's own WC session/persistent cart instead of the guest cart.
+      clearCartToken();
       qc.invalidateQueries({ queryKey: queryKeys.user.me });
       qc.invalidateQueries({ queryKey: queryKeys.enrollments.me });
+      qc.invalidateQueries({ queryKey: queryKeys.cart.detail });
       toast.success(`Welcome back, ${user.displayName}`);
       const next = search.get("next");
       router.replace(next && next.startsWith("/") ? next : "/dashboard/my-learning");
@@ -88,6 +93,8 @@ export function useRegister() {
       qc.invalidateQueries({ queryKey: queryKeys.enrollments.me });
       if (hasUserLoggedInCookie()) {
         setUser(user);
+        clearCartToken();
+        qc.invalidateQueries({ queryKey: queryKeys.cart.detail });
         toast.success("Account created. Welcome to the platform!");
         router.replace("/dashboard");
       } else {
@@ -113,6 +120,7 @@ export function useLogout() {
         /* still clear client state */
       }
       logoutStore();
+      clearCartToken();
       qc.clear();
       toast.success("Signed out");
       router.replace("/");
@@ -129,6 +137,7 @@ export function useLogoutAll() {
     mutationFn: () => authService.logoutAll(),
     onSuccess: () => {
       logoutStore();
+      clearCartToken();
       qc.clear();
       toast.success("All sessions signed out");
       router.replace("/login");
@@ -180,6 +189,7 @@ export function useSwitchUser() {
     mutationFn: (email: string) => authService.switchUser(email),
     onSuccess: ({ user }) => {
       setUser(user);
+      clearCartToken();
       qc.clear();
       toast.success(`Now viewing as ${user.displayName}`);
       router.replace("/dashboard/my-learning");
@@ -199,6 +209,7 @@ export function useSwitchBack() {
     mutationFn: () => authService.switchBack(),
     onSuccess: ({ user }) => {
       setUser(user);
+      clearCartToken();
       qc.clear();
       toast.success(`Switched back to ${user.displayName}`);
       router.replace("/dashboard/admin/user-switching");

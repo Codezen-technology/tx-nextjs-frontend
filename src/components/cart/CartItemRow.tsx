@@ -8,7 +8,6 @@ import { ParsedHtml } from "@/components/ui/parsed-html";
 import { useCartStore } from "@/lib/stores/cart.store";
 import type { CartItem } from "@/lib/stores/cart.store";
 import { useUpdateCartItem, useRemoveCartItem } from "@/lib/hooks/useCart";
-import { useDebounce } from "@/lib/hooks/useDebounce";
 
 interface CartItemRowProps {
   item: CartItem;
@@ -19,37 +18,47 @@ export function CartItemRow({ item }: CartItemRowProps) {
   const { mutate: updateQty, isPending: isUpdating } = useUpdateCartItem();
   const { mutate: removeItem, isPending: isRemoving } = useRemoveCartItem();
 
+  // Local display quantity for instant +/- feedback. Quantity writes are strictly
+  // EVENT-DRIVEN (see handleQty) — never fired from an effect that watches cart data.
+  // The previous effect-driven approach caused an infinite loop: a stale persisted
+  // store quantity (e.g. 9 from localStorage) disagreeing with the server value (8)
+  // made the write-effect PUT the stale value back, and the two sources fought each
+  // other forever (8↔9 ping-pong). Firing PUTs only from a user click breaks that.
   const [localQty, setLocalQty] = useState(item.quantity);
-  const debouncedQty = useDebounce(localQty, 400);
-  // Tracks the quantity we last sent to the server to avoid duplicate mutations.
-  const inFlightQty = useRef<number | null>(null);
 
-  // Sync to server quantity whenever the store updates (mutation success, external change).
-  // Does NOT depend on isUpdating — that causes a race where isPending goes false before
-  // the Zustand store processes setCart, resetting localQty and re-triggering the mutation.
+  // Debounce timer for the write. A ref (not state) so it survives renders without
+  // retriggering effects. While a write is queued we suppress the display-sync below
+  // so an incoming refetch can't clobber the value the user is actively changing.
+  const pendingWrite = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Display-only sync: mirror the server's authoritative quantity into local state.
+  // Critically this NEVER fires a mutation, and it's skipped while a user edit is
+  // queued — so it cannot feed back into a PUT and cannot fight the server.
   useEffect(() => {
+    if (pendingWrite.current) return;
     setLocalQty(item.quantity);
-    inFlightQty.current = null;
   }, [item.quantity]);
 
-  // Fire mutation when debounced value diverges from server value.
-  // updateQty is intentionally omitted from deps: useMutation's mutate is not a stable
-  // reference — including it causes the effect to re-run on every status change (pending →
-  // success), firing a duplicate mutation before item.quantity has synced from the store.
+  // Clear any queued write on unmount.
   useEffect(() => {
-    if (
-      debouncedQty !== item.quantity &&
-      debouncedQty >= 1 &&
-      debouncedQty !== inFlightQty.current
-    ) {
-      inFlightQty.current = debouncedQty;
-      updateQty({ key: item.key, quantity: debouncedQty });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQty, item.quantity, item.key]);
+    return () => {
+      if (pendingWrite.current) clearTimeout(pendingWrite.current);
+    };
+  }, []);
 
   const handleQty = (delta: number) => {
-    setLocalQty((prev) => Math.min(item.max_quantity, Math.max(1, prev + delta)));
+    const next = Math.min(item.max_quantity, Math.max(1, localQty + delta));
+    if (next === localQty) return;
+    setLocalQty(next);
+
+    // Debounce the PUT so holding +/- coalesces into one request. Fired from this
+    // click handler only — the last value the user landed on wins, and we skip the
+    // request entirely if it already matches the server.
+    if (pendingWrite.current) clearTimeout(pendingWrite.current);
+    pendingWrite.current = setTimeout(() => {
+      pendingWrite.current = null;
+      if (next !== item.quantity) updateQty({ key: item.key, quantity: next });
+    }, 400);
   };
 
   const isOnSale = item.regular_price > item.price;
