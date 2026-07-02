@@ -45,6 +45,8 @@ export const endpoints = {
     refresh: `${lms}/auth/refresh`,
     forgotPassword: `${lms}/auth/forgot-password`,
     resetPassword: `${lms}/auth/reset-password`,
+    switchUser: `${lms}/auth/switch-user`,
+    switchBack: `${lms}/auth/switch-back`,
   },
   user: {
     me: `${lms}/users/me`,

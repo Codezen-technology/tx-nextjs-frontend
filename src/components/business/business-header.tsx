@@ -107,7 +107,7 @@ export function BusinessHeader({
   return (
     <header
       className={cn(
-        "fixed top-0 z-40 flex h-16 w-full items-center border-b border-neutral-30 bg-white transition-[width,margin]",
+        "fixed top-[var(--imp-offset)] z-40 flex h-16 w-full items-center border-b border-neutral-30 bg-white transition-[width,margin]",
         sidebarOpen
           ? "md:ml-[280px] md:w-[calc(100%-280px)]"
           : "md:ml-[72px] md:w-[calc(100%-72px)]",

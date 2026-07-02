@@ -47,4 +47,17 @@ export const authService = {
       body: JSON.stringify(input),
     });
   },
+
+  async switchUser(email: string): Promise<{ user: AuthUser }> {
+    return bffJson<{ user: AuthUser }>("/api/auth/switch-user", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  async switchBack(): Promise<{ user: AuthUser }> {
+    return bffJson<{ user: AuthUser }>("/api/auth/switch-back", {
+      method: "POST",
+    });
+  },
 };

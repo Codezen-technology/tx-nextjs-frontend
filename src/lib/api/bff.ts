@@ -177,6 +177,10 @@ async function tryRefresh(): Promise<string | null> {
     cookieStore.delete("access_token");
     cookieStore.delete("refresh_token");
     cookieStore.delete("user_logged_in");
+    cookieStore.delete("orig_access_token");
+    cookieStore.delete("orig_refresh_token");
+    cookieStore.delete("impersonating");
+    cookieStore.delete("impersonating_as");
     return null;
   }
 
@@ -188,12 +192,13 @@ async function tryRefresh(): Promise<string | null> {
 
   const { access_token, refresh_token, expires_in } = json.data;
   const secure = process.env.NODE_ENV === "production";
+  const maxAge = expires_in ?? 86400;
 
   cookieStore.set("access_token", access_token, {
     httpOnly: true,
     secure,
     sameSite: "lax",
-    maxAge: expires_in ?? 86400,
+    maxAge,
     path: "/",
   });
   if (refresh_token) {
@@ -204,6 +209,33 @@ async function tryRefresh(): Promise<string | null> {
       maxAge: 7 * 24 * 60 * 60,
       path: "/",
     });
+  }
+  cookieStore.set("user_logged_in", "1", {
+    httpOnly: false,
+    secure,
+    sameSite: "lax",
+    maxAge,
+    path: "/",
+  });
+
+  if (cookieStore.get("impersonating")?.value === "1") {
+    cookieStore.set("impersonating", "1", {
+      httpOnly: false,
+      secure,
+      sameSite: "lax",
+      maxAge,
+      path: "/",
+    });
+    const impersonatingAs = cookieStore.get("impersonating_as")?.value;
+    if (impersonatingAs) {
+      cookieStore.set("impersonating_as", impersonatingAs, {
+        httpOnly: false,
+        secure,
+        sameSite: "lax",
+        maxAge,
+        path: "/",
+      });
+    }
   }
 
   return access_token;

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { clearSessionCookies } from "@/lib/api/auth-cookies";
 import { endpoints } from "@/lib/api/endpoints";
 import { getServerWpJsonBase } from "@/lib/env";
 
@@ -20,9 +21,7 @@ export async function POST() {
     }).catch(() => undefined);
   }
 
-  cookieStore.delete("access_token");
-  cookieStore.delete("refresh_token");
-  cookieStore.delete("user_logged_in");
+  clearSessionCookies(cookieStore);
 
   return NextResponse.json({ ok: true });
 }

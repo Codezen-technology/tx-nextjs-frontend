@@ -26,7 +26,7 @@ function SidebarPanel({
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-30 flex h-full flex-col bg-lms-primary transition-[width] duration-300",
+        "fixed left-0 top-[var(--imp-offset)] z-30 flex h-[calc(100dvh-var(--imp-offset))] flex-col bg-lms-primary transition-[width] duration-300",
         open ? "w-[280px]" : "w-[65px]",
         className,
       )}

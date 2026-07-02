@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { CartDrawer } from "@/components/dashboard/cart-drawer";
+import { ImpersonationBanner } from "@/components/layout/impersonation-banner";
 import { useCartQuery } from "@/lib/hooks/useCart";
+import { useImpersonation } from "@/lib/hooks/useAuth";
 import { useCartStore } from "@/lib/stores/cart.store";
 import { cn } from "@/lib/utils/cn";
 
@@ -15,6 +17,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   useCartQuery();
   const itemCount = useCartStore((s) => s.totals?.item_count ?? s.items.length);
+  const { active: impersonating } = useImpersonation();
 
   useEffect(() => {
     const handler = () => setCartOpen(true);
@@ -33,7 +36,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[#f8f8f8]">
+    <div
+      className="flex min-h-screen bg-[#f8f8f8] pt-[var(--imp-offset)]"
+      style={{ "--imp-offset": impersonating ? "40px" : "0px" } as React.CSSProperties}
+    >
+      <ImpersonationBanner variant="fixed" />
       <DashboardSidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}

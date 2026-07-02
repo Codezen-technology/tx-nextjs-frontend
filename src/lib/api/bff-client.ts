@@ -43,6 +43,21 @@ export function hasUserLoggedInCookie(): boolean {
   return document.cookie.split("; ").some((c) => c.startsWith("user_logged_in=1"));
 }
 
+function readCookieValue(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const prefix = `${name}=`;
+  const match = document.cookie.split("; ").find((c) => c.startsWith(prefix));
+  return match ? decodeURIComponent(match.slice(prefix.length)) : null;
+}
+
+export function isImpersonating(): boolean {
+  return readCookieValue("impersonating") === "1";
+}
+
+export function getImpersonatingDisplayName(): string | null {
+  return readCookieValue("impersonating_as");
+}
+
 // ─── Cart-Token management (WC Store API session) ─────────────────────────────
 
 const CART_TOKEN_KEY = "wc-cart-token";

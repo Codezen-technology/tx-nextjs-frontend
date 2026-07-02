@@ -116,7 +116,7 @@ export function DashboardHeader({
   return (
     <header
       className={cn(
-        "fixed top-0 z-40 flex h-16 w-full items-center bg-white shadow-sm transition-[width,margin] md:h-24 md:shadow-none",
+        "fixed top-[var(--imp-offset)] z-40 flex h-16 w-full items-center bg-white shadow-sm transition-[width,margin] md:h-24 md:shadow-none",
         sidebarOpen
           ? "md:ml-[280px] md:w-[calc(100%-280px)]"
           : "md:ml-[65px] md:w-[calc(100%-65px)]",

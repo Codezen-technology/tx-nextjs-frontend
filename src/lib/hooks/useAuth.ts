@@ -8,7 +8,11 @@ import { authService } from "@/lib/services/auth";
 import { userService } from "@/lib/services/user";
 import { useAuthStore } from "@/lib/stores/auth.store";
 import { queryKeys } from "@/lib/utils/query-keys";
-import { hasUserLoggedInCookie } from "@/lib/api/bff-client";
+import {
+  getImpersonatingDisplayName,
+  hasUserLoggedInCookie,
+  isImpersonating,
+} from "@/lib/api/bff-client";
 import type { LoginInput, RegisterInput } from "@/lib/schemas/auth";
 import type { ApiError } from "@/lib/api/error";
 import type { WpUser } from "@/types/user";
@@ -151,5 +155,56 @@ export function useMe(enabled = true) {
     },
     enabled: enabled && canFetch,
     staleTime: 60_000,
+  });
+}
+
+export function useImpersonation() {
+  const [state, setState] = useState<{ active: boolean; displayName: string | null }>({
+    active: false,
+    displayName: null,
+  });
+
+  useEffect(() => {
+    setState({ active: isImpersonating(), displayName: getImpersonatingDisplayName() });
+  }, []);
+
+  return state;
+}
+
+export function useSwitchUser() {
+  const setUser = useAuthStore((s) => s.setUser);
+  const router = useRouter();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (email: string) => authService.switchUser(email),
+    onSuccess: ({ user }) => {
+      setUser(user);
+      qc.clear();
+      toast.success(`Now viewing as ${user.displayName}`);
+      router.replace("/dashboard/my-learning");
+    },
+    onError: (err: ApiError) => {
+      toast.error(err.message || "Could not switch to that user.");
+    },
+  });
+}
+
+export function useSwitchBack() {
+  const setUser = useAuthStore((s) => s.setUser);
+  const router = useRouter();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => authService.switchBack(),
+    onSuccess: ({ user }) => {
+      setUser(user);
+      qc.clear();
+      toast.success(`Switched back to ${user.displayName}`);
+      router.replace("/dashboard/admin/user-switching");
+    },
+    onError: (err: ApiError) => {
+      toast.error(err.message || "Could not switch back.");
+    },
   });
 }

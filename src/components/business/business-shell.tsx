@@ -4,11 +4,14 @@ import { useEffect, useState } from "react";
 import { BusinessHeader } from "@/components/business/business-header";
 import { BusinessSidebar } from "@/components/business/business-sidebar";
 import { BusinessAccessGuard } from "@/components/business/business-access-guard";
+import { ImpersonationBanner } from "@/components/layout/impersonation-banner";
+import { useImpersonation } from "@/lib/hooks/useAuth";
 import { cn } from "@/lib/utils/cn";
 
 export function BusinessShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const { active: impersonating } = useImpersonation();
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -21,7 +24,11 @@ export function BusinessShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[#f5f6f8]">
+    <div
+      className="flex min-h-screen bg-[#f5f6f8] pt-[var(--imp-offset)]"
+      style={{ "--imp-offset": impersonating ? "40px" : "0px" } as React.CSSProperties}
+    >
+      <ImpersonationBanner variant="fixed" />
       <BusinessSidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
