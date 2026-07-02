@@ -192,3 +192,39 @@ describe("useCartStore actions", () => {
     expect(itemCount).toBe(1);
   });
 });
+
+// ─── Persistence shape (Phase 1: disk cache is the loop's disease) ──────────────
+
+describe("useCartStore persistence", () => {
+  function persistedState(): Record<string, unknown> | null {
+    const raw = localStorage.getItem("lms-cart");
+    if (!raw) return null;
+    return (JSON.parse(raw) as { state?: Record<string, unknown> }).state ?? null;
+  }
+
+  beforeEach(() => {
+    localStorage.clear();
+    useCartStore.setState({ items: [], itemCount: 0, totals: null });
+  });
+
+  it("persists ONLY itemCount — never items/totals (server-owned, must not cache to disk)", () => {
+    useCartStore.getState().setWCCart(makeWCCart({ items: [makeWCItem()], items_count: 1 }));
+
+    const state = persistedState();
+    expect(state).not.toBeNull();
+    expect(state).toHaveProperty("itemCount", 1);
+    // A stale disk snapshot of items/totals is what fought the server value and
+    // drove the old update loop. It must never be persisted.
+    expect(state).not.toHaveProperty("items");
+    expect(state).not.toHaveProperty("totals");
+  });
+
+  it("keeps items/totals live in memory for the UI", () => {
+    useCartStore.getState().setWCCart(makeWCCart({ items: [makeWCItem()], items_count: 1 }));
+
+    const live = useCartStore.getState();
+    expect(live.items).toHaveLength(1);
+    expect(live.totals).not.toBeNull();
+    expect(live.itemCount).toBe(1);
+  });
+});

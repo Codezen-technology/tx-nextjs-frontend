@@ -1,0 +1,28 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "woocommerce",
+    "WooCommerce",
+    "retarget",
+    "headless",
+    "zustand",
+    "partialize",
+    "nextjs",
+    "tanstack",
+    "nicename",
+    "httponly",
+    "Bearer",
+    "nonce",
+    "permalink",
+    "revalidate",
+    "revalidatetag",
+    "middleware",
+    "proxied",
+    "upsell",
+    "checkout",
+    "rankmath",
+    "sonner"
+  ],
+  "ignorePaths": ["node_modules/**", ".next/**", "pnpm-lock.yaml", "coverage/**"]
+}

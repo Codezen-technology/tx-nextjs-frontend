@@ -260,10 +260,13 @@ export const useCartStore = create<CartStore>()(
     {
       name: "lms-cart",
       storage: createJSONStorage(() => localStorage),
+      // Persist ONLY itemCount — just enough for the header badge to render a
+      // number before the cart query hydrates. `items`/`totals` are server-owned
+      // and MUST NOT be cached to disk: a stale persisted snapshot is what
+      // hydrated a wrong quantity and fought the server value, driving the old
+      // update loop. useCartQuery is the source of truth for items/totals.
       partialize: (state) => ({
-        items: state.items,
         itemCount: state.itemCount,
-        totals: state.totals,
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);

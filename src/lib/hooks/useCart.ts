@@ -13,6 +13,9 @@ export function useCartQuery() {
   const query = useQuery({
     queryKey: queryKeys.cart.detail,
     queryFn: () => cartService.fetchCart(),
+    // Avoid a refetch storm on every mount/window-focus. Mutations explicitly
+    // invalidate queryKeys.cart.detail, so post-write freshness is unaffected.
+    staleTime: 30_000,
   });
 
   useEffect(() => {
