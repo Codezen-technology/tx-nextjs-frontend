@@ -37,7 +37,7 @@ export function CouponInput() {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="max-w-md space-y-2">
       <div className="flex">
         <input
           type="text"
@@ -45,7 +45,7 @@ export function CouponInput() {
           onChange={(e) => setCode(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleApply()}
           placeholder="Coupon code"
-          className="h-12 flex-1 rounded-l border border-r-0 border-[#ebedf1] bg-white px-[13px] py-[7px] text-base text-[#00204a] placeholder:text-[#75879d] focus:border-[#9e6f21] focus:outline-none"
+          className="h-12 w-[220px] flex-1 rounded-l border border-r-0 border-[#ebedf1] bg-white px-[13px] py-[7px] text-base text-[#00204a] placeholder:text-[#75879d] focus:border-[#9e6f21] focus:outline-none"
         />
         <button
           onClick={handleApply}

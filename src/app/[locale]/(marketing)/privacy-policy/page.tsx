@@ -32,6 +32,15 @@ export const revalidate = 3600;
 export default async function PrivacyPage() {
   const page = await fetchWpPage(["privacy-policy", "privacy"]);
 
+  // The Elementor page embeds its own eyebrow/title/intro before the first
+  // section (the site hero below already renders those) — drop everything up to
+  // the first <h2> so the body is just the numbered sections, no duplicate title.
+  const body =
+    page?.content && /<h2\b/i.test(page.content)
+      ? page.content.replace(/^[\s\S]*?(?=<h2\b)/i, "").trim()
+      : page?.content;
+  const legalPage = page ? { ...page, content: body ?? page.content } : null;
+
   return (
     <>
       <script
@@ -43,7 +52,7 @@ export default async function PrivacyPage() {
         defaultTitle="Privacy Policy"
         defaultIntro={PRIVACY_POLICY_INTRO}
         defaultContent={PRIVACY_POLICY_CONTENT_HTML}
-        page={page}
+        page={legalPage}
       />
     </>
   );

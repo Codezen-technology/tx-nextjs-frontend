@@ -1104,6 +1104,29 @@ Body: `first_name` (required), `last_name`, `email` (required), `phone`, `messag
 
 Errors: `lms_contact_missing_fields` (400), `lms_contact_invalid_email` (400), `lms_contact_message_too_long` (400), `lms_contact_rate_limited` (429), `lms_contact_send_failed` (500).
 
+### GET `/cancellations/page`
+
+Public. Returns hero copy and Gravity Form ids for the headless `/cancellations` and `/support-request` pages. Content is edited via ACF on the WordPress `cancellations` and `support-request` pages.
+
+```json
+{
+  "success": true,
+  "data": {
+    "cancellations": {
+      "hero": { "eyebrow": "…", "heading": "…", "text": "…" },
+      "cta": { "supportLabel": "Get quick help first", "refundLabel": "Check refund options" },
+      "refundFormId": 12
+    },
+    "supportRequest": {
+      "hero": { "eyebrow": "…", "heading": "…", "text": "…" },
+      "supportFormId": 11
+    }
+  }
+}
+```
+
+Form ids may be `null` when not yet configured in WP admin. Submissions use `POST /forms/{id}/submissions`. See `lms-backend-rest-api/docs/CANCELLATIONS_FORMS.md` for GF field setup.
+
 ---
 
 ## Error Codes Reference

@@ -5,6 +5,9 @@ import { cn } from "@/lib/utils/cn";
 
 interface ReviewsSectionProps {
   testimonials?: HomeTestimonial[];
+  title?: string;
+  subtitle?: string;
+  showViewAllLink?: boolean;
 }
 
 function initialsFromName(name: string): string {
@@ -34,22 +37,32 @@ function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
   );
 }
 
-export function ReviewsSection({ testimonials }: ReviewsSectionProps) {
+export function ReviewsSection({
+  testimonials,
+  title = "What Our Learners Have to Say",
+  subtitle,
+  showViewAllLink = true,
+}: ReviewsSectionProps) {
   if (!testimonials?.length) return null;
 
   return (
     <section className="flex flex-col gap-4 bg-primary-50 py-16">
       <div className="container flex items-center justify-between">
-        <h2 className="font-suse text-3xl font-bold text-neutral-900 md:text-[2rem]">
-          What Our Learners Have to Say
-        </h2>
-        <Link
-          href="/reviews"
-          className="flex items-center gap-1 font-open-sans text-base font-normal text-secondary-500 transition-colors hover:text-secondary-600"
-        >
-          View all reviews
-          <ChevronRight className="h-4 w-4" />
-        </Link>
+        <div>
+          <h2 className="font-suse text-3xl font-bold text-neutral-900 md:text-[2rem]">{title}</h2>
+          {subtitle ? (
+            <p className="mt-2 font-open-sans text-base text-neutral-500">{subtitle}</p>
+          ) : null}
+        </div>
+        {showViewAllLink ? (
+          <Link
+            href="/reviews"
+            className="flex items-center gap-1 font-open-sans text-base font-normal text-secondary-500 transition-colors hover:text-secondary-600"
+          >
+            View all reviews
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        ) : null}
       </div>
 
       <div className="container mt-6 grid flex-1 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">

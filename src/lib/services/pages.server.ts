@@ -11,6 +11,8 @@ export interface WpPageContent {
   id: number;
   slug: string;
   title: string;
+  /** How `content`/`blocks` was produced. `html` covers classic + Gutenberg. */
+  content_type?: "html" | "blocks" | "elementor";
   content: string;
   excerpt: string;
   modified: string;

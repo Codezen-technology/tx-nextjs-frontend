@@ -107,9 +107,24 @@ interface GravityFormProps {
   className?: string;
   /** Called after a successful, non-redirect submission. */
   onSuccess?: () => void;
+  /** Seed field values (e.g. hidden issue_type from the support wizard). */
+  prefillValues?: FormValues;
+  /** Hide fields by GF field id (already captured in a prior wizard step). */
+  hideFieldIds?: number[];
+  /** When true, skip the built-in confirmation panel and rely on onSuccess. */
+  suppressDefaultConfirmation?: boolean;
 }
 
-export function GravityForm({ form, className, onSuccess }: GravityFormProps) {
+export function GravityForm({
+  form,
+  className,
+  onSuccess,
+  prefillValues,
+  hideFieldIds = [],
+  suppressDefaultConfirmation = false,
+}: GravityFormProps) {
+  const hiddenIds = useMemo(() => new Set(hideFieldIds.map(String)), [hideFieldIds]);
+
   const {
     register,
     handleSubmit,
@@ -117,7 +132,12 @@ export function GravityForm({ form, className, onSuccess }: GravityFormProps) {
     trigger,
     control,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ defaultValues: buildDefaults(form.fields) });
+  } = useForm<FormValues>({
+    defaultValues: {
+      ...buildDefaults(form.fields),
+      ...prefillValues,
+    },
+  });
 
   const [confirmation, setConfirmation] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -130,7 +150,7 @@ export function GravityForm({ form, className, onSuccess }: GravityFormProps) {
   const pageById = useMemo(() => new Map(form.fields.map((f) => [f.id, pageOf(f)])), [form.fields]);
   const nameById = useMemo(() => new Map(form.fields.map((f) => [f.id, f.name])), [form.fields]);
 
-  const visibleFields = form.fields.filter((f) => isVisible(f, getValue));
+  const visibleFields = form.fields.filter((f) => !hiddenIds.has(f.id) && isVisible(f, getValue));
   const currentFields = form.isMultiPage
     ? visibleFields.filter((f) => pageOf(f) === page)
     : visibleFields;
@@ -160,7 +180,7 @@ export function GravityForm({ form, className, onSuccess }: GravityFormProps) {
 
   async function onFinalSubmit(all: FormValues) {
     try {
-      const payload = buildPayload(visibleFields, all);
+      const payload = buildPayload(form.fields, visibleFields, all, hiddenIds);
       const result = await formsService.submitForm(
         form.id,
         payload,
@@ -169,6 +189,10 @@ export function GravityForm({ form, className, onSuccess }: GravityFormProps) {
 
       if (result.confirmation_type === "redirect" && result.confirmation_redirect) {
         window.location.assign(result.confirmation_redirect);
+        return;
+      }
+      if (suppressDefaultConfirmation) {
+        onSuccess?.();
         return;
       }
       setConfirmation(result.confirmation_message ?? "Thank you. Your submission was received.");
@@ -259,9 +283,17 @@ function buildDefaults(fields: GravityField[]): FormValues {
   return defaults;
 }
 
-/** Build a submit payload from the currently-visible fields. */
-function buildPayload(visibleFields: GravityField[], all: FormValues): SubmitPayload {
-  const inputFields = visibleFields.filter((f) => !NON_INPUT_TYPES.has(f.type));
+/** Build a submit payload from visible fields plus any hidden pre-filled fields. */
+function buildPayload(
+  allFields: GravityField[],
+  visibleFields: GravityField[],
+  all: FormValues,
+  hiddenIds: Set<string>,
+): SubmitPayload {
+  const hiddenPrefilled = allFields.filter((f) => hiddenIds.has(f.id) && f.type === "hidden");
+  const inputFields = [...visibleFields, ...hiddenPrefilled].filter(
+    (f) => !NON_INPUT_TYPES.has(f.type),
+  );
   const hasFiles = inputFields.some((f) => f.type === "fileupload");
   const names = inputFields.flatMap(fieldNames);
 
