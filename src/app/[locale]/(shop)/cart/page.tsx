@@ -10,9 +10,10 @@ import { CouponInput } from "@/components/cart/CouponInput";
 import { UpsellBanner } from "@/components/cart/UpsellBanner";
 
 export default function CartPage() {
-  const { isLoading } = useCartQuery();
+  const { isLoading, data: cart } = useCartQuery();
   const items = useCartStore((s) => s.items);
   const itemCount = useCartStore((s) => s.itemCount);
+  const errors = cart?.errors ?? [];
 
   return (
     <div className="min-h-screen bg-[#fafbfb]">
@@ -31,6 +32,17 @@ export default function CartPage() {
 
       <div className="container py-10">
         <h1 className="mb-8 font-suse text-3xl font-medium text-[#00204a]">Cart</h1>
+
+        {errors.length > 0 && (
+          <div
+            role="alert"
+            className="mb-6 space-y-1 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+          >
+            {errors.map((e) => (
+              <p key={e.code + e.message}>{e.message}</p>
+            ))}
+          </div>
+        )}
 
         {isLoading ? (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">

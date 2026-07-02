@@ -225,16 +225,19 @@ Deliberately ignored (checkout/shipping concerns the cart page doesn't own): `ne
 `type`, `sku`, `permalink`, `variation`, `low_stock_remaining`, `backorders_allowed`,
 `prices.sale_price`, `prices.raw_prices`, `_links`, etc. — unused.
 
+**Cart-level errors** (`errors[]` in the WC response) ARE surfaced. WC reports item-level
+problems (out of stock, quantity exceeded, item auto-removed, coupon invalidated) in the
+top-level `errors` array — distinct from a failed HTTP request. `normalizeWCCart` maps them
+onto `Cart.errors` (decoding entities, defaulting a code), and `cart/page.tsx` renders them in
+an amber `role="alert"` banner above the line items. Read `cart.errors` from `useCartQuery().data`;
+they are not threaded through the Zustand store.
+
 **Known coverage gaps (not bugs — pick up when touching this area):**
 
-1. **`errors[]` in the cart response is dropped.** WC surfaces item-level problems (out of stock,
-   quantity exceeded, item auto-removed) in the top-level `errors` array. `WCStoreCart` doesn't
-   type it and `normalizeWCCart` ignores it, so the user can see a changed total with no reason.
-   To fix: add `errors` to the type, carry it into the domain `Cart`, render a notice.
-2. **`quantity_limits.editable` unused.** The stepper's visibility is driven by `sold_individually`;
+1. **`quantity_limits.editable` unused.** The stepper's visibility is driven by `sold_individually`;
    `quantity_limits.editable` is the Store API's dedicated signal (also covers stock/backorder
    caps). `max_quantity` already comes from `quantity_limits.maximum`.
-3. **`variation` not sent on add-to-cart.** Simple products only. Variable products would need the
+2. **`variation` not sent on add-to-cart.** Simple products only. Variable products would need the
    `variation` param on `POST /cart/add-item`.
 
 ---

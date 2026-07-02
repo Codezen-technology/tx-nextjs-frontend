@@ -113,6 +113,27 @@ describe("normalizeWCCart()", () => {
     const result = normalizeWCCart(cart);
     expect(result.items[0].name).toBe("Health & Safety");
   });
+
+  it("carries cart-level errors through (out of stock, quantity exceeded, …)", () => {
+    const cart = makeWCCart({
+      errors: [
+        {
+          code: "woocommerce_rest_product_out_of_stock",
+          message: "Sorry, &quot;X&quot; is out of stock.",
+        },
+        { message: "This item was removed." },
+      ],
+    });
+    const result = normalizeWCCart(cart);
+    expect(result.errors).toHaveLength(2);
+    expect(result.errors[0].code).toBe("woocommerce_rest_product_out_of_stock");
+    expect(result.errors[0].message).toBe('Sorry, "X" is out of stock.'); // entity decoded
+    expect(result.errors[1].code).toBe("cart_error"); // defaulted
+  });
+
+  it("defaults errors to an empty array when WC omits the field", () => {
+    expect(normalizeWCCart(makeWCCart()).errors).toEqual([]);
+  });
 });
 
 // ─── Store actions ────────────────────────────────────────────────────────────

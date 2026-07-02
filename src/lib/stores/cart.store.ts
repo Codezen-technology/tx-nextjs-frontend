@@ -52,10 +52,22 @@ export interface CartAddress {
   phone?: string;
 }
 
+/**
+ * Cart-level problem surfaced by the WC Store API (out of stock, quantity
+ * exceeded, item auto-removed, coupon no longer valid, etc). Comes from the
+ * response's top-level `errors` array — distinct from a failed HTTP request.
+ */
+export interface CartError {
+  code: string;
+  message: string;
+}
+
 export interface Cart extends CartTotals {
   items: CartItem[];
   /** Saved billing address for the logged-in customer; empty strings for guests. */
   billingAddress?: CartAddress;
+  /** Cart-level validation errors from WC (empty when the cart is clean). */
+  errors: CartError[];
 }
 
 // ─── WC Store API raw types ───────────────────────────────────────────────────
@@ -116,6 +128,7 @@ export interface WCStoreCart {
   items_count: number;
   billing_address?: CartAddress;
   shipping_address?: CartAddress;
+  errors?: Array<{ code?: string; message?: string }>;
 }
 
 // ─── Normalization ────────────────────────────────────────────────────────────
@@ -174,6 +187,9 @@ export function normalizeWCCart(wc: WCStoreCart): Cart {
     item_count: wc.items_count,
     currency: decodeEntities(wc.totals.currency_symbol),
     billingAddress: wc.billing_address,
+    errors: (wc.errors ?? [])
+      .filter((e) => e?.message)
+      .map((e) => ({ code: e.code ?? "cart_error", message: decodeEntities(e.message ?? "") })),
   };
 }
 

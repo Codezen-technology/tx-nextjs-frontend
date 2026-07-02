@@ -66,6 +66,7 @@ const MOCK_CART: Cart = {
   total: 14.99,
   coupon_code: null,
   currency: "£",
+  errors: [],
 };
 
 function makeWrapper() {
