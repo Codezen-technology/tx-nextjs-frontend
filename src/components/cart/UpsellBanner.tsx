@@ -2,8 +2,7 @@
 
 import { CheckCircle } from "lucide-react";
 import { useMembershipUpsell } from "@/lib/hooks/useMembershipUpsell";
-import { useAddToCart } from "@/lib/hooks/useCart";
-import { useCartStore } from "@/lib/stores/cart.store";
+import { useAddToCart, useCart } from "@/lib/hooks/useCart";
 import { isExternalUrl } from "@/lib/utils/url";
 
 interface UpsellBannerProps {
@@ -13,7 +12,7 @@ interface UpsellBannerProps {
 export function UpsellBanner({ variant = "cart" }: UpsellBannerProps) {
   const { data: upsell } = useMembershipUpsell();
   const addToCart = useAddToCart();
-  const cartItems = useCartStore((s) => s.items);
+  const { items: cartItems } = useCart();
 
   if (!upsell) return null;
 

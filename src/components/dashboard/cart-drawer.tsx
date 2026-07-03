@@ -5,8 +5,7 @@ import Image from "next/image";
 import { X } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useCartStore } from "@/lib/stores/cart.store";
-import { useRemoveCartItem } from "@/lib/hooks/useCart";
+import { useCart, useRemoveCartItem } from "@/lib/hooks/useCart";
 
 function fmt(amount: number, symbol: string): string {
   return `${symbol}${amount.toFixed(2)}`;
@@ -18,10 +17,8 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ open, onClose }: CartDrawerProps) {
-  const items = useCartStore((s) => s.items);
-  const totals = useCartStore((s) => s.totals);
+  const { items, totals, currency: sym } = useCart();
   const { mutate: removeItem, isPending } = useRemoveCartItem();
-  const sym = totals?.currency ?? "£";
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>

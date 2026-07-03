@@ -4,8 +4,7 @@ import { useState } from "react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { cn } from "@/lib/utils/cn";
 import { useWcStoreCheckout } from "@/lib/hooks/useCheckout";
-import { useCartQuery } from "@/lib/hooks/useCart";
-import { useCartStore } from "@/lib/stores/cart.store";
+import { useCart } from "@/lib/hooks/useCart";
 import { stripeCardPaymentData, findClientSecret } from "@/lib/services/checkout";
 import { CheckoutProcessingOverlay } from "./CheckoutProcessingOverlay";
 import { SecurePaymentBadge } from "./SecurePaymentBadge";
@@ -26,9 +25,8 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
   const { mutateAsync: wcStoreCheckout } = useWcStoreCheckout();
 
   // Zero-total orders (e.g. 100% coupon) need no card — WC processes them as free.
-  const { data: cart } = useCartQuery();
-  const storeTotal = useCartStore((s) => s.totals?.total);
-  const orderTotal = cart?.total ?? storeTotal ?? 0;
+  const { totals } = useCart();
+  const orderTotal = totals?.total ?? 0;
   const isFreeOrder = orderTotal <= 0;
 
   // ─── Free order checkout (no payment) ──────────────────────────────────────

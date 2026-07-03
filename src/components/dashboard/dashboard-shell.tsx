@@ -5,9 +5,8 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { CartDrawer } from "@/components/dashboard/cart-drawer";
 import { ImpersonationBanner } from "@/components/layout/impersonation-banner";
-import { useCartQuery } from "@/lib/hooks/useCart";
+import { useCart } from "@/lib/hooks/useCart";
 import { useImpersonation } from "@/lib/hooks/useAuth";
-import { useCartStore } from "@/lib/stores/cart.store";
 import { cn } from "@/lib/utils/cn";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -15,8 +14,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
 
-  useCartQuery();
-  const itemCount = useCartStore((s) => s.totals?.item_count ?? s.items.length);
+  const { itemCount } = useCart();
   const { active: impersonating } = useImpersonation();
 
   useEffect(() => {

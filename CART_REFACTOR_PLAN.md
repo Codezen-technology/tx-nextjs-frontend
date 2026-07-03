@@ -53,17 +53,20 @@ Highest-leverage change. #1 and #3 ship together: same two files, both close rac
 
 ---
 
-## Phase 2 — Collapse to one source of truth (#2) — PARTIAL (safe slice done)
+## Phase 2 — Collapse to one source of truth (#2) — DISPLAY LAYER DONE (store-strip deferred)
 
 TanStack Query becomes sole owner of cart data; Zustand keeps only UI state.
 
 1. ✅ **Facade hook `useCart()`** → `{ cart, items, totals, itemCount, currency, errors, isLoading }`
    from `useCartQuery().data` (`useCart.ts`). The seam the rest of the migration builds on.
-2. 🚧 **Migrate readers to `useCart()`, delete `cart ?? store` hedges.** Done for the pure display
-   components: `CartSummary`, `CheckoutOrderSummary`, `cart/page.tsx`, `MiniCart`. Remaining
-   (deferred): `dashboard-shell`, `PaymentMethodSelector`, and the "in cart" detection readers
-   (`product-add-to-cart`, `UpsellBanner`, `course/[slug]`, `bundles/[slug]`, home
-   `hero-section` / `categories-grid`).
+2. ✅ **Migrate readers to `useCart()`, delete `cart ?? store` hedges.** Done — every data/display
+   reader now reads `useCart()`: `CartSummary`, `CheckoutOrderSummary`, `cart/page.tsx`, `MiniCart`,
+   `product-add-to-cart`, `UpsellBanner`, `dashboard-shell`, `cart-drawer`, `PaymentMethodSelector`.
+   No `cart ?? store` hedge remains. Surviving `useCartStore` reads are **not** data divergence:
+   UI state (`isOpen`/`toggleCart` in `bundle-add-to-cart`), the pre-hydration `itemCount` +
+   `hasHydrated` badge/gate (`header`, `checkout/page`), the `clearCart` action (`checkout/page`),
+   and a lone `currency` selector in `CartItemRow` (per-row — migrating would mount N redundant
+   queries, so left as a plain projection read).
 3. ⛔ **Strip store to `{ isOpen, toggleCart }` + derived `itemCount`.** NOT done. High risk.
 4. ⛔ **Delete `setCart` dual-writes in `useCart.ts`.** NOT done — `cart.hooks.test.tsx` asserts
    mutations update the store directly with no `useCartQuery` mounted, so removing the dual-write
@@ -90,9 +93,9 @@ before each mutation, or a single-flight queue keyed by cart-item. No user-visib
 
 ## Sequencing
 
-| Phase | Problem | Effort    | Status                                                |
-| ----- | ------- | --------- | ----------------------------------------------------- |
-| 0     | loop    | done      | ✅ shipped                                            |
-| 1     | #1 + #3 | ~30 min   | ✅ done                                               |
-| 2     | #2      | ~half day | 🚧 partial (display slice done; store-strip deferred) |
-| 3     | #4      | small     | deferred                                              |
+| Phase | Problem | Effort    | Status                                                           |
+| ----- | ------- | --------- | ---------------------------------------------------------------- |
+| 0     | loop    | done      | ✅ shipped                                                       |
+| 1     | #1 + #3 | ~30 min   | ✅ done                                                          |
+| 2     | #2      | ~half day | ✅ display layer done (2.1–2.2); ⛔ store-strip 2.3–2.4 deferred |
+| 3     | #4      | small     | deferred                                                         |

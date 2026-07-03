@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useAddToCart } from "@/lib/hooks/useCart";
-import { useCartStore } from "@/lib/stores/cart.store";
+import { useAddToCart, useCart } from "@/lib/hooks/useCart";
 
 interface ProductAddToCartProps {
   productId: number;
@@ -13,7 +12,7 @@ interface ProductAddToCartProps {
 
 export function ProductAddToCart({ productId, label, disabledReason }: ProductAddToCartProps) {
   const addToCart = useAddToCart();
-  const items = useCartStore((s) => s.items);
+  const { items } = useCart();
   const inCart = items.some((i) => i.product_id === productId);
 
   if (disabledReason) {
