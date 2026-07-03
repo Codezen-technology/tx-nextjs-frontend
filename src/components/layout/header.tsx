@@ -14,7 +14,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Search, ChevronDown, ShoppingCart, Menu, X } from "lucide-react";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { useCartQuery } from "@/lib/hooks/useCart";
+import { useCart } from "@/lib/hooks/useCart";
 import { useCartStore } from "@/lib/stores/cart.store";
 import { cn } from "@/lib/utils/cn";
 import { MegaMenu } from "./mega-menu";
@@ -234,8 +234,14 @@ function CartButton() {
   const ref = useRef<HTMLDivElement>(null);
   const itemCount = useCartStore((s) => s.itemCount);
   const hasHydrated = useCartStore((s) => s.hasHydrated);
+  const setItemCount = useCartStore((s) => s.setItemCount);
 
-  useCartQuery();
+  // Header is the single global cart-query mount: mirror the live count into the
+  // persisted store so the badge shows a number instantly on the next reload.
+  const { itemCount: liveCount, cart } = useCart();
+  useEffect(() => {
+    if (cart) setItemCount(liveCount);
+  }, [cart, liveCount, setItemCount]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {

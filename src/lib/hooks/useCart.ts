@@ -1,37 +1,30 @@
 "use client";
 
-import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/utils/query-keys";
 import { cartService } from "@/lib/services/cart";
-import { useCartStore } from "@/lib/stores/cart.store";
 import type { Cart } from "@/lib/stores/cart.store";
 
+/**
+ * Sole source of truth for cart DATA. A plain `useQuery` — no side effects — so
+ * it is safe to call from as many components (and per-row) as needed; TanStack
+ * dedupes by key. The header mirrors `data.item_count` into the persisted store
+ * for the pre-hydration badge; nothing else projects cart data anywhere.
+ */
 export function useCartQuery() {
-  const setCart = useCartStore((s) => s.setCart);
-
-  const query = useQuery({
+  return useQuery({
     queryKey: queryKeys.cart.detail,
     queryFn: () => cartService.fetchCart(),
     // Avoid a refetch storm on every mount/window-focus. Mutations explicitly
     // invalidate queryKeys.cart.detail, so post-write freshness is unaffected.
     staleTime: 30_000,
   });
-
-  useEffect(() => {
-    if (query.data) setCart(query.data);
-  }, [query.data, setCart]);
-  return query;
 }
 
 /**
- * Read facade for cart DATA. TanStack Query is the source of truth here; the
- * Zustand store is a projection kept in sync by `useCartQuery`. Prefer this over
- * reading `useCartStore` for display — it removes the `cart ?? store` fallback
- * hedges and is the seam the full single-source-of-truth migration builds on.
- *
- * Note: still call `useCartStore` directly for the pre-hydration `itemCount`
- * badge (persisted, instant) and for `isOpen`/`toggleCart` UI state.
+ * Read facade for cart DATA. TanStack Query is the single source of truth; the
+ * Zustand store holds only UI state (`isOpen`) + the persisted `itemCount` badge.
+ * Prefer this over `useCartStore` for any display of items/totals/currency.
  */
 export function useCart() {
   const query = useCartQuery();
@@ -49,13 +42,11 @@ export function useCart() {
 
 export function useAddToCart() {
   const qc = useQueryClient();
-  const setCart = useCartStore((s) => s.setCart);
 
   return useMutation({
     mutationFn: ({ product_id, quantity = 1 }: { product_id: number; quantity?: number }) =>
       cartService.addItem(product_id, quantity),
     onSuccess: (cart: Cart) => {
-      setCart(cart);
       qc.setQueryData(queryKeys.cart.detail, cart);
     },
   });
@@ -63,13 +54,11 @@ export function useAddToCart() {
 
 export function useUpdateCartItem() {
   const qc = useQueryClient();
-  const setCart = useCartStore((s) => s.setCart);
 
   return useMutation({
     mutationFn: ({ key, quantity }: { key: string; quantity: number }) =>
       cartService.updateItem(key, quantity),
     onSuccess: (cart: Cart) => {
-      setCart(cart);
       qc.setQueryData(queryKeys.cart.detail, cart);
     },
     onError: () => {
@@ -83,24 +72,29 @@ export function useUpdateCartItem() {
 
 export function useRemoveCartItem() {
   const qc = useQueryClient();
-  const setCart = useCartStore((s) => s.setCart);
-  const optimisticRemove = useCartStore((s) => s.optimisticRemove);
 
   return useMutation({
     mutationFn: (key: string) => cartService.removeItem(key),
+    // Optimistically drop the row from the query cache (the sole display source),
+    // snapshot for rollback. No store write — display no longer reads the store.
     onMutate: async (key) => {
       await qc.cancelQueries({ queryKey: queryKeys.cart.detail });
       const snapshot = qc.getQueryData<Cart>(queryKeys.cart.detail);
-      optimisticRemove(key);
+      if (snapshot) {
+        const items = snapshot.items.filter((i) => i.key !== key);
+        qc.setQueryData<Cart>(queryKeys.cart.detail, {
+          ...snapshot,
+          items,
+          item_count: items.reduce((s, i) => s + i.quantity, 0),
+        });
+      }
       return { snapshot };
     },
     onSuccess: (cart: Cart) => {
-      setCart(cart);
       qc.setQueryData(queryKeys.cart.detail, cart);
     },
     onError: (_err, _vars, context) => {
       if (context?.snapshot) {
-        setCart(context.snapshot);
         qc.setQueryData(queryKeys.cart.detail, context.snapshot);
       } else {
         qc.invalidateQueries({ queryKey: queryKeys.cart.detail });
@@ -114,12 +108,10 @@ export function useRemoveCartItem() {
 
 export function useApplyCoupon() {
   const qc = useQueryClient();
-  const setCart = useCartStore((s) => s.setCart);
 
   return useMutation({
     mutationFn: (code: string) => cartService.applyCoupon(code),
     onSuccess: (cart: Cart) => {
-      setCart(cart);
       qc.setQueryData(queryKeys.cart.detail, cart);
     },
   });
@@ -127,12 +119,10 @@ export function useApplyCoupon() {
 
 export function useRemoveCoupon() {
   const qc = useQueryClient();
-  const setCart = useCartStore((s) => s.setCart);
 
   return useMutation({
     mutationFn: (code: string) => cartService.removeCoupon(code),
     onSuccess: (cart: Cart) => {
-      setCart(cart);
       qc.setQueryData(queryKeys.cart.detail, cart);
     },
   });

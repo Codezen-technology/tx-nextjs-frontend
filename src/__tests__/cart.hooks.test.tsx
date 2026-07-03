@@ -73,7 +73,10 @@ const MOCK_CART: Cart = {
 function makeWrapper() {
   const qc = new QueryClient({
     defaultOptions: {
-      queries: { retry: false, gcTime: 0 },
+      // gcTime: Infinity — cart data now lives in the query cache (not the store),
+      // and these tests read it via getQueryData with no mounted observer, so the
+      // cache must not be garbage-collected between the write and the assertion.
+      queries: { retry: false, gcTime: Infinity },
       mutations: { retry: false },
     },
   });
@@ -89,23 +92,7 @@ beforeEach(() => {
   localStorage.setItem("wc-cart-token", "tok_test");
   localStorage.setItem("wc-cart-nonce", "nonce_test");
 
-  useCartStore.setState({
-    items: [CART_ITEM],
-    itemCount: 1,
-    totals: {
-      subtotal: 14.99,
-      vat_rate: 20,
-      vat_amount: 2.49,
-      discount: 0,
-      fees: [],
-      total: 14.99,
-      coupon_code: null,
-      item_count: 1,
-      currency: "£",
-    },
-    isOpen: false,
-    hasHydrated: true,
-  });
+  useCartStore.setState({ itemCount: 1, isOpen: false, hasHydrated: true });
 });
 
 afterEach(() => {
@@ -136,9 +123,10 @@ describe("useRemoveCartItem()", () => {
       result.current.mutate("key-abc");
     });
 
-    // Optimistic remove fires before fetch resolves
+    // Optimistic remove hits the query cache (the sole display source) before the
+    // DELETE resolves — no store write anymore.
     await waitFor(() => {
-      expect(useCartStore.getState().items).toHaveLength(0);
+      expect(qc.getQueryData<Cart>(queryKeys.cart.detail)?.items).toHaveLength(0);
     });
 
     resolveDelete(res(null, 204));
@@ -159,9 +147,10 @@ describe("useRemoveCartItem()", () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
 
-    // Snapshot restored after rollback
-    expect(useCartStore.getState().items).toHaveLength(1);
-    expect(useCartStore.getState().items[0].key).toBe("key-abc");
+    // Snapshot restored into the query cache after rollback
+    const rolledBack = qc.getQueryData<Cart>(queryKeys.cart.detail);
+    expect(rolledBack?.items).toHaveLength(1);
+    expect(rolledBack?.items[0].key).toBe("key-abc");
   });
 
   it("re-fetches cart after successful delete (invalidates query)", async () => {
@@ -184,7 +173,7 @@ describe("useRemoveCartItem()", () => {
 // ─── useAddToCart ─────────────────────────────────────────────────────────────
 
 describe("useAddToCart()", () => {
-  it("updates store and query cache on success", async () => {
+  it("writes the returned cart into the query cache on success", async () => {
     const updatedWCCart = makeWCCart(2);
     fetchMock.mockResolvedValueOnce(res(updatedWCCart));
 
@@ -198,8 +187,9 @@ describe("useAddToCart()", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    // onSuccess calls setCart(cart) → Zustand store reflects added item
-    expect(useCartStore.getState().itemCount).toBe(2);
+    // onSuccess writes the normalized cart to the query cache — the sole source
+    // of truth. No store dual-write anymore.
+    expect(qc.getQueryData<Cart>(queryKeys.cart.detail)?.item_count).toBe(2);
   });
 
   it("throws ApiError on add-to-cart failure", async () => {

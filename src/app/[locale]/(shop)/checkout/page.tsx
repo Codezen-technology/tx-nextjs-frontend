@@ -21,8 +21,6 @@ export default function CheckoutPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const billingRef = useRef<BillingFormHandle>(null);
-  const itemCount = useCartStore((s) => s.itemCount);
-  const cartHydrated = useCartStore((s) => s.hasHydrated);
   const clearCart = useCartStore((s) => s.clearCart);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   // Set once an order is placed so the "empty cart → /cart" redirect below
@@ -34,18 +32,19 @@ export default function CheckoutPage() {
   }, []);
 
   // Pre-fetch cart so CheckoutOrderSummary has data + customer billing for prefill.
-  const { data: cart } = useCartQuery();
+  const { data: cart, isLoading: cartLoading } = useCartQuery();
 
   // Only prefill for logged-in customers with a saved billing address.
   const billingDefaults = isLoggedIn ? cart?.billingAddress : undefined;
 
-  // Redirect to cart if nothing to checkout — wait for cart store to rehydrate first.
-  // Skip once an order is placed (clearing the cart must not bounce us to /cart).
+  // Redirect to cart if nothing to checkout — wait for the cart query to resolve
+  // (its truth, not a stale badge). Skip once an order is placed (clearing the
+  // cart must not bounce us to /cart).
   useEffect(() => {
-    if (!orderPlaced && cartHydrated && itemCount === 0) {
+    if (!orderPlaced && !cartLoading && cart && cart.item_count === 0) {
       router.replace("/cart");
     }
-  }, [orderPlaced, cartHydrated, itemCount, router]);
+  }, [orderPlaced, cartLoading, cart, router]);
 
   const handleOrderSuccess = (orderId: number, orderKey: string) => {
     setOrderPlaced(true);

@@ -5,16 +5,15 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, Minus, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { ParsedHtml } from "@/components/ui/parsed-html";
-import { useCartStore } from "@/lib/stores/cart.store";
 import type { CartItem } from "@/lib/stores/cart.store";
-import { useUpdateCartItem, useRemoveCartItem } from "@/lib/hooks/useCart";
+import { useCart, useUpdateCartItem, useRemoveCartItem } from "@/lib/hooks/useCart";
 
 interface CartItemRowProps {
   item: CartItem;
 }
 
 export function CartItemRow({ item }: CartItemRowProps) {
-  const currency = useCartStore((s) => s.totals?.currency ?? "£");
+  const { currency } = useCart();
   const { mutate: updateQty, isPending: isUpdating } = useUpdateCartItem();
   const { mutate: removeItem, isPending: isRemoving } = useRemoveCartItem();
 
@@ -148,7 +147,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
             </button>
           </div>
         ) : (
-          <span className="text-sm text-[#3b5374]">Qty: 1</span>
+          <span className="text-sm text-[#8a97a8]">Qty: {item.quantity}</span>
         )}
 
         {/* Line total — show skeleton while server recalculates */}

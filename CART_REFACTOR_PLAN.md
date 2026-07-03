@@ -53,7 +53,7 @@ Highest-leverage change. #1 and #3 ship together: same two files, both close rac
 
 ---
 
-## Phase 2 — Collapse to one source of truth (#2) — DISPLAY LAYER DONE (store-strip deferred)
+## Phase 2 — Collapse to one source of truth (#2) — ✅ DONE
 
 TanStack Query becomes sole owner of cart data; Zustand keeps only UI state.
 
@@ -67,19 +67,27 @@ TanStack Query becomes sole owner of cart data; Zustand keeps only UI state.
    `hasHydrated` badge/gate (`header`, `checkout/page`), the `clearCart` action (`checkout/page`),
    and a lone `currency` selector in `CartItemRow` (per-row — migrating would mount N redundant
    queries, so left as a plain projection read).
-3. ⛔ **Strip store to `{ isOpen, toggleCart }` + derived `itemCount`.** NOT done. High risk.
-4. ⛔ **Delete `setCart` dual-writes in `useCart.ts`.** NOT done — `cart.hooks.test.tsx` asserts
-   mutations update the store directly with no `useCartQuery` mounted, so removing the dual-write
-   is a tested behavior change, not a no-op. Requires test rewrite + checkout QA.
+3. ✅ **Strip store to UI-only.** `cart.store.ts` now holds `{ itemCount, isOpen, hasHydrated }` +
+   `setItemCount` / `toggleCart` / `clearCart` / `setHasHydrated`. Dropped `items`, `totals`,
+   `setCart`, `setWCCart`, `optimisticRemove`, `optimisticUpdateQty` (`setWCCart` /
+   `optimisticUpdateQty` were already dead — only tests called them). `itemCount` stays persisted
+   for the pre-hydration badge, fed from the query by the header (`setItemCount`, no-op when
+   unchanged). `normalizeWCCart` + all domain types kept (still used by `cart.ts` service).
+4. ✅ **Delete `setCart` dual-writes.** `useCartQuery` is now a plain `useQuery` (no projection
+   effect) → safe to call per-row. Every mutation writes only `qc.setQueryData`. `useRemoveCartItem`
+   optimism moved from `store.optimisticRemove` to an optimistic `setQueryData` filter — which also
+   **fixes a latent 2.2 regression** (the store-based optimistic remove no longer showed in the UI
+   once display read the query). Header mirrors `data.item_count` → persisted badge. `checkout/page`
+   empty-cart redirect now gates on query truth (`cart.item_count`), not the stale store badge.
 
-**Why 3–4 are deferred:** they touch mutation hooks + 15 files on the checkout/money path and
-change a tested contract. The display-layer slice (1–2 partial) removes the `cart ?? store`
-divergence on the surfaces that had it, zero checkout-behavior change, all tests green. The
-store-strip should land as its own reviewed PR with manual QA over add-to-cart / quantity /
-coupon / checkout.
+**Verification:** `tsc` clean; lint 0 errors; **33/33** cart tests green after rewrite
+(`cart.store.test.ts`, `cart.hooks.test.tsx` reworked to the query-owns-data contract);
+full suite 207 pass (1 unrelated pre-existing `course-purchase-card` failure).
 
-**Acceptance (full):** `grep 's.items\|s.totals'` returns only the store definition + the "in cart"
-detection readers' replacement. All cart tests green after rewrite.
+**Still needs before merge:** manual QA on the money path — add-to-cart / quantity ± / coupon
+apply+remove / free (100% coupon) checkout / paid checkout / remove-item optimism + rollback.
+
+**Acceptance (full):** ✅ `grep 's.items\|s.totals'` outside the store/tests returns nothing.
 
 ---
 
@@ -93,9 +101,9 @@ before each mutation, or a single-flight queue keyed by cart-item. No user-visib
 
 ## Sequencing
 
-| Phase | Problem | Effort    | Status                                                           |
-| ----- | ------- | --------- | ---------------------------------------------------------------- |
-| 0     | loop    | done      | ✅ shipped                                                       |
-| 1     | #1 + #3 | ~30 min   | ✅ done                                                          |
-| 2     | #2      | ~half day | ✅ display layer done (2.1–2.2); ⛔ store-strip 2.3–2.4 deferred |
-| 3     | #4      | small     | deferred                                                         |
+| Phase | Problem | Effort    | Status                                                     |
+| ----- | ------- | --------- | ---------------------------------------------------------- |
+| 0     | loop    | done      | ✅ shipped                                                 |
+| 1     | #1 + #3 | ~30 min   | ✅ done                                                    |
+| 2     | #2      | ~half day | ✅ done (2.1–2.4) — store is UI-only, query owns cart data |
+| 3     | #4      | small     | deferred                                                   |

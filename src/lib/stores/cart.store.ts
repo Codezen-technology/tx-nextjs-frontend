@@ -200,16 +200,23 @@ export function normalizeWCCart(wc: WCStoreCart): Cart {
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 
+/**
+ * UI-only cart store. Cart DATA (items/totals) is owned entirely by TanStack
+ * Query (`useCartQuery`) — the store keeps only view state that must survive a
+ * reload or live outside React's data layer:
+ *
+ * - `itemCount` — persisted so the header badge renders a number before the cart
+ *   query resolves. Fed from the query by the header (`setItemCount`); a scalar,
+ *   never the cart, so it can't diverge from server truth the way a cached
+ *   `items`/`totals` snapshot did (that snapshot drove the old update loop).
+ * - `isOpen` / `toggleCart` — mini-cart open state.
+ * - `hasHydrated` — gates the badge until localStorage rehydrates (SSR-safe).
+ */
 interface CartStore {
-  items: CartItem[];
-  totals: CartTotals | null;
   itemCount: number;
   isOpen: boolean;
   hasHydrated: boolean;
-  setCart: (cart: Cart) => void;
-  setWCCart: (wc: WCStoreCart) => void;
-  optimisticRemove: (key: string) => void;
-  optimisticUpdateQty: (key: string, qty: number) => void;
+  setItemCount: (n: number) => void;
   toggleCart: () => void;
   clearCart: () => void;
   setHasHydrated: (v: boolean) => void;
@@ -217,64 +224,17 @@ interface CartStore {
 
 export const useCartStore = create<CartStore>()(
   persist(
-    (set, get) => ({
-      items: [],
-      totals: null,
+    (set) => ({
       itemCount: 0,
       isOpen: false,
       hasHydrated: false,
 
-      setCart: (cart) =>
-        set({
-          items: cart.items,
-          itemCount: cart.item_count,
-          totals: {
-            subtotal: cart.subtotal,
-            vat_rate: cart.vat_rate,
-            vat_amount: cart.vat_amount,
-            discount: cart.discount,
-            fees: cart.fees,
-            total: cart.total,
-            coupon_code: cart.coupon_code,
-            item_count: cart.item_count,
-            currency: cart.currency,
-          },
-        }),
-
-      setWCCart: (wc) => {
-        const cart = normalizeWCCart(wc);
-        set({
-          items: cart.items,
-          itemCount: cart.item_count,
-          totals: {
-            subtotal: cart.subtotal,
-            vat_rate: cart.vat_rate,
-            vat_amount: cart.vat_amount,
-            discount: cart.discount,
-            fees: cart.fees,
-            total: cart.total,
-            coupon_code: cart.coupon_code,
-            item_count: cart.item_count,
-            currency: cart.currency,
-          },
-        });
-      },
-
-      optimisticRemove: (key) => {
-        const items = get().items.filter((i) => i.key !== key);
-        set({ items, itemCount: items.reduce((s, i) => s + i.quantity, 0) });
-      },
-
-      optimisticUpdateQty: (key, qty) => {
-        const items = get().items.map((i) =>
-          i.key === key ? { ...i, quantity: qty, line_total: i.price * qty } : i,
-        );
-        set({ items, itemCount: items.reduce((s, i) => s + i.quantity, 0) });
-      },
+      // No-op when unchanged so the header's per-render sync can't spam subscribers.
+      setItemCount: (n) => set((s) => (s.itemCount === n ? s : { itemCount: n })),
 
       toggleCart: () => set((s) => ({ isOpen: !s.isOpen })),
 
-      clearCart: () => set({ items: [], totals: null, itemCount: 0 }),
+      clearCart: () => set({ itemCount: 0 }),
 
       setHasHydrated: (v) => set({ hasHydrated: v }),
     }),
@@ -283,9 +243,9 @@ export const useCartStore = create<CartStore>()(
       storage: createJSONStorage(() => localStorage),
       // Persist ONLY itemCount — just enough for the header badge to render a
       // number before the cart query hydrates. `items`/`totals` are server-owned
-      // and MUST NOT be cached to disk: a stale persisted snapshot is what
+      // and live solely in TanStack Query: a stale persisted snapshot is what
       // hydrated a wrong quantity and fought the server value, driving the old
-      // update loop. useCartQuery is the source of truth for items/totals.
+      // update loop. useCartQuery is the sole source of truth for cart data.
       partialize: (state) => ({
         itemCount: state.itemCount,
       }),

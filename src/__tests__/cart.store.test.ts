@@ -147,83 +147,35 @@ describe("normalizeWCCart()", () => {
   });
 });
 
-// ─── Store actions ────────────────────────────────────────────────────────────
+// ─── Store actions (UI-only store: itemCount badge + isOpen) ────────────────────
 
 describe("useCartStore actions", () => {
-  const INITIAL_ITEMS = [
-    {
-      key: "key-1",
-      product_id: 101,
-      name: "Course A",
-      thumbnail: "",
-      price: 14.99,
-      regular_price: 79.0,
-      quantity: 2,
-      line_total: 29.98,
-      sold_individually: false,
-      max_quantity: 99,
-      editable: true,
-    },
-    {
-      key: "key-2",
-      product_id: 202,
-      name: "Course B",
-      thumbnail: "",
-      price: 9.99,
-      regular_price: 49.0,
-      quantity: 1,
-      line_total: 9.99,
-      sold_individually: true,
-      max_quantity: 1,
-      editable: false,
-    },
-  ];
-
   beforeEach(() => {
-    useCartStore.setState({
-      items: INITIAL_ITEMS,
-      itemCount: 3,
-      totals: null,
-      isOpen: false,
-      hasHydrated: true,
-    });
+    useCartStore.setState({ itemCount: 3, isOpen: false, hasHydrated: true });
   });
 
-  it("optimisticRemove removes item and decrements count", () => {
-    useCartStore.getState().optimisticRemove("key-1");
-    const { items, itemCount } = useCartStore.getState();
-    expect(items).toHaveLength(1);
-    expect(items[0].key).toBe("key-2");
-    expect(itemCount).toBe(1);
+  it("setItemCount updates the persisted badge count", () => {
+    useCartStore.getState().setItemCount(5);
+    expect(useCartStore.getState().itemCount).toBe(5);
   });
 
-  it("optimisticRemove is a no-op for unknown key", () => {
-    useCartStore.getState().optimisticRemove("key-unknown");
-    expect(useCartStore.getState().items).toHaveLength(2);
+  it("setItemCount is a no-op reference when unchanged (avoids spurious notify)", () => {
+    const before = useCartStore.getState();
+    before.setItemCount(3);
+    // Same value → identical state object returned, so subscribers don't re-run.
+    expect(useCartStore.getState()).toBe(before);
   });
 
-  it("optimisticUpdateQty updates quantity and recalculates line_total", () => {
-    useCartStore.getState().optimisticUpdateQty("key-1", 3);
-    const item = useCartStore.getState().items.find((i) => i.key === "key-1");
-    expect(item?.quantity).toBe(3);
-    expect(item?.line_total).toBeCloseTo(44.97, 2);
+  it("toggleCart flips isOpen", () => {
+    useCartStore.getState().toggleCart();
+    expect(useCartStore.getState().isOpen).toBe(true);
+    useCartStore.getState().toggleCart();
+    expect(useCartStore.getState().isOpen).toBe(false);
   });
 
-  it("clearCart resets to empty state", () => {
+  it("clearCart zeroes the badge count", () => {
     useCartStore.getState().clearCart();
-    const { items, itemCount, totals } = useCartStore.getState();
-    expect(items).toHaveLength(0);
-    expect(itemCount).toBe(0);
-    expect(totals).toBeNull();
-  });
-
-  it("setWCCart normalises and stores WC cart data", () => {
-    const wcCart = makeWCCart({ items: [makeWCItem()], items_count: 1 });
-    useCartStore.getState().setWCCart(wcCart);
-    const { items, itemCount } = useCartStore.getState();
-    expect(items).toHaveLength(1);
-    expect(items[0].price).toBe(14.99);
-    expect(itemCount).toBe(1);
+    expect(useCartStore.getState().itemCount).toBe(0);
   });
 });
 
@@ -238,27 +190,18 @@ describe("useCartStore persistence", () => {
 
   beforeEach(() => {
     localStorage.clear();
-    useCartStore.setState({ items: [], itemCount: 0, totals: null });
+    useCartStore.setState({ itemCount: 0 });
   });
 
-  it("persists ONLY itemCount — never items/totals (server-owned, must not cache to disk)", () => {
-    useCartStore.getState().setWCCart(makeWCCart({ items: [makeWCItem()], items_count: 1 }));
+  it("persists ONLY itemCount — never cart data (server-owned, lives in TanStack Query)", () => {
+    useCartStore.getState().setItemCount(1);
 
     const state = persistedState();
     expect(state).not.toBeNull();
     expect(state).toHaveProperty("itemCount", 1);
     // A stale disk snapshot of items/totals is what fought the server value and
-    // drove the old update loop. It must never be persisted.
+    // drove the old update loop. Cart data must never touch the store or disk.
     expect(state).not.toHaveProperty("items");
     expect(state).not.toHaveProperty("totals");
-  });
-
-  it("keeps items/totals live in memory for the UI", () => {
-    useCartStore.getState().setWCCart(makeWCCart({ items: [makeWCItem()], items_count: 1 }));
-
-    const live = useCartStore.getState();
-    expect(live.items).toHaveLength(1);
-    expect(live.totals).not.toBeNull();
-    expect(live.itemCount).toBe(1);
   });
 });
