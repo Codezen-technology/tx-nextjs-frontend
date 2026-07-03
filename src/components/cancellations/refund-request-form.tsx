@@ -1,16 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { GravityForm } from "@/components/forms/gravity-form";
+import { GravityForm, type FormLayoutGroup } from "@/components/forms/gravity-form";
+import { FormUnavailableMessage } from "@/components/cancellations/form-unavailable-message";
 import { RefundSuccess } from "@/components/cancellations/support-success";
 import type { GravityForm as GravityFormSchema } from "@/types/form";
+
+/** GF field ids — must match Cancellations_Forms_Installer refund_form_definition(). */
+const REFUND_LAYOUT: FormLayoutGroup[] = [
+  { type: "grid", columns: 2, fieldIds: [2, 3] },
+  { type: "grid", columns: 2, fieldIds: [4, 6] },
+  { type: "divider", label: "Request details" },
+  { type: "stack", fieldIds: [5, 7, 8, 9, 10, 13] },
+];
 
 interface RefundRequestFormProps {
   form: GravityFormSchema | null;
   formId: number | null;
+  supportEmail?: string | null;
 }
 
-export function RefundRequestForm({ form, formId }: RefundRequestFormProps) {
+export function RefundRequestForm({ form, formId, supportEmail }: RefundRequestFormProps) {
   const [submitted, setSubmitted] = useState(false);
 
   if (submitted) {
@@ -18,18 +28,19 @@ export function RefundRequestForm({ form, formId }: RefundRequestFormProps) {
   }
 
   if (!formId || !form) {
-    return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 font-open-sans text-sm text-amber-900">
-        The refund form is not configured yet. Please email us at{" "}
-        <a href="mailto:hi@trainingexcellence.org.uk" className="font-semibold underline">
-          hi@trainingexcellence.org.uk
-        </a>{" "}
-        with your order details and we will review your request.
-      </div>
-    );
+    return <FormUnavailableMessage supportEmail={supportEmail} formLabel="refund form" />;
   }
 
   return (
-    <GravityForm form={form} suppressDefaultConfirmation onSuccess={() => setSubmitted(true)} />
+    <GravityForm
+      form={form}
+      variant="cancellations"
+      layoutGroups={REFUND_LAYOUT}
+      showPrivacyLink
+      fallbackEmail={supportEmail}
+      surfaceClass="bg-white"
+      suppressDefaultConfirmation
+      onSuccess={() => setSubmitted(true)}
+    />
   );
 }

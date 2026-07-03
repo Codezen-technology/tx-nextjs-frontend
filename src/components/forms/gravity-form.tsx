@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { Loader2 } from "lucide-react";
@@ -113,7 +114,25 @@ interface GravityFormProps {
   hideFieldIds?: number[];
   /** When true, skip the built-in confirmation panel and rely on onSuccess. */
   suppressDefaultConfirmation?: boolean;
+  /** Show privacy policy link above the submit button. */
+  showPrivacyLink?: boolean;
+  /** Admin email for submit-failure fallback (mailto). Falls back to /contact-us. */
+  fallbackEmail?: string | null;
+  /** Marketing-style field layout for cancellations / support forms. */
+  variant?: "default" | "cancellations";
+  /** Group fields into grids / stacks (refund form layout). */
+  layoutGroups?: FormLayoutGroup[];
+  /** Shown below the submit button (support trust line). */
+  footerNote?: string;
+  /** Background class for section dividers (match parent surface). */
+  surfaceClass?: string;
 }
+
+export type FormLayoutGroup =
+  | { type: "grid"; columns: 1 | 2; fieldIds: number[] }
+  | { type: "divider"; label: string }
+  | { type: "stack"; fieldIds: number[] }
+  | { type: "remaining"; excludeFieldIds: number[] };
 
 export function GravityForm({
   form,
@@ -122,8 +141,20 @@ export function GravityForm({
   prefillValues,
   hideFieldIds = [],
   suppressDefaultConfirmation = false,
+  showPrivacyLink = false,
+  fallbackEmail = null,
+  variant = "default",
+  layoutGroups,
+  footerNote,
+  surfaceClass = "bg-white",
 }: GravityFormProps) {
+  const isCancellations = variant === "cancellations";
+  const fieldClass = isCancellations
+    ? "h-11 bg-white border-neutral-40 text-neutral-900 placeholder:text-neutral-100 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-1"
+    : FIELD_CLASS;
+  const labelClass = isCancellations ? "text-sm font-semibold text-neutral-800" : LABEL_CLASS;
   const hiddenIds = useMemo(() => new Set(hideFieldIds.map(String)), [hideFieldIds]);
+  const todayIso = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const {
     register,
@@ -140,6 +171,7 @@ export function GravityForm({
   });
 
   const [confirmation, setConfirmation] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
   // useWatch (not watch()) subscribes in a React-Compiler-friendly way.
@@ -154,6 +186,98 @@ export function GravityForm({
   const currentFields = form.isMultiPage
     ? visibleFields.filter((f) => pageOf(f) === page)
     : visibleFields;
+
+  const fieldById = useMemo(
+    () => new Map(currentFields.map((f) => [Number(f.id), f])),
+    [currentFields],
+  );
+
+  const layoutFieldIds = useMemo(() => {
+    if (!layoutGroups) return null;
+    const ids = new Set<number>();
+    for (const group of layoutGroups) {
+      if (group.type === "grid" || group.type === "stack") {
+        for (const id of group.fieldIds) ids.add(id);
+      }
+    }
+    return ids;
+  }, [layoutGroups]);
+
+  const hiddenLayoutFields = layoutGroups ? currentFields.filter((f) => f.type === "hidden") : [];
+
+  function renderFieldRow(field: GravityField) {
+    return (
+      <FieldRow
+        key={field.id}
+        field={field}
+        register={register}
+        errors={errors}
+        maxDate={todayIso}
+        fieldClass={fieldClass}
+        labelClass={labelClass}
+        isCancellations={isCancellations}
+      />
+    );
+  }
+
+  function renderLayoutGroups() {
+    if (!layoutGroups) return null;
+
+    return layoutGroups.map((group, index) => {
+      if (group.type === "divider") {
+        return (
+          <div key={`divider-${group.label}`} className="relative py-3">
+            <div className="absolute inset-0 flex items-center" aria-hidden>
+              <div className="w-full border-t border-neutral-200" />
+            </div>
+            <div className="relative flex justify-center">
+              <span
+                className={cn(
+                  "px-3 font-open-sans text-[10px] font-semibold uppercase tracking-widest text-neutral-400",
+                  surfaceClass,
+                )}
+              >
+                {group.label}
+              </span>
+            </div>
+          </div>
+        );
+      }
+
+      let fields: GravityField[] = [];
+
+      if (group.type === "remaining") {
+        const excluded = new Set(group.excludeFieldIds);
+        fields = currentFields.filter((f) => {
+          const id = Number(f.id);
+          if (f.type === "hidden") return false;
+          if (excluded.has(id)) return false;
+          if (layoutFieldIds?.has(id)) return false;
+          return true;
+        });
+      } else {
+        fields = group.fieldIds
+          .map((id) => fieldById.get(id))
+          .filter((f): f is GravityField => Boolean(f));
+      }
+
+      if (!fields.length) return null;
+
+      if (group.type === "grid" && group.columns === 2) {
+        return (
+          <div key={`grid-${index}`} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {fields.map((field) => renderFieldRow(field))}
+          </div>
+        );
+      }
+
+      return (
+        <div key={`stack-${index}`} className="space-y-4">
+          {fields.map((field) => renderFieldRow(field))}
+        </div>
+      );
+    });
+  }
 
   const isLastPage = !form.isMultiPage || page >= form.pageCount;
   const nextLabel =
@@ -179,6 +303,7 @@ export function GravityForm({
   }
 
   async function onFinalSubmit(all: FormValues) {
+    setSubmitError(null);
     try {
       const payload = buildPayload(form.fields, visibleFields, all, hiddenIds);
       const result = await formsService.submitForm(
@@ -203,7 +328,9 @@ export function GravityForm({
         toast.error(err.message);
         return;
       }
-      toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setSubmitError(
+        err instanceof Error ? err.message : "Something went wrong. Please try again.",
+      );
     }
   }
 
@@ -234,16 +361,61 @@ export function GravityForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onFinalSubmit)} className={cn("space-y-5", className)} noValidate>
+    <form
+      onSubmit={handleSubmit(onFinalSubmit)}
+      className={cn(isCancellations ? "space-y-6" : "space-y-5", className)}
+      noValidate
+    >
       {form.isMultiPage && (
         <p className="font-open-sans text-xs font-medium uppercase tracking-wide text-neutral-400">
           Step {page} of {form.pageCount}
         </p>
       )}
 
-      {currentFields.map((field) => (
-        <FieldRow key={field.id} field={field} register={register} errors={errors} />
-      ))}
+      {layoutGroups ? (
+        <>
+          {hiddenLayoutFields.map((field) => renderFieldRow(field))}
+          {renderLayoutGroups()}
+        </>
+      ) : (
+        currentFields.map((field) => renderFieldRow(field))
+      )}
+
+      {submitError ? (
+        <div
+          role="alert"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 font-open-sans text-sm text-red-800"
+        >
+          {submitError}{" "}
+          {fallbackEmail ? (
+            <>
+              Please try again or email us at{" "}
+              <a href={`mailto:${fallbackEmail}`} className="font-semibold underline">
+                {fallbackEmail}
+              </a>
+              .
+            </>
+          ) : (
+            <>
+              Please try again or{" "}
+              <Link href="/contact-us" className="font-semibold underline">
+                contact us
+              </Link>
+              .
+            </>
+          )}
+        </div>
+      ) : null}
+
+      {showPrivacyLink ? (
+        <p className="font-open-sans text-sm text-neutral-500">
+          You agree to our{" "}
+          <Link href="/privacy-policy" className="font-semibold text-secondary-500 underline">
+            privacy policy
+          </Link>
+          .
+        </p>
+      ) : null}
 
       <div className="flex items-center gap-3">
         {form.isMultiPage && page > 1 && (
@@ -253,7 +425,14 @@ export function GravityForm({
         )}
 
         {isLastPage ? (
-          <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className={cn(
+              "w-full sm:w-auto",
+              isCancellations && "bg-secondary-500 text-white hover:bg-secondary-600",
+            )}
+          >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {form.button.text || "Submit"}
           </Button>
@@ -263,6 +442,8 @@ export function GravityForm({
           </Button>
         )}
       </div>
+
+      {footerNote ? <p className="font-open-sans text-xs text-neutral-500">{footerNote}</p> : null}
     </form>
   );
 }
@@ -307,7 +488,9 @@ function buildPayload(
   for (const name of names) {
     const v = all[name];
     if (v instanceof FileList) {
-      if (v.length > 0) fd.append(name, v[0]); // single-file (P2); multi-file deferred
+      for (let i = 0; i < v.length; i++) {
+        fd.append(name, v[i]);
+      }
     } else if (v != null) {
       fd.append(name, String(v));
     }
@@ -319,9 +502,21 @@ interface FieldRowProps {
   field: GravityField;
   register: ReturnType<typeof useForm<FormValues>>["register"];
   errors: ReturnType<typeof useForm<FormValues>>["formState"]["errors"];
+  maxDate?: string;
+  fieldClass?: string;
+  labelClass?: string;
+  isCancellations?: boolean;
 }
 
-function FieldRow({ field, register, errors }: FieldRowProps) {
+function FieldRow({
+  field,
+  register,
+  errors,
+  maxDate,
+  fieldClass = FIELD_CLASS,
+  labelClass = LABEL_CLASS,
+  isCancellations = false,
+}: FieldRowProps) {
   if (field.type === "html") {
     return <div dangerouslySetInnerHTML={{ __html: field.content ?? "" }} />;
   }
@@ -346,11 +541,31 @@ function FieldRow({ field, register, errors }: FieldRowProps) {
   const error = errors[field.name]?.message as string | undefined;
   const required = requiredRule(field);
 
+  if (field.type === "consent" || (field.type === "checkbox" && field.choices?.length === 1)) {
+    return (
+      <div className="space-y-1.5">
+        <label className="flex items-start gap-3 font-open-sans text-sm leading-relaxed text-neutral-700">
+          <input
+            type="checkbox"
+            value="1"
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+            {...register(field.name, { required })}
+          />
+          <span>
+            {field.choices?.[0]?.text ?? field.label}
+            {field.isRequired && <span className="ml-0.5 text-red-500">*</span>}
+          </span>
+        </label>
+        <FieldError message={error} />
+      </div>
+    );
+  }
+
   // Composite fields (name / address): one labeled text input per sub-input.
   if (field.inputs?.length && field.type !== "checkbox") {
     return (
       <fieldset className="space-y-2">
-        <legend className={cn("text-sm font-medium", LABEL_CLASS)}>
+        <legend className={cn("text-sm font-medium", labelClass)}>
           {field.label}
           {field.isRequired && <span className="ml-0.5 text-red-500">*</span>}
         </legend>
@@ -360,7 +575,7 @@ function FieldRow({ field, register, errors }: FieldRowProps) {
               key={input.id}
               placeholder={input.placeholder || input.label}
               aria-label={input.label}
-              className={FIELD_CLASS}
+              className={fieldClass}
               {...register(input.name, { required: field.isRequired ? required : false })}
             />
           ))}
@@ -372,12 +587,19 @@ function FieldRow({ field, register, errors }: FieldRowProps) {
 
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={`gf-${field.id}`} className={LABEL_CLASS}>
+      <Label htmlFor={`gf-${field.id}`} className={labelClass}>
         {field.label}
         {field.isRequired && <span className="ml-0.5 text-red-500">*</span>}
       </Label>
 
-      <FieldControl field={field} register={register} required={required} />
+      <FieldControl
+        field={field}
+        register={register}
+        required={required}
+        maxDate={maxDate}
+        fieldClass={fieldClass}
+        isCancellations={isCancellations}
+      />
 
       {field.description && (
         <p className="font-open-sans text-xs text-neutral-500">{field.description}</p>
@@ -391,12 +613,44 @@ function FieldControl({
   field,
   register,
   required,
+  maxDate,
+  fieldClass = FIELD_CLASS,
+  isCancellations = false,
 }: {
   field: GravityField;
   register: FieldRowProps["register"];
   required: string | false;
+  maxDate?: string;
+  fieldClass?: string;
+  isCancellations?: boolean;
 }) {
   const id = `gf-${field.id}`;
+
+  const placeholders: Record<string, string> = {
+    "Full name": "Jane Smith",
+    "Email address": "jane@example.com",
+    "Order number": "e.g. #149780",
+    Product: "Type to search course or certificate…",
+    "Additional details":
+      "Briefly explain what happened and what outcome you are hoping for. This helps us review the request faster.",
+  };
+
+  const placeholder =
+    field.placeholder || (isCancellations ? placeholders[field.label] : undefined);
+  const selectPlaceholder =
+    field.type === "select" && isCancellations
+      ? field.isRequired
+        ? "Select…"
+        : field.label === "Your device"
+          ? "Select device (optional)"
+          : undefined
+      : field.type === "select" && field.isRequired
+        ? field.label === "Reason for refund"
+          ? "Select a reason"
+          : field.label === "Payment channel"
+            ? "Select payment method"
+            : `Select ${field.label.toLowerCase()}`
+        : undefined;
 
   switch (field.type) {
     case "fileupload":
@@ -405,6 +659,7 @@ function FieldControl({
           <input
             id={id}
             type="file"
+            multiple={field.multipleFiles === true}
             accept={
               field.allowedExtensions?.length
                 ? field.allowedExtensions.map((e) => `.${e}`).join(",")
@@ -432,12 +687,12 @@ function FieldControl({
       return (
         <textarea
           id={id}
-          rows={5}
-          placeholder={field.placeholder}
+          rows={isCancellations ? 6 : 5}
+          placeholder={placeholder}
           maxLength={field.maxLength}
           className={cn(
             "flex w-full rounded-md border px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 disabled:opacity-50",
-            FIELD_CLASS,
+            fieldClass,
           )}
           {...register(field.name, { required })}
         />
@@ -447,12 +702,18 @@ function FieldControl({
       return (
         <select
           id={id}
+          defaultValue=""
           className={cn(
-            "flex h-10 w-full rounded-md border px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1",
-            FIELD_CLASS,
+            "flex h-11 w-full rounded-md border px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1",
+            fieldClass,
           )}
           {...register(field.name, { required })}
         >
+          {selectPlaceholder ? (
+            <option value="" disabled>
+              {selectPlaceholder}
+            </option>
+          ) : null}
           {field.choices?.map((choice) => (
             <option key={choice.value} value={choice.value}>
               {choice.text}
@@ -481,10 +742,7 @@ function FieldControl({
         </div>
       );
 
-    case "consent":
     case "checkbox":
-      // Single consent / simple checkbox. Multi-choice checkbox groups
-      // (separate inputs[]) are handled in a later phase.
       return (
         <label className="flex items-center gap-2 font-open-sans text-sm text-neutral-700">
           <input
@@ -502,9 +760,10 @@ function FieldControl({
         <Input
           id={id}
           type={inputType(field.type)}
-          placeholder={field.placeholder}
+          placeholder={placeholder}
           maxLength={field.maxLength}
-          className={FIELD_CLASS}
+          max={field.type === "date" ? maxDate : undefined}
+          className={fieldClass}
           {...register(field.name, { required })}
         />
       );

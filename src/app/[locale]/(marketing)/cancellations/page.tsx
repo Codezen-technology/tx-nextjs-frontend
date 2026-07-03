@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, setRequestLocale } from "next-intl/server";
@@ -7,9 +8,10 @@ import { serverApi } from "@/lib/api/server";
 import { fetchCancellationsPage } from "@/lib/services/cancellations.server";
 import { fetchForm } from "@/lib/services/forms.server";
 import { ReviewsSection } from "@/components/home/reviews-section";
+import { CancellationsHero } from "@/components/cancellations/cancellations-hero";
 import { IssueTypePicker } from "@/components/cancellations/issue-type-picker";
-import { RefundRequestForm } from "@/components/cancellations/refund-request-form";
-import { SupportSidebar } from "@/components/cancellations/support-sidebar";
+import { CANCELLATIONS_ISSUE_GATE } from "@/lib/constants/support-issues";
+import { RefundFormSection } from "@/components/cancellations/refund-form-section";
 import { Button } from "@/components/ui/button";
 
 export const revalidate = 3600;
@@ -52,22 +54,24 @@ export default async function CancellationsPage() {
       />
 
       <section className="bg-white py-16">
-        <div className="container max-w-3xl text-center">
-          <p className="font-open-sans text-sm font-semibold uppercase tracking-wide text-[#00bbf0]">
-            {content.cancellations.hero.eyebrow}
-          </p>
-          <h1 className="mt-3 font-suse text-3xl font-bold text-neutral-900 md:text-4xl">
-            {content.cancellations.hero.heading}
-          </h1>
-          <p className="mt-4 font-open-sans text-neutral-600">{content.cancellations.hero.text}</p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Button asChild variant="outline" className="border-neutral-300">
-              <Link href="/support-request">{content.cancellations.cta.supportLabel}</Link>
-            </Button>
-            <Button asChild className="bg-secondary-500 text-white hover:bg-secondary-600">
-              <a href="#refund-form">{content.cancellations.cta.refundLabel}</a>
-            </Button>
-          </div>
+        <div className="container max-w-3xl">
+          <CancellationsHero
+            eyebrow={content.cancellations.hero.eyebrow}
+            heading={content.cancellations.hero.heading}
+            text={content.cancellations.hero.text}
+            align="center"
+          >
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Button asChild variant="outline" className="border-neutral-300 bg-white">
+                <Link href="/support-request">{content.cancellations.cta.supportLabel}</Link>
+              </Button>
+              <Button asChild className="bg-secondary-500 text-white hover:bg-secondary-600">
+                <Link href="/cancellations?refund=1#refund-form">
+                  {content.cancellations.cta.refundLabel}
+                </Link>
+              </Button>
+            </div>
+          </CancellationsHero>
         </div>
       </section>
 
@@ -88,40 +92,36 @@ export default async function CancellationsPage() {
             closest option so we can route you faster.
           </p>
           <div className="mt-8">
-            <IssueTypePicker linkMode />
+            <IssueTypePicker linkMode issues={CANCELLATIONS_ISSUE_GATE} />
           </div>
           <p className="mt-6 font-open-sans text-sm text-neutral-500">
-            <a
-              href="#refund-form"
+            <Link
+              href="/cancellations?refund=1#refund-form"
               className="font-semibold text-secondary-500 underline hover:text-secondary-600"
             >
-              None of these apply — continue to refund request
-            </a>
+              None of these apply — continue to refund request →
+            </Link>
           </p>
         </div>
       </section>
 
-      <section id="refund-form" className="scroll-mt-28 bg-white py-16">
-        <div className="container">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="mx-auto w-full max-w-xl lg:mx-0">
-              <h2 className="font-suse text-2xl font-bold text-neutral-900 md:text-3xl">
-                Refund request details
-              </h2>
-              <p className="mt-3 font-open-sans text-sm text-neutral-600">
-                Use this form when support cannot solve the issue, or when you simply need the
-                purchase reviewed against the refund policy.
-              </p>
-              <div className="mt-8">
-                <RefundRequestForm form={refundForm} formId={content.cancellations.refundFormId} />
-              </div>
+      <Suspense
+        fallback={
+          <section id="refund-form" className="scroll-mt-28 bg-neutral-50/50 py-16">
+            <div className="container max-w-5xl">
+              <div className="h-48 animate-pulse rounded-xl bg-neutral-100" />
             </div>
-            <div className="hidden lg:block">
-              <SupportSidebar variant="refund" />
-            </div>
-          </div>
-        </div>
-      </section>
+          </section>
+        }
+      >
+        <RefundFormSection
+          form={refundForm}
+          formId={content.cancellations.refundFormId}
+          supportEmail={content.notificationEmail}
+          heading="Refund request details"
+          intro="Use this form when support cannot solve the issue, or when you simply need the purchase reviewed against the refund policy."
+        />
+      </Suspense>
     </>
   );
 }

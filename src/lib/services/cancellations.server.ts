@@ -70,5 +70,6 @@ export async function fetchCancellationsPage(): Promise<CancellationsPageContent
       },
       supportFormId: data.supportRequest?.supportFormId ?? null,
     },
+    notificationEmail: data.notificationEmail ?? null,
   };
 }

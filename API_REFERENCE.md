@@ -1120,12 +1120,13 @@ Public. Returns hero copy and Gravity Form ids for the headless `/cancellations`
     "supportRequest": {
       "hero": { "eyebrow": "…", "heading": "…", "text": "…" },
       "supportFormId": 11
-    }
+    },
+    "notificationEmail": "admin@example.com"
   }
 }
 ```
 
-Form ids may be `null` when not yet configured in WP admin. Submissions use `POST /forms/{id}/submissions`. See `lms-backend-rest-api/docs/CANCELLATIONS_FORMS.md` for GF field setup.
+Form ids may be `null` when not yet configured in WP admin. `notificationEmail` is the WordPress Administration Email Address (used for GF notifications and frontend fallbacks). Submissions use `POST /forms/{id}/submissions`. See `lms-backend-rest-api/docs/cancellations-refunds/GRAVITY_FORMS.md` for GF setup and `PROGRESS.md` for implementation status.
 
 ---
 

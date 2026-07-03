@@ -7,6 +7,7 @@ import { serverApi } from "@/lib/api/server";
 import { fetchCancellationsPage } from "@/lib/services/cancellations.server";
 import { fetchForm } from "@/lib/services/forms.server";
 import { ReviewsSection } from "@/components/home/reviews-section";
+import { CancellationsHero } from "@/components/cancellations/cancellations-hero";
 import { SupportRequestWizard } from "@/components/cancellations/support-request-wizard";
 
 export const revalidate = 3600;
@@ -49,25 +50,24 @@ export default async function SupportRequestPage() {
       />
 
       <section className="bg-white py-16">
-        <div className="container max-w-3xl">
-          <p className="font-open-sans text-sm font-semibold uppercase tracking-wide text-[#00bbf0]">
-            {content.supportRequest.hero.eyebrow}
-          </p>
-          <h1 className="mt-3 font-suse text-3xl font-bold text-neutral-900 md:text-4xl">
-            {content.supportRequest.hero.heading}
-          </h1>
-          <p className="mt-4 font-open-sans text-neutral-600">{content.supportRequest.hero.text}</p>
-        </div>
-      </section>
+        <div className="container max-w-6xl">
+          <CancellationsHero
+            eyebrow={content.supportRequest.hero.eyebrow}
+            heading={content.supportRequest.hero.heading}
+            text={content.supportRequest.hero.text}
+            headingEmphasis="out"
+            align="center"
+            showDot
+            className="mx-auto mb-12 max-w-3xl"
+          />
 
-      <section className="pb-16">
-        <div className="container max-w-5xl">
           <Suspense
             fallback={<div className="font-open-sans text-sm text-neutral-500">Loading…</div>}
           >
             <SupportRequestWizard
               form={supportForm}
               formId={content.supportRequest.supportFormId}
+              supportEmail={content.notificationEmail}
             />
           </Suspense>
         </div>

@@ -1,5 +1,9 @@
+import { PriorityBadge } from "@/components/cancellations/priority-badge";
+import { cn } from "@/lib/utils/cn";
+
 interface SupportSidebarProps {
   variant?: "support" | "refund";
+  className?: string;
 }
 
 const SUPPORT_STEPS = [
@@ -14,38 +18,61 @@ const REFUND_STEPS = [
   "If a refund is approved, it's processed within 1–3 working days to your original payment method.",
 ];
 
-export function SupportSidebar({ variant = "support" }: SupportSidebarProps) {
+function SidebarPanel({
+  label,
+  title,
+  children,
+}: {
+  label?: string;
+  title?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-white p-6">
+      {label ? (
+        <p className="font-open-sans text-[10px] font-semibold uppercase tracking-widest text-neutral-400">
+          {label}
+        </p>
+      ) : null}
+      {title ? (
+        <h3 className={cn("font-suse text-lg font-bold text-neutral-900", label && "mt-1")}>
+          {title}
+        </h3>
+      ) : null}
+      {children}
+    </div>
+  );
+}
+
+export function SupportSidebar({ variant = "support", className }: SupportSidebarProps) {
   const steps = variant === "refund" ? REFUND_STEPS : SUPPORT_STEPS;
 
   return (
-    <aside className="space-y-6">
-      <div className="rounded-xl border border-neutral-200 bg-white p-6">
-        <p className="font-open-sans text-xs font-semibold uppercase tracking-wide text-secondary-500">
-          {variant === "support" ? "High priority" : "Refund review"}
-        </p>
-        <h3 className="mt-2 font-suse text-lg font-bold text-neutral-900">Response time</h3>
-        <p className="mt-2 font-open-sans text-sm text-neutral-600">Same working day</p>
+    <aside className={cn("space-y-6", className)}>
+      <SidebarPanel label="Response time">
+        {variant === "support" ? (
+          <div className="mb-3">
+            <PriorityBadge />
+          </div>
+        ) : null}
+        <p className="font-open-sans text-sm font-medium text-neutral-800">Same working day</p>
         {variant === "support" ? (
           <p className="mt-3 font-open-sans text-xs leading-relaxed text-neutral-500">
             This route is for problems we can usually fix without making you wait for a refund
             review.
           </p>
         ) : null}
-      </div>
+      </SidebarPanel>
 
-      <div className="rounded-xl border border-neutral-200 bg-white p-6">
-        <h3 className="font-suse text-lg font-bold text-neutral-900">Our commitment</h3>
-        <ul className="mt-4 space-y-3 font-open-sans text-sm text-neutral-600">
-          <li>Every request is read by a real person, not an automated reply.</li>
-          <li>
-            We check the account, order, and course details before recommending the next step.
-          </li>
-        </ul>
-      </div>
+      <SidebarPanel label="Our commitment">
+        <div className="mt-1 space-y-3 font-open-sans text-sm leading-relaxed text-neutral-600">
+          <p>Every request is read by a real person, not an automated reply.</p>
+          <p>We check the account, order, and course details before recommending the next step.</p>
+        </div>
+      </SidebarPanel>
 
-      <div className="rounded-xl border border-neutral-200 bg-white p-6">
-        <h3 className="font-suse text-lg font-bold text-neutral-900">What happens next</h3>
-        <ol className="mt-4 space-y-4">
+      <SidebarPanel label="What happens next">
+        <ol className="mt-3 space-y-4">
           {steps.map((step, i) => (
             <li key={step} className="flex gap-3 font-open-sans text-sm text-neutral-600">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 font-suse text-xs font-bold text-primary-700">
@@ -55,7 +82,7 @@ export function SupportSidebar({ variant = "support" }: SupportSidebarProps) {
             </li>
           ))}
         </ol>
-      </div>
+      </SidebarPanel>
     </aside>
   );
 }

@@ -31,4 +31,6 @@ export interface SupportRequestPageSection {
 export interface CancellationsPageContent {
   cancellations: CancellationsPageSection;
   supportRequest: SupportRequestPageSection;
+  /** WordPress Administration Email Address — used for GF notifications and fallbacks. */
+  notificationEmail?: string | null;
 }
