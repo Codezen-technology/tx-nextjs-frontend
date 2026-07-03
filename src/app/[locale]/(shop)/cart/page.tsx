@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/lib/hooks/useCart";
+import { useAuthStore, selectUser } from "@/lib/stores/auth.store";
 import { CartItemRow } from "@/components/cart/CartItemRow";
 import { CartSummary } from "@/components/cart/CartSummary";
 import { CouponInput } from "@/components/cart/CouponInput";
@@ -10,6 +11,8 @@ import { UpsellBanner } from "@/components/cart/UpsellBanner";
 
 export default function CartPage() {
   const { items, itemCount, isLoading, errors } = useCart();
+  const user = useAuthStore(selectUser);
+  const browseCoursesHref = user ? "/dashboard/all-courses" : "/all-courses";
 
   return (
     <div className="min-h-screen bg-[#fafbfb]">
@@ -55,7 +58,7 @@ export default function CartPage() {
             <h2 className="mb-2 text-xl font-semibold text-[#00204a]">Your cart is empty</h2>
             <p className="mb-6 text-[#3b5374]">Browse our courses and add something you love.</p>
             <Link
-              href="/courses"
+              href={browseCoursesHref}
               className="rounded bg-[#9e6f21] px-6 py-3 text-sm font-medium text-white hover:bg-[#7d5819]"
             >
               Browse Courses
