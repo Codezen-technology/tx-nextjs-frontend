@@ -2,7 +2,12 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useRemoveCartItem, useAddToCart, useUpdateCartItem } from "@/lib/hooks/useCart";
+import {
+  useRemoveCartItem,
+  useAddToCart,
+  useUpdateCartItem,
+  standingCartErrors,
+} from "@/lib/hooks/useCart";
 import { useCartStore } from "@/lib/stores/cart.store";
 import { queryKeys } from "@/lib/utils/query-keys";
 import type { Cart, WCStoreCart } from "@/lib/stores/cart.store";
@@ -240,5 +245,29 @@ describe("useUpdateCartItem()", () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(invalidateSpy).toHaveBeenCalled();
+  });
+});
+
+describe("standingCartErrors()", () => {
+  it("dedupes identical WC notices", () => {
+    const dupe = { code: "woocommerce_rest_cart_item_error", message: "Item out of stock" };
+    expect(standingCartErrors([dupe, { ...dupe }])).toEqual([dupe]);
+  });
+
+  it("drops coupon/discount-conflict notices the server re-emits every request", () => {
+    const errors = [
+      { code: "woocommerce_rest_cart_item_error", message: "Item out of stock" },
+      {
+        code: "woocommerce_rest_cart_item_error",
+        message: "Coupon cannot be applied when bulk discount is already applied",
+      },
+    ];
+    expect(standingCartErrors(errors)).toEqual([
+      { code: "woocommerce_rest_cart_item_error", message: "Item out of stock" },
+    ]);
+  });
+
+  it("returns [] for a clean cart", () => {
+    expect(standingCartErrors([])).toEqual([]);
   });
 });

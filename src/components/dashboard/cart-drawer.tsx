@@ -2,13 +2,89 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { X } from "lucide-react";
+import { Loader2, Minus, Plus, X } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useCart, useRemoveCartItem } from "@/lib/hooks/useCart";
+import { useQuantityEditor } from "@/lib/hooks/useQuantityEditor";
+import type { CartItem } from "@/lib/stores/cart.store";
 
 function fmt(amount: number, symbol: string): string {
   return `${symbol}${amount.toFixed(2)}`;
+}
+
+/**
+ * One basket line. Extracted so each row owns its own `useQuantityEditor` state
+ * (typeable field + debounced writes) — same editing behavior as the cart page.
+ */
+function BasketItemRow({ item, currency: sym }: { item: CartItem; currency: string }) {
+  const { mutate: removeItem, isPending: isRemoving } = useRemoveCartItem();
+  const { localQty, draft, isUpdating, step, onDraftChange, onDraftBlur } = useQuantityEditor(item);
+
+  const canEdit = item.editable && !item.sold_individually;
+
+  return (
+    <li className="flex items-center gap-3 py-3">
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded bg-neutral-100">
+        {item.thumbnail && (
+          <Image src={item.thumbnail} alt={item.name} fill className="object-cover" />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="line-clamp-2 text-sm font-medium">{item.name}</p>
+        <p className="text-sm text-muted-foreground">{fmt(item.line_total, sym)}</p>
+        {canEdit ? (
+          <div className="mt-1.5 inline-flex items-center rounded border border-neutral-200">
+            <button
+              type="button"
+              onClick={() => step(-1)}
+              disabled={localQty <= 1 || isRemoving}
+              aria-label="Decrease quantity"
+              className="flex h-7 w-7 items-center justify-center text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Minus className="h-3.5 w-3.5" />
+            </button>
+            <span className="relative flex w-9 items-center justify-center">
+              <input
+                type="text"
+                inputMode="numeric"
+                aria-label="Quantity"
+                value={draft}
+                onChange={(e) => onDraftChange(e.target.value)}
+                onBlur={onDraftBlur}
+                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+                disabled={isRemoving}
+                className="w-full bg-transparent text-center text-sm font-medium focus:outline-none disabled:opacity-40"
+              />
+              {isUpdating && (
+                <Loader2 className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 animate-spin text-lms-secondary" />
+              )}
+            </span>
+            <button
+              type="button"
+              onClick={() => step(1)}
+              disabled={localQty >= item.max_quantity || isRemoving}
+              aria-label="Increase quantity"
+              className="flex h-7 w-7 items-center justify-center text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ) : (
+          <p className="mt-1 text-xs text-muted-foreground">Qty: {item.quantity}</p>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={() => removeItem(item.key)}
+        disabled={isRemoving}
+        className="rounded p-1 hover:bg-neutral-100"
+        aria-label={`Remove ${item.name}`}
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </li>
+  );
 }
 
 interface CartDrawerProps {
@@ -18,7 +94,6 @@ interface CartDrawerProps {
 
 export function CartDrawer({ open, onClose }: CartDrawerProps) {
   const { items, totals, currency: sym } = useCart();
-  const { mutate: removeItem, isPending } = useRemoveCartItem();
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
@@ -32,26 +107,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
           <>
             <ul className="flex-1 divide-y overflow-y-auto">
               {items.map((item) => (
-                <li key={item.key} className="flex items-center gap-3 py-3">
-                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded bg-neutral-100">
-                    {item.thumbnail && (
-                      <Image src={item.thumbnail} alt={item.name} fill className="object-cover" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="line-clamp-2 text-sm font-medium">{item.name}</p>
-                    <p className="text-sm text-muted-foreground">{fmt(item.price, sym)}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeItem(item.key)}
-                    disabled={isPending}
-                    className="rounded p-1 hover:bg-neutral-100"
-                    aria-label={`Remove ${item.name}`}
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </li>
+                <BasketItemRow key={item.key} item={item} currency={sym} />
               ))}
             </ul>
             <div className="border-t pt-4">

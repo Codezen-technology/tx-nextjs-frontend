@@ -3,7 +3,33 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/utils/query-keys";
 import { cartService } from "@/lib/services/cart";
-import type { Cart } from "@/lib/stores/cart.store";
+import type { Cart, CartError } from "@/lib/stores/cart.store";
+
+/**
+ * Cart-level errors worth a STANDING banner: genuine item problems (out of stock,
+ * quantity capped, item auto-removed). Two transforms:
+ *
+ * 1. Dedupe — WC returns the same notice twice (see Network → Preview), which also
+ *    collided React keys in the banner.
+ * 2. Drop coupon/discount-conflict notices. These are transient action feedback
+ *    already surfaced by `CouponInput`'s own mutation error. Worse, WooCommerce
+ *    (bulk-discount plugin) re-emits "Coupon cannot be applied when bulk discount
+ *    is already applied" on EVERY /cart calculation — even when no coupon is
+ *    attached and no apply is in flight — so it can never clear on reload. The real
+ *    fix is server-side (stop echoing the notice / detach the invalid coupon); until
+ *    then we keep it out of the permanent banner.
+ *
+ * en-only today; message matching is acceptable and flagged for i18n.
+ */
+export function standingCartErrors(errors: CartError[]): CartError[] {
+  const seen = new Map<string, CartError>();
+  for (const e of errors) {
+    const msg = e.message.toLowerCase();
+    if (msg.includes("coupon") || msg.includes("bulk discount")) continue;
+    seen.set(e.code + e.message, e);
+  }
+  return Array.from(seen.values());
+}
 
 /**
  * Sole source of truth for cart DATA. A plain `useQuery` — no side effects — so
@@ -35,7 +61,7 @@ export function useCart() {
     totals: cart, // domain Cart extends CartTotals, so `cart` carries the totals
     itemCount: cart?.item_count ?? 0,
     currency: cart?.currency ?? "£",
-    errors: cart?.errors ?? [],
+    errors: standingCartErrors(cart?.errors ?? []),
     isLoading: query.isLoading,
   };
 }
@@ -58,6 +84,12 @@ export function useUpdateCartItem() {
   return useMutation({
     mutationFn: ({ key, quantity }: { key: string; quantity: number }) =>
       cartService.updateItem(key, quantity),
+    // Serialize writes (Phase 3): a typeable quantity field can emit rapid distinct
+    // edits. Cancel any in-flight cart refetch first so a slow GET can't resolve
+    // after this PUT and clobber the newer quantity the user landed on.
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: queryKeys.cart.detail });
+    },
     onSuccess: (cart: Cart) => {
       qc.setQueryData(queryKeys.cart.detail, cart);
     },

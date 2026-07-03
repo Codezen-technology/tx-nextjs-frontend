@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
 import { Loader2, Minus, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { ParsedHtml } from "@/components/ui/parsed-html";
 import type { CartItem } from "@/lib/stores/cart.store";
-import { useCart, useUpdateCartItem, useRemoveCartItem } from "@/lib/hooks/useCart";
+import { useCart, useRemoveCartItem } from "@/lib/hooks/useCart";
+import { useQuantityEditor } from "@/lib/hooks/useQuantityEditor";
 
 interface CartItemRowProps {
   item: CartItem;
@@ -14,51 +14,10 @@ interface CartItemRowProps {
 
 export function CartItemRow({ item }: CartItemRowProps) {
   const { currency } = useCart();
-  const { mutate: updateQty, isPending: isUpdating } = useUpdateCartItem();
   const { mutate: removeItem, isPending: isRemoving } = useRemoveCartItem();
-
-  // Local display quantity for instant +/- feedback. Quantity writes are strictly
-  // EVENT-DRIVEN (see handleQty) — never fired from an effect that watches cart data.
-  // The previous effect-driven approach caused an infinite loop: a stale persisted
-  // store quantity (e.g. 9 from localStorage) disagreeing with the server value (8)
-  // made the write-effect PUT the stale value back, and the two sources fought each
-  // other forever (8↔9 ping-pong). Firing PUTs only from a user click breaks that.
-  const [localQty, setLocalQty] = useState(item.quantity);
-
-  // Debounce timer for the write. A ref (not state) so it survives renders without
-  // retriggering effects. While a write is queued we suppress the display-sync below
-  // so an incoming refetch can't clobber the value the user is actively changing.
-  const pendingWrite = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Display-only sync: mirror the server's authoritative quantity into local state.
-  // Critically this NEVER fires a mutation, and it's skipped while a user edit is
-  // queued — so it cannot feed back into a PUT and cannot fight the server.
-  useEffect(() => {
-    if (pendingWrite.current) return;
-    setLocalQty(item.quantity);
-  }, [item.quantity]);
-
-  // Clear any queued write on unmount.
-  useEffect(() => {
-    return () => {
-      if (pendingWrite.current) clearTimeout(pendingWrite.current);
-    };
-  }, []);
-
-  const handleQty = (delta: number) => {
-    const next = Math.min(item.max_quantity, Math.max(1, localQty + delta));
-    if (next === localQty) return;
-    setLocalQty(next);
-
-    // Debounce the PUT so holding +/- coalesces into one request. Fired from this
-    // click handler only — the last value the user landed on wins, and we skip the
-    // request entirely if it already matches the server.
-    if (pendingWrite.current) clearTimeout(pendingWrite.current);
-    pendingWrite.current = setTimeout(() => {
-      pendingWrite.current = null;
-      if (next !== item.quantity) updateQty({ key: item.key, quantity: next });
-    }, 400);
-  };
+  // Editable quantity (typeable field + debounced, event-driven writes) lives in a
+  // shared hook — same behavior as the dashboard basket drawer.
+  const { localQty, draft, isUpdating, step, onDraftChange, onDraftBlur } = useQuantityEditor(item);
 
   const isOnSale = item.regular_price > item.price;
   // Respect WC's authoritative signal: hide the stepper when the line isn't
@@ -121,24 +80,34 @@ export function CartItemRow({ item }: CartItemRowProps) {
             )}
           >
             <button
-              onClick={() => handleQty(-1)}
+              onClick={() => step(-1)}
               disabled={localQty <= 1 || isRemoving}
               aria-label="Decrease quantity"
               className="flex h-full w-10 items-center justify-center text-[#00204a] hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Minus size={16} />
             </button>
-            <span className="relative flex w-8 items-center justify-center">
-              <span className="text-sm font-medium text-[#00204a]">{localQty}</span>
+            <span className="relative flex w-10 items-center justify-center">
+              <input
+                type="text"
+                inputMode="numeric"
+                aria-label="Quantity"
+                value={draft}
+                onChange={(e) => onDraftChange(e.target.value)}
+                onBlur={onDraftBlur}
+                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+                disabled={isRemoving}
+                className="w-full bg-transparent text-center text-sm font-medium text-[#00204a] focus:outline-none disabled:opacity-40"
+              />
               {isUpdating && (
                 <Loader2
                   size={10}
-                  className="absolute -right-3 -top-2 animate-spin text-[#9e6f21]"
+                  className="absolute -right-2 -top-2 animate-spin text-[#9e6f21]"
                 />
               )}
             </span>
             <button
-              onClick={() => handleQty(1)}
+              onClick={() => step(1)}
               disabled={localQty >= item.max_quantity || isRemoving}
               aria-label="Increase quantity"
               className="flex h-full w-10 items-center justify-center text-[#00204a] hover:bg-gray-50 disabled:opacity-40"

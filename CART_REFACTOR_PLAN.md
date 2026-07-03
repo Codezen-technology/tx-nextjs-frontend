@@ -91,19 +91,21 @@ apply+remove / free (100% coupon) checkout / paid checkout / remove-item optimis
 
 ---
 
-## Phase 3 — Serialize writes (#4) — DEFERRED
+## Phase 3 — Serialize writes (#4) — ✅ DONE
 
-Only if a feature adds rapid distinct edits (e.g. a typeable quantity field). Today the 400ms
-debounce coalesces the realistic case. When triggered: `await qc.cancelQueries(cart.detail)`
-before each mutation, or a single-flight queue keyed by cart-item. No user-visible payoff today.
+Triggered by the typeable quantity field (`CartItemRow`) + the dashboard basket stepper
+(`cart-drawer`), which can emit rapid distinct edits. `useUpdateCartItem` now runs
+`await qc.cancelQueries(cart.detail)` in `onMutate` so a slow in-flight GET can't resolve
+after a newer PUT and clobber the quantity the user landed on. The 400ms debounce still
+coalesces holds/fast typing into one request.
 
 ---
 
 ## Sequencing
 
-| Phase | Problem | Effort    | Status                                                     |
-| ----- | ------- | --------- | ---------------------------------------------------------- |
-| 0     | loop    | done      | ✅ shipped                                                 |
-| 1     | #1 + #3 | ~30 min   | ✅ done                                                    |
-| 2     | #2      | ~half day | ✅ done (2.1–2.4) — store is UI-only, query owns cart data |
-| 3     | #4      | small     | deferred                                                   |
+| Phase | Problem | Effort    | Status                                                      |
+| ----- | ------- | --------- | ----------------------------------------------------------- |
+| 0     | loop    | done      | ✅ shipped                                                  |
+| 1     | #1 + #3 | ~30 min   | ✅ done                                                     |
+| 2     | #2      | ~half day | ✅ done (2.1–2.4) — store is UI-only, query owns cart data  |
+| 3     | #4      | small     | ✅ done — typeable qty + basket stepper; cancelQueries seam |

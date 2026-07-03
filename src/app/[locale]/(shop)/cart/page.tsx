@@ -34,7 +34,7 @@ export default function CartPage() {
             role="alert"
             className="mb-6 space-y-1 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
           >
-            {Array.from(new Map(errors.map((e) => [e.code + e.message, e])).values()).map((e) => (
+            {errors.map((e) => (
               <p key={e.code + e.message}>{e.message}</p>
             ))}
           </div>
