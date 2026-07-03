@@ -1,8 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCartQuery } from "@/lib/hooks/useCart";
-import { useCartStore } from "@/lib/stores/cart.store";
+import { useCart } from "@/lib/hooks/useCart";
 import { cn } from "@/lib/utils/cn";
 import parse from "html-react-parser";
 
@@ -12,10 +11,8 @@ interface CartSummaryProps {
 
 export function CartSummary({ currency = "£" }: CartSummaryProps) {
   const router = useRouter();
-  const { data: cart } = useCartQuery();
-  const totals = useCartStore((s) => s.totals);
-  const t = cart ?? totals;
-  const displayCurrency = parse(cart?.currency ?? totals?.currency ?? currency);
+  const { totals: t, currency: cartCurrency } = useCart();
+  const displayCurrency = parse(cartCurrency ?? currency);
   if (!t) return null;
 
   return (

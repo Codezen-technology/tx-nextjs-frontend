@@ -13,8 +13,9 @@ The cart is the money path. Treat every change here as production-critical.
 - Cart data lives in **WooCommerce**, reached through the **Store API** (`/wc/store/v1/cart`).
 - The browser never calls WooCommerce directly. It calls our **BFF routes** (`/api/cart/*`),
   which attach the WC **Cart-Token** and the JWT, then proxy to WordPress.
-- Client UI reads from the **Zustand store** (`useCartStore`), not from the query directly.
-  `useCartQuery()` fetches and pushes the result into the store via `setCart`.
+- Display components read via the **`useCart()`** facade (TanStack Query is the source of truth);
+  the header badge, drawer, and "in cart" detection still read the **Zustand store**, which
+  `useCartQuery()` keeps in sync via `setCart`. (Mid-migration — see `CART_REFACTOR_PLAN.md`.)
 - **Quantity writes are event-driven only** (fired from the +/- click handler). Never fire a
   cart mutation from a `useEffect` that watches cart data — that caused an infinite PUT loop.
   See [The quantity loop](#the-quantity-loop-history--do-not-reintroduce).
@@ -112,10 +113,19 @@ useCartQuery()  (src/lib/hooks/useCart.ts)
   → useEffect: setCart(query.data)   pushes into Zustand
 ```
 
-**Critical:** every cart UI component (`cart/page.tsx`, `CartSummary`, `CartItemRow`,
-`MiniCart`, `cart-drawer`, header badge, checkout) reads from **`useCartStore`**, not from
-`useCartQuery().data`. If you comment out the `setCart` sync in `useCartQuery`, the store
-never updates and the UI shows stale/empty data even though the fetch succeeded. It must stay.
+**Read surfaces (mid-migration — know which you're in):**
+
+- **Display components** — `CartSummary`, `CheckoutOrderSummary`, `cart/page.tsx`, `MiniCart` —
+  read via the **`useCart()`** facade (`useCart.ts`), which returns `useCartQuery().data`
+  directly. TanStack Query is the source of truth for these. Prefer this for new display code.
+- **Everything else** — `cart-drawer`, `dashboard-shell`, `PaymentMethodSelector`, the header
+  badge (`itemCount`), and "in cart" detection (`product-add-to-cart`, `UpsellBanner`, marketing
+  pages) — still read **`useCartStore`**, which `useCartQuery`'s effect keeps in sync via
+  `setCart`. Do not remove that `setCart` sync: those readers depend on it, and
+  `cart.hooks.test.tsx` asserts mutations update the store directly.
+
+The end state (Phase 2 store-strip, deferred) is `useCart()` everywhere + Zustand for UI state
+only. See `CART_REFACTOR_PLAN.md`.
 
 `useCartQuery` is mounted in multiple places at once (header + cart page + coupon input…).
 That is fine — they share query key `queryKeys.cart.detail` (`["cart"]`), so TanStack dedupes

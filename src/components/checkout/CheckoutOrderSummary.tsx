@@ -1,16 +1,10 @@
 "use client";
 
-import { useCartQuery } from "@/lib/hooks/useCart";
-import { useCartStore } from "@/lib/stores/cart.store";
+import { useCart } from "@/lib/hooks/useCart";
 import { ParsedHtml } from "@/components/ui/parsed-html";
 
 export function CheckoutOrderSummary() {
-  const { data: cart } = useCartQuery();
-  const storeItems = useCartStore((s) => s.items);
-  const storeTotals = useCartStore((s) => s.totals);
-
-  const items = cart?.items ?? storeItems;
-  const totals = cart ?? storeTotals;
+  const { items, totals } = useCart();
 
   return (
     <div className="space-y-4">

@@ -53,20 +53,30 @@ Highest-leverage change. #1 and #3 ship together: same two files, both close rac
 
 ---
 
-## Phase 2 — Collapse to one source of truth (#2) — SCHEDULED
+## Phase 2 — Collapse to one source of truth (#2) — PARTIAL (safe slice done)
 
 TanStack Query becomes sole owner of cart data; Zustand keeps only UI state.
 
-1. Add facade hook `useCart()` → `{ cart, itemCount, isLoading }` from `useCartQuery().data`.
-2. Migrate the 12 `s.items` / 7 `s.totals` readers to `useCart()`. Delete `cart ?? totals` hedges.
-3. Strip store to `{ isOpen, toggleCart }` + derived `itemCount` (or read `cart.item_count`,
-   keeping a tiny persisted count only if the pre-hydration badge flash matters).
-4. Delete every `setCart` dual-write in `useCart.ts` — `setQueryData` alone suffices.
+1. ✅ **Facade hook `useCart()`** → `{ cart, items, totals, itemCount, currency, errors, isLoading }`
+   from `useCartQuery().data` (`useCart.ts`). The seam the rest of the migration builds on.
+2. 🚧 **Migrate readers to `useCart()`, delete `cart ?? store` hedges.** Done for the pure display
+   components: `CartSummary`, `CheckoutOrderSummary`, `cart/page.tsx`, `MiniCart`. Remaining
+   (deferred): `dashboard-shell`, `PaymentMethodSelector`, and the "in cart" detection readers
+   (`product-add-to-cart`, `UpsellBanner`, `course/[slug]`, `bundles/[slug]`, home
+   `hero-section` / `categories-grid`).
+3. ⛔ **Strip store to `{ isOpen, toggleCart }` + derived `itemCount`.** NOT done. High risk.
+4. ⛔ **Delete `setCart` dual-writes in `useCart.ts`.** NOT done — `cart.hooks.test.tsx` asserts
+   mutations update the store directly with no `useCartQuery` mounted, so removing the dual-write
+   is a tested behavior change, not a no-op. Requires test rewrite + checkout QA.
 
-**Acceptance:** `grep 's.items\|s.totals'` returns only the store definition. All cart tests green.
+**Why 3–4 are deferred:** they touch mutation hooks + 15 files on the checkout/money path and
+change a tested contract. The display-layer slice (1–2 partial) removes the `cart ?? store`
+divergence on the surfaces that had it, zero checkout-behavior change, all tests green. The
+store-strip should land as its own reviewed PR with manual QA over add-to-cart / quantity /
+coupon / checkout.
 
-**Why behind Phase 1:** touches 15+ files on the checkout path. Phase 1 already removes the bug
-surface, so this is cleanup on normal review cadence, not firefighting.
+**Acceptance (full):** `grep 's.items\|s.totals'` returns only the store definition + the "in cart"
+detection readers' replacement. All cart tests green after rewrite.
 
 ---
 
@@ -80,9 +90,9 @@ before each mutation, or a single-flight queue keyed by cart-item. No user-visib
 
 ## Sequencing
 
-| Phase | Problem | Effort    | Status     |
-| ----- | ------- | --------- | ---------- |
-| 0     | loop    | done      | ✅ shipped |
-| 1     | #1 + #3 | ~30 min   | ✅ done    |
-| 2     | #2      | ~half day | scheduled  |
-| 3     | #4      | small     | deferred   |
+| Phase | Problem | Effort    | Status                                                |
+| ----- | ------- | --------- | ----------------------------------------------------- |
+| 0     | loop    | done      | ✅ shipped                                            |
+| 1     | #1 + #3 | ~30 min   | ✅ done                                               |
+| 2     | #2      | ~half day | 🚧 partial (display slice done; store-strip deferred) |
+| 3     | #4      | small     | deferred                                              |

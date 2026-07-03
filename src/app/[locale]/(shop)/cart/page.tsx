@@ -2,18 +2,14 @@
 
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
-import { useCartQuery } from "@/lib/hooks/useCart";
-import { useCartStore } from "@/lib/stores/cart.store";
+import { useCart } from "@/lib/hooks/useCart";
 import { CartItemRow } from "@/components/cart/CartItemRow";
 import { CartSummary } from "@/components/cart/CartSummary";
 import { CouponInput } from "@/components/cart/CouponInput";
 import { UpsellBanner } from "@/components/cart/UpsellBanner";
 
 export default function CartPage() {
-  const { isLoading, data: cart } = useCartQuery();
-  const items = useCartStore((s) => s.items);
-  const itemCount = useCartStore((s) => s.itemCount);
-  const errors = cart?.errors ?? [];
+  const { items, itemCount, isLoading, errors } = useCart();
 
   return (
     <div className="min-h-screen bg-[#fafbfb]">

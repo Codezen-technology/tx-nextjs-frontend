@@ -24,6 +24,29 @@ export function useCartQuery() {
   return query;
 }
 
+/**
+ * Read facade for cart DATA. TanStack Query is the source of truth here; the
+ * Zustand store is a projection kept in sync by `useCartQuery`. Prefer this over
+ * reading `useCartStore` for display — it removes the `cart ?? store` fallback
+ * hedges and is the seam the full single-source-of-truth migration builds on.
+ *
+ * Note: still call `useCartStore` directly for the pre-hydration `itemCount`
+ * badge (persisted, instant) and for `isOpen`/`toggleCart` UI state.
+ */
+export function useCart() {
+  const query = useCartQuery();
+  const cart = query.data ?? null;
+  return {
+    cart,
+    items: cart?.items ?? [],
+    totals: cart, // domain Cart extends CartTotals, so `cart` carries the totals
+    itemCount: cart?.item_count ?? 0,
+    currency: cart?.currency ?? "£",
+    errors: cart?.errors ?? [],
+    isLoading: query.isLoading,
+  };
+}
+
 export function useAddToCart() {
   const qc = useQueryClient();
   const setCart = useCartStore((s) => s.setCart);

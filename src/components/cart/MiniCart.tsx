@@ -3,19 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { X } from "lucide-react";
-import { useCartStore } from "@/lib/stores/cart.store";
-import { useRemoveCartItem } from "@/lib/hooks/useCart";
+import { useCart, useRemoveCartItem } from "@/lib/hooks/useCart";
 
 function fmt(amount: number, symbol: string): string {
   return `${symbol}${amount.toFixed(2)}`;
 }
 
 export function MiniCart({ onClose }: { onClose: () => void }) {
-  const items = useCartStore((s) => s.items);
-  const totals = useCartStore((s) => s.totals);
+  const { items, totals, currency: sym } = useCart();
   const { mutate: removeItem, isPending } = useRemoveCartItem();
-
-  const sym = totals?.currency ?? "£";
 
   return (
     <div className="absolute right-0 top-full z-50 mt-2 w-[340px] rounded-md border border-neutral-200 bg-white shadow-xl">
