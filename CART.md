@@ -232,12 +232,14 @@ onto `Cart.errors` (decoding entities, defaulting a code), and `cart/page.tsx` r
 an amber `role="alert"` banner above the line items. Read `cart.errors` from `useCartQuery().data`;
 they are not threaded through the Zustand store.
 
+The stepper honours **`quantity_limits.editable`**: `normalizeWCCart` maps it to
+`CartItem.editable` (default true), and `CartItemRow` hides the stepper when `!editable`
+(sold-individually, fixed-quantity, or stock-capped lines) — not just for `sold_individually`.
+`max_quantity` comes from `quantity_limits.maximum`.
+
 **Known coverage gaps (not bugs — pick up when touching this area):**
 
-1. **`quantity_limits.editable` unused.** The stepper's visibility is driven by `sold_individually`;
-   `quantity_limits.editable` is the Store API's dedicated signal (also covers stock/backorder
-   caps). `max_quantity` already comes from `quantity_limits.maximum`.
-2. **`variation` not sent on add-to-cart.** Simple products only. Variable products would need the
+1. **`variation` not sent on add-to-cart.** Simple products only. Variable products would need the
    `variation` param on `POST /cart/add-item`.
 
 ---

@@ -17,6 +17,8 @@ export interface CartItem {
   line_total: number;
   sold_individually: boolean;
   max_quantity: number;
+  /** WC `quantity_limits.editable` — false when the qty stepper must be hidden. */
+  editable: boolean;
 }
 
 export interface CartFee {
@@ -163,6 +165,9 @@ export function normalizeWCCart(wc: WCStoreCart): Cart {
       line_total: parseInt(item.totals.line_total, 10) / totalsDiv,
       sold_individually: item.sold_individually ?? false,
       max_quantity: item.quantity_limits?.maximum ?? 9999,
+      // Default true — a normal simple product is editable; only hide the stepper
+      // when WC explicitly says so (sold-individually, fixed-qty, stock-capped).
+      editable: item.quantity_limits?.editable ?? true,
     };
   });
 

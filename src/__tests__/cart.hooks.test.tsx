@@ -53,6 +53,7 @@ const CART_ITEM: Cart["items"][number] = {
   line_total: 14.99,
   sold_individually: true,
   max_quantity: 1,
+  editable: false,
 };
 
 const MOCK_CART: Cart = {

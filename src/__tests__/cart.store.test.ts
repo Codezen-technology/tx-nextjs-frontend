@@ -134,6 +134,17 @@ describe("normalizeWCCart()", () => {
   it("defaults errors to an empty array when WC omits the field", () => {
     expect(normalizeWCCart(makeWCCart()).errors).toEqual([]);
   });
+
+  it("maps quantity_limits.editable → item.editable (defaults true when absent)", () => {
+    const locked = normalizeWCCart(makeWCCart({ items: [makeWCItem()], items_count: 1 }));
+    expect(locked.items[0].editable).toBe(false); // fixture sets editable:false
+
+    const item = makeWCItem();
+    // @ts-expect-error — simulate WC omitting quantity_limits entirely
+    delete item.quantity_limits;
+    const open = normalizeWCCart(makeWCCart({ items: [item], items_count: 1 }));
+    expect(open.items[0].editable).toBe(true);
+  });
 });
 
 // ─── Store actions ────────────────────────────────────────────────────────────
@@ -151,6 +162,7 @@ describe("useCartStore actions", () => {
       line_total: 29.98,
       sold_individually: false,
       max_quantity: 99,
+      editable: true,
     },
     {
       key: "key-2",
@@ -163,6 +175,7 @@ describe("useCartStore actions", () => {
       line_total: 9.99,
       sold_individually: true,
       max_quantity: 1,
+      editable: false,
     },
   ];
 

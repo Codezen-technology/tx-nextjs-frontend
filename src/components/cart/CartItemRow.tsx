@@ -62,7 +62,10 @@ export function CartItemRow({ item }: CartItemRowProps) {
   };
 
   const isOnSale = item.regular_price > item.price;
-  const showStepper = !item.sold_individually;
+  // Respect WC's authoritative signal: hide the stepper when the line isn't
+  // editable (sold-individually, fixed quantity, or stock-capped), not just for
+  // sold-individually items.
+  const showStepper = item.editable && !item.sold_individually;
 
   return (
     <div
