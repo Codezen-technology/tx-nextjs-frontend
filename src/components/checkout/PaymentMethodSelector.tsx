@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { cn } from "@/lib/utils/cn";
 import { useWcStoreCheckout } from "@/lib/hooks/useCheckout";
 import { useCart } from "@/lib/hooks/useCart";
+import { stripePromise } from "@/lib/stripe";
 import { stripeCardPaymentData, findClientSecret } from "@/lib/services/checkout";
 import { CheckoutProcessingOverlay } from "./CheckoutProcessingOverlay";
 import { SecurePaymentBadge } from "./SecurePaymentBadge";
@@ -19,15 +20,25 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
   const [method, setMethod] = useState<"stripe">("stripe");
   const [stripeError, setStripeError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Synchronous re-entrancy guard. `isSubmitting` is React state (async) so it can't
+  // block a double-click that lands before the re-render — a ref can. Prevents two
+  // checkout POSTs → duplicate orders / double charge.
+  const submitting = useRef(false);
 
   const stripe = useStripe();
   const elements = useElements();
   const { mutateAsync: wcStoreCheckout } = useWcStoreCheckout();
 
   // Zero-total orders (e.g. 100% coupon) need no card — WC processes them as free.
-  const { totals } = useCart();
+  // Gate on cartLoading: an unresolved total defaults to 0, which would wrongly flash
+  // the free-order path (and let a paid cart submit with no payment) before load.
+  const { totals, currency, isLoading: cartLoading } = useCart();
   const orderTotal = totals?.total ?? 0;
-  const isFreeOrder = orderTotal <= 0;
+  const isFreeOrder = !cartLoading && orderTotal <= 0;
+  // stripePromise is null only when no publishable key is set (vs `stripe` from
+  // useStripe(), which is also null while the SDK is still loading). Lets us warn on
+  // a genuinely unconfigured gateway without false-flagging the loading state.
+  const stripeUnconfigured = stripePromise === null;
 
   // ─── Free order checkout (no payment) ──────────────────────────────────────
 
@@ -118,15 +129,18 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
   // ─── Submit handler ─────────────────────────────────────────────────────────
 
   const handleSubmit = async () => {
-    if (!billingRef.current) return;
-
-    const valid = await billingRef.current.trigger();
-    if (!valid) return;
-
-    setStripeError(null);
+    // Re-entrancy guard set synchronously, before any await, so a double-click can't
+    // slip a second submit through while validation is still pending.
+    if (submitting.current || !billingRef.current) return;
+    submitting.current = true;
     setIsSubmitting(true);
 
     try {
+      const valid = await billingRef.current.trigger();
+      if (!valid) return;
+
+      setStripeError(null);
+
       if (isFreeOrder) {
         await handleFreeCheckout();
       } else {
@@ -135,6 +149,7 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
     } catch (err) {
       setStripeError((err as Error).message ?? "Something went wrong.");
     } finally {
+      submitting.current = false;
       setIsSubmitting(false);
     }
   };
@@ -146,7 +161,13 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
       {isFreeOrder ? (
         /* Free order — no payment required */
         <div className="rounded border border-green-200 bg-green-50 px-4 py-3.5 text-sm text-green-700">
-          No payment required — your order total is £0.00. Click below to complete your order.
+          No payment required — your order total is {currency}
+          {orderTotal.toFixed(2)}. Click below to complete your order.
+        </div>
+      ) : stripeUnconfigured ? (
+        /* Paid order but no Stripe key configured — card entry is impossible. */
+        <div className="rounded border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+          Card payment is currently unavailable. Please contact support to complete your purchase.
         </div>
       ) : (
         /* Method list */
@@ -230,7 +251,7 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={isSubmitting || (!isFreeOrder && !stripe)}
+        disabled={isSubmitting || cartLoading || (!isFreeOrder && !stripe)}
         className="w-full rounded bg-[#9e6f21] px-6 py-4 text-base font-medium text-white transition-colors hover:bg-[#7d5819] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? "Processing…" : isFreeOrder ? "Complete Order" : "Proceed to Checkout"}

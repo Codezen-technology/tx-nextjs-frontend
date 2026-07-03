@@ -4,7 +4,7 @@ import { useCart } from "@/lib/hooks/useCart";
 import { ParsedHtml } from "@/components/ui/parsed-html";
 
 export function CheckoutOrderSummary() {
-  const { items, totals } = useCart();
+  const { items, totals, currency } = useCart();
 
   return (
     <div className="space-y-4">
@@ -23,7 +23,10 @@ export function CheckoutOrderSummary() {
               <ParsedHtml as="span" content={item.name} />{" "}
               <span className="text-[#00204a]">× {item.quantity}</span>
             </span>
-            <span className="shrink-0 font-medium">£{item.line_total.toFixed(2)}</span>
+            <span className="shrink-0 font-medium">
+              {currency}
+              {item.line_total.toFixed(2)}
+            </span>
           </div>
         ))}
       </div>
@@ -32,18 +35,27 @@ export function CheckoutOrderSummary() {
         <div className="space-y-2 border-t border-gray-200 pt-4">
           <div className="flex items-center justify-between text-sm font-semibold text-[#00204a]">
             <span>Subtotal</span>
-            <span>£{totals.subtotal.toFixed(2)}</span>
+            <span>
+              {currency}
+              {totals.subtotal.toFixed(2)}
+            </span>
           </div>
           {totals.discount > 0 && (
             <div className="flex items-center justify-between text-sm text-green-600">
               <span>Discount</span>
-              <span>−£{totals.discount.toFixed(2)}</span>
+              <span>
+                −{currency}
+                {totals.discount.toFixed(2)}
+              </span>
             </div>
           )}
           <div className="border-t border-gray-200 pt-2">
             <div className="flex items-center justify-between font-semibold text-[#00204a]">
               <span>Total (pay today)</span>
-              <span className="text-base">£{totals.total.toFixed(2)}</span>
+              <span className="text-base">
+                {currency}
+                {totals.total.toFixed(2)}
+              </span>
             </div>
           </div>
         </div>

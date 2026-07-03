@@ -117,15 +117,12 @@ export default function CheckoutPage() {
           {/* Payment */}
           <div className="rounded-lg bg-[rgba(245,241,233,0.5)] p-8">
             <h2 className="mb-6 font-suse text-2xl font-medium text-[#1a171b]">Payment method</h2>
-            {stripePromise ? (
-              <Elements stripe={stripePromise}>
-                <PaymentMethodSelector billingRef={billingRef} onSuccess={handleOrderSuccess} />
-              </Elements>
-            ) : (
-              <div className="rounded border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-                Payment is not configured. is missing.
-              </div>
-            )}
+            {/* Always mount Elements (accepts stripe={null} while unconfigured/loading) so
+                free (£0) orders can complete even when Stripe isn't set up. The selector
+                shows a config warning + disables submit for paid orders when stripe is null. */}
+            <Elements stripe={stripePromise}>
+              <PaymentMethodSelector billingRef={billingRef} onSuccess={handleOrderSuccess} />
+            </Elements>
           </div>
         </div>
       </div>

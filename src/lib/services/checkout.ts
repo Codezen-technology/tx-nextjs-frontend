@@ -268,10 +268,12 @@ export interface CheckoutSessionResult {
 export const checkoutService = {
   /** WC Store API checkout — uses WC cart session (Cart-Token). For standard cart flow. */
   wcStoreCheckout: (payload: WCStoreCheckoutPayload) =>
-    cartFetch<WCStoreCheckoutResponse>("/api/cart/checkout", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
+    cartFetch<WCStoreCheckoutResponse>(
+      "/api/cart/checkout",
+      { method: "POST", body: JSON.stringify(payload) },
+      // Never swap a checkout error for an embedded cart — surface the real WC message.
+      { recoverEmbeddedCart: false },
+    ),
 
   /** REST v3 order creation — used for Buy Now flow only. */
   createOrder: (payload: CreateOrderPayload) =>
@@ -311,10 +313,11 @@ export const checkoutService = {
       payment_data: PaymentDataEntry[];
     },
   ) =>
-    cartFetch<WCStoreCheckoutResponse>(`/api/orders/${orderId}/store-pay`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
+    cartFetch<WCStoreCheckoutResponse>(
+      `/api/orders/${orderId}/store-pay`,
+      { method: "POST", body: JSON.stringify(payload) },
+      { recoverEmbeddedCart: false },
+    ),
 
   getPaymentGateways: () => bffJson<PaymentGateway[]>("/api/payment-gateways"),
 

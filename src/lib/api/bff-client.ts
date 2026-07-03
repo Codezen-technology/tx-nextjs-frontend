@@ -82,8 +82,24 @@ export function clearCartToken(): void {
   localStorage.removeItem(CART_NONCE_KEY);
 }
 
+interface CartFetchOptions {
+  /**
+   * On a WC error, recover the authoritative cart embedded in `data.data.cart`
+   * instead of throwing. Correct for cart mutations (sync to real server state).
+   * MUST be false for checkout: a checkout error can embed a cart, which would then
+   * resolve as a (cart-shaped) checkout response and blow up on `.payment_result`,
+   * masking the real WC message. Defaults to true.
+   */
+  recoverEmbeddedCart?: boolean;
+}
+
 /** fetch wrapper for WC Store API BFF cart routes — attaches and refreshes Cart-Token. */
-export async function cartFetch<T>(path: string, init?: RequestInit): Promise<T> {
+export async function cartFetch<T>(
+  path: string,
+  init?: RequestInit,
+  opts: CartFetchOptions = {},
+): Promise<T> {
+  const recoverEmbeddedCart = opts.recoverEmbeddedCart ?? true;
   const headers: Record<string, string> = {
     ...(init?.headers as Record<string, string>),
   };
@@ -128,7 +144,7 @@ export async function cartFetch<T>(path: string, init?: RequestInit): Promise<T>
     // (e.g. woocommerce_rest_cart_invalid_key when session/key is stale).
     // Use it directly so the client syncs to real server state instead of rolling back to a snapshot.
     const embedded = (data as { data?: { cart?: unknown } }).data?.cart;
-    if (embedded) {
+    if (recoverEmbeddedCart && embedded) {
       // Stale session — drop the cached token so the next write bootstraps a fresh one
       if (data.code === "woocommerce_rest_cart_invalid_key") clearCartToken();
       return embedded as T;
