@@ -11,20 +11,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { useAuth, useMe, useLogoutAll } from "@/lib/hooks/useAuth";
 import { profileSchema, type ProfileInput } from "@/lib/schemas/profile";
 import { userService } from "@/lib/services/user";
 import { useAuthStore } from "@/lib/stores/auth.store";
 import { queryKeys } from "@/lib/utils/query-keys";
 import type { ApiError } from "@/lib/api/error";
-
-function getInitials(name?: string) {
-  if (!name) return "U";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "U";
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-}
 
 export default function ProfilePage() {
   const { user: authUser } = useAuth();
@@ -72,6 +65,7 @@ export default function ProfilePage() {
         setUser({
           ...authUser,
           displayName:
+            updated.display_name ||
             updated.name ||
             `${updated.first_name ?? ""} ${updated.last_name ?? ""}`.trim() ||
             authUser.displayName,
@@ -94,8 +88,6 @@ export default function ProfilePage() {
 
   const onSubmit = (values: ProfileInput) => updateMutation.mutate(values);
 
-  const avatarSrc = me?.avatar_urls?.["96"] ?? me?.avatar_urls?.["48"];
-
   return (
     <div className="mx-auto max-w-3xl py-6">
       <header className="mb-8">
@@ -110,12 +102,7 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-6">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={avatarSrc} alt={me?.name} />
-              <AvatarFallback className="bg-lms-secondary text-xl text-white">
-                {getInitials(me?.name)}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar user={me} size="xl" />
             <div>
               <input
                 ref={fileInputRef}

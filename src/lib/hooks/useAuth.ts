@@ -19,9 +19,16 @@ import type { ApiError } from "@/lib/api/error";
 import type { WpUser } from "@/types/user";
 
 function wpUserToAuthUser(u: WpUser) {
+  const displayName =
+    u.display_name?.trim() ||
+    u.name?.trim() ||
+    [u.first_name, u.last_name].filter(Boolean).join(" ").trim() ||
+    u.username ||
+    u.user_nicename ||
+    "";
   return {
     email: u.email ?? "",
-    displayName: u.name ?? u.username ?? u.user_nicename ?? "",
+    displayName,
     nicename: u.slug ?? u.username ?? u.user_nicename ?? "",
   };
 }

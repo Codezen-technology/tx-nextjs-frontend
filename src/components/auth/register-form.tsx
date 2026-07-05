@@ -8,7 +8,7 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useRegister } from "@/lib/hooks/useAuth";
 import { registerSchema, type RegisterInput } from "@/lib/schemas/auth";
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
-import { cn } from "@/lib/utils/cn";
+import { FormField, FormInput } from "@/components/ui/form-field";
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -41,65 +41,40 @@ export function RegisterForm() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           <div className="flex flex-col gap-4">
-            <div>
-              <label
-                htmlFor="name"
-                className="mb-1 block font-open-sans text-sm font-medium text-[#3b5374]"
-              >
-                Full Name
-              </label>
-              <input
+            <FormField id="name" label="Full Name" error={errors.name?.message}>
+              <FormInput
                 id="name"
+                variant="auth"
                 autoComplete="name"
                 autoFocus
                 placeholder="Your Name"
-                className={cn(
-                  "w-full rounded border border-[#ced4da] bg-white px-3.5 py-[7px] font-open-sans text-base text-[#3b5374] placeholder:text-[#6c757d] focus:border-[#9e6f21] focus:outline-none focus:ring-2 focus:ring-[#9e6f21]/30",
-                  errors.name && "border-red-500",
-                )}
+                hasError={Boolean(errors.name)}
                 {...register("name")}
               />
-              {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>}
-            </div>
+            </FormField>
 
-            <div>
-              <label
-                htmlFor="email"
-                className="mb-1 block font-open-sans text-sm font-medium text-[#3b5374]"
-              >
-                Email
-              </label>
-              <input
+            <FormField id="email" label="Email" error={errors.email?.message}>
+              <FormInput
                 id="email"
+                variant="auth"
                 type="email"
                 autoComplete="email"
                 placeholder="you@example.com"
-                className={cn(
-                  "w-full rounded border border-[#ced4da] bg-white px-3.5 py-[7px] font-open-sans text-base text-[#3b5374] placeholder:text-[#6c757d] focus:border-[#9e6f21] focus:outline-none focus:ring-2 focus:ring-[#9e6f21]/30",
-                  errors.email && "border-red-500",
-                )}
+                hasError={Boolean(errors.email)}
                 {...register("email")}
               />
-              {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>}
-            </div>
+            </FormField>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="mb-1 block font-open-sans text-sm font-medium text-[#3b5374]"
-              >
-                Password
-              </label>
+            <FormField id="password" label="Password" error={errors.password?.message}>
               <div className="relative">
-                <input
+                <FormInput
                   id="password"
+                  variant="auth"
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   placeholder="Password"
-                  className={cn(
-                    "w-full rounded border border-[#ced4da] bg-white px-3.5 py-[7px] pr-10 font-open-sans text-base text-[#3b5374] placeholder:text-[#6c757d] focus:border-[#9e6f21] focus:outline-none focus:ring-2 focus:ring-[#9e6f21]/30",
-                    errors.password && "border-red-500",
-                  )}
+                  hasError={Boolean(errors.password)}
+                  className="pr-10"
                   {...register("password")}
                 />
                 <button
@@ -111,10 +86,7 @@ export function RegisterForm() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
-              )}
-            </div>
+            </FormField>
 
             <div>
               <label className="flex cursor-pointer items-start gap-2">
@@ -137,7 +109,7 @@ export function RegisterForm() {
           <button
             type="submit"
             disabled={reg.isPending}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded border border-[#9e6f21] bg-[#9e6f21] font-open-sans text-base text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="flex h-10 w-full items-center justify-center gap-2 rounded border border-[#9e6f21] bg-[#9e6f21] font-open-sans text-base text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {reg.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             Register

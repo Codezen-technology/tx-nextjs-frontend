@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { HelpCircle, History, Home, Lock, LogOut, Menu, Award } from "lucide-react";
 import { useLogout, useMe } from "@/lib/hooks/useAuth";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,19 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import {
   CartIconButton,
   DashboardLogo,
   DashboardSearch,
 } from "@/components/dashboard/dashboard-search";
+import { getUserDisplayName } from "@/lib/utils/user-avatar";
 import { cn } from "@/lib/utils/cn";
-
-function getInitials(name?: string) {
-  if (!name) return "U";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "U";
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-}
 
 interface DashboardHeaderProps {
   sidebarOpen: boolean;
@@ -43,6 +37,7 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   const { data: user } = useMe();
   const logout = useLogout();
+  const displayName = getUserDisplayName(user);
 
   const profileMenu = (
     <DropdownMenu>
@@ -51,25 +46,16 @@ export function DashboardHeader({
           type="button"
           className="rounded-full outline-none ring-offset-2 focus-visible:ring-2"
         >
-          <Avatar className="h-10 w-10 bg-lms-secondary">
-            <AvatarImage
-              src={user?.avatar_urls?.["96"] ?? user?.avatar_urls?.["48"]}
-              alt={user?.name}
-            />
-            <AvatarFallback className="bg-lms-secondary font-bold text-white">
-              {getInitials(user?.name)}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar user={user} size="md" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[300px] rounded-3xl p-0">
         <div className="flex items-center gap-3 px-6 pb-4 pt-6">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={user?.avatar_urls?.["96"] ?? user?.avatar_urls?.["48"]} />
-            <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
-          </Avatar>
+          <UserAvatar user={user} size="lg" />
           <div className="min-w-0">
-            <p className="truncate font-bold text-[#213039]">{user?.name}</p>
+            {displayName ? (
+              <p className="truncate font-bold text-[#213039]">{displayName}</p>
+            ) : null}
             {user?.email && <p className="truncate text-xs text-[#586973]">{user.email}</p>}
             <Link href="/dashboard/profile" className="text-sm text-lms-secondary hover:underline">
               Edit Profile

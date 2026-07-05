@@ -17,44 +17,9 @@ import {
 import { useAuth, useLogout, useMe } from "@/lib/hooks/useAuth";
 import { useB2BPluginActive } from "@/lib/hooks/useBusinessDashboard";
 import { hasBusinessAccess } from "@/components/business/business-access-guard";
+import { UserAvatar } from "@/components/ui/user-avatar";
+import { getUserDisplayName } from "@/lib/utils/user-avatar";
 import { cn } from "@/lib/utils/cn";
-
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((n) => n[0].toUpperCase())
-    .join("");
-}
-
-function Avatar({
-  src,
-  initials,
-  size = "sm",
-}: {
-  src?: string;
-  initials: string;
-  size?: "sm" | "lg";
-}) {
-  const dim = size === "lg" ? "h-10 w-10 text-[15px]" : "h-6 w-6 text-[11px]";
-  if (src) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt="" className={cn("shrink-0 rounded-full object-cover", dim)} />
-    );
-  }
-  return (
-    <span
-      className={cn(
-        "flex shrink-0 items-center justify-center rounded-full bg-primary-400 font-bold text-white",
-        dim,
-      )}
-    >
-      {initials}
-    </span>
-  );
-}
 
 const STUDENT_LINKS = [
   { href: "/dashboard/my-learning", label: "My Learning", Icon: BookOpen },
@@ -78,9 +43,7 @@ export function ProfileMenu() {
   const isBusinessUser = hasBusinessAccess(wpUser?.roles);
   const b2bPluginActive = useB2BPluginActive();
   const showBusinessDashboard = isBusinessUser && b2bPluginActive;
-  const initials = user ? getInitials(user.displayName) : "?";
-  const avatarSrc =
-    wpUser?.avatar_urls?.["48"] ?? wpUser?.avatar_urls?.["96"] ?? wpUser?.avatar_urls?.["24"];
+  const displayName = getUserDisplayName(wpUser) || user?.displayName || "";
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -100,8 +63,13 @@ export function ProfileMenu() {
         aria-haspopup="menu"
         className="flex items-center gap-1.5 font-open-sans text-[14px] font-medium text-neutral-30 transition-colors hover:text-primary-300"
       >
-        <Avatar src={avatarSrc} initials={initials} size="sm" />
-        {user.displayName}
+        <UserAvatar
+          user={wpUser ?? { display_name: user.displayName, email: user.email }}
+          size="sm"
+          className="h-6 w-6 text-[11px]"
+          fallbackClassName="bg-primary-400 text-[11px] font-bold text-white"
+        />
+        {displayName}
         <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
       </button>
 
@@ -113,10 +81,15 @@ export function ProfileMenu() {
         >
           {/* Identity header */}
           <div className="flex items-center gap-3 px-4 pb-3 pt-2">
-            <Avatar src={avatarSrc} initials={initials} size="lg" />
+            <UserAvatar
+              user={wpUser ?? { display_name: user.displayName, email: user.email }}
+              size="lg"
+              className="h-10 w-10 text-[15px]"
+              fallbackClassName="bg-primary-400 text-[15px] font-bold text-white"
+            />
             <div className="min-w-0">
               <p className="truncate font-open-sans text-[14px] font-semibold text-neutral-900">
-                {user.displayName}
+                {displayName}
               </p>
               <Link
                 href="/dashboard/profile"

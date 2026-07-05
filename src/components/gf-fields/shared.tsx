@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MARKETING_FIELD_CLASS, MARKETING_LABEL_CLASS } from "@/components/ui/form-field";
 import { cn } from "@/lib/utils/cn";
 import type { GravityField } from "@/types/form";
 
@@ -21,9 +22,8 @@ export interface GfFieldProps {
 }
 
 /** Light-palette input styling (marketing pages pin light even under dark mode). */
-export const FIELD_CLASS =
-  "bg-white border-neutral-300 text-neutral-900 placeholder:text-neutral-400 focus-visible:ring-primary-500";
-export const LABEL_CLASS = "text-neutral-700";
+export const FIELD_CLASS = MARKETING_FIELD_CLASS;
+export const LABEL_CLASS = MARKETING_LABEL_CLASS;
 export const SECTION_CLASS = "font-suse text-lg font-semibold text-neutral-900";
 export const TEXTAREA_CLASS = cn(
   "w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1",

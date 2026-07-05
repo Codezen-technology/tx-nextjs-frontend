@@ -6,15 +6,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MARKETING_FIELD_CLASS, MARKETING_LABEL_CLASS } from "@/components/ui/form-field";
 
 const MESSAGE_MAX = 1000;
 
-// Marketing pages use a fixed light palette, but the shared Input/Label/textarea
-// read theme tokens (bg-background, foreground) which flip to navy under the
-// system dark theme. Pin explicit light styles so the form stays readable.
-const FIELD_CLASS =
-  "bg-white border-neutral-300 text-neutral-900 placeholder:text-neutral-400 focus-visible:ring-primary-500";
-const LABEL_CLASS = "text-neutral-700";
+const FIELD_CLASS = MARKETING_FIELD_CLASS;
+const LABEL_CLASS = MARKETING_LABEL_CLASS;
 
 type Status = "idle" | "sending" | "sent" | "error";
 

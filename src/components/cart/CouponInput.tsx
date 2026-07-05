@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useApplyCoupon, useRemoveCoupon, useCartQuery } from "@/lib/hooks/useCart";
+import { FormField, FormInput } from "@/components/ui/form-field";
 import { cn } from "@/lib/utils/cn";
 import { ParsedHtml } from "@/components/ui/parsed-html";
 
@@ -38,26 +39,30 @@ export function CouponInput() {
 
   return (
     <div className="max-w-md space-y-2">
-      <div className="flex">
-        <input
-          type="text"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleApply()}
-          placeholder="Coupon code"
-          className="h-12 w-[220px] flex-1 rounded-l border border-r-0 border-[#ebedf1] bg-white px-[13px] py-[7px] text-base text-[#00204a] placeholder:text-[#75879d] focus:border-[#9e6f21] focus:outline-none"
-        />
-        <button
-          onClick={handleApply}
-          disabled={isApplying || !code.trim()}
-          className={cn(
-            "h-12 rounded-r border border-[#9e6f21] bg-[#9e6f21] px-[13px] py-[7px] text-base text-white transition-colors",
-            "hover:border-[#7d5819] hover:bg-[#7d5819] disabled:cursor-not-allowed disabled:opacity-50",
-          )}
-        >
-          {isApplying ? "Applying…" : "Apply Coupon"}
-        </button>
-      </div>
+      <FormField id="coupon-code" label="Coupon code" labelClassName="sr-only">
+        <div className="flex">
+          <FormInput
+            id="coupon-code"
+            variant="compact"
+            type="text"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleApply()}
+            placeholder="Coupon code"
+            className="w-[220px] flex-1 rounded-r-none border-r-0"
+          />
+          <button
+            onClick={handleApply}
+            disabled={isApplying || !code.trim()}
+            className={cn(
+              "h-12 rounded-r border border-[#9e6f21] bg-[#9e6f21] px-[13px] py-[7px] text-base text-white transition-colors",
+              "hover:border-[#7d5819] hover:bg-[#7d5819] disabled:cursor-not-allowed disabled:opacity-50",
+            )}
+          >
+            {isApplying ? "Applying…" : "Apply Coupon"}
+          </button>
+        </div>
+      </FormField>
       {applyError && (
         <ParsedHtml
           as="p"

@@ -9,7 +9,7 @@ import { useLogin } from "@/lib/hooks/useAuth";
 import { loginSchema, type LoginInput } from "@/lib/schemas/auth";
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
 import { ParsedHtml } from "@/components/ui/parsed-html";
-import { cn } from "@/lib/utils/cn";
+import { FormField, FormInput } from "@/components/ui/form-field";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -45,54 +45,40 @@ export function LoginForm() {
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-6">
           <div className="flex flex-col gap-4">
-            <div>
-              <label
-                htmlFor="username"
-                className="mb-1 block font-open-sans text-sm font-medium text-[#3b5374]"
-              >
-                Email or Username
-              </label>
-              <input
+            <FormField id="username" label="Email or Username" error={errors.username?.message}>
+              <FormInput
                 id="username"
+                variant="auth"
                 autoComplete="username"
                 autoFocus
                 placeholder="you@example.com"
-                className={cn(
-                  "w-full rounded border border-[#ced4da] bg-white px-3.5 py-[7px] font-open-sans text-base text-[#3b5374] placeholder:text-[#6c757d] focus:border-[#9e6f21] focus:outline-none focus:ring-2 focus:ring-[#9e6f21]/30",
-                  errors.username && "border-red-500",
-                )}
+                hasError={Boolean(errors.username)}
                 {...register("username")}
               />
-              {errors.username && (
-                <p className="mt-1 text-sm text-red-500">{errors.username.message}</p>
-              )}
-            </div>
+            </FormField>
 
-            <div>
-              <div className="mb-1 flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="font-open-sans text-sm font-medium text-[#3b5374]"
-                >
-                  Password
-                </label>
+            <FormField
+              id="password"
+              label="Password"
+              labelExtra={
                 <Link
                   href="/forgot-password"
                   className="font-open-sans text-xs text-[#9e6f21] hover:underline"
                 >
                   Forgot password?
                 </Link>
-              </div>
+              }
+              error={errors.password?.message}
+            >
               <div className="relative">
-                <input
+                <FormInput
                   id="password"
+                  variant="auth"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   placeholder="Password"
-                  className={cn(
-                    "w-full rounded border border-[#ced4da] bg-white px-3.5 py-[7px] pr-10 font-open-sans text-base text-[#3b5374] placeholder:text-[#6c757d] focus:border-[#9e6f21] focus:outline-none focus:ring-2 focus:ring-[#9e6f21]/30",
-                    errors.password && "border-red-500",
-                  )}
+                  hasError={Boolean(errors.password)}
+                  className="pr-10"
                   {...register("password")}
                 />
                 <button
@@ -104,10 +90,7 @@ export function LoginForm() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
-              )}
-            </div>
+            </FormField>
           </div>
 
           {login.isError && (
@@ -124,7 +107,7 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={login.isPending}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded border border-[#9e6f21] bg-[#9e6f21] font-open-sans text-base text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="flex h-10 w-full items-center justify-center gap-2 rounded border border-[#9e6f21] bg-[#9e6f21] font-open-sans text-base text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {login.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             Log in

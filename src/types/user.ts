@@ -8,7 +8,10 @@ export interface WpUser {
   id: number;
   username?: string;
   user_nicename?: string;
-  name: string;
+  /** Custom LMS API */
+  display_name?: string;
+  /** WordPress REST API alias */
+  name?: string;
   first_name?: string;
   last_name?: string;
   email?: string;
@@ -16,6 +19,8 @@ export interface WpUser {
   description?: string;
   link?: string;
   slug?: string;
+  /** Custom profile picture URL (LMS API) */
+  avatar?: string;
   avatar_urls?: Record<string, string>;
   meta?: Record<string, unknown>;
   roles?: string[];

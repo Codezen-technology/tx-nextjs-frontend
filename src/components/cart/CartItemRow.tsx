@@ -97,7 +97,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
                 onBlur={onDraftBlur}
                 onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                 disabled={isRemoving}
-                className="w-full bg-transparent text-center text-sm font-medium text-[#00204a] focus:outline-none disabled:opacity-40"
+                className="w-full bg-transparent text-center text-sm font-medium text-[#00204a] focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
               />
               {isUpdating && (
                 <Loader2

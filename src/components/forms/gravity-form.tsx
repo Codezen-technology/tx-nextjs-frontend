@@ -17,11 +17,10 @@ import type {
   GravityForm as GravityFormSchema,
 } from "@/types/form";
 
-// Marketing pages pin a light palette; the shared Input/Label read theme tokens
-// that flip under dark mode. Pin explicit light styles so forms stay readable.
-const FIELD_CLASS =
-  "bg-white border-neutral-300 text-neutral-900 placeholder:text-neutral-400 focus-visible:ring-primary-500";
-const LABEL_CLASS = "text-neutral-700";
+import { MARKETING_FIELD_CLASS, MARKETING_LABEL_CLASS } from "@/components/ui/form-field";
+
+const FIELD_CLASS = MARKETING_FIELD_CLASS;
+const LABEL_CLASS = MARKETING_LABEL_CLASS;
 
 /** Fields that render no input (display/structure only). */
 const NON_INPUT_TYPES = new Set(["html", "section", "page"]);

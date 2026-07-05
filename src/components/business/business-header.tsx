@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Coins, Home, LogOut, Menu, Star, User } from "lucide-react";
 import { useLogout, useMe } from "@/lib/hooks/useAuth";
 import { useBusinessCreditBalance, useBusinessReviewHas } from "@/lib/hooks/useBusinessDashboard";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,14 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getUserDisplayName } from "@/lib/utils/user-avatar";
 import { cn } from "@/lib/utils/cn";
-
-function getInitials(name?: string) {
-  if (!name) return "U";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "U";
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-}
 
 interface BusinessHeaderProps {
   sidebarOpen: boolean;
@@ -38,6 +32,7 @@ export function BusinessHeader({
   const { data: credit } = useBusinessCreditBalance();
   const { data: reviewStatus } = useBusinessReviewHas();
   const showReviewCta = reviewStatus && !reviewStatus.has_review;
+  const displayName = getUserDisplayName(user);
 
   const profileMenu = (
     <DropdownMenu>
@@ -46,25 +41,19 @@ export function BusinessHeader({
           type="button"
           className="rounded-full outline-none ring-offset-2 focus-visible:ring-2"
         >
-          <Avatar className="h-10 w-10 bg-[#3F576F]">
-            <AvatarImage
-              src={user?.avatar_urls?.["96"] ?? user?.avatar_urls?.["48"]}
-              alt={user?.name}
-            />
-            <AvatarFallback className="bg-[#3F576F] font-bold text-white">
-              {getInitials(user?.name)}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar user={user} size="md" fallbackClassName="bg-[#3F576F] font-bold text-white" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[280px] rounded-2xl p-0">
         <div className="flex items-center gap-3 px-5 pb-4 pt-5">
-          <Avatar className="h-11 w-11">
-            <AvatarImage src={user?.avatar_urls?.["96"] ?? user?.avatar_urls?.["48"]} />
-            <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            user={user}
+            size="lg"
+            className="h-11 w-11"
+            fallbackClassName="bg-[#3F576F] font-bold text-white"
+          />
           <div className="min-w-0">
-            <p className="truncate font-bold text-neutral-900">{user?.name}</p>
+            <p className="truncate font-bold text-neutral-900">{displayName}</p>
             {user?.email && <p className="truncate text-xs text-neutral-300">{user.email}</p>}
           </div>
         </div>
