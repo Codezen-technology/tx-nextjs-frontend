@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils/cn";
+import { isValidGravityDate, toGravityDateString } from "@/lib/utils/gravity-date";
 import { formsService, FormValidationError, type SubmitPayload } from "@/lib/services/forms";
 import type {
   ConditionalLogic,
@@ -204,6 +205,12 @@ export function GravityForm({
 
   const hiddenLayoutFields = layoutGroups ? currentFields.filter((f) => f.type === "hidden") : [];
 
+  /** Wizard-hidden fields (e.g. issue_type) must stay registered for submit + conditional logic. */
+  const hiddenWizardFields = useMemo(
+    () => form.fields.filter((f) => hiddenIds.has(f.id) && f.type === "hidden"),
+    [form.fields, hiddenIds],
+  );
+
   function renderFieldRow(field: GravityField) {
     return (
       <FieldRow
@@ -304,7 +311,11 @@ export function GravityForm({
   async function onFinalSubmit(all: FormValues) {
     setSubmitError(null);
     try {
-      const payload = buildPayload(form.fields, visibleFields, all, hiddenIds);
+      const payload = buildPayload(form.fields, visibleFields, all, hiddenIds, prefillValues);
+      if (isEmptyPayload(payload)) {
+        setSubmitError("Form data was not captured. Please refresh the page and try again.");
+        return;
+      }
       const result = await formsService.submitForm(
         form.id,
         payload,
@@ -370,6 +381,10 @@ export function GravityForm({
           Step {page} of {form.pageCount}
         </p>
       )}
+
+      {hiddenWizardFields.map((field) => (
+        <input key={field.id} type="hidden" {...register(field.name)} />
+      ))}
 
       {layoutGroups ? (
         <>
@@ -463,35 +478,86 @@ function buildDefaults(fields: GravityField[]): FormValues {
   return defaults;
 }
 
+function resolveFieldValue(name: string, all: FormValues, prefillValues?: FormValues): unknown {
+  const fromForm = all[name];
+  if (fromForm !== undefined && fromForm !== "") return fromForm;
+  return prefillValues?.[name];
+}
+
+/** True when no input_* keys would be sent (avoids silent empty GF entries). */
+export function isEmptyPayload(payload: SubmitPayload): boolean {
+  if (payload instanceof FormData) {
+    for (const key of payload.keys()) {
+      if (key.startsWith("input_")) return false;
+    }
+    return true;
+  }
+  return !Object.keys(payload).some(
+    (key) => key.startsWith("input_") && payload[key] !== undefined && payload[key] !== "",
+  );
+}
+
+/** True when the user selected at least one file (not merely when the form has a file field). */
+function hasSelectedFiles(
+  inputFields: GravityField[],
+  all: FormValues,
+  prefillValues?: FormValues,
+): boolean {
+  return inputFields.some((field) => {
+    if (field.type !== "fileupload") return false;
+    for (const name of fieldNames(field)) {
+      const value = resolveFieldValue(name, all, prefillValues);
+      if (value instanceof FileList && value.length > 0) return true;
+    }
+    return false;
+  });
+}
+
 /** Build a submit payload from visible fields plus any hidden pre-filled fields. */
-function buildPayload(
+export function buildPayload(
   allFields: GravityField[],
   visibleFields: GravityField[],
   all: FormValues,
   hiddenIds: Set<string>,
+  prefillValues?: FormValues,
 ): SubmitPayload {
   const hiddenPrefilled = allFields.filter((f) => hiddenIds.has(f.id) && f.type === "hidden");
   const inputFields = [...visibleFields, ...hiddenPrefilled].filter(
     (f) => !NON_INPUT_TYPES.has(f.type),
   );
-  const hasFiles = inputFields.some((f) => f.type === "fileupload");
-  const names = inputFields.flatMap(fieldNames);
+  // GF date fields fail validation when sent as multipart strings — use JSON unless files are present.
+  const hasFiles = hasSelectedFiles(inputFields, all, prefillValues);
 
   if (!hasFiles) {
     const json: FormValues = {};
-    for (const name of names) json[name] = all[name];
+    for (const field of inputFields) {
+      for (const name of fieldNames(field)) {
+        let value = resolveFieldValue(name, all, prefillValues);
+        if (field.type === "date") {
+          value = toGravityDateString(value);
+        }
+        if (value !== undefined && value !== "") {
+          json[name] = value;
+        }
+      }
+    }
     return json;
   }
 
   const fd = new FormData();
-  for (const name of names) {
-    const v = all[name];
-    if (v instanceof FileList) {
-      for (let i = 0; i < v.length; i++) {
-        fd.append(name, v[i]);
+  for (const field of inputFields) {
+    for (const name of fieldNames(field)) {
+      let v = resolveFieldValue(name, all, prefillValues);
+      if (field.type === "date") {
+        v = toGravityDateString(v);
       }
-    } else if (v != null) {
-      fd.append(name, String(v));
+      if (v instanceof FileList) {
+        for (let i = 0; i < v.length; i++) {
+          fd.append(name, v[i]);
+        }
+      } else if (v != null && v !== "") {
+        fd.append(name, String(v));
+      }
     }
   }
   return fd;
@@ -752,6 +818,24 @@ function FieldControl({
           />
           {field.choices?.[0]?.text ?? field.label}
         </label>
+      );
+
+    case "date":
+      return (
+        <Input
+          id={id}
+          type="date"
+          max={maxDate}
+          className={fieldClass}
+          {...register(field.name, {
+            required,
+            setValueAs: (v) => (typeof v === "string" ? v.trim() : v),
+            validate: (v) => {
+              if (!field.isRequired && (v == null || v === "")) return true;
+              return isValidGravityDate(v) || "Please enter a valid date (yyyy-mm-dd).";
+            },
+          })}
+        />
       );
 
     default:
