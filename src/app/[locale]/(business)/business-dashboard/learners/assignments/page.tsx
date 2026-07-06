@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { BusinessPageHeader } from "@/components/business/business-page-header";
+import { AssignmentFundingBadge } from "@/components/business/assignment-funding-badge";
 import { StatusBadge } from "@/components/business/status-badge";
 import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,11 @@ export default function BusinessAssignmentHistoryPage() {
   const columns: Column<CourseAssignment>[] = [
     { key: "learner", header: "Learner", cell: (row) => row.user_name },
     { key: "course", header: "Course", cell: (row) => row.course_name },
+    {
+      key: "funding",
+      header: "Funding",
+      cell: (row) => <AssignmentFundingBadge assignmentType={row.assignment_type} />,
+    },
     { key: "status", header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
     { key: "date", header: "Assigned", cell: (row) => formatDate(row.created_at) },
   ];

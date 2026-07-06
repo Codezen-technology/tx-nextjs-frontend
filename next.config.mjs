@@ -54,6 +54,20 @@ const nextConfig = {
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
   },
   turbopack: { root: __dirname },
+  async redirects() {
+    return [
+      {
+        source: "/business-dashboard/credits/transactions",
+        destination: "/business-dashboard/licences",
+        permanent: true,
+      },
+      {
+        source: "/:locale/business-dashboard/credits/transactions",
+        destination: "/:locale/business-dashboard/licences",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 const sentryConfig = {

@@ -20,16 +20,13 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useMe } from "@/lib/hooks/useAuth";
-import { useBusinessSystemType, useSwitchBusinessSystem } from "@/lib/hooks/useBusinessDashboard";
 import { cn } from "@/lib/utils/cn";
-import { Button } from "@/components/ui/button";
 
 interface NavLink {
   label: string;
   href: string;
   icon: LucideIcon;
   ownerOnly?: boolean;
-  subscriptionOnly?: boolean;
 }
 
 interface NavGroup {
@@ -70,7 +67,6 @@ const BOTTOM_LINKS: NavLink[] = [
     label: "Subscriptions",
     href: "/business-dashboard/subscriptions",
     icon: CreditCard,
-    subscriptionOnly: true,
   },
   {
     label: "Business Management",
@@ -83,53 +79,6 @@ const BOTTOM_LINKS: NavLink[] = [
 
 function isOwner(roles?: string[]) {
   return roles?.some((r) => ["administrator", "business_manager", "wplms_business"].includes(r));
-}
-
-function SystemSwitcher({
-  expanded,
-  current,
-}: {
-  expanded: boolean;
-  current?: "credits" | "subscription" | string;
-}) {
-  const switchSystem = useSwitchBusinessSystem();
-  const next = current === "subscription" ? "credits" : "subscription";
-
-  const onSwitch = () => {
-    if (switchSystem.isPending) return;
-    switchSystem.mutate(next);
-  };
-
-  if (!expanded) {
-    return (
-      <button
-        type="button"
-        title={`Switch to ${next}`}
-        onClick={onSwitch}
-        className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg text-white/90 hover:bg-white/10"
-      >
-        <CreditCard className="h-4 w-4" />
-      </button>
-    );
-  }
-
-  return (
-    <div className="space-y-2 px-1">
-      <p className="px-2 text-sm text-white/80">
-        Current: <span className="font-semibold capitalize">{current ?? "credits"}</span>
-      </p>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="w-full border-white/30 bg-transparent text-white hover:bg-white/10"
-        disabled={switchSystem.isPending}
-        onClick={onSwitch}
-      >
-        Switch to {next}
-      </Button>
-    </div>
-  );
 }
 
 function NavItem({
@@ -168,9 +117,7 @@ interface BusinessNavProps {
 export function BusinessNav({ expanded, onNavigate }: BusinessNavProps) {
   const pathname = usePathname();
   const { data: user } = useMe();
-  const { data: systemType } = useBusinessSystemType();
   const owner = isOwner(user?.roles);
-  const isSubscription = systemType?.system_type === "subscription";
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ courses: true });
 
@@ -191,7 +138,6 @@ export function BusinessNav({ expanded, onNavigate }: BusinessNavProps) {
 
   const visibleBottom = BOTTOM_LINKS.filter((item) => {
     if (item.ownerOnly && !owner) return false;
-    if (item.subscriptionOnly && !isSubscription) return false;
     return true;
   });
 
@@ -249,17 +195,6 @@ export function BusinessNav({ expanded, onNavigate }: BusinessNavProps) {
           </li>
         ))}
       </ul>
-
-      {owner && systemType ? (
-        <div className={cn("mt-auto border-t border-white/10 px-2 py-4", !expanded && "px-1")}>
-          {expanded ? (
-            <p className="mb-2 px-3 text-xs font-medium uppercase tracking-wide text-white/50">
-              Billing system
-            </p>
-          ) : null}
-          <SystemSwitcher expanded={expanded} current={systemType.system_type} />
-        </div>
-      ) : null}
     </nav>
   );
 }

@@ -9,6 +9,7 @@ import { UsageBar } from "@/components/business/usage-bar";
 import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
 import { Input } from "@/components/ui/input";
 import { useBusinessLicenceBalance } from "@/lib/hooks/useBusinessDashboard";
+import { formatPoolCourseName, isMigratedCreditPool } from "@/lib/utils/business-licences";
 import type { LicencePool } from "@/types/business-dashboard";
 
 const STATUS_OPTIONS = ["all", "active", "inactive"] as const;
@@ -35,7 +36,7 @@ export default function BusinessLicenceHistoryPage() {
   const filtered = useMemo(() => {
     return pools.filter((pool) => {
       const matchesSearch =
-        !search || pool.course_name.toLowerCase().includes(search.toLowerCase());
+        !search || formatPoolCourseName(pool).toLowerCase().includes(search.toLowerCase());
       const matchesStatus = status === "all" || pool.status === status;
       return matchesSearch && matchesStatus;
     });
@@ -62,7 +63,14 @@ export default function BusinessLicenceHistoryPage() {
     {
       key: "course",
       header: "Course",
-      cell: (row) => <span className="font-medium text-neutral-900">{row.course_name}</span>,
+      cell: (row) => (
+        <div>
+          <span className="font-medium text-neutral-900">{formatPoolCourseName(row)}</span>
+          {isMigratedCreditPool(row) ? (
+            <span className="mt-0.5 block text-xs text-neutral-400">Migrated from credits</span>
+          ) : null}
+        </div>
+      ),
     },
     {
       key: "order",

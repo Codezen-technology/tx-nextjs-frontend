@@ -92,7 +92,6 @@ export const queryKeys = {
   business: {
     summary: ["business", "summary"] as const,
     profile: ["business", "profile"] as const,
-    creditBalance: ["business", "credit-balance"] as const,
     learners: (params: BusinessListParams = {}) => ["business", "learners", params] as const,
     learner: (id: number) => ["business", "learner", id] as const,
     assignments: (params: BusinessListParams = {}) => ["business", "assignments", params] as const,
@@ -117,10 +116,6 @@ export const queryKeys = {
     availableLearners: (courseId: number, params: BusinessListParams = {}) =>
       ["business", "available-learners", courseId, params] as const,
     orders: (params: BusinessListParams = {}) => ["business", "orders", params] as const,
-    systemType: ["business", "system-type"] as const,
-    creditTransactions: (page: number) => ["business", "credit-transactions", page] as const,
-    creditDiscountTiers: ["business", "credit-discount-tiers"] as const,
-    creditProduct: ["business", "credit-product"] as const,
     licencePricing: ["business", "licence-pricing"] as const,
     licenceOrder: (itemsKey: string) => ["business", "licence-order", itemsKey] as const,
     licenceCourseSearch: (search: string) => ["business", "licence-course-search", search] as const,

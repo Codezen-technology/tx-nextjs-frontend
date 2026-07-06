@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, Coins, CalendarDays, Pencil } from "lucide-react";
+import { Building2, CalendarDays, KeyRound, Pencil } from "lucide-react";
 import { BusinessPageHeader } from "@/components/business/business-page-header";
 import { KpiCard } from "@/components/business/kpi-card";
 import { StatusBadge } from "@/components/business/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  useBusinessCreditBalance,
+  useBusinessLicenceBalance,
   useBusinessProfile,
   useUpdateBusinessProfile,
 } from "@/lib/hooks/useBusinessDashboard";
+import { sumAvailableLicences } from "@/lib/utils/business-licences";
 
 const INDUSTRY_LABELS: Record<string, string> = {
   technology: "Technology",
@@ -43,7 +44,7 @@ function ProfileField({ label, value }: { label: string; value?: string | number
 
 export default function BusinessProfilePage() {
   const { data: business, isLoading, isError } = useBusinessProfile();
-  const { data: credit } = useBusinessCreditBalance();
+  const { data: licenceBalance } = useBusinessLicenceBalance();
   const updateProfile = useUpdateBusinessProfile();
   const [editing, setEditing] = useState(false);
   const [phone, setPhone] = useState("");
@@ -94,7 +95,7 @@ export default function BusinessProfilePage() {
     );
   }
 
-  const creditBalance = credit?.balance ?? business.credit_balance ?? 0;
+  const availableLicences = sumAvailableLicences(licenceBalance?.pools ?? []);
   const industry = INDUSTRY_LABELS[business.industry?.toLowerCase()] ?? business.industry ?? "—";
 
   return (
@@ -127,7 +128,12 @@ export default function BusinessProfilePage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <KpiCard label="Current Status" value={business.status} icon={Building2} tone="primary" />
-        <KpiCard label="Credit Balance" value={creditBalance} icon={Coins} tone="amber" />
+        <KpiCard
+          label="Available Licences"
+          value={availableLicences}
+          icon={KeyRound}
+          tone="amber"
+        />
         <KpiCard
           label="Member Since"
           value={formatDate(business.created_at)}
@@ -196,12 +202,6 @@ export default function BusinessProfilePage() {
             <ProfileField label="Industry" value={industry} />
             <ProfileField label="Company Size" value={business.company_size} />
             <ProfileField label="Address" value={business.address} />
-            {business.system_type ? (
-              <ProfileField
-                label="Billing System"
-                value={business.system_type === "credits" ? "Credits" : "Subscription"}
-              />
-            ) : null}
           </dl>
         )}
       </div>

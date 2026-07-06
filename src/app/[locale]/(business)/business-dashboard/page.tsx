@@ -1,16 +1,18 @@
 "use client";
 
-import { Award, BookOpen, Coins, Users } from "lucide-react";
+import { Award, BookOpen, KeyRound, Users } from "lucide-react";
 import { BusinessPageHeader } from "@/components/business/business-page-header";
+import { AssignmentFundingBadge } from "@/components/business/assignment-funding-badge";
 import { KpiCard } from "@/components/business/kpi-card";
 import { StatusBadge } from "@/components/business/status-badge";
 import { UsageBar } from "@/components/business/usage-bar";
 import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
 import {
   useBusinessAssignments,
-  useBusinessCreditBalance,
+  useBusinessLicenceBalance,
   useBusinessSummary,
 } from "@/lib/hooks/useBusinessDashboard";
+import { sumAvailableLicences, sumLicenceTotals } from "@/lib/utils/business-licences";
 import type { CourseAssignment } from "@/types/business-dashboard";
 
 function formatDate(value?: string) {
@@ -21,8 +23,12 @@ function formatDate(value?: string) {
 
 export default function BusinessOverviewPage() {
   const { data: summary } = useBusinessSummary();
-  const { data: credit } = useBusinessCreditBalance();
+  const { data: licenceBalance } = useBusinessLicenceBalance();
   const recent = useBusinessAssignments({ page: 1, per_page: 5 });
+
+  const pools = licenceBalance?.pools ?? [];
+  const availableLicences = sumAvailableLicences(pools);
+  const licenceTotals = sumLicenceTotals(pools);
 
   const active = summary?.total_active ?? 0;
   const completed = summary?.total_completed ?? 0;
@@ -42,6 +48,11 @@ export default function BusinessOverviewPage() {
       ),
     },
     { key: "course", header: "Course", cell: (row) => row.course_name },
+    {
+      key: "funding",
+      header: "Funding",
+      cell: (row) => <AssignmentFundingBadge assignmentType={row.assignment_type} />,
+    },
     { key: "status", header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
     { key: "date", header: "Date", cell: (row) => formatDate(row.created_at) },
   ];
@@ -54,7 +65,12 @@ export default function BusinessOverviewPage() {
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Available Credits" value={credit?.balance ?? 0} icon={Coins} tone="amber" />
+        <KpiCard
+          label="Available Licences"
+          value={availableLicences}
+          icon={KeyRound}
+          tone="amber"
+        />
         <KpiCard
           label="Active Courses"
           value={summary?.total_courses ?? 0}
@@ -77,20 +93,20 @@ export default function BusinessOverviewPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="rounded-xl border border-neutral-30 bg-white p-6 shadow-sm">
-          <h3 className="mb-4 text-lg font-semibold text-neutral-900">Credit Usage Overview</h3>
+          <h3 className="mb-4 text-lg font-semibold text-neutral-900">Licence usage</h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-neutral-300">Available Credits</span>
-              <span className="font-medium text-neutral-900">{credit?.balance ?? 0}</span>
+              <span className="text-neutral-300">Available licences</span>
+              <span className="font-medium text-neutral-900">{availableLicences}</span>
             </div>
             <UsageBar
-              used={assignmentTotal}
-              total={assignmentTotal + (credit?.balance ?? 0)}
+              used={licenceTotals.used}
+              total={licenceTotals.quantity || 1}
               color="bg-[#3F576F]"
             />
             <div className="flex justify-between text-xs text-neutral-300">
-              <span>Used: {assignmentTotal}</span>
-              <span>Available: {credit?.balance ?? 0}</span>
+              <span>Used: {licenceTotals.used}</span>
+              <span>Total purchased: {licenceTotals.quantity}</span>
             </div>
           </div>
         </div>

@@ -1187,15 +1187,15 @@ Same envelope as `lms-backend/v1`: `{ success, data }` or paginated `{ success, 
 
 ## Business Profile
 
-| Method | Path                      | Description                                    |
-| ------ | ------------------------- | ---------------------------------------------- |
-| GET    | `/businesses/current`     | Current business profile                       |
-| PATCH  | `/businesses/{id}`        | Update profile fields                          |
-| POST   | `/businesses/{id}/logo`   | Upload logo (multipart)                        |
-| DELETE | `/businesses/{id}/logo`   | Remove logo                                    |
-| GET    | `/businesses/orders`      | WooCommerce order history (paginated)          |
-| GET    | `/business/system-type`   | `{ system_type: "credits" \| "subscription" }` |
-| POST   | `/business/switch-system` | Switch billing system                          |
+| Method | Path                    | Description                           |
+| ------ | ----------------------- | ------------------------------------- |
+| GET    | `/businesses/current`   | Current business profile              |
+| PATCH  | `/businesses/{id}`      | Update profile fields                 |
+| POST   | `/businesses/{id}/logo` | Upload logo (multipart)               |
+| DELETE | `/businesses/{id}/logo` | Remove logo                           |
+| GET    | `/businesses/orders`    | WooCommerce order history (paginated) |
+
+> **v4:** `/business/system-type` and `/business/switch-system` removed. All businesses use licence pools + v2 subscriptions together.
 
 ---
 
@@ -1228,10 +1228,11 @@ Same envelope as `lms-backend/v1`: `{ success, data }` or paginated `{ success, 
 ```json
 {
   "course_id": 123,
-  "user_ids": [1, 2, 3],
-  "use_licence": true
+  "user_ids": [1, 2, 3]
 }
 ```
+
+**Errors:** `409 no_licence_available` when the learner has no subscription seat and no licence pool (course-specific or universal `course_id = 0`) can fund the assignment.
 
 **GET `/courses/assignment-list` response shape:**
 
@@ -1264,7 +1265,7 @@ Same envelope as `lms-backend/v1`: `{ success, data }` or paginated `{ success, 
 
 ---
 
-## Licences & Credits
+## Licences
 
 | Method | Path                              | Description                   |
 | ------ | --------------------------------- | ----------------------------- |
@@ -1275,11 +1276,8 @@ Same envelope as `lms-backend/v1`: `{ success, data }` or paginated `{ success, 
 | POST   | `/licences/pricing/calculate`     | Price calculation             |
 | POST   | `/licences/checkout`              | Licence checkout              |
 | POST   | `/licences/subscription/checkout` | Subscription checkout         |
-| GET    | `/credits/balance`                | Credit balance                |
-| GET    | `/credits/transactions`           | Credit transaction log        |
-| GET    | `/credits/discount-tiers`         | Credit volume discounts       |
-| GET    | `/credits/product`                | Credit product info           |
-| POST   | `/credits/purchase`               | Credit purchase checkout      |
+
+> **v4:** All `/credits/*` routes removed. Legacy credit balances are migrated server-side into universal licence pools (`course_id = 0`).
 
 ---
 
@@ -1348,7 +1346,6 @@ Same envelope as `lms-backend/v1`: `{ success, data }` or paginated `{ success, 
 | `GET /api/business/summary`                         | `/reports/summary`                   |
 | `GET /api/business/profile`                         | `/businesses/current`                |
 | `PATCH /api/business/profile/[id]`                  | `/businesses/{id}`                   |
-| `GET /api/business/credit-balance`                  | `/credits/balance`                   |
 | `GET/POST /api/business/team`                       | `/team`                              |
 | `PATCH /api/business/team/[id]`                     | `/team/{id}`                         |
 | `POST /api/business/team/[id]/convert-role`         | `/team/{id}/convert-role`            |
@@ -1367,12 +1364,6 @@ Same envelope as `lms-backend/v1`: `{ success, data }` or paginated `{ success, 
 | `POST /api/business/licences/quote`                 | `/licences/quote`                    |
 | `GET /api/business/subscriptions`                   | `/businesses/subscriptions`          |
 | `GET /api/business/orders`                          | `/businesses/orders`                 |
-| `GET /api/business/system-type`                     | `/business/system-type`              |
-| `POST /api/business/system-type/switch`             | `/business/switch-system`            |
-| `GET /api/business/credits/transactions`            | `/credits/transactions`              |
-| `GET /api/business/credits/discount-tiers`          | `/credits/discount-tiers`            |
-| `GET /api/business/credits/product`                 | `/credits/product`                   |
-| `POST /api/business/credits/purchase`               | `/credits/purchase`                  |
 | `GET /api/business/subscriptions/summary`           | `/businesses/subscriptions/summary`  |
 | `GET /api/business/subscriptions/assigned`          | `/businesses/subscriptions/assigned` |
 | `GET /api/business/course-categories/excluded`      | `/course-categories/excluded`        |

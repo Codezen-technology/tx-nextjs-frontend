@@ -8,30 +8,15 @@ import { StatusBadge } from "@/components/business/status-badge";
 import {
   useBusinessSubscriptionAssigned,
   useBusinessSubscriptionSummary,
-  useBusinessSystemType,
 } from "@/lib/hooks/useBusinessDashboard";
 import type { AssignedSubscription } from "@/types/business-dashboard";
-import { EmptyState } from "@/components/ui/empty-state";
 
 export default function BusinessSubscriptionsPage() {
-  const { data: systemType } = useBusinessSystemType();
   const { data: summary, isLoading: summaryLoading } = useBusinessSubscriptionSummary();
   const { data: assigned, isLoading: assignedLoading } = useBusinessSubscriptionAssigned({
     page: 1,
     per_page: 20,
   });
-
-  if (systemType?.system_type !== "subscription") {
-    return (
-      <div className="space-y-6">
-        <BusinessPageHeader title="Subscription Management" />
-        <EmptyState
-          title="Credits billing active"
-          description="Subscription management is only available when your business uses the subscription billing system."
-        />
-      </div>
-    );
-  }
 
   const rows = assigned?.items ?? [];
   const columns: Column<AssignedSubscription>[] = [
@@ -51,14 +36,19 @@ export default function BusinessSubscriptionsPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <KpiCard
           label="Total Seats"
-          value={summary?.total_seats ?? "—"}
+          value={summaryLoading ? "—" : (summary?.total_seats ?? 0)}
           icon={Users}
           tone="primary"
         />
-        <KpiCard label="Used" value={summary?.used_seats ?? "—"} icon={Users} tone="amber" />
+        <KpiCard
+          label="Used"
+          value={summaryLoading ? "—" : (summary?.used_seats ?? 0)}
+          icon={Users}
+          tone="amber"
+        />
         <KpiCard
           label="Available"
-          value={summary?.available_seats ?? "—"}
+          value={summaryLoading ? "—" : (summary?.available_seats ?? 0)}
           icon={Users}
           tone="success"
         />
@@ -68,9 +58,9 @@ export default function BusinessSubscriptionsPage() {
         columns={columns}
         rows={rows}
         rowKey={(r) => r.id}
-        isLoading={summaryLoading || assignedLoading}
+        isLoading={assignedLoading}
         emptyTitle="No assigned subscriptions"
-        emptyDescription="Seats assigned to learners will appear here."
+        emptyDescription="Learners with an active subscription seat will appear here."
       />
     </div>
   );

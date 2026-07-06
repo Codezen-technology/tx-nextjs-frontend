@@ -56,10 +56,6 @@ export interface BusinessSummary {
   total_completed: number;
 }
 
-export interface CreditBalance {
-  balance: number;
-}
-
 // ─── Learners / team ─────────────────────────────────────────────────────────────
 
 export interface Learner {
@@ -136,6 +132,7 @@ export interface CourseAssignment {
   course_id: number;
   business_id: number;
   credits_used: number;
+  assignment_type?: "subscription" | "licence" | "credit";
   status: string;
   course_name: string;
   user_name: string;
@@ -349,24 +346,7 @@ export interface BusinessOrdersResponse {
   per_page?: number;
 }
 
-// ─── Pricing / credits ─────────────────────────────────────────────────────────
-
-export interface BusinessSystemType {
-  system_type: "credits" | "subscription";
-}
-
-export interface CreditDiscountTier {
-  id?: number;
-  min_quantity: number;
-  discount_percent: number;
-}
-
-export interface CreditProduct {
-  id: number;
-  name: string;
-  price: number;
-  currency?: string;
-}
+// ─── Pricing ───────────────────────────────────────────────────────────────────
 
 export interface LicencePricingTier {
   min_quantity: number;
@@ -377,24 +357,6 @@ export interface LicencePricing {
   tiers?: LicencePricingTier[];
   base_price?: number;
   currency?: string;
-}
-
-// ─── Credit transactions ─────────────────────────────────────────────────────────
-
-export interface CreditTransaction {
-  id: number;
-  type: string;
-  amount: number;
-  balance_after?: number;
-  description?: string;
-  created_at: string;
-}
-
-export interface CreditTransactionsResponse {
-  items?: CreditTransaction[];
-  transactions?: CreditTransaction[];
-  total: number;
-  pages?: number;
 }
 
 // ─── Subscriptions ───────────────────────────────────────────────────────────────
@@ -487,5 +449,4 @@ export interface CheckEmailResponse {
 export interface AssignCoursePayload {
   course_id: number;
   user_ids: number[];
-  use_licence?: boolean;
 }

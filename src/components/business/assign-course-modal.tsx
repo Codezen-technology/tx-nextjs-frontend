@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import {
@@ -12,10 +13,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ApiError } from "@/lib/api/error";
 import {
   useAssignBusinessCourse,
   useBusinessAvailableLearners,
-  useBusinessSystemType,
 } from "@/lib/hooks/useBusinessDashboard";
 import { cn } from "@/lib/utils/cn";
 
@@ -41,8 +42,8 @@ export function AssignCourseModal({
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [error, setError] = useState("");
+  const [noLicence, setNoLicence] = useState(false);
 
-  const { data: systemType } = useBusinessSystemType();
   const { data, isLoading } = useBusinessAvailableLearners(open ? courseId : null, {
     search,
     per_page: 50,
@@ -50,13 +51,13 @@ export function AssignCourseModal({
   const assign = useAssignBusinessCourse();
 
   const learners = useMemo(() => data?.items ?? [], [data?.items]);
-  const useLicence = systemType?.system_type !== "credits";
 
   useEffect(() => {
     if (!open) {
       setSelected(new Set());
       setSearch("");
       setError("");
+      setNoLicence(false);
     }
   }, [open]);
 
@@ -72,14 +73,19 @@ export function AssignCourseModal({
   const onAssign = async () => {
     if (!courseId || selected.size === 0) return;
     setError("");
+    setNoLicence(false);
     try {
       await assign.mutateAsync({
         course_id: courseId,
         user_ids: Array.from(selected),
-        use_licence: useLicence,
       });
       onOpenChange(false);
     } catch (err) {
+      if (err instanceof ApiError && err.code === "no_licence_available") {
+        setNoLicence(true);
+        setError("No licence or seat available for this course.");
+        return;
+      }
       setError(err instanceof Error ? err.message : "Assignment failed");
     }
   };
@@ -151,7 +157,19 @@ export function AssignCourseModal({
           )}
         </div>
 
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {error ? (
+          <div className="space-y-2">
+            <p className="text-sm text-red-600">{error}</p>
+            {noLicence ? (
+              <Link
+                href="/business-dashboard/pricing"
+                className="text-sm font-medium text-[#3F576F] hover:underline"
+              >
+                Buy licences
+              </Link>
+            ) : null}
+          </div>
+        ) : null}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

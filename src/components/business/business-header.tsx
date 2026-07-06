@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Coins, Home, LogOut, Menu, Star, User } from "lucide-react";
+import { Home, KeyRound, LogOut, Menu, Star, User } from "lucide-react";
 import { useLogout, useMe } from "@/lib/hooks/useAuth";
-import { useBusinessCreditBalance, useBusinessReviewHas } from "@/lib/hooks/useBusinessDashboard";
+import { useBusinessLicenceBalance, useBusinessReviewHas } from "@/lib/hooks/useBusinessDashboard";
+import { sumAvailableLicences } from "@/lib/utils/business-licences";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,10 +30,11 @@ export function BusinessHeader({
 }: BusinessHeaderProps) {
   const { data: user } = useMe();
   const logout = useLogout();
-  const { data: credit } = useBusinessCreditBalance();
+  const { data: licenceBalance } = useBusinessLicenceBalance();
   const { data: reviewStatus } = useBusinessReviewHas();
   const showReviewCta = reviewStatus && !reviewStatus.has_review;
   const displayName = getUserDisplayName(user);
+  const availableLicences = sumAvailableLicences(licenceBalance?.pools ?? []);
 
   const profileMenu = (
     <DropdownMenu>
@@ -127,12 +129,18 @@ export function BusinessHeader({
               </Link>
             </Button>
           ) : null}
-          {credit ? (
-            <div className="flex items-center gap-2 rounded-full bg-[#F9A31A]/15 px-4 py-1.5 text-sm font-semibold text-[#B9760A]">
-              <Coins className="h-4 w-4" />
-              {credit.balance} credits
-            </div>
-          ) : null}
+          <Link
+            href="/business-dashboard/pricing"
+            className="flex items-center gap-2 rounded-full border border-neutral-30 bg-white px-4 py-1.5 text-sm font-medium text-neutral-900 transition-colors hover:border-[#F9A31A] hover:bg-[#F9A31A]/5"
+          >
+            <KeyRound className="h-4 w-4 text-[#3F576F]" />
+            Buy licences
+            {licenceBalance ? (
+              <span className="rounded-full bg-[#F9A31A]/15 px-2 py-0.5 text-xs font-semibold text-[#B9760A]">
+                {availableLicences} available
+              </span>
+            ) : null}
+          </Link>
           <Button
             asChild
             variant="ghost"

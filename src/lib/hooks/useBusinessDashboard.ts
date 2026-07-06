@@ -29,14 +29,6 @@ export function useBusinessProfile() {
   });
 }
 
-export function useBusinessCreditBalance() {
-  return useQuery({
-    queryKey: queryKeys.business.creditBalance,
-    queryFn: () => businessDashboardService.getCreditBalance(),
-    staleTime: LIST_STALE,
-  });
-}
-
 export function useBusinessLearners(params: BusinessListParams = {}) {
   return useQuery({
     queryKey: queryKeys.business.learners(params),
@@ -153,35 +145,6 @@ export function useBusinessOrders(params: BusinessListParams = {}) {
   return useQuery({
     queryKey: queryKeys.business.orders(params),
     queryFn: () => businessDashboardService.getOrders(params),
-  });
-}
-
-export function useBusinessSystemType() {
-  return useQuery({
-    queryKey: queryKeys.business.systemType,
-    queryFn: () => businessDashboardService.getSystemType(),
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-export function useBusinessCreditTransactions(page = 1) {
-  return useQuery({
-    queryKey: queryKeys.business.creditTransactions(page),
-    queryFn: () => businessDashboardService.getCreditTransactions(page),
-  });
-}
-
-export function useBusinessCreditDiscountTiers() {
-  return useQuery({
-    queryKey: queryKeys.business.creditDiscountTiers,
-    queryFn: () => businessDashboardService.getCreditDiscountTiers(),
-  });
-}
-
-export function useBusinessCreditProduct() {
-  return useQuery({
-    queryKey: queryKeys.business.creditProduct,
-    queryFn: () => businessDashboardService.getCreditProduct(),
   });
 }
 
@@ -313,24 +276,6 @@ export function useSubmitBusinessReview() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.business.reviewHas });
     },
-  });
-}
-
-export function useSwitchBusinessSystem() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (systemType: "credits" | "subscription") =>
-      businessDashboardService.switchSystem(systemType),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.business.systemType });
-      qc.invalidateQueries({ queryKey: queryKeys.business.profile });
-    },
-  });
-}
-
-export function usePurchaseBusinessCredits() {
-  return useMutation({
-    mutationFn: (quantity: number) => businessDashboardService.purchaseCredits(quantity),
   });
 }
 

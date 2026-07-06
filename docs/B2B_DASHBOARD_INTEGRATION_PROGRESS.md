@@ -63,13 +63,11 @@ Structure exists for all; each needs loading/empty/error + pagination audit.
 - [?] Assignments + assignment list (`learners/assignments` ← `useBusinessAssignments`, `useBusinessAssignmentList`)
 - [?] Licences — balance / courses / pricing (`licences` ← `useBusinessLicenceBalance`, `useBusinessLicenceCourses`, `useBusinessLicencePricing`)
 - [?] Subscriptions + summary + assigned (`subscriptions` ← `useBusinessSubscriptionSummary`, `useBusinessSubscriptionAssigned`)
-- [?] Credits — transactions / product / discount-tiers (`credits/transactions` ← `useBusinessCreditTransactions`, `useBusinessCreditProduct`, `useBusinessCreditDiscountTiers`)
 - [?] Reports — courses / members / certificates (`analytics` ← `useBusinessReportCourses`, `useBusinessReportMembers`, `useBusinessReportCertificates`)
 - [?] Certificates + per-course (`certificates`, `certificates/[courseId]` ← `useBusinessCertificates`)
 - [?] Orders (`orders` ← `useBusinessOrders`)
 - [?] Pricing page (`pricing` ← `useBusinessPricing`)
 - [?] Reviews (`reviews` ← `useBusinessReviewHas`)
-- [?] System type read (`useBusinessSystemType`)
 
 ## B3 — Write surfaces (mutations)
 
@@ -80,17 +78,15 @@ All mutation hooks exist; verify invalidation + error-toast + success UX:
 - [?] `useAssignBusinessCourse`
 - [?] `useUpdateBusinessProfile`
 - [?] `useGenerateBusinessCertificate`
-- [?] `usePurchaseBusinessCredits`
 - [?] Licence checkout + **subscription checkout** (`licenceCheckout`, `licenceSubscriptionCheckout`, `licenceQuote` in service)
 - [?] `useSubmitBusinessReview`
-- [?] `useSwitchBusinessSystem`
 - [?] `useAddBusinessManager`
 
-## B4 — Dual access model (credits ⇄ licences/subscriptions)
+## B4 — Licence + subscription model (v4)
 
-- [?] `useBusinessSystemType` read exists; `useSwitchBusinessSystem` exists
-- [ ] Conditional render: show credits **xor** licences UI per `system-type` (verify no double purchase paths)
-- [ ] Isolate credits UI for clean future removal (backend credit-removal track)
+- [x] Credit system UI removed; licence pools + subscriptions always available
+- [x] Assignment auto-routes via backend (`409 no_licence_available` surfaced in assign modal)
+- [x] Historical `assignment_type = credit` rows show Legacy badge
 
 ## B5 — i18n, nav, polish
 
@@ -116,32 +112,29 @@ All mutation hooks exist; verify invalidation + error-toast + success UX:
 
 All routes JWT-gated, `{success,data}`. `→` = proxies to legacy `b2b-dashboard/v1` internally.
 
-| Controller     | Routes (selected)                                                                                                                                                        | Direct / proxy      |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
-| Team           | `/team` GET·POST · `/team/{id}` GET·PATCH · `/team/check-email` · `/team/{id}/convert-role`                                                                              | direct              |
-| Business       | `/businesses` · `/businesses/current` · `/businesses/{id}` GET·PATCH                                                                                                     | direct              |
-| Course         | `/courses` · `/courses/assign` · `/courses/assignments` · `/courses/{id}/learners`                                                                                       | direct              |
-| Licence        | `/licences/courses` · `/balance` · `/balance/{courseId}` · `/pricing` · `/pricing/calculate`                                                                             | direct              |
-| Credit         | `/credits/balance` · `/credits/transactions`                                                                                                                             | direct              |
-| Reports        | `/reports/summary` · `/courses` · `/members` · `/certificates`                                                                                                           | direct              |
-| Certificate    | `/certificates`                                                                                                                                                          | → `/certificate`    |
-| Subscription   | `/business/system-type` · `/business/switch-system` · `/businesses/subscriptions` · `/summary` · `/assigned` · `/assign-user` · `/{id}/status` · `/{id}/seats/{seat_id}` | **proxy-only**      |
-| Manager        | `/managers` GET·POST · `/managers/{id}` GET·PATCH·DELETE · `/managers/{id}/status` · `/permissions/*`                                                                    | **proxy-only**      |
-| Reviews        | `/reviews/has` · `/reviews` POST                                                                                                                                         | **proxy-only**      |
-| CourseCategory | `/course-categories/excluded` GET·POST                                                                                                                                   | **proxy-only**      |
-| Theme          | `/settings/theme`                                                                                                                                                        | → `/settings/theme` |
-| Utility        | `/health`                                                                                                                                                                | self-report         |
+| Controller     | Routes (selected)                                                                                     | Direct / proxy      |
+| -------------- | ----------------------------------------------------------------------------------------------------- | ------------------- |
+| Team           | `/team` GET·POST · `/team/{id}` GET·PATCH · `/team/check-email` · `/team/{id}/convert-role`           | direct              |
+| Business       | `/businesses` · `/businesses/current` · `/businesses/{id}` GET·PATCH                                  | direct              |
+| Course         | `/courses` · `/courses/assign` · `/courses/assignments` · `/courses/{id}/learners`                    | direct              |
+| Licence        | `/licences/courses` · `/balance` · `/balance/{courseId}` · `/pricing` · `/pricing/calculate`          | direct              |
+| Reports        | `/reports/summary` · `/courses` · `/members` · `/certificates`                                        | direct              |
+| Certificate    | `/certificates`                                                                                       | → `/certificate`    |
+| Subscription   | `/businesses/subscriptions` · `/summary` · `/assigned`                                                | direct              |
+| Manager        | `/managers` GET·POST · `/managers/{id}` GET·PATCH·DELETE · `/managers/{id}/status` · `/permissions/*` | **proxy-only**      |
+| Reviews        | `/reviews/has` · `/reviews` POST                                                                      | **proxy-only**      |
+| CourseCategory | `/course-categories/excluded` GET·POST                                                                | **proxy-only**      |
+| Theme          | `/settings/theme`                                                                                     | → `/settings/theme` |
+| Utility        | `/health`                                                                                             | self-report         |
 
-> Some service methods (e.g. `creditProduct`, `purchaseCredits`, `creditDiscountTiers`,
-> `subscriptionAssigned`) map to routes still being directized in C — they work via the proxy.
-> Treat the contract as stable regardless.
+> v4 contract: credit and system-type endpoints removed from `lms-b2b/v1`. Some service methods still proxy via legacy controllers (managers, reviews) — treat the contract as stable regardless.
 
 ---
 
 ## Changelog
 
-| Date       | Item                         | Status | Notes                                                                                                    |
-| ---------- | ---------------------------- | ------ | -------------------------------------------------------------------------------------------------------- |
-| 2026-06-28 | Plan + progress created      | x      | Headless B2B dashboard surface; architecture decision documented (separate `wp-lms-b2b-rest-api` plugin) |
-| 2026-06-28 | Inventory audit              | x      | 42 BFF routes, ~50 service methods, ~40 hooks, ~14 pages confirmed present                               |
-| 2026-06-28 | Per-surface E2E verification | ❓     | Bulk of remaining work — convert `[?]`→`[x]` against seeded WP + `wp-lms-b2b-rest-api`                   |
+| Date       | Item                    | Status | Notes                                                                                                    |
+| ---------- | ----------------------- | ------ | -------------------------------------------------------------------------------------------------------- |
+| 2026-06-28 | Plan + progress created | x      | Headless B2B dashboard surface; architecture decision documented (separate `wp-lms-b2b-rest-api` plugin) |
+| 2026-06-28 | Inventory audit         | x      | 42 BFF routes, ~50 service methods, ~40 hooks, ~14 pages confirmed present                               |
+| 2026-07-06 | B4 v4 licence migration | x      | Removed credit/system-type UI; licence KPIs, Legacy badges, 409 assign handling                          |

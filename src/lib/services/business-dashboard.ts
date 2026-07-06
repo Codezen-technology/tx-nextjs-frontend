@@ -12,15 +12,10 @@ import type {
   BusinessManager,
   BusinessOrdersResponse,
   BusinessSummary,
-  BusinessSystemType,
   CertificatesResponse,
   CheckEmailResponse,
   CourseLearnersResponse,
   CoursesResponse,
-  CreditBalance,
-  CreditDiscountTier,
-  CreditProduct,
-  CreditTransactionsResponse,
   Learner,
   LearnerCoursesResponse,
   LicenceBalanceResponse,
@@ -31,6 +26,9 @@ import type {
   SubscriptionSummary,
   TeamResponse,
   B2BPaginated,
+  ReportCertificate,
+  ReportCourse,
+  ReportMember,
 } from "@/types/business-dashboard";
 import type {
   AggregatedActiveSubscription,
@@ -41,7 +39,6 @@ import type {
   LicencePricingConfig,
   QuoteRequestPayload,
 } from "@/types/business-pricing";
-import type { ReportCertificate, ReportCourse, ReportMember } from "@/types/business-dashboard";
 
 function buildQuery(params: Record<string, string | number | boolean | undefined>): string {
   const sp = new URLSearchParams();
@@ -75,10 +72,6 @@ export const businessDashboardService = {
       method: "PATCH",
       body: JSON.stringify(data),
     });
-  },
-
-  async getCreditBalance(): Promise<CreditBalance> {
-    return bffJson<CreditBalance>("/api/business/credit-balance");
   },
 
   async getLearners(params: BusinessListParams = {}): Promise<TeamResponse> {
@@ -392,41 +385,6 @@ export const businessDashboardService = {
       status: params.status,
     });
     return bffJson<BusinessOrdersResponse>(`/api/business/orders${qs}`);
-  },
-
-  async getSystemType(): Promise<BusinessSystemType> {
-    return bffJson<BusinessSystemType>("/api/business/system-type");
-  },
-
-  async switchSystem(systemType: "credits" | "subscription"): Promise<unknown> {
-    return bffJson("/api/business/system-type/switch", {
-      method: "POST",
-      body: JSON.stringify({ system_type: systemType }),
-    });
-  },
-
-  async getCreditTransactions(page = 1, perPage = 10): Promise<CreditTransactionsResponse> {
-    return bffJson<CreditTransactionsResponse>(
-      `/api/business/credits/transactions?page=${page}&per_page=${perPage}`,
-    );
-  },
-
-  async getCreditDiscountTiers(): Promise<CreditDiscountTier[]> {
-    const data = await bffJson<CreditDiscountTier[] | { tiers?: CreditDiscountTier[] }>(
-      "/api/business/credits/discount-tiers",
-    );
-    return Array.isArray(data) ? data : (data.tiers ?? []);
-  },
-
-  async getCreditProduct(): Promise<CreditProduct> {
-    return bffJson<CreditProduct>("/api/business/credits/product");
-  },
-
-  async purchaseCredits(quantity: number): Promise<{ checkout_url?: string }> {
-    return bffJson("/api/business/credits/purchase", {
-      method: "POST",
-      body: JSON.stringify({ quantity }),
-    });
   },
 
   async getSubscriptionSummary(): Promise<SubscriptionSummary> {
