@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Home, KeyRound, LogOut, Menu, Star, User } from "lucide-react";
+import { Home, KeyRound, Loader2, LogOut, Menu, Star, User } from "lucide-react";
 import { useLogout, useMe } from "@/lib/hooks/useAuth";
 import { useBusinessLicenceBalance, useBusinessReviewHas } from "@/lib/hooks/useBusinessDashboard";
 import { sumAvailableLicences } from "@/lib/utils/business-licences";
@@ -29,7 +29,7 @@ export function BusinessHeader({
   onOpenMobileSidebar,
 }: BusinessHeaderProps) {
   const { data: user } = useMe();
-  const logout = useLogout();
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const { data: licenceBalance } = useBusinessLicenceBalance();
   const { data: reviewStatus } = useBusinessReviewHas();
   const showReviewCta = reviewStatus && !reviewStatus.has_review;
@@ -85,10 +85,15 @@ export function BusinessHeader({
           <button
             type="button"
             onClick={() => logout()}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FFF5F5] py-2.5 text-sm font-semibold text-[#D32F2F] hover:bg-[#FFE5E5]"
+            disabled={isLoggingOut}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FFF5F5] py-2.5 text-sm font-semibold text-[#D32F2F] hover:bg-[#FFE5E5] disabled:cursor-not-allowed disabled:opacity-70"
           >
-            <LogOut className="h-4 w-4" />
-            Log out
+            {isLoggingOut ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4" />
+            )}
+            {isLoggingOut ? "Signing out…" : "Log out"}
           </button>
         </div>
       </DropdownMenuContent>

@@ -13,6 +13,7 @@ import {
   LogOut,
   LayoutDashboard,
   Briefcase,
+  Loader2,
 } from "lucide-react";
 import { useAuth, useLogout, useMe } from "@/lib/hooks/useAuth";
 import { useB2BPluginActive } from "@/lib/hooks/useBusinessDashboard";
@@ -37,7 +38,7 @@ export function ProfileMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated } = useAuth();
-  const logout = useLogout();
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const { data: wpUser } = useMe();
 
   const isBusinessUser = hasBusinessAccess(wpUser?.roles);
@@ -179,14 +180,19 @@ export function ProfileMenu() {
             </Link>
             <button
               onClick={() => {
-                logout();
                 setOpen(false);
+                logout();
               }}
+              disabled={isLoggingOut}
               role="menuitem"
-              className="flex w-full items-center gap-2.5 px-4 py-2 font-open-sans text-[13px] text-red-500 transition-colors hover:bg-neutral-50"
+              className="flex w-full items-center gap-2.5 px-4 py-2 font-open-sans text-[13px] text-red-500 transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              <LogOut className="h-4 w-4 shrink-0" />
-              Log out
+              {isLoggingOut ? (
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+              ) : (
+                <LogOut className="h-4 w-4 shrink-0" />
+              )}
+              {isLoggingOut ? "Signing out…" : "Log out"}
             </button>
           </div>
         </div>
@@ -198,7 +204,7 @@ export function ProfileMenu() {
 /** Flat list of profile nav links for mobile drawer — no dropdown */
 export function ProfileNavLinks({ onClose }: { onClose: () => void }) {
   const { user, isAuthenticated } = useAuth();
-  const logout = useLogout();
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const { data: wpUser } = useMe();
   const isBusinessUser = hasBusinessAccess(wpUser?.roles);
   const b2bPluginActive = useB2BPluginActive();
@@ -254,12 +260,14 @@ export function ProfileNavLinks({ onClose }: { onClose: () => void }) {
       </Link>
       <button
         onClick={() => {
-          logout();
           onClose();
+          logout();
         }}
-        className="py-2 text-left font-open-sans text-[15px] font-medium text-red-400 hover:text-red-300"
+        disabled={isLoggingOut}
+        className="flex items-center gap-2 py-2 text-left font-open-sans text-[15px] font-medium text-red-400 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-70"
       >
-        Log out
+        {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+        {isLoggingOut ? "Signing out…" : "Log out"}
       </button>
     </>
   );

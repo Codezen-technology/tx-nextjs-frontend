@@ -10,6 +10,7 @@ import { useAuthStore } from "@/lib/stores/auth.store";
 import { queryKeys } from "@/lib/utils/query-keys";
 import {
   clearCartToken,
+  clearSessionClientCookies,
   getImpersonatingDisplayName,
   hasUserLoggedInCookie,
   isImpersonating,
@@ -115,24 +116,37 @@ export function useRegister() {
   });
 }
 
+function finishClientLogout(
+  logoutStore: () => void,
+  qc: ReturnType<typeof useQueryClient>,
+  router: ReturnType<typeof useRouter>,
+  redirectTo: string,
+  message: string,
+) {
+  logoutStore();
+  clearCartToken();
+  clearSessionClientCookies();
+  qc.clear();
+  toast.success(message);
+  router.replace(redirectTo);
+  router.refresh();
+}
+
 export function useLogout() {
   const logoutStore = useAuthStore((s) => s.logout);
   const router = useRouter();
   const qc = useQueryClient();
-  return () => {
-    void (async () => {
-      try {
-        await authService.logout();
-      } catch {
-        /* still clear client state */
-      }
-      logoutStore();
-      clearCartToken();
-      qc.clear();
-      toast.success("Signed out");
-      router.replace("/");
-    })();
-  };
+
+  return useMutation({
+    mutationFn: () => authService.logout(),
+    onSuccess: () => {
+      finishClientLogout(logoutStore, qc, router, "/", "Signed out");
+    },
+    onError: () => {
+      // Still clear local session if the server call fails (expired token, network, etc.)
+      finishClientLogout(logoutStore, qc, router, "/", "Signed out");
+    },
+  });
 }
 
 export function useLogoutAll() {
@@ -143,11 +157,7 @@ export function useLogoutAll() {
   return useMutation({
     mutationFn: () => authService.logoutAll(),
     onSuccess: () => {
-      logoutStore();
-      clearCartToken();
-      qc.clear();
-      toast.success("All sessions signed out");
-      router.replace("/login");
+      finishClientLogout(logoutStore, qc, router, "/login", "All sessions signed out");
     },
     onError: () => {
       toast.error("Could not revoke sessions. Try again.");

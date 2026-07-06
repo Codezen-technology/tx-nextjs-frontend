@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { HelpCircle, History, Home, Lock, LogOut, Menu, Award } from "lucide-react";
+import { HelpCircle, History, Home, Loader2, Lock, LogOut, Menu, Award } from "lucide-react";
 import { useLogout, useMe } from "@/lib/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +36,7 @@ export function DashboardHeader({
   cartCount,
 }: DashboardHeaderProps) {
   const { data: user } = useMe();
-  const logout = useLogout();
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const displayName = getUserDisplayName(user);
 
   const profileMenu = (
@@ -89,10 +89,15 @@ export function DashboardHeader({
           <button
             type="button"
             onClick={() => logout()}
-            className="mx-2 mb-2 flex w-[calc(100%-1rem)] items-center justify-center gap-2 rounded-lg bg-[#FFF5F5] py-2.5 text-sm font-semibold text-[#D32F2F] hover:bg-[#FFE5E5]"
+            disabled={isLoggingOut}
+            className="mx-2 mb-2 flex w-[calc(100%-1rem)] items-center justify-center gap-2 rounded-lg bg-[#FFF5F5] py-2.5 text-sm font-semibold text-[#D32F2F] hover:bg-[#FFE5E5] disabled:cursor-not-allowed disabled:opacity-70"
           >
-            <LogOut className="h-4 w-4" />
-            Log out
+            {isLoggingOut ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4" />
+            )}
+            {isLoggingOut ? "Signing out…" : "Log out"}
           </button>
         </div>
       </DropdownMenuContent>

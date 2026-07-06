@@ -43,6 +43,15 @@ export function hasUserLoggedInCookie(): boolean {
   return document.cookie.split("; ").some((c) => c.startsWith("user_logged_in=1"));
 }
 
+/** Clear non-httpOnly session cookies immediately after server logout. */
+export function clearSessionClientCookies(): void {
+  if (typeof document === "undefined") return;
+  const expire = "Path=/; Max-Age=0; SameSite=Lax";
+  document.cookie = `user_logged_in=; ${expire}`;
+  document.cookie = `impersonating=; ${expire}`;
+  document.cookie = `impersonating_as=; ${expire}`;
+}
+
 function readCookieValue(name: string): string | null {
   if (typeof document === "undefined") return null;
   const prefix = `${name}=`;
