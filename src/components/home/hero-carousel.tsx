@@ -14,7 +14,6 @@ interface HeroCarouselProps {
 //   behind-left x=0   y=+20  scale=0.905  z=20  (peeks from left)
 //   FRONT       x=177 y=0    scale=1.0    z=40  (hero card, full shadow)
 //   right-1     x=383 y=+20  scale=0.905  z=30
-//   far-right   x=560 y=+44  scale=0.797  z=10
 const CARD_OFFSETS = [
   { x: 0, y: 20, scale: 0.905, z: 20, shadow: "" },
   {
@@ -25,7 +24,6 @@ const CARD_OFFSETS = [
     shadow: "filter-[drop-shadow(0px_16px_48px_rgba(0,0,0,0.18))]",
   },
   { x: 383, y: 20, scale: 0.905, z: 30, shadow: "" },
-  { x: 560, y: 44, scale: 0.797, z: 10, shadow: "" },
 ] as const;
 
 export function HeroCarousel({ courses }: HeroCarouselProps) {
@@ -36,7 +34,7 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
   const next = () => setActive((a) => (a + 1) % total);
 
   // Each course maps to a slot relative to the active card:
-  //   slot 0 = behind-left, 1 = FRONT (active), 2 = right, 3 = far-right.
+  //   slot 0 = behind-left, 1 = FRONT (active), 2 = right.
   // Courses whose slot falls outside CARD_OFFSETS are off-window and not rendered.
   const slotOf = (ci: number) => (ci - (active - 1) + total) % total;
 
