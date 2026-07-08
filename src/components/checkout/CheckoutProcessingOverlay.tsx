@@ -21,8 +21,8 @@ export function CheckoutProcessingOverlay({
       aria-busy="true"
     >
       <div className="flex flex-col items-center gap-4 text-center">
-        <Loader2 className="h-10 w-10 animate-spin text-[#9e6f21]" />
-        <p className="font-suse text-lg font-medium text-[#00204a]">{message}</p>
+        <Loader2 className="text-secondary-500 h-10 w-10 animate-spin" />
+        <p className="font-suse text-lg font-medium text-neutral-900">{message}</p>
       </div>
     </div>
   );

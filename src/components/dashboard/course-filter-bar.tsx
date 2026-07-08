@@ -73,7 +73,7 @@ export function CourseFilterBar({
                 <SelectItem key={cat.term_id} value={String(cat.term_id)}>
                   {cat.name}
                   {cat.count > 0 && (
-                    <span className="ml-1 text-xs text-muted-foreground">({cat.count})</span>
+                    <span className="text-muted-foreground ml-1 text-xs">({cat.count})</span>
                   )}
                 </SelectItem>
               ))}
@@ -102,19 +102,19 @@ export function CourseFilterBar({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search courses"
-          className="h-14 w-full rounded-lg border border-[#3f4d97] bg-[#f6f6fa] py-2 pl-4 pr-14 text-[18px] text-[#28303f] placeholder:text-[#73828a] focus:outline-none focus:ring-1 focus:ring-[#3f4d97]"
+          className="h-14 w-full rounded-lg border border-[#3f4d97] bg-[#f6f6fa] py-2 pr-14 pl-4 text-[18px] text-[#28303f] placeholder:text-[#73828a] focus:ring-1 focus:ring-[#3f4d97] focus:outline-hidden"
         />
         {search ? (
           <button
             type="button"
             onClick={() => onSearchChange("")}
             aria-label="Clear search"
-            className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded bg-[#3f4d97] text-white transition hover:bg-[#2e3a7a]"
+            className="absolute top-1/2 right-2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded bg-[#3f4d97] text-white transition hover:bg-[#2e3a7a]"
           >
             <X className="h-4 w-4" />
           </button>
         ) : (
-          <span className="pointer-events-none absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded bg-[#3f4d97]">
+          <span className="pointer-events-none absolute top-1/2 right-2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded bg-[#3f4d97]">
             <Search className="h-4 w-4 text-white" />
           </span>
         )}

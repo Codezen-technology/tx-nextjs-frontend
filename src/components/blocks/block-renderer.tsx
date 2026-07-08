@@ -24,7 +24,7 @@ function Block({ block }: { block: PageBlock }) {
   switch (block.type) {
     case "hero":
       return (
-        <section className="relative overflow-hidden bg-[#00204a] py-16">
+        <section className="relative overflow-hidden bg-neutral-900 py-16">
           {block.background && (
             <Image
               src={block.background}
@@ -34,27 +34,27 @@ function Block({ block }: { block: PageBlock }) {
               className="object-cover opacity-30"
             />
           )}
-          <div className="container relative grid items-center gap-8 lg:grid-cols-[1.3fr_1fr]">
+          <div className="relative container grid items-center gap-8 lg:grid-cols-[1.3fr_1fr]">
             <div>
-              <h1 className="font-suse text-3xl font-bold leading-tight text-white md:text-5xl">
+              <h1 className="font-suse text-3xl leading-tight font-bold text-white md:text-5xl">
                 {block.title}
               </h1>
               {block.subtitle && (
-                <p className="mt-4 max-w-xl font-open-sans text-lg text-white/80">
+                <p className="font-open-sans mt-4 max-w-xl text-lg text-white/80">
                   {block.subtitle}
                 </p>
               )}
               {block.cta?.href && (
                 <Link
                   href={block.cta.href}
-                  className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary-500 px-7 py-3 font-open-sans font-semibold text-white transition-colors hover:bg-primary-600"
+                  className="bg-primary-500 font-open-sans hover:bg-primary-600 mt-6 inline-flex items-center gap-2 rounded-full px-7 py-3 font-semibold text-white transition-colors"
                 >
                   {block.cta.label} <ArrowRight className="h-4 w-4" />
                 </Link>
               )}
             </div>
             {block.image && (
-              <div className="relative aspect-[19/12] w-full overflow-hidden rounded-2xl bg-white/10">
+              <div className="relative aspect-19/12 w-full overflow-hidden rounded-2xl bg-white/10">
                 <Image
                   src={block.image}
                   alt={block.title}
@@ -75,7 +75,7 @@ function Block({ block }: { block: PageBlock }) {
           <div className="container">
             <ParsedHtml
               as="div"
-              className="prose-wp mx-auto max-w-3xl font-open-sans text-[#3b5374]"
+              className="prose-wp font-open-sans mx-auto max-w-3xl text-neutral-500"
               content={block.content}
             />
           </div>
@@ -89,16 +89,16 @@ function Block({ block }: { block: PageBlock }) {
       return (
         <section className="py-12">
           <div className="container">
-            <div className="rounded-3xl bg-[#00204a] px-8 py-12 text-center">
+            <div className="rounded-3xl bg-neutral-900 px-8 py-12 text-center">
               <h2 className="font-suse text-2xl font-bold text-white md:text-3xl">{block.title}</h2>
               {block.description && (
-                <p className="mx-auto mt-3 max-w-2xl font-open-sans text-white/70">
+                <p className="font-open-sans mx-auto mt-3 max-w-2xl text-white/70">
                   {block.description}
                 </p>
               )}
               <Link
                 href="/pricing"
-                className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary-500 px-7 py-3 font-open-sans font-semibold text-white transition-colors hover:bg-primary-600"
+                className="bg-primary-500 font-open-sans hover:bg-primary-600 mt-6 inline-flex items-center gap-2 rounded-full px-7 py-3 font-semibold text-white transition-colors"
               >
                 View Membership Plans <ArrowRight className="h-4 w-4" />
               </Link>
@@ -113,15 +113,15 @@ function Block({ block }: { block: PageBlock }) {
         <section className="bg-[#f5f3ee] py-14">
           <div className="container">
             {block.title && (
-              <h2 className="mb-8 text-center font-suse text-2xl font-bold text-neutral-900 md:text-3xl">
+              <h2 className="font-suse mb-8 text-center text-2xl font-bold text-neutral-900 md:text-3xl">
                 {block.title}
               </h2>
             )}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {block.items.map((t) => (
-                <figure key={t.id} className="rounded-2xl bg-white p-6 shadow-sm">
-                  <Quote className="h-6 w-6 text-primary-400" />
-                  <blockquote className="mt-3 font-open-sans text-sm text-[#3b5374]">
+                <figure key={t.id} className="rounded-2xl bg-white p-6 shadow-xs">
+                  <Quote className="text-primary-400 h-6 w-6" />
+                  <blockquote className="font-open-sans mt-3 text-sm text-neutral-500">
                     {t.text}
                   </blockquote>
                   <figcaption className="mt-4 flex items-center gap-3">
@@ -137,7 +137,9 @@ function Block({ block }: { block: PageBlock }) {
                     <div>
                       <div className="font-suse text-sm font-bold text-neutral-900">{t.name}</div>
                       {t.designation && (
-                        <div className="font-open-sans text-xs text-[#667992]">{t.designation}</div>
+                        <div className="font-open-sans text-xs text-neutral-200">
+                          {t.designation}
+                        </div>
                       )}
                     </div>
                     <div className="ml-auto flex items-center gap-0.5">
@@ -160,7 +162,7 @@ function Block({ block }: { block: PageBlock }) {
         <section className="py-12">
           <div className="container">
             {block.title && (
-              <h2 className="mb-6 text-center font-suse text-xl font-bold text-neutral-900">
+              <h2 className="font-suse mb-6 text-center text-xl font-bold text-neutral-900">
                 {block.title}
               </h2>
             )}
@@ -186,17 +188,17 @@ function Block({ block }: { block: PageBlock }) {
         <section className="py-12">
           <div className="container max-w-3xl">
             {block.title && (
-              <h2 className="mb-6 font-suse text-2xl font-bold text-neutral-900">{block.title}</h2>
+              <h2 className="font-suse mb-6 text-2xl font-bold text-neutral-900">{block.title}</h2>
             )}
             <div className="flex flex-col gap-3">
               {block.items.map((item, i) => (
-                <details key={i} className="group rounded-xl border border-[#ebedf1] bg-white p-5">
-                  <summary className="cursor-pointer font-suse font-semibold text-neutral-900">
+                <details key={i} className="group border-neutral-30 rounded-xl border bg-white p-5">
+                  <summary className="font-suse cursor-pointer font-semibold text-neutral-900">
                     {item.question}
                   </summary>
                   <ParsedHtml
                     as="div"
-                    className="prose-wp mt-3 font-open-sans text-sm text-[#3b5374]"
+                    className="prose-wp font-open-sans mt-3 text-sm text-neutral-500"
                     content={item.answer}
                   />
                 </details>
@@ -210,7 +212,7 @@ function Block({ block }: { block: PageBlock }) {
       return (
         <section className="py-12">
           <div className="container">
-            <div className="flex flex-col items-center gap-6 overflow-hidden rounded-3xl bg-primary-500 px-8 py-12 text-center md:flex-row md:text-left">
+            <div className="bg-primary-500 flex flex-col items-center gap-6 overflow-hidden rounded-3xl px-8 py-12 text-center md:flex-row md:text-left">
               {block.image && (
                 <Image
                   src={block.image}
@@ -222,12 +224,12 @@ function Block({ block }: { block: PageBlock }) {
               )}
               <div className="flex-1">
                 <h2 className="font-suse text-2xl font-bold text-white">{block.title}</h2>
-                {block.text && <p className="mt-2 font-open-sans text-white/85">{block.text}</p>}
+                {block.text && <p className="font-open-sans mt-2 text-white/85">{block.text}</p>}
               </div>
               {block.button?.href && (
                 <Link
                   href={block.button.href}
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 font-open-sans font-semibold text-primary-600 transition-colors hover:bg-neutral-10"
+                  className="font-open-sans text-primary-600 hover:bg-neutral-10 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 font-semibold transition-colors"
                 >
                   {block.button.label} <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -242,7 +244,7 @@ function Block({ block }: { block: PageBlock }) {
         <section className="py-12">
           <div className="container max-w-2xl">
             {block.title && (
-              <h2 className="mb-6 font-suse text-2xl font-bold text-neutral-900">{block.title}</h2>
+              <h2 className="font-suse mb-6 text-2xl font-bold text-neutral-900">{block.title}</h2>
             )}
             <GravityFormLoader formId={block.form_id} />
           </div>

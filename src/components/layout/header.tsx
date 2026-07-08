@@ -51,19 +51,19 @@ function NavDropdown({
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex items-center gap-1 font-open-sans text-[14px] font-medium leading-[1.2] text-neutral-30 transition-colors hover:text-primary-300"
+        className="font-open-sans text-neutral-30 hover:text-primary-300 flex items-center gap-1 text-[14px] leading-[1.2] font-medium transition-colors"
       >
         {label}
         <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 min-w-[180px] rounded-sm border border-neutral-600 bg-neutral-800 py-1 shadow-lg">
+        <div className="absolute top-full left-0 z-50 mt-1 min-w-[180px] rounded-sm border border-neutral-600 bg-neutral-800 py-1 shadow-lg">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               onClick={() => setOpen(false)}
-              className="block px-4 py-2 font-open-sans text-[13px] text-neutral-30 transition-colors hover:bg-neutral-700 hover:text-primary-300"
+              className="font-open-sans text-neutral-30 hover:text-primary-300 block px-4 py-2 text-[13px] transition-colors hover:bg-neutral-700"
             >
               {link.label}
             </Link>
@@ -162,7 +162,7 @@ function CourseSearch() {
       <label htmlFor="header-search" className="sr-only">
         Find a course
       </label>
-      <span className="font-open-sans text-[14px] font-medium text-neutral-30">Find a course:</span>
+      <span className="font-open-sans text-neutral-30 text-[14px] font-medium">Find a course:</span>
       <div ref={wrapRef} className="relative">
         <input
           id="header-search"
@@ -176,15 +176,15 @@ function CourseSearch() {
           aria-autocomplete="list"
           aria-expanded={open}
           aria-controls="search-suggestions"
-          className="h-8 w-[200px] rounded-sm border border-neutral-600 bg-neutral-700 pl-3 pr-8 font-open-sans text-[14px] text-neutral-30 placeholder:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-primary-400"
+          className="font-open-sans text-neutral-30 focus:ring-primary-400 h-8 w-[200px] rounded-sm border border-neutral-600 bg-neutral-700 pr-8 pl-3 text-[14px] placeholder:text-neutral-100 focus:ring-1 focus:outline-hidden"
         />
         <button
           type="submit"
           aria-label="Search courses"
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-100 hover:text-primary-300"
+          className="hover:text-primary-300 absolute top-1/2 right-2 -translate-y-1/2 text-neutral-100"
         >
           {loading ? (
-            <span className="block h-3.5 w-3.5 animate-spin rounded-full border-2 border-neutral-400 border-t-primary-400" />
+            <span className="border-t-primary-400 block h-3.5 w-3.5 animate-spin rounded-full border-2 border-neutral-400" />
           ) : (
             <Search className="h-4 w-4" />
           )}
@@ -194,7 +194,7 @@ function CourseSearch() {
           <ul
             id="search-suggestions"
             role="listbox"
-            className="absolute left-0 top-full z-[100] mt-1 w-[320px] overflow-hidden rounded-sm border border-neutral-600 bg-white shadow-xl"
+            className="absolute top-full left-0 z-100 mt-1 w-[320px] overflow-hidden rounded-sm border border-neutral-600 bg-white shadow-xl"
           >
             {suggestions.map((s, i) => (
               <li key={s.slug} role="option" aria-selected={i === activeIdx}>
@@ -206,7 +206,7 @@ function CourseSearch() {
                     router.push(`/course/${s.slug}`);
                   }}
                   className={cn(
-                    "block w-full px-4 py-2.5 text-left font-open-sans text-sm text-[#00204a] transition-colors",
+                    "font-open-sans block w-full px-4 py-2.5 text-left text-sm text-neutral-900 transition-colors",
                     i === activeIdx ? "bg-primary-50 text-primary-600" : "hover:bg-neutral-50",
                   )}
                 >
@@ -217,7 +217,7 @@ function CourseSearch() {
             <li className="border-t border-neutral-100">
               <button
                 type="submit"
-                className="block w-full px-4 py-2.5 text-left font-open-sans text-sm font-semibold text-secondary-500 hover:bg-neutral-50"
+                className="font-open-sans text-secondary-500 block w-full px-4 py-2.5 text-left text-sm font-semibold hover:bg-neutral-50"
               >
                 See all results for &ldquo;{query}&rdquo; →
               </button>
@@ -257,7 +257,7 @@ function CartButton() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="dialog"
-        className="flex items-center gap-1.5 font-open-sans text-[14px] font-medium text-neutral-30 transition-colors hover:text-primary-300"
+        className="font-open-sans text-neutral-30 hover:text-primary-300 flex items-center gap-1.5 text-[14px] font-medium transition-colors"
       >
         <ShoppingCart className="h-4 w-4" />
         Basket {hasHydrated ? `(${itemCount})` : "(0)"}
@@ -301,7 +301,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
               priority
             />
           ) : (
-            <span className="font-suse text-xl font-bold leading-tight text-neutral-30">
+            <span className="font-suse text-neutral-30 text-xl leading-tight font-bold">
               Training
               <br />
               <span className="text-primary-400">Excellence</span>
@@ -316,7 +316,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
             <Link
               href="/about"
               className={cn(
-                "font-open-sans text-[14px] font-medium text-neutral-30 transition-colors hover:text-primary-300",
+                "font-open-sans text-neutral-30 hover:text-primary-300 text-[14px] font-medium transition-colors",
                 pathname === "/about" && "text-primary-400",
               )}
               aria-current={pathname === "/about" ? "page" : undefined}
@@ -326,7 +326,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
             <Link
               href="/help"
               className={cn(
-                "font-open-sans text-[14px] font-medium text-neutral-30 transition-colors hover:text-primary-300",
+                "font-open-sans text-neutral-30 hover:text-primary-300 text-[14px] font-medium transition-colors",
                 pathname === "/help" && "text-primary-400",
               )}
               aria-current={pathname === "/help" ? "page" : undefined}
@@ -343,7 +343,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
               onClick={() => setMegaMenuOpen((v) => !v)}
               aria-expanded={megaMenuOpen}
               aria-haspopup="dialog"
-              className="flex items-center gap-1 font-open-sans text-[14px] font-medium text-neutral-30 transition-colors hover:text-primary-300"
+              className="font-open-sans text-neutral-30 hover:text-primary-300 flex items-center gap-1 text-[14px] font-medium transition-colors"
             >
               Our courses
               <ChevronDown
@@ -353,7 +353,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
             <Link
               href="/training-teams"
               className={cn(
-                "font-open-sans text-[14px] font-medium text-neutral-30 transition-colors hover:text-primary-300",
+                "font-open-sans text-neutral-30 hover:text-primary-300 text-[14px] font-medium transition-colors",
                 pathname === "/training-teams" && "text-primary-400",
               )}
               aria-current={pathname === "/training-teams" ? "page" : undefined}
@@ -364,7 +364,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
             <Link
               href="/contact-us"
               className={cn(
-                "font-open-sans text-[14px] font-medium text-neutral-30 transition-colors hover:text-primary-300",
+                "font-open-sans text-neutral-30 hover:text-primary-300 text-[14px] font-medium transition-colors",
                 pathname === "/contact-us" && "text-primary-400",
               )}
               aria-current={pathname === "/contact-us" ? "page" : undefined}
@@ -386,7 +386,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
             ) : (
               <Link
                 href="/login"
-                className="font-open-sans text-[14px] font-medium text-neutral-30 transition-colors hover:text-primary-300"
+                className="font-open-sans text-neutral-30 hover:text-primary-300 text-[14px] font-medium transition-colors"
               >
                 Log in
               </Link>
@@ -396,7 +396,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
 
         {/* Mobile hamburger */}
         <button
-          className="flex items-center justify-center text-neutral-30 lg:hidden"
+          className="text-neutral-30 flex items-center justify-center lg:hidden"
           onClick={() => setMobileOpen((v) => !v)}
           aria-expanded={mobileOpen}
           aria-controls="mobile-nav"
@@ -419,14 +419,14 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
             <Link
               href="/about"
               onClick={() => setMobileOpen(false)}
-              className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+              className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
             >
               About us
             </Link>
             <Link
               href="/help"
               onClick={() => setMobileOpen(false)}
-              className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+              className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
             >
               Help
             </Link>
@@ -436,28 +436,28 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
                 setMobileOpen(false);
                 closeMegaMenu();
               }}
-              className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+              className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
             >
               Our courses
             </Link>
             <Link
               href="/training-teams"
               onClick={() => setMobileOpen(false)}
-              className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+              className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
             >
               Training teams
             </Link>
             <Link
               href="/blog"
               onClick={() => setMobileOpen(false)}
-              className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+              className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
             >
               Resources
             </Link>
             <Link
               href="/contact-us"
               onClick={() => setMobileOpen(false)}
-              className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+              className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
             >
               Contact us
             </Link>
@@ -465,7 +465,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
             <Link
               href="/cart"
               onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-1.5 py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+              className="font-open-sans text-neutral-30 hover:text-primary-300 flex items-center gap-1.5 py-2 text-[15px] font-medium"
             >
               <ShoppingCart className="h-4 w-4" /> Basket
             </Link>
@@ -475,7 +475,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
               <Link
                 href="/login"
                 onClick={() => setMobileOpen(false)}
-                className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+                className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
               >
                 Log in
               </Link>

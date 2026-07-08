@@ -41,13 +41,13 @@ export function BusinessHeader({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="rounded-full outline-none ring-offset-2 focus-visible:ring-2"
+          className="rounded-full ring-offset-2 outline-hidden focus-visible:ring-2"
         >
           <UserAvatar user={user} size="md" fallbackClassName="bg-[#3F576F] font-bold text-white" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[280px] rounded-2xl p-0">
-        <div className="flex items-center gap-3 px-5 pb-4 pt-5">
+        <div className="flex items-center gap-3 px-5 pt-5 pb-4">
           <UserAvatar
             user={user}
             size="lg"
@@ -103,7 +103,7 @@ export function BusinessHeader({
   return (
     <header
       className={cn(
-        "fixed top-[var(--imp-offset)] z-40 flex h-16 w-full items-center border-b border-neutral-30 bg-white transition-[width,margin]",
+        "border-neutral-30 fixed top-(--imp-offset) z-40 flex h-16 w-full items-center border-b bg-white transition-[width,margin]",
         sidebarOpen
           ? "md:ml-[280px] md:w-[calc(100%-280px)]"
           : "md:ml-[72px] md:w-[calc(100%-72px)]",
@@ -136,7 +136,7 @@ export function BusinessHeader({
           ) : null}
           <Link
             href="/business-dashboard/pricing"
-            className="flex items-center gap-2 rounded-full border border-neutral-30 bg-white px-4 py-1.5 text-sm font-medium text-neutral-900 transition-colors hover:border-[#F9A31A] hover:bg-[#F9A31A]/5"
+            className="border-neutral-30 flex items-center gap-2 rounded-full border bg-white px-4 py-1.5 text-sm font-medium text-neutral-900 transition-colors hover:border-[#F9A31A] hover:bg-[#F9A31A]/5"
           >
             <KeyRound className="h-4 w-4 text-[#3F576F]" />
             Buy licences
@@ -149,14 +149,14 @@ export function BusinessHeader({
           <Button
             asChild
             variant="ghost"
-            className="rounded-full bg-neutral-20 px-5 text-sm font-semibold text-[#3F576F] hover:bg-neutral-30"
+            className="bg-neutral-20 hover:bg-neutral-30 rounded-full px-5 text-sm font-semibold text-[#3F576F]"
           >
             <Link href="/" target="_blank">
               <Home className="mr-2 h-4 w-4" />
               Go to website
             </Link>
           </Button>
-          <div className="h-8 w-px bg-neutral-30" />
+          <div className="bg-neutral-30 h-8 w-px" />
           {profileMenu}
         </div>
       </div>

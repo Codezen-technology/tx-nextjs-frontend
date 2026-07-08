@@ -171,10 +171,10 @@ export async function SiteFooter() {
       <div className="border-b border-neutral-500 px-4 py-16">
         <div className="mx-auto flex max-w-[768px] flex-col items-center gap-10 text-center">
           <div className="flex flex-col gap-4">
-            <h2 className="font-suse text-[32px] font-medium leading-[1.2] text-white">
+            <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-white">
               Training That Works for Your Team
             </h2>
-            <p className="font-open-sans text-[20px] font-light leading-[1.5] text-neutral-30">
+            <p className="font-open-sans text-neutral-30 text-[20px] leading-normal font-light">
               Our 100% online courses cover all your compliance and development needs, making
               training simple for teams of any size.
             </p>
@@ -182,13 +182,13 @@ export async function SiteFooter() {
           <div className="flex flex-wrap items-center justify-center gap-6">
             <Link
               href="/contact-us"
-              className="rounded-[4.8px] border border-secondary-500 bg-white px-6 py-4 font-open-sans text-[16px] leading-[1.5] text-secondary-500 transition-colors hover:bg-secondary-50"
+              className="border-secondary-500 font-open-sans text-secondary-500 hover:bg-secondary-50 rounded-[4.8px] border bg-white px-6 py-4 text-[16px] leading-normal transition-colors"
             >
               Chat to us
             </Link>
             <Link
               href="/all-courses"
-              className="rounded border border-secondary-500 bg-secondary-500 px-6 py-4 font-open-sans text-[16px] leading-[1.5] text-white transition-colors hover:bg-secondary-600"
+              className="border-secondary-500 bg-secondary-500 font-open-sans hover:bg-secondary-600 rounded border px-6 py-4 text-[16px] leading-normal text-white transition-colors"
             >
               Get Started
             </Link>
@@ -211,21 +211,21 @@ export async function SiteFooter() {
                   className="h-16 w-auto object-contain"
                 />
               ) : (
-                <span className="font-suse text-xl font-bold leading-tight text-white">
+                <span className="font-suse text-xl leading-tight font-bold text-white">
                   Training
                   <br />
                   <span className="text-primary-400">Excellence</span>
                 </span>
               )}
             </Link>
-            <p className="font-open-sans text-[16px] leading-[1.5] text-neutral-30">
+            <p className="font-open-sans text-neutral-30 text-[16px] leading-normal">
               Training Excellence delivers CPD-accredited, expert-led online training for businesses
               and professionals. Our flexible, high-quality courses ensure compliance, workplace
               safety, and career growth—anytime, anywhere.
             </p>
             {socialLinks.length > 0 && (
               <div className="flex items-center gap-3.5">
-                <span className="font-open-sans text-[14px] leading-[1.5] text-white">
+                <span className="font-open-sans text-[14px] leading-normal text-white">
                   Follow us:
                 </span>
                 <div className="flex items-center gap-4">
@@ -236,7 +236,7 @@ export async function SiteFooter() {
                       aria-label={label}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-neutral-30 transition-colors hover:text-primary-400"
+                      className="text-neutral-30 hover:text-primary-400 transition-colors"
                     >
                       <Icon className="h-6 w-6" />
                     </a>
@@ -249,7 +249,7 @@ export async function SiteFooter() {
                 {contact.phone && (
                   <a
                     href={`tel:${contact.phone}`}
-                    className="font-open-sans text-[14px] leading-[1.5] text-neutral-30 transition-colors hover:text-primary-400"
+                    className="font-open-sans text-neutral-30 hover:text-primary-400 text-[14px] leading-normal transition-colors"
                   >
                     {contact.phone}
                   </a>
@@ -257,7 +257,7 @@ export async function SiteFooter() {
                 {contact.email && (
                   <a
                     href={`mailto:${contact.email}`}
-                    className="font-open-sans text-[14px] leading-[1.5] text-neutral-30 transition-colors hover:text-primary-400"
+                    className="font-open-sans text-neutral-30 hover:text-primary-400 text-[14px] leading-normal transition-colors"
                   >
                     {contact.email}
                   </a>
@@ -273,7 +273,7 @@ export async function SiteFooter() {
               {navCols.map((col, i) => (
                 <div key={i} className="flex flex-1 flex-col gap-3">
                   {col.header && (
-                    <p className="font-open-sans text-[12px] font-medium uppercase tracking-wide text-[#d0d5dd]">
+                    <p className="font-open-sans text-[12px] font-medium tracking-wide text-[#d0d5dd] uppercase">
                       {col.header}
                     </p>
                   )}
@@ -282,12 +282,12 @@ export async function SiteFooter() {
                       <li key={href} className="flex items-center gap-2">
                         <a
                           href={remapNavHref(href)}
-                          className="font-suse text-[16px] font-medium leading-[1.2] text-neutral-30 transition-colors hover:text-primary-400"
+                          className="font-suse text-neutral-30 hover:text-primary-400 text-[16px] leading-[1.2] font-medium transition-colors"
                         >
                           {label}
                         </a>
                         {badge && (
-                          <span className="rounded-full border border-white/30 bg-white/10 px-2 py-0.5 font-open-sans text-[12px] font-medium leading-[18px] text-white">
+                          <span className="font-open-sans rounded-full border border-white/30 bg-white/10 px-2 py-0.5 text-[12px] leading-[18px] font-medium text-white">
                             {badge}
                           </span>
                         )}
@@ -303,7 +303,7 @@ export async function SiteFooter() {
               <p className="font-open-sans text-[12px] leading-normal text-white">
                 Certificate Validator
               </p>
-              <p className="font-open-sans text-[16px] leading-[1.5] text-white">
+              <p className="font-open-sans text-[16px] leading-normal text-white">
                 Quickly and easily check the validity of your Training Excellence course
                 certificates with Training Excellence&apos;s Course Certificate Validator tool.
               </p>
@@ -316,20 +316,20 @@ export async function SiteFooter() {
       {/* Bottom bar */}
       <div className="border-t border-neutral-600 px-4">
         <div className="mx-auto max-w-[1296px] py-8 text-right">
-          <p className="font-open-sans text-[16px] leading-[1.5] text-neutral-200">
+          <p className="font-open-sans text-[16px] leading-normal text-neutral-200">
             © {new Date().getFullYear()} Training Excellence.{" "}
             {contact.address ??
               "Riverside Business Park, Dansk Way, Ilkley, West Yorkshire, LS29 8JZ."}
             <br />
             VAT Reg. No: 923 6593 07 &nbsp;|&nbsp; Registered in England and Wales: 6428976
           </p>
-          <p className="mt-1 font-open-sans text-[16px] leading-[1.5] text-neutral-200">
+          <p className="font-open-sans mt-1 text-[16px] leading-normal text-neutral-200">
             This site is protected by reCAPTCHA and the Google{" "}
             <a
               href="https://policies.google.com/privacy"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-secondary-500 underline underline-offset-2 hover:text-secondary-400"
+              className="text-secondary-500 hover:text-secondary-400 underline underline-offset-2"
             >
               Privacy Policy
             </a>{" "}
@@ -338,7 +338,7 @@ export async function SiteFooter() {
               href="https://policies.google.com/terms"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-secondary-500 underline underline-offset-2 hover:text-secondary-400"
+              className="text-secondary-500 hover:text-secondary-400 underline underline-offset-2"
             >
               Terms of Service
             </a>{" "}

@@ -18,12 +18,12 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
   return (
     <div
       className={cn(
-        "group flex flex-col overflow-hidden rounded-lg border border-[#ebedf1] bg-white shadow-sm transition-shadow hover:shadow-md",
+        "group border-neutral-30 flex flex-col overflow-hidden rounded-lg border bg-white shadow-xs transition-shadow hover:shadow-md",
         className,
       )}
     >
       <Link href={`/course/${course.slug}`} className="block shrink-0">
-        <div className="relative aspect-[19/10] w-full overflow-hidden bg-neutral-20">
+        <div className="bg-neutral-20 relative aspect-19/10 w-full overflow-hidden">
           {course.featuredImage ? (
             <Image
               src={course.featuredImage}
@@ -34,7 +34,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
               className="object-cover transition-transform duration-300 hover:scale-105"
             />
           ) : (
-            <div className="flex h-full items-center justify-center bg-neutral-20 text-neutral-100">
+            <div className="bg-neutral-20 flex h-full items-center justify-center text-neutral-100">
               <BookOpen className="h-10 w-10" />
             </div>
           )}
@@ -54,7 +54,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
           </div>
           <button
             aria-label="Bookmark course"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ebedf1] text-neutral-400 transition-colors hover:bg-neutral-30 hover:text-neutral-600"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-30 text-neutral-400 transition-colors hover:bg-neutral-30 hover:text-neutral-600"
           >
             <Bookmark className="h-4 w-4" />
           </button>
@@ -62,18 +62,18 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
 
         {/* Title */}
         <Link href={`/course/${course.slug}`}>
-          <h3 className="line-clamp-2 h-12 font-suse font-bold leading-snug text-neutral-900 transition-colors hover:text-secondary-500">
+          <h3 className="font-suse hover:text-secondary-500 line-clamp-2 h-12 leading-snug font-bold text-neutral-900 transition-colors">
             {course.title}
           </h3>
         </Link>
 
         {/* Accreditation badges */}
         {badges.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex scrollbar-none gap-2 overflow-x-auto py-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {badges.map((cat) => (
               <span
                 key={cat.id}
-                className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-secondary-50 px-2 py-0.5 font-open-sans text-xs text-secondary-900"
+                className="bg-secondary-50 font-open-sans text-secondary-900 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs whitespace-nowrap"
               >
                 <Check className="h-2.5 w-2.5 shrink-0" />
                 {cat.name}
@@ -83,7 +83,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
         )}
 
         {/* Meta row */}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#667992]">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-200">
           <span className="inline-flex items-center gap-1">
             <BookOpen className="h-3 w-3" />
             {course.modules_count ?? 0} {pluralize(course.modules_count ?? 0, "Module")}
@@ -106,7 +106,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
           ) : null}
         </div>
 
-        <div className="mt-auto border border-dashed border-secondary-100" />
+        <div className="border-secondary-100 mt-auto border border-dashed" />
 
         {/* Price + CTA */}
         <div className="flex items-center justify-between">
@@ -129,7 +129,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
           </div>
           <Link
             href={`/course/${course.slug}`}
-            className="inline-flex items-center gap-1 rounded-full border border-secondary-500 px-4 py-1.5 text-sm text-secondary-500 transition-colors hover:bg-secondary-50 group-hover:border-primary-600 group-hover:bg-primary-500 group-hover:text-white"
+            className="border-secondary-500 text-secondary-500 hover:bg-secondary-50 group-hover:border-primary-600 group-hover:bg-primary-500 inline-flex items-center gap-1 rounded-full border px-4 py-1.5 text-sm transition-colors group-hover:text-white"
           >
             View Course →
           </Link>
@@ -141,27 +141,27 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
 
 export function CourseCardSkeleton() {
   return (
-    <div className="flex flex-col overflow-hidden rounded-lg border border-[#ebedf1] bg-white">
-      <div className="aspect-[19/10] w-full animate-pulse bg-neutral-20" />
+    <div className="border-neutral-30 flex flex-col overflow-hidden rounded-lg border bg-white">
+      <div className="bg-neutral-20 aspect-19/10 w-full animate-pulse" />
       <div className="flex flex-col gap-3 p-4">
         <div className="flex items-center justify-between">
-          <div className="h-4 w-24 animate-pulse rounded bg-neutral-20" />
-          <div className="h-8 w-8 animate-pulse rounded-full bg-neutral-20" />
+          <div className="bg-neutral-20 h-4 w-24 animate-pulse rounded" />
+          <div className="bg-neutral-20 h-8 w-8 animate-pulse rounded-full" />
         </div>
-        <div className="h-5 w-full animate-pulse rounded bg-neutral-20" />
-        <div className="h-4 w-3/4 animate-pulse rounded bg-neutral-20" />
+        <div className="bg-neutral-20 h-5 w-full animate-pulse rounded" />
+        <div className="bg-neutral-20 h-4 w-3/4 animate-pulse rounded" />
         <div className="flex gap-2">
-          <div className="h-5 w-12 animate-pulse rounded-full bg-neutral-20" />
-          <div className="h-5 w-14 animate-pulse rounded-full bg-neutral-20" />
+          <div className="bg-neutral-20 h-5 w-12 animate-pulse rounded-full" />
+          <div className="bg-neutral-20 h-5 w-14 animate-pulse rounded-full" />
         </div>
         <div className="mt-2 flex gap-4">
-          <div className="h-3 w-20 animate-pulse rounded bg-neutral-20" />
-          <div className="h-3 w-16 animate-pulse rounded bg-neutral-20" />
+          <div className="bg-neutral-20 h-3 w-20 animate-pulse rounded" />
+          <div className="bg-neutral-20 h-3 w-16 animate-pulse rounded" />
         </div>
-        <div className="border-t border-[#ebedf1] pt-3">
+        <div className="border-neutral-30 border-t pt-3">
           <div className="flex items-center justify-between">
-            <div className="h-6 w-20 animate-pulse rounded bg-neutral-20" />
-            <div className="h-8 w-28 animate-pulse rounded-full bg-neutral-20" />
+            <div className="bg-neutral-20 h-6 w-20 animate-pulse rounded" />
+            <div className="bg-neutral-20 h-8 w-28 animate-pulse rounded-full" />
           </div>
         </div>
       </div>

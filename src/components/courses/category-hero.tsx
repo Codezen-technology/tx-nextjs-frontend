@@ -19,12 +19,12 @@ export function CategoryHero({ category }: CategoryHeroProps) {
         />
       )}
       <div className="absolute inset-0 bg-black/55" />
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
+      <div className="absolute right-0 bottom-0 left-0 h-24 bg-linear-to-t from-black/60 to-transparent" />
 
       <div className="relative z-10 flex h-full flex-col justify-center">
         <div className="mx-auto w-full max-w-[1296px] px-4">
           {/* Breadcrumb */}
-          <nav className="mb-6 flex items-center gap-1.5 font-open-sans text-sm text-white/70">
+          <nav className="font-open-sans mb-6 flex items-center gap-1.5 text-sm text-white/70">
             <Link href="/" className="flex items-center gap-1 hover:text-white">
               <Home className="h-3.5 w-3.5" />
               Home
@@ -38,11 +38,11 @@ export function CategoryHero({ category }: CategoryHeroProps) {
           </nav>
 
           <div className="max-w-[775px]">
-            <h1 className="font-suse text-[48px] font-bold leading-[1.2] text-white">
+            <h1 className="font-suse text-[48px] leading-[1.2] font-bold text-white">
               {category.name}
             </h1>
             {category.description ? (
-              <p className="mt-6 max-w-[856px] font-open-sans text-[18px] leading-[1.6] text-white/90">
+              <p className="font-open-sans mt-6 max-w-[856px] text-[18px] leading-[1.6] text-white/90">
                 {category.description}
               </p>
             ) : null}

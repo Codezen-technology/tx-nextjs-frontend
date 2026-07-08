@@ -31,21 +31,27 @@ export function CourseHero({ course }: CourseHeroProps) {
             className="object-cover opacity-30"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-neutral-900/90 via-neutral-900/70 to-neutral-900/40" />
+          <div className="absolute inset-0 bg-linear-to-r from-neutral-900/90 via-neutral-900/70 to-neutral-900/40" />
         </>
       ) : null}
 
-      <div className="relative container flex flex-col justify-end py-12 lg:py-16" style={{ minHeight: 420 }}>
+      <div
+        className="relative container flex flex-col justify-end py-12 lg:py-16"
+        style={{ minHeight: 420 }}
+      >
         {/* Breadcrumb */}
         {course.breadcrumb?.length ? (
           <nav className="mb-4 flex flex-wrap items-center gap-1.5 text-sm text-neutral-300">
-            <Link href="/courses" className="hover:text-white transition-colors">
+            <Link href="/courses" className="transition-colors hover:text-white">
               Courses
             </Link>
             {course.breadcrumb.map((crumb) => (
               <span key={crumb.id} className="flex items-center gap-1.5">
                 <span>/</span>
-                <Link href={`/courses?category=${crumb.slug}`} className="hover:text-white transition-colors">
+                <Link
+                  href={`/courses?category=${crumb.slug}`}
+                  className="transition-colors hover:text-white"
+                >
                   {crumb.name}
                 </Link>
               </span>
@@ -63,7 +69,10 @@ export function CourseHero({ course }: CourseHeroProps) {
             {course.badges.map((b) => {
               const cfg = BADGE_MAP[b];
               return cfg ? (
-                <span key={b} className={cn("rounded px-2.5 py-1 text-xs font-semibold", cfg.className)}>
+                <span
+                  key={b}
+                  className={cn("rounded px-2.5 py-1 text-xs font-semibold", cfg.className)}
+                >
                   {cfg.label}
                 </span>
               ) : null;
@@ -72,13 +81,13 @@ export function CourseHero({ course }: CourseHeroProps) {
         ) : null}
 
         {/* Title */}
-        <h1 className="max-w-3xl text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+        <h1 className="max-w-3xl text-3xl leading-tight font-bold tracking-tight sm:text-4xl lg:text-5xl">
           {course.title}
         </h1>
 
         {/* Excerpt */}
         {course.excerpt ? (
-          <p className="mt-4 max-w-2xl text-lg text-neutral-200 leading-relaxed">
+          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-neutral-200">
             {course.excerpt}
           </p>
         ) : null}
@@ -90,7 +99,9 @@ export function CourseHero({ course }: CourseHeroProps) {
               <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
               <span className="font-semibold text-amber-400">{course.rating.toFixed(1)}</span>
               {course.ratingCount ? (
-                <span className="text-neutral-300">({course.ratingCount.toLocaleString()} ratings)</span>
+                <span className="text-neutral-300">
+                  ({course.ratingCount.toLocaleString()} ratings)
+                </span>
               ) : null}
             </span>
           ) : null}

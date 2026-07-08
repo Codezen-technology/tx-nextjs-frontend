@@ -53,7 +53,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
           <ParsedHtml
             as="p"
             content={item.name}
-            className="line-clamp-2 max-w-[24rem] font-medium text-[#00204a]"
+            className="line-clamp-2 max-w-[24rem] font-medium text-neutral-900"
           />
           <div className="mt-1 flex items-center gap-1.5 text-sm">
             {isOnSale && (
@@ -62,7 +62,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
                 {item.regular_price.toFixed(2)}
               </span>
             )}
-            <span className={cn("text-[#3b5374]", isOnSale && "font-medium text-[#9e6f21]")}>
+            <span className={cn("text-neutral-500", isOnSale && "text-secondary-500 font-medium")}>
               {currency}
               {item.price.toFixed(2)}
             </span>
@@ -76,14 +76,14 @@ export function CartItemRow({ item }: CartItemRowProps) {
           <div
             className={cn(
               "flex h-12 items-center rounded border transition-colors",
-              isUpdating ? "border-[#9e6f21]/40 bg-[#9e6f21]/5" : "border-[#ced4da]",
+              isUpdating ? "border-secondary-500/40 bg-secondary-500/5" : "border-[#ced4da]",
             )}
           >
             <button
               onClick={() => step(-1)}
               disabled={localQty <= 1 || isRemoving}
               aria-label="Decrease quantity"
-              className="flex h-full w-10 items-center justify-center text-[#00204a] hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-full w-10 items-center justify-center text-neutral-900 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Minus size={16} />
             </button>
@@ -97,12 +97,12 @@ export function CartItemRow({ item }: CartItemRowProps) {
                 onBlur={onDraftBlur}
                 onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                 disabled={isRemoving}
-                className="w-full bg-transparent text-center text-sm font-medium text-[#00204a] focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+                className="w-full bg-transparent text-center text-sm font-medium text-neutral-900 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-40"
               />
               {isUpdating && (
                 <Loader2
                   size={10}
-                  className="absolute -right-2 -top-2 animate-spin text-[#9e6f21]"
+                  className="text-secondary-500 absolute -top-2 -right-2 animate-spin"
                 />
               )}
             </span>
@@ -110,7 +110,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
               onClick={() => step(1)}
               disabled={localQty >= item.max_quantity || isRemoving}
               aria-label="Increase quantity"
-              className="flex h-full w-10 items-center justify-center text-[#00204a] hover:bg-gray-50 disabled:opacity-40"
+              className="flex h-full w-10 items-center justify-center text-neutral-900 hover:bg-gray-50 disabled:opacity-40"
             >
               <Plus size={16} />
             </button>
@@ -120,7 +120,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
         )}
 
         {/* Line total — show skeleton while server recalculates */}
-        <span className="flex w-20 justify-end font-semibold text-[#00204a]">
+        <span className="flex w-20 justify-end font-semibold text-neutral-900">
           {isUpdating ? (
             <span className="h-5 w-14 animate-pulse rounded bg-gray-200" />
           ) : (

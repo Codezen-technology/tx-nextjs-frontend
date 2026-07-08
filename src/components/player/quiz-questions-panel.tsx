@@ -85,7 +85,7 @@ export function QuizQuestionsPanel({
 
       {/* Question + options — natural height, no inner scroll */}
       <section className="px-4 py-3 sm:px-5 sm:py-4">
-        <div className="flex gap-2 text-sm font-medium leading-snug text-gray-900 sm:text-base">
+        <div className="flex gap-2 text-sm leading-snug font-medium text-gray-900 sm:text-base">
           <span className="shrink-0 text-gray-500">{currentIdx + 1}.</span>
           <ParsedHtml
             as="div"
@@ -130,7 +130,7 @@ export function QuizQuestionsPanel({
 
       <footer className="border-t border-gray-200 px-4 py-3 sm:px-5">
         <div
-          className="mb-3 flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1"
+          className="mb-3 flex scrollbar-thin gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [&::-webkit-scrollbar]:h-1"
           aria-label="Jump to question"
         >
           {questions.map((q, idx) => (
@@ -167,7 +167,7 @@ export function QuizQuestionsPanel({
             <button
               type="button"
               onClick={() => setCurrentIdx((i) => i + 1)}
-              className="inline-flex items-center gap-1 rounded-md bg-sky-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-sky-600 sm:px-4 sm:py-2"
+              className="inline-flex items-center gap-1 rounded-md bg-sky-500 px-3 py-1.5 text-sm font-medium text-white shadow-xs hover:bg-sky-600 sm:px-4 sm:py-2"
             >
               Next
               <ChevronRight className="h-4 w-4" />
@@ -177,7 +177,7 @@ export function QuizQuestionsPanel({
               type="button"
               disabled={!allAnswered || isSubmitting}
               onClick={onSubmit}
-              className="inline-flex items-center gap-2 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-40 sm:px-4 sm:py-2"
+              className="inline-flex items-center gap-2 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white shadow-xs hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-40 sm:px-4 sm:py-2"
             >
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Submit quiz

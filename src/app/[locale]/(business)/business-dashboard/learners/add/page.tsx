@@ -112,7 +112,7 @@ export default function AddBusinessLearnerPage() {
 
       <form
         onSubmit={onSubmit}
-        className="space-y-4 rounded-xl border border-neutral-40 bg-white p-6 shadow-sm"
+        className="border-neutral-40 space-y-4 rounded-xl border bg-white p-6 shadow-xs"
       >
         <div>
           <label htmlFor="email" className="text-sm font-medium text-neutral-700">
@@ -131,7 +131,7 @@ export default function AddBusinessLearnerPage() {
               className={cn(isTeamMember && "border-red-400 focus-visible:ring-red-400")}
             />
             {isCheckingEmail && (
-              <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-neutral-300" />
+              <Loader2 className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin text-neutral-300" />
             )}
           </div>
           {infoMessage && !isTeamMember ? (

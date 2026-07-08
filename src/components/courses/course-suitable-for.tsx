@@ -10,14 +10,14 @@ export function CourseSuitableFor({ heading, items }: CourseSuitableForProps) {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900 sm:text-[38px]">
+      <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900 sm:text-[38px]">
         {heading || "Who is this course suitable for?"}
       </h2>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item, i) => (
           <li
             key={i}
-            className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-4 py-3.5 shadow-sm"
+            className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-4 py-3.5 shadow-xs"
           >
             {item.icon ? (
               <img
@@ -27,7 +27,7 @@ export function CourseSuitableFor({ heading, items }: CourseSuitableForProps) {
                 loading="lazy"
               />
             ) : (
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary-50 text-secondary-600">
+              <span className="bg-secondary-50 text-secondary-600 flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"

@@ -121,7 +121,7 @@ export default function BusinessLicenceHistoryPage() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <form onSubmit={onSearch} className="relative max-w-sm flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-300" />
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-300" />
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
@@ -132,7 +132,7 @@ export default function BusinessLicenceHistoryPage() {
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value as (typeof STATUS_OPTIONS)[number])}
-          className="h-10 rounded-md border border-neutral-40 bg-white px-3 text-sm capitalize text-neutral-700 outline-none focus:border-[#3F576F]"
+          className="border-neutral-40 h-10 rounded-md border bg-white px-3 text-sm text-neutral-700 capitalize outline-hidden focus:border-[#3F576F]"
         >
           {STATUS_OPTIONS.map((opt) => (
             <option key={opt} value={opt}>

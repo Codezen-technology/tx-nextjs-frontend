@@ -64,12 +64,12 @@ export default async function DynamicPage({ params }: PageProps) {
   return (
     <article className="py-12">
       <div className="container max-w-3xl">
-        <h1 className="mb-6 font-suse text-3xl font-bold text-neutral-900 md:text-4xl">
+        <h1 className="font-suse mb-6 text-3xl font-bold text-neutral-900 md:text-4xl">
           {page.title}
         </h1>
         <ParsedHtml
           as="div"
-          className="prose-wp font-open-sans text-[#3b5374]"
+          className="prose-wp font-open-sans text-neutral-500"
           content={page.content}
         />
 

@@ -36,7 +36,7 @@ export function QuizStartPanel({ quiz, title, onStart, isStarting }: QuizStartPa
         type="button"
         onClick={onStart}
         disabled={isStarting}
-        className="inline-flex items-center gap-2 rounded-md bg-sky-500 px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-sky-600 disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-md bg-sky-500 px-6 py-3 text-base font-medium text-white shadow-xs transition-colors hover:bg-sky-600 disabled:opacity-50"
       >
         {isStarting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
         Start quiz

@@ -18,19 +18,19 @@ export function CoursesByCategorySection({ category, courses }: CoursesByCategor
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900">
+          <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
             {category.name}
           </h2>
           <Link
             href={viewAllHref}
-            className="inline-flex items-center gap-1 font-open-sans text-[16px] leading-[1.5] text-secondary-500 hover:text-secondary-600"
+            className="font-open-sans text-secondary-500 hover:text-secondary-600 inline-flex items-center gap-1 text-[16px] leading-normal"
           >
             View all {category.name} courses
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
         {category.description && (
-          <p className="font-open-sans text-[16px] leading-[1.5] text-neutral-500">
+          <p className="font-open-sans text-[16px] leading-normal text-neutral-500">
             {category.description}
           </p>
         )}
@@ -43,10 +43,10 @@ export function CoursesByCategorySection({ category, courses }: CoursesByCategor
       </div>
 
       <div className="relative flex items-center justify-center py-2">
-        <div className="absolute inset-x-0 top-1/2 h-px bg-[#ebedf1]" />
+        <div className="bg-neutral-30 absolute inset-x-0 top-1/2 h-px" />
         <Link
           href={viewAllHref}
-          className="relative inline-flex items-center gap-2 rounded-full border border-secondary-500 bg-white px-[17px] py-[9px] font-open-sans text-[16px] leading-[1.5] text-secondary-500 transition-colors hover:bg-secondary-50"
+          className="border-secondary-500 font-open-sans text-secondary-500 hover:bg-secondary-50 relative inline-flex items-center gap-2 rounded-full border bg-white px-[17px] py-[9px] text-[16px] leading-normal transition-colors"
         >
           View all {category.name} courses
           <ArrowRight className="h-4 w-4" />

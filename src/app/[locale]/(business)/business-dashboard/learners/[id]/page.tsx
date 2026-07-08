@@ -82,13 +82,13 @@ export default function BusinessLearnerDetailPage({ params }: { params: Promise<
       />
 
       {isLoading ? (
-        <div className="h-40 animate-pulse rounded-xl border border-neutral-30 bg-white" />
+        <div className="border-neutral-30 h-40 animate-pulse rounded-xl border bg-white" />
       ) : isError || !learner ? (
-        <div className="rounded-xl border border-neutral-30 bg-white p-10 text-center text-sm text-red-600">
+        <div className="border-neutral-30 rounded-xl border bg-white p-10 text-center text-sm text-red-600">
           Could not load this learner.
         </div>
       ) : (
-        <div className="rounded-xl border border-neutral-30 bg-white p-6 shadow-sm">
+        <div className="border-neutral-30 rounded-xl border bg-white p-6 shadow-xs">
           <div className="flex items-center gap-4">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#3F576F]/10 text-xl font-bold text-[#3F576F]">
               {(learner.display_name || "?").charAt(0).toUpperCase()}
@@ -103,14 +103,14 @@ export default function BusinessLearnerDetailPage({ params }: { params: Promise<
           </div>
 
           <dl className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="rounded-lg bg-neutral-10 p-4">
-              <dt className="text-xs font-medium uppercase tracking-wide text-neutral-300">Role</dt>
+            <div className="bg-neutral-10 rounded-lg p-4">
+              <dt className="text-xs font-medium tracking-wide text-neutral-300 uppercase">Role</dt>
               <dd className="mt-1">
                 <StatusBadge status={learner.role} />
               </dd>
             </div>
-            <div className="rounded-lg bg-neutral-10 p-4">
-              <dt className="text-xs font-medium uppercase tracking-wide text-neutral-300">
+            <div className="bg-neutral-10 rounded-lg p-4">
+              <dt className="text-xs font-medium tracking-wide text-neutral-300 uppercase">
                 Status
               </dt>
               <dd className="mt-1">

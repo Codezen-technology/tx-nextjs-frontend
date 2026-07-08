@@ -22,7 +22,7 @@ const CARD_OFFSETS = [
     y: 0,
     scale: 1.0,
     z: 40,
-    shadow: "[filter:drop-shadow(0px_16px_48px_rgba(0,0,0,0.18))]",
+    shadow: "filter-[drop-shadow(0px_16px_48px_rgba(0,0,0,0.18))]",
   },
   { x: 383, y: 20, scale: 0.905, z: 30, shadow: "" },
   { x: 560, y: 44, scale: 0.797, z: 10, shadow: "" },
@@ -100,7 +100,7 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
         <button
           onClick={prev}
           aria-label="Previous course"
-          className="text-[#3b5374] transition-colors hover:text-[#00204a]"
+          className="text-neutral-500 transition-colors hover:text-neutral-900"
         >
           <ArrowLeft className="h-6 w-6" />
         </button>
@@ -122,7 +122,7 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
         <button
           onClick={next}
           aria-label="Next course"
-          className="text-[#3b5374] transition-colors hover:text-[#00204a]"
+          className="text-neutral-500 transition-colors hover:text-neutral-900"
         >
           <ArrowRight className="h-6 w-6" />
         </button>

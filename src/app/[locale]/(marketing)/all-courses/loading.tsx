@@ -25,7 +25,7 @@ export default function AllCoursesLoading() {
         <div className="mx-auto max-w-[1296px] px-4 py-12">
           <div className="flex items-start gap-6">
             {/* Filter sidebar skeleton */}
-            <aside className="w-[306px] shrink-0 space-y-3 rounded-xl border border-[#ebedf1] p-5">
+            <aside className="border-neutral-30 w-[306px] shrink-0 space-y-3 rounded-xl border p-5">
               <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />
               {Array.from({ length: 7 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-3">

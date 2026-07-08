@@ -29,9 +29,9 @@ export function UpsellBanner({ variant = "cart" }: UpsellBannerProps) {
       style={{ background: "linear-gradient(6deg, #00204a 9%, #1c395e 92%)" }}
     >
       {upsell.badge && (
-        <div className="absolute right-0 top-0">
+        <div className="absolute top-0 right-0">
           <div
-            className="px-4 py-1.5 text-xs font-medium text-[#00204a]"
+            className="px-4 py-1.5 text-xs font-medium text-neutral-900"
             style={{ background: "linear-gradient(69deg, #01aee0 0%, #00c7ff 100%)" }}
           >
             {upsell.badge}
@@ -42,7 +42,7 @@ export function UpsellBanner({ variant = "cart" }: UpsellBannerProps) {
       <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
         {/* Title + price */}
         <div>
-          <p className="text-sm font-semibold text-[#00bbf0]">{upsell.name}</p>
+          <p className="text-primary-500 text-sm font-semibold">{upsell.name}</p>
           {upsell.regular_price > upsell.price && (
             <p className="mt-1 text-xl font-bold text-[#dc3545] line-through">
               {upsell.currency}
@@ -61,7 +61,7 @@ export function UpsellBanner({ variant = "cart" }: UpsellBannerProps) {
           <ul className="space-y-1.5">
             {upsell.features.map((f) => (
               <li key={f} className="flex items-center gap-2 text-sm text-white">
-                <CheckCircle size={14} className="shrink-0 text-[#00bbf0]" />
+                <CheckCircle size={14} className="text-primary-500 shrink-0" />
                 {f}
               </li>
             ))}
@@ -73,7 +73,7 @@ export function UpsellBanner({ variant = "cart" }: UpsellBannerProps) {
           <button
             onClick={handleAddToCart}
             disabled={alreadyInCart || addToCart.isPending}
-            className="w-full rounded-full border border-[#00bbf0] bg-gradient-to-r from-[#00bbf0] to-[#8ae0f8] px-6 py-2.5 text-center text-sm font-medium text-[#00204a] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            className="border-primary-500 from-primary-500 to-primary-200 w-full rounded-full border bg-linear-to-r px-6 py-2.5 text-center text-sm font-medium text-neutral-900 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {alreadyInCart
               ? "Added"

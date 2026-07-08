@@ -30,10 +30,10 @@ export function IssueTypeCard({ issue, selected = false, href, onClick }: IssueT
         <Icon className="h-5 w-5" strokeWidth={1.75} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block font-open-sans text-base font-semibold text-neutral-900">
+        <span className="font-open-sans block text-base font-semibold text-neutral-900">
           {issue.title}
         </span>
-        <span className="mt-1 block font-open-sans text-sm text-neutral-500">
+        <span className="font-open-sans mt-1 block text-sm text-neutral-500">
           {issue.description}
         </span>
       </span>
@@ -42,7 +42,7 @@ export function IssueTypeCard({ issue, selected = false, href, onClick }: IssueT
 
   const className = cn(
     "flex w-full items-start gap-4 rounded-xl border p-5 text-left transition-colors",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2",
+    "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2",
     selected
       ? "border-primary-400 bg-primary-50 ring-2 ring-primary-200"
       : "border-neutral-200 bg-white hover:border-primary-300 hover:bg-primary-50/40",

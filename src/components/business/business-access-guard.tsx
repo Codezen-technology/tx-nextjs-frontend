@@ -33,7 +33,7 @@ export function BusinessAccessGuard({ children }: { children: React.ReactNode })
   if (!hasBusinessAccess(user?.roles)) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-4">
-        <div className="max-w-md rounded-xl border border-neutral-30 bg-white p-10 text-center shadow-sm">
+        <div className="border-neutral-30 max-w-md rounded-xl border bg-white p-10 text-center shadow-xs">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#3F576F]/10 text-[#3F576F]">
             <Lock className="h-7 w-7" />
           </div>

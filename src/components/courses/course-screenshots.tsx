@@ -19,10 +19,10 @@ export function CourseScreenshots({ screenshots }: CourseScreenshotsProps) {
 
   return (
     <section className="space-y-4">
-      <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900 sm:text-[38px]">
+      <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900 sm:text-[38px]">
         Course in action
       </h2>
-      <div className="relative overflow-hidden rounded-xl border border-[#ebedf1] bg-neutral-100">
+      <div className="border-neutral-30 relative overflow-hidden rounded-xl border bg-neutral-100">
         <div className="relative aspect-video w-full">
           {isRenderableImageSrc(screenshots[index]) ? (
             <SafeImage
@@ -39,18 +39,18 @@ export function CourseScreenshots({ screenshots }: CourseScreenshotsProps) {
             <button
               onClick={prev}
               aria-label="Previous screenshot"
-              className="absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 shadow hover:bg-white transition-colors"
+              className="absolute top-1/2 left-3 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 shadow-sm transition-colors hover:bg-white"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
               onClick={next}
               aria-label="Next screenshot"
-              className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 shadow hover:bg-white transition-colors"
+              className="absolute top-1/2 right-3 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 shadow-sm transition-colors hover:bg-white"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+            <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
               {screenshots.map((_, i) => (
                 <button
                   key={i}
@@ -72,7 +72,13 @@ export function CourseScreenshots({ screenshots }: CourseScreenshotsProps) {
               className={`relative h-16 w-24 shrink-0 overflow-hidden rounded border-2 transition-colors ${i === index ? "border-secondary-500" : "border-transparent"}`}
             >
               {isRenderableImageSrc(src) ? (
-                <SafeImage src={src} alt={`Thumbnail ${i + 1}`} fill sizes="96px" className="object-cover" />
+                <SafeImage
+                  src={src}
+                  alt={`Thumbnail ${i + 1}`}
+                  fill
+                  sizes="96px"
+                  className="object-cover"
+                />
               ) : null}
             </button>
           ))}

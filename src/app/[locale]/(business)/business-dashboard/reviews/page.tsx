@@ -23,7 +23,7 @@ export default function BusinessReviewsPage() {
     return (
       <div className="space-y-6">
         <BusinessPageHeader title="Feedback" />
-        <div className="rounded-xl border border-neutral-30 bg-white p-10 text-center shadow-sm">
+        <div className="border-neutral-30 rounded-xl border bg-white p-10 text-center shadow-xs">
           <p className="text-neutral-700">Thank you — your feedback has been recorded.</p>
         </div>
       </div>
@@ -39,7 +39,7 @@ export default function BusinessReviewsPage() {
 
       <form
         onSubmit={onSubmit}
-        className="space-y-4 rounded-xl border border-neutral-30 bg-white p-6 shadow-sm"
+        className="border-neutral-30 space-y-4 rounded-xl border bg-white p-6 shadow-xs"
       >
         <div>
           <label className="text-sm font-medium text-neutral-700">Rating (1–10)</label>
@@ -58,7 +58,7 @@ export default function BusinessReviewsPage() {
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
             rows={4}
-            className="mt-1 w-full rounded-md border border-neutral-40 px-3 py-2 text-sm"
+            className="border-neutral-40 mt-1 w-full rounded-md border px-3 py-2 text-sm"
           />
         </div>
         <Button

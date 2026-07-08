@@ -15,9 +15,9 @@ export default function CartPage() {
   const browseCoursesHref = user ? "/dashboard/all-courses" : "/all-courses";
 
   return (
-    <div className="min-h-screen bg-[#fafbfb]">
+    <div className="bg-neutral-10 min-h-screen">
       {/* Breadcrumb */}
-      <div className="bg-[#00204a] py-2.5">
+      <div className="bg-neutral-900 py-2.5">
         <div className="container">
           <p className="text-sm text-white">
             <Link href="/" className="font-bold underline">
@@ -30,7 +30,7 @@ export default function CartPage() {
       </div>
 
       <div className="container py-10">
-        <h1 className="mb-8 font-suse text-3xl font-medium text-[#00204a]">Cart</h1>
+        <h1 className="font-suse mb-8 text-3xl font-medium text-neutral-900">Cart</h1>
 
         {errors.length > 0 && (
           <div
@@ -55,11 +55,11 @@ export default function CartPage() {
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <ShoppingCart size={56} className="mb-4 text-gray-300" />
-            <h2 className="mb-2 text-xl font-semibold text-[#00204a]">Your cart is empty</h2>
-            <p className="mb-6 text-[#3b5374]">Browse our courses and add something you love.</p>
+            <h2 className="mb-2 text-xl font-semibold text-neutral-900">Your cart is empty</h2>
+            <p className="mb-6 text-neutral-500">Browse our courses and add something you love.</p>
             <Link
               href={browseCoursesHref}
-              className="rounded bg-[#9e6f21] px-6 py-3 text-sm font-medium text-white hover:bg-[#7d5819]"
+              className="bg-secondary-500 rounded px-6 py-3 text-sm font-medium text-white hover:bg-[#7d5819]"
             >
               Browse Courses
             </Link>
@@ -68,7 +68,7 @@ export default function CartPage() {
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
             {/* Left: items + coupon */}
             <div>
-              <div className="rounded-lg bg-white shadow-sm">
+              <div className="rounded-lg bg-white shadow-xs">
                 <div className="px-6">
                   {items.map((item) => (
                     <CartItemRow key={item.key} item={item} />
@@ -80,7 +80,7 @@ export default function CartPage() {
               </div>
 
               {/* Item count label */}
-              <p className="mt-3 text-sm text-[#3b5374]">
+              <p className="mt-3 text-sm text-neutral-500">
                 {itemCount} {itemCount === 1 ? "item" : "items"} in your cart
               </p>
             </div>

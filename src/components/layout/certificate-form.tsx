@@ -40,12 +40,12 @@ export function CertificateForm() {
             value={certCode}
             onChange={(e) => setCertCode(e.target.value)}
             placeholder="Enter Certificate Code"
-            className="h-10 min-w-0 flex-1 rounded-lg border border-neutral-40 bg-white px-3.5 font-open-sans text-[14px] leading-[1.5] text-neutral-200 shadow-sm placeholder:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-secondary-500"
+            className="border-neutral-40 font-open-sans focus:ring-secondary-500 h-10 min-w-0 flex-1 rounded-lg border bg-white px-3.5 text-[14px] leading-normal text-neutral-200 shadow-xs placeholder:text-neutral-200 focus:ring-2 focus:outline-hidden"
           />
           <button
             type="submit"
             disabled={loading}
-            className="flex h-10 shrink-0 items-center gap-1.5 rounded border border-secondary-500 bg-secondary-500 px-3 font-open-sans text-[16px] leading-[1.5] text-white transition-colors hover:bg-secondary-600 disabled:opacity-70"
+            className="border-secondary-500 bg-secondary-500 font-open-sans hover:bg-secondary-600 flex h-10 shrink-0 items-center gap-1.5 rounded border px-3 text-[16px] leading-normal text-white transition-colors disabled:opacity-70"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             Validate

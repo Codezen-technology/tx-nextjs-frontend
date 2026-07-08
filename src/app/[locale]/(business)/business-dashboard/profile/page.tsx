@@ -35,8 +35,8 @@ function formatDate(value?: string) {
 
 function ProfileField({ label, value }: { label: string; value?: string | number | null }) {
   return (
-    <div className="rounded-lg bg-neutral-10 p-4">
-      <dt className="text-xs font-medium uppercase tracking-wide text-neutral-300">{label}</dt>
+    <div className="bg-neutral-10 rounded-lg p-4">
+      <dt className="text-xs font-medium tracking-wide text-neutral-300 uppercase">{label}</dt>
       <dd className="mt-1 text-sm font-medium text-neutral-900">{value || "—"}</dd>
     </div>
   );
@@ -79,7 +79,7 @@ export default function BusinessProfilePage() {
     return (
       <div className="space-y-6">
         <BusinessPageHeader title="Business Profile" />
-        <div className="h-64 animate-pulse rounded-xl border border-neutral-30 bg-white" />
+        <div className="border-neutral-30 h-64 animate-pulse rounded-xl border bg-white" />
       </div>
     );
   }
@@ -88,7 +88,7 @@ export default function BusinessProfilePage() {
     return (
       <div className="space-y-6">
         <BusinessPageHeader title="Business Profile" />
-        <div className="rounded-xl border border-neutral-30 bg-white p-10 text-center text-sm text-red-600">
+        <div className="border-neutral-30 rounded-xl border bg-white p-10 text-center text-sm text-red-600">
           Could not load business profile.
         </div>
       </div>
@@ -142,14 +142,14 @@ export default function BusinessProfilePage() {
         />
       </div>
 
-      <div className="rounded-xl border border-neutral-30 bg-white p-6 shadow-sm">
+      <div className="border-neutral-30 rounded-xl border bg-white p-6 shadow-xs">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
           {business.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={business.logo_url}
               alt={business.company_name}
-              className="h-20 w-20 rounded-lg border border-neutral-30 object-contain p-1"
+              className="border-neutral-30 h-20 w-20 rounded-lg border object-contain p-1"
             />
           ) : (
             <span className="flex h-20 w-20 items-center justify-center rounded-lg bg-[#3F576F]/10 text-2xl font-bold text-[#3F576F]">
@@ -167,15 +167,15 @@ export default function BusinessProfilePage() {
         {editing ? (
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="text-xs font-medium uppercase text-neutral-300">Phone</label>
+              <label className="text-xs font-medium text-neutral-300 uppercase">Phone</label>
               <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" />
             </div>
             <div>
-              <label className="text-xs font-medium uppercase text-neutral-300">Tax ID</label>
+              <label className="text-xs font-medium text-neutral-300 uppercase">Tax ID</label>
               <Input value={taxId} onChange={(e) => setTaxId(e.target.value)} className="mt-1" />
             </div>
             <div>
-              <label className="text-xs font-medium uppercase text-neutral-300">Company size</label>
+              <label className="text-xs font-medium text-neutral-300 uppercase">Company size</label>
               <Input
                 type="number"
                 value={companySize}
@@ -184,12 +184,12 @@ export default function BusinessProfilePage() {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-xs font-medium uppercase text-neutral-300">Address</label>
+              <label className="text-xs font-medium text-neutral-300 uppercase">Address</label>
               <textarea
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 rows={3}
-                className="mt-1 w-full rounded-md border border-neutral-40 px-3 py-2 text-sm"
+                className="border-neutral-40 mt-1 w-full rounded-md border px-3 py-2 text-sm"
               />
             </div>
           </div>

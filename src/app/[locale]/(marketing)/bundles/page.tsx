@@ -38,10 +38,10 @@ export default async function BundlesPage() {
         dangerouslySetInnerHTML={{ __html: stringifyJsonLd(SCHEMA) }}
       />
 
-      <section className="bg-[#00204a] py-12">
+      <section className="bg-neutral-900 py-12">
         <div className="container">
           <h1 className="font-suse text-3xl font-bold text-white md:text-4xl">Course Bundles</h1>
-          <p className="mt-3 max-w-2xl font-open-sans text-white/70">
+          <p className="font-open-sans mt-3 max-w-2xl text-white/70">
             Grouped courses at one discounted price — perfect for covering a whole role or topic.
             Each bundle includes free digital certificates on completion.
           </p>

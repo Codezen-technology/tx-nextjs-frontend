@@ -38,17 +38,17 @@ export async function HeroSection({ headline }: HeroSectionProps) {
 
   return (
     <section
-      className="relative overflow-x-clip bg-primary-50 bg-cover bg-center"
+      className="bg-primary-50 relative overflow-x-clip bg-cover bg-center"
       style={{ backgroundImage: `url(${overlayImage})` }}
     >
       <div className="mx-auto flex max-w-none flex-col items-start gap-12 px-4 py-[60px] lg:max-w-[1400px] lg:items-center lg:py-[170px] xl:flex-row xl:px-0">
         <div className="flex w-full min-w-0 flex-col gap-6 lg:max-w-[636px]">
           <div className="flex flex-col gap-4">
-            <h1 className="font-suse text-[40px] font-bold leading-[1.2] text-neutral-900 md:text-[48px] lg:text-[56px]">
+            <h1 className="font-suse text-[40px] leading-[1.2] font-bold text-neutral-900 md:text-[48px] lg:text-[56px]">
               {headline.title}
             </h1>
             {headline.description && (
-              <p className="font-open-sans text-base font-normal leading-[1.5] text-neutral-500">
+              <p className="font-open-sans text-base leading-normal font-normal text-neutral-500">
                 {headline.description}
               </p>
             )}
@@ -70,7 +70,7 @@ export async function HeroSection({ headline }: HeroSectionProps) {
                       className="object-contain"
                     />
                   ) : (
-                    <span className="text-center font-open-sans text-[11px] font-semibold leading-tight text-[#00204a]">
+                    <span className="font-open-sans text-center text-[11px] leading-tight font-semibold text-neutral-900">
                       {badge.label}
                     </span>
                   )}
@@ -79,7 +79,7 @@ export async function HeroSection({ headline }: HeroSectionProps) {
             </div>
           )}
 
-          <div className="overflow-hidden rounded-[4px] bg-[rgba(0,32,74,0.4)] backdrop-blur-[8px]">
+          <div className="overflow-hidden rounded-[4px] bg-[rgba(0,32,74,0.4)] backdrop-blur-sm">
             <form
               action="/search"
               method="get"
@@ -89,11 +89,11 @@ export async function HeroSection({ headline }: HeroSectionProps) {
                 name="q"
                 type="text"
                 placeholder="Subject or qualification, e.g. IT Course"
-                className="h-[56px] flex-1 rounded-[2px] bg-white px-8 font-open-sans text-sm text-[#767476] outline-none placeholder:text-[#767476]"
+                className="font-open-sans h-[56px] flex-1 rounded-[2px] bg-white px-8 text-sm text-[#767476] outline-hidden placeholder:text-[#767476]"
               />
               <button
                 type="submit"
-                className="shrink-0 rounded-[2px] bg-[#9e6f21] px-[25px] py-4 font-open-sans text-base font-normal leading-[1.5] text-white transition-opacity hover:opacity-90"
+                className="bg-secondary-500 font-open-sans shrink-0 rounded-[2px] px-[25px] py-4 text-base leading-normal font-normal text-white transition-opacity hover:opacity-90"
               >
                 Search Courses
               </button>

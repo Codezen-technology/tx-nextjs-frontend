@@ -32,7 +32,7 @@ function BasketItemRow({ item, currency: sym }: { item: CartItem; currency: stri
       </div>
       <div className="min-w-0 flex-1">
         <p className="line-clamp-2 text-sm font-medium">{item.name}</p>
-        <p className="text-sm text-muted-foreground">{fmt(item.line_total, sym)}</p>
+        <p className="text-muted-foreground text-sm">{fmt(item.line_total, sym)}</p>
         {canEdit ? (
           <div className="mt-1.5 inline-flex items-center rounded border border-neutral-200">
             <button
@@ -54,10 +54,10 @@ function BasketItemRow({ item, currency: sym }: { item: CartItem; currency: stri
                 onBlur={onDraftBlur}
                 onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                 disabled={isRemoving}
-                className="w-full bg-transparent text-center text-sm font-medium focus:outline-none disabled:opacity-40"
+                className="w-full bg-transparent text-center text-sm font-medium focus:outline-hidden disabled:opacity-40"
               />
               {isUpdating && (
-                <Loader2 className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 animate-spin text-lms-secondary" />
+                <Loader2 className="text-lms-secondary absolute -top-1.5 -right-1.5 h-2.5 w-2.5 animate-spin" />
               )}
             </span>
             <button
@@ -71,7 +71,7 @@ function BasketItemRow({ item, currency: sym }: { item: CartItem; currency: stri
             </button>
           </div>
         ) : (
-          <p className="mt-1 text-xs text-muted-foreground">Qty: {item.quantity}</p>
+          <p className="text-muted-foreground mt-1 text-xs">Qty: {item.quantity}</p>
         )}
       </div>
       <button
@@ -102,7 +102,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
           <SheetTitle>Your Basket</SheetTitle>
         </SheetHeader>
         {items.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">Your basket is empty.</p>
+          <p className="text-muted-foreground py-8 text-center text-sm">Your basket is empty.</p>
         ) : (
           <>
             <ul className="flex-1 divide-y overflow-y-auto">

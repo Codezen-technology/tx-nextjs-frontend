@@ -68,7 +68,7 @@ export function ContactForm() {
     return (
       <div className="rounded-lg border border-green-200 bg-green-50 p-8 text-center">
         <h3 className="font-suse text-xl font-bold text-neutral-900">Message sent!</h3>
-        <p className="mt-2 font-open-sans text-sm text-neutral-600">
+        <p className="font-open-sans mt-2 text-sm text-neutral-600">
           Thanks for getting in touch. Our team will get back to you promptly.
         </p>
         <Button type="button" variant="outline" className="mt-6" onClick={() => setStatus("idle")}>
@@ -150,9 +150,9 @@ export function ContactForm() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Leave us a message..."
-          className="flex w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 ring-offset-background placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+          className="ring-offset-background focus-visible:ring-primary-500 flex w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
         />
-        <p className="text-right font-open-sans text-xs text-neutral-400">
+        <p className="font-open-sans text-right text-xs text-neutral-400">
           {message.length} / {MESSAGE_MAX}
         </p>
       </div>
@@ -169,7 +169,7 @@ export function ContactForm() {
 
       <p className="font-open-sans text-sm text-neutral-500">
         You agree to our friendly{" "}
-        <Link href="/privacy-policy" className="font-semibold text-secondary-500 underline">
+        <Link href="/privacy-policy" className="text-secondary-500 font-semibold underline">
           privacy policy
         </Link>
         .
@@ -184,7 +184,7 @@ export function ContactForm() {
       <Button
         type="submit"
         disabled={status === "sending"}
-        className="w-full bg-secondary-500 text-white hover:bg-secondary-600"
+        className="bg-secondary-500 hover:bg-secondary-600 w-full text-white"
         size="lg"
       >
         {status === "sending" && <Loader2 className="animate-spin" />}

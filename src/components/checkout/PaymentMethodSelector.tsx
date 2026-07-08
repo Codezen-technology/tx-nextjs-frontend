@@ -171,11 +171,11 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
         </div>
       ) : (
         /* Method list */
-        <div className="overflow-hidden rounded border border-[#e1d2ba]">
+        <div className="border-secondary-100 overflow-hidden rounded border">
           {/* Credit/Debit Card */}
           <div
             className={cn(
-              "border-b border-[#e1d2ba] bg-white px-4 py-3.5 transition-colors",
+              "border-secondary-100 border-b bg-white px-4 py-3.5 transition-colors",
               method === "stripe" && "bg-[#fdfaf5]",
             )}
           >
@@ -212,7 +212,7 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
             {method === "stripe" && (
               <div className="mt-4 px-7">
                 <p className="mb-2 text-xs font-semibold text-[#1a171b]">Card number</p>
-                <div className="rounded border border-[#e1d2ba] bg-white px-4 py-3.5">
+                <div className="border-secondary-100 rounded border bg-white px-4 py-3.5">
                   <CardElement
                     options={{
                       style: {
@@ -252,7 +252,7 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
         type="button"
         onClick={handleSubmit}
         disabled={isSubmitting || cartLoading || (!isFreeOrder && !stripe)}
-        className="w-full rounded bg-[#9e6f21] px-6 py-4 text-base font-medium text-white transition-colors hover:bg-[#7d5819] disabled:cursor-not-allowed disabled:opacity-60"
+        className="bg-secondary-500 w-full rounded px-6 py-4 text-base font-medium text-white transition-colors hover:bg-[#7d5819] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? "Processing…" : isFreeOrder ? "Complete Order" : "Proceed to Checkout"}
       </button>

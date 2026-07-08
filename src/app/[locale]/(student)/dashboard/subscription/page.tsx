@@ -28,7 +28,7 @@ function formatAmount(amount: number, currency: string): string {
 
 function UserCounter({ count, onChange }: { count: number; onChange: (n: number) => void }) {
   return (
-    <div className="inline-flex items-center gap-3 rounded-lg border border-[#eaecee] bg-white px-1.5 py-1.5 shadow-sm">
+    <div className="inline-flex items-center gap-3 rounded-lg border border-[#eaecee] bg-white px-1.5 py-1.5 shadow-xs">
       <button
         type="button"
         onClick={() => onChange(Math.max(1, count - 1))}
@@ -45,7 +45,7 @@ function UserCounter({ count, onChange }: { count: number; onChange: (n: number)
         type="button"
         onClick={() => onChange(count + 1)}
         aria-label="Increase users"
-        className="hover:bg-lms-primary/90 rounded-md bg-lms-primary p-1 text-white transition-colors"
+        className="hover:bg-lms-primary/90 bg-lms-primary rounded-md p-1 text-white transition-colors"
       >
         <Plus className="h-4 w-4" />
       </button>
@@ -81,7 +81,7 @@ function PricingCard({
       )}
     >
       {isFeatured && (
-        <div className="inline-flex items-center gap-1 rounded-lg border border-[#4f6bed] bg-[#1e2a78] px-3 py-1 shadow">
+        <div className="inline-flex items-center gap-1 rounded-lg border border-[#4f6bed] bg-[#1e2a78] px-3 py-1 shadow-sm">
           <span className="text-base">⭐</span>
           <span className="text-sm font-bold text-white">ONE TIME PAYMENT</span>
         </div>
@@ -96,7 +96,7 @@ function PricingCard({
             {!isTeam && totalPrice != null ? (
               <div className="text-center">
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-[2.5rem] font-extrabold leading-tight text-lms-primary">
+                  <span className="text-lms-primary text-[2.5rem] leading-tight font-extrabold">
                     {formatAmount(totalPrice, plan.currency)}
                   </span>
                   {plan.regular_price && plan.regular_price > 0 && (
@@ -127,7 +127,7 @@ function PricingCard({
                   {f.included ? (
                     <Check className="h-[18px] w-[18px] shrink-0 text-[#16c2d5]" />
                   ) : (
-                    <X className="h-[18px] w-[18px] shrink-0 text-destructive" />
+                    <X className="text-destructive h-[18px] w-[18px] shrink-0" />
                   )}
                   <span className="text-base leading-normal text-[#586973]">{f.text}</span>
                 </li>
@@ -142,7 +142,7 @@ function PricingCard({
                 "flex h-14 items-center justify-center rounded-lg text-[1.05rem] font-bold transition-colors",
                 isFeatured
                   ? "bg-[#3f4d97] text-white hover:bg-[#0f217d]"
-                  : "bg-[#e7e9f2] text-lms-primary hover:bg-[#d0d4e8]",
+                  : "text-lms-primary bg-[#e7e9f2] hover:bg-[#d0d4e8]",
               )}
             >
               {plan.cta}
@@ -150,7 +150,7 @@ function PricingCard({
           ) : (
             <a
               href={plan.request_invoice_url || "#request-invoice"}
-              className="flex h-14 items-center justify-center rounded-lg bg-[#e7e9f2] text-[1.05rem] font-bold text-lms-primary transition-colors hover:bg-[#d0d4e8]"
+              className="text-lms-primary flex h-14 items-center justify-center rounded-lg bg-[#e7e9f2] text-[1.05rem] font-bold transition-colors hover:bg-[#d0d4e8]"
             >
               {plan.cta}
             </a>
@@ -240,7 +240,7 @@ export default function SubscriptionPage() {
       {/* Header */}
       <div className="mb-2 flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-semibold leading-none text-[#586973]">Subscription</h1>
+          <h1 className="text-2xl leading-none font-semibold text-[#586973]">Subscription</h1>
           <p className="mt-1 text-[#586973]">Manage your plan and billing information.</p>
         </div>
         <div className="text-right">
@@ -250,7 +250,7 @@ export default function SubscriptionPage() {
             <>
               <StatusChip active={isActive} />
               {!isActive && !isError && (
-                <p className="mt-1 text-sm text-destructive">You currently have no subscription.</p>
+                <p className="text-destructive mt-1 text-sm">You currently have no subscription.</p>
               )}
             </>
           )}
@@ -266,7 +266,7 @@ export default function SubscriptionPage() {
         (isLoading ? (
           <Skeleton className="mb-8 h-56 w-full rounded-3xl" />
         ) : (
-          <div className="mb-8 flex flex-wrap items-center justify-between gap-8 rounded-3xl bg-lms-primary p-8">
+          <div className="bg-lms-primary mb-8 flex flex-wrap items-center justify-between gap-8 rounded-3xl p-8">
             <div className="min-w-[280px] flex-1">
               <div className="mb-2 flex items-center gap-2">
                 <span className="rounded bg-[#16c2d5]/20 px-2 py-1 text-[0.65rem] font-black tracking-wide text-[#16c2d5]">
@@ -278,7 +278,7 @@ export default function SubscriptionPage() {
               </div>
 
               <div className="mb-2 flex items-center gap-1">
-                <h2 className="text-xl font-bold leading-snug text-white">
+                <h2 className="text-xl leading-snug font-bold text-white">
                   {activeSub?.plan_name || lifetime?.title || "Prime Membership"}
                 </h2>
                 <span className="text-xl">⭐</span>

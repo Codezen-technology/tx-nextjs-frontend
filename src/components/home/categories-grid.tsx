@@ -49,12 +49,12 @@ export async function CategoriesGrid({ categories: provided }: CategoriesGridPro
   return (
     <div className="container">
       <div className="mb-6 flex flex-col items-end justify-between md:flex-row md:items-center">
-        <h3 className="font-suse text-[32px] font-bold leading-normal text-neutral-900">
+        <h3 className="font-suse text-[32px] leading-normal font-bold text-neutral-900">
           Explore courses by category
         </h3>
         <Link
           href="/all-courses"
-          className="flex items-end gap-1 font-open-sans text-base font-normal text-secondary-500 transition-colors hover:text-secondary-600 md:items-center"
+          className="font-open-sans text-secondary-500 hover:text-secondary-600 flex items-end gap-1 text-base font-normal transition-colors md:items-center"
         >
           View all courses
           <ChevronRight className="h-4 w-4" />
@@ -68,7 +68,7 @@ export async function CategoriesGrid({ categories: provided }: CategoriesGridPro
             <Link
               key={cat.id}
               href={`/course-cat/${cat.slug}`}
-              className="group flex h-[196px] w-auto shrink-0 flex-col items-center justify-center gap-1 rounded-[8px] bg-secondary-50 transition-all hover:bg-primary-50 hover:shadow-sm"
+              className="group bg-secondary-50 hover:bg-primary-50 flex h-[196px] w-auto shrink-0 flex-col items-center justify-center gap-1 rounded-[8px] transition-all hover:shadow-xs"
             >
               <div className="flex h-14 w-14 items-center justify-center overflow-hidden">
                 {icon.type === "img" ? (
@@ -83,7 +83,7 @@ export async function CategoriesGrid({ categories: provided }: CategoriesGridPro
                   <GraduationCap className="h-8 w-8 text-neutral-300" />
                 )}
               </div>
-              <span className="px-2 text-center font-open-sans text-base text-neutral-700 group-hover:text-neutral-900">
+              <span className="font-open-sans px-2 text-center text-base text-neutral-700 group-hover:text-neutral-900">
                 {cat.name}
               </span>
             </Link>

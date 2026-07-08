@@ -34,13 +34,13 @@ export function Accreditations({ items = DEFAULT_ITEMS }: AccreditationsProps) {
   return (
     <section className="bg-white py-16">
       <div className="container mx-auto">
-        <h2 className="mb-8 font-suse text-[2rem] font-bold text-neutral-900">Accreditations</h2>
+        <h2 className="font-suse mb-8 text-[2rem] font-bold text-neutral-900">Accreditations</h2>
 
-        <div className="overflow-hidden rounded-[12px] border border-[#ebedf1]">
+        <div className="border-neutral-30 overflow-hidden rounded-[12px] border">
           {items.map((item, i) => (
             <div
               key={i}
-              className="flex flex-col items-center gap-6 border-b border-[#ebedf1] p-6 last:border-b-0 sm:flex-row sm:items-start"
+              className="border-neutral-30 flex flex-col items-center gap-6 border-b p-6 last:border-b-0 sm:flex-row sm:items-start"
             >
               <div className="flex h-[108px] w-[152px] shrink-0 items-center justify-center">
                 <Image

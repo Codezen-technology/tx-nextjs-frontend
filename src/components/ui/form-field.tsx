@@ -5,16 +5,16 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils/cn";
 
 /** Visible label for marketing/auth/checkout forms. */
-export const FORM_LABEL_CLASS = "mb-1 block font-open-sans text-sm font-medium text-[#3b5374]";
+export const FORM_LABEL_CLASS = "mb-1 block font-open-sans text-sm font-medium text-neutral-500";
 
 /** Base input styling — Figma gold focus, navy text. */
 export const FORM_INPUT_CLASS =
-  "w-full rounded border border-[#ced4da] bg-white px-3.5 py-[7px] font-open-sans text-base text-[#00204a] placeholder:text-[#6c757d] focus:border-[#9e6f21] focus:outline-none focus:ring-2 focus:ring-[#9e6f21]/30 disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full rounded border border-[#ced4da] bg-white px-3.5 py-[7px] font-open-sans text-base text-neutral-900 placeholder:text-[#6c757d] focus:border-secondary-500 focus:outline-hidden focus:ring-2 focus:ring-secondary-500/30 disabled:cursor-not-allowed disabled:opacity-50";
 
 export const FORM_ERROR_CLASS = "mt-1 text-xs text-[#dc3545]";
 
 /** Auth forms use slightly different text colour — re-export for parity. */
-export const FORM_INPUT_AUTH_CLASS = cn(FORM_INPUT_CLASS, "text-[#3b5374]");
+export const FORM_INPUT_AUTH_CLASS = cn(FORM_INPUT_CLASS, "text-neutral-500");
 
 /** GF/contact light-palette override (neutral tokens, pinned light). */
 export const MARKETING_FIELD_CLASS =
@@ -26,9 +26,9 @@ export const formInputVariants = cva(FORM_INPUT_CLASS, {
   variants: {
     variant: {
       default: "",
-      auth: "text-[#3b5374]",
+      auth: "text-neutral-500",
       compact:
-        "h-12 rounded-l border-[#ebedf1] px-[13px] py-[7px] placeholder:text-[#75879d] focus:ring-1",
+        "h-12 rounded-l border-neutral-30 px-[13px] py-[7px] placeholder:text-neutral-100 focus:ring-1",
     },
     hasError: {
       true: "border-[#dc3545] focus:border-[#dc3545] focus:ring-[#dc3545]/30",

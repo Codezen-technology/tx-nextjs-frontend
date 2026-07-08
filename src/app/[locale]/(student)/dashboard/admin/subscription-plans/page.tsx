@@ -72,7 +72,7 @@ function ProductPicker({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
+        className="border-input bg-background ring-offset-background hover:bg-accent focus:ring-ring flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-hidden"
       >
         <span className={selected ? "text-foreground" : "text-muted-foreground"}>
           {selected ? `${selected.name} — £${selected.price}` : "No product (show Invoice CTA)"}
@@ -81,7 +81,7 @@ function ProductPicker({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+        <div className="bg-popover absolute z-50 mt-1 w-full rounded-md border shadow-md">
           <div className="p-2">
             <Input
               placeholder="Search products…"
@@ -100,8 +100,8 @@ function ProductPicker({
                   setOpen(false);
                 }}
                 className={cn(
-                  "flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent",
-                  value === 0 && "font-semibold text-lms-primary",
+                  "hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-sm",
+                  value === 0 && "text-lms-primary font-semibold",
                 )}
               >
                 {value === 0 && <Check className="h-4 w-4 shrink-0" />}
@@ -117,20 +117,20 @@ function ProductPicker({
                     setOpen(false);
                   }}
                   className={cn(
-                    "flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent",
-                    value === p.id && "font-semibold text-lms-primary",
+                    "hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-sm",
+                    value === p.id && "text-lms-primary font-semibold",
                   )}
                 >
                   {value === p.id && <Check className="h-4 w-4 shrink-0" />}
                   <span className={value === p.id ? "" : "pl-6"}>
                     {p.name}
-                    <span className="ml-2 text-muted-foreground">£{p.price}</span>
+                    <span className="text-muted-foreground ml-2">£{p.price}</span>
                   </span>
                 </button>
               </li>
             ))}
             {filtered.length === 0 && (
-              <li className="px-3 py-2 text-sm text-muted-foreground">No products found.</li>
+              <li className="text-muted-foreground px-3 py-2 text-sm">No products found.</li>
             )}
           </ul>
         </div>
@@ -181,7 +181,7 @@ function FeatureEditor({
           <button
             type="button"
             onClick={() => remove(i)}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-muted-foreground hover:text-destructive"
+            className="text-muted-foreground hover:text-destructive flex h-7 w-7 shrink-0 items-center justify-center rounded"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -190,7 +190,7 @@ function FeatureEditor({
       <button
         type="button"
         onClick={add}
-        className="flex items-center gap-1.5 text-sm font-medium text-lms-primary hover:underline"
+        className="text-lms-primary flex items-center gap-1.5 text-sm font-medium hover:underline"
       >
         <Plus className="h-4 w-4" />
         Add feature
@@ -238,7 +238,7 @@ function PlanCard({
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Product picker */}
         <div className="sm:col-span-2">
-          <Label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#586973]">
+          <Label className="mb-1.5 block text-xs font-semibold tracking-wide text-[#586973] uppercase">
             WooCommerce Product
           </Label>
           <ProductPicker
@@ -252,7 +252,7 @@ function PlanCard({
         <div>
           <Label
             htmlFor={`${type}-label`}
-            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#586973]"
+            className="mb-1.5 block text-xs font-semibold tracking-wide text-[#586973] uppercase"
           >
             Plan Label
           </Label>
@@ -268,7 +268,7 @@ function PlanCard({
         <div>
           <Label
             htmlFor={`${type}-billing`}
-            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#586973]"
+            className="mb-1.5 block text-xs font-semibold tracking-wide text-[#586973] uppercase"
           >
             Billing Text
           </Label>
@@ -285,7 +285,7 @@ function PlanCard({
         <div>
           <Label
             htmlFor={`${type}-cta`}
-            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#586973]"
+            className="mb-1.5 block text-xs font-semibold tracking-wide text-[#586973] uppercase"
           >
             Button Text (CTA)
           </Label>
@@ -301,9 +301,9 @@ function PlanCard({
         <div>
           <Label
             htmlFor={`${type}-invoice-url`}
-            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#586973]"
+            className="mb-1.5 block text-xs font-semibold tracking-wide text-[#586973] uppercase"
           >
-            Invoice / Contact URL{!hasProduct && <span className="ml-1 text-destructive">*</span>}
+            Invoice / Contact URL{!hasProduct && <span className="text-destructive ml-1">*</span>}
           </Label>
           <Input
             id={`${type}-invoice-url`}
@@ -325,7 +325,7 @@ function PlanCard({
           <div className="sm:col-span-2">
             <Label
               htmlFor="team-subtitle"
-              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#586973]"
+              className="mb-1.5 block text-xs font-semibold tracking-wide text-[#586973] uppercase"
             >
               Subtitle
             </Label>
@@ -349,7 +349,7 @@ function PlanCard({
             aria-checked={plan.featured}
             onClick={() => onChange({ ...plan, featured: !plan.featured })}
             className={cn(
-              "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-ring",
+              "focus:ring-ring relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:ring-2 focus:outline-hidden",
               plan.featured ? "bg-lms-primary" : "bg-[#d1d5db]",
             )}
           >
@@ -362,13 +362,13 @@ function PlanCard({
           </button>
           <span className="text-sm font-medium text-[#2e4450]">
             Featured plan
-            {plan.featured && <span className="ml-1 text-lms-primary">(⭐ highlighted)</span>}
+            {plan.featured && <span className="text-lms-primary ml-1">(⭐ highlighted)</span>}
           </span>
         </div>
 
         {/* Features editor */}
         <div className="sm:col-span-2">
-          <Label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-[#586973]">
+          <Label className="mb-2 block text-xs font-semibold tracking-wide text-[#586973] uppercase">
             What&apos;s Included
           </Label>
           <FeatureEditor
@@ -440,7 +440,7 @@ export default function AdminSubscriptionPlansPage() {
         <Button
           onClick={handleSave}
           disabled={!dirty || saving || !draft}
-          className="hover:bg-lms-primary/90 shrink-0 bg-lms-primary"
+          className="hover:bg-lms-primary/90 bg-lms-primary shrink-0"
         >
           {saving ? (
             <>
@@ -463,7 +463,7 @@ export default function AdminSubscriptionPlansPage() {
 
       {settingsError && <DashboardErrorBanner />}
       {saveError && (
-        <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+        <div className="border-destructive/30 bg-destructive/10 text-destructive mb-4 rounded-lg border p-3 text-sm">
           Failed to save. Please try again.
         </div>
       )}

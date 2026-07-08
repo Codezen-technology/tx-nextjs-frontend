@@ -70,7 +70,7 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
 
   if (!groups.length) {
     return (
-      <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+      <p className="text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
         Curriculum is not available yet.
       </p>
     );
@@ -78,7 +78,7 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900 sm:text-[38px]">
+      <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900 sm:text-[38px]">
         Course Curriculum
       </h2>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -89,18 +89,18 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
         </p>
         <button
           onClick={toggleAll}
-          className="text-sm font-medium text-secondary-500 hover:underline"
+          className="text-secondary-500 text-sm font-medium hover:underline"
         >
           {allExpanded ? "Collapse all sections" : "Expand all sections"}
         </button>
       </div>
 
       {/* Sections */}
-      <div className="overflow-hidden rounded-lg border border-[#ebedf1] bg-white shadow-sm">
+      <div className="border-neutral-30 overflow-hidden rounded-lg border bg-white shadow-xs">
         {groups.map((group, gi) => {
           const isOpen = openSections.has(gi);
           return (
-            <div key={gi} className="border-b border-[#ebedf1] last:border-b-0">
+            <div key={gi} className="border-neutral-30 border-b last:border-b-0">
               {/* Section header */}
               <button
                 onClick={() => toggleSection(gi)}
@@ -125,7 +125,7 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
               </button>
 
               {/* Units — always in DOM for SEO; visually hidden when collapsed */}
-              <ul className={cn("divide-y divide-[#ebedf1]", !isOpen && "hidden")}>
+              <ul className={cn("divide-neutral-30 divide-y", !isOpen && "hidden")}>
                 {group.units.map((unit, ui) => (
                   <li
                     key={ui}
@@ -137,7 +137,7 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
                     </div>
                     <div className="flex shrink-0 items-center gap-3 text-xs text-neutral-400">
                       {unit.is_free_preview ? (
-                        <span className="rounded bg-secondary-50 px-1.5 py-0.5 font-medium text-secondary-600">
+                        <span className="bg-secondary-50 text-secondary-600 rounded px-1.5 py-0.5 font-medium">
                           Preview
                         </span>
                       ) : null}

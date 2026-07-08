@@ -36,7 +36,7 @@ export function BlogCard({ post, category, className }: BlogCardProps) {
   return (
     <div
       className={cn(
-        "flex flex-col overflow-hidden rounded-lg border border-[#ebedf1] bg-white transition-shadow hover:shadow-md",
+        "border-neutral-30 flex flex-col overflow-hidden rounded-lg border bg-white transition-shadow hover:shadow-md",
         className,
       )}
     >
@@ -51,13 +51,13 @@ export function BlogCard({ post, category, className }: BlogCardProps) {
               className="object-cover transition-transform duration-300 hover:scale-105"
             />
           ) : (
-            <div className="h-full w-full bg-primary-50" />
+            <div className="bg-primary-50 h-full w-full" />
           )}
         </div>
       </Link>
 
       <div className="flex flex-1 flex-col gap-2 px-6 py-4">
-        <div className="flex items-center gap-0 font-open-sans text-sm font-semibold">
+        <div className="font-open-sans flex items-center gap-0 text-sm font-semibold">
           {category ? <span className="text-primary-500">{category.name}</span> : null}
           {category && <span className="mx-2 text-neutral-400">•</span>}
           <span className="text-neutral-400">{formatDate(post.date)}</span>
@@ -71,18 +71,18 @@ export function BlogCard({ post, category, className }: BlogCardProps) {
 
         <div className="flex flex-col gap-2">
           <Link href={`/blog/${post.slug}`}>
-            <h3 className="line-clamp-2 font-suse text-xl font-bold leading-snug text-[#00204a] transition-colors hover:text-primary-500">
+            <h3 className="font-suse hover:text-primary-500 line-clamp-2 text-xl leading-snug font-bold text-neutral-900 transition-colors">
               {title}
             </h3>
           </Link>
           {excerpt && (
-            <p className="line-clamp-3 font-open-sans text-base text-[#3b5374]">{excerpt}</p>
+            <p className="font-open-sans line-clamp-3 text-base text-neutral-500">{excerpt}</p>
           )}
         </div>
 
         <Link
           href={`/blog/${post.slug}`}
-          className="mt-auto inline-flex items-center gap-1 font-open-sans text-base text-secondary-500 transition-colors hover:text-secondary-600"
+          className="font-open-sans text-secondary-500 hover:text-secondary-600 mt-auto inline-flex items-center gap-1 text-base transition-colors"
         >
           Read more <span aria-hidden>→</span>
         </Link>

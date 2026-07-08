@@ -40,13 +40,13 @@ export function CategoriesScroller({ categories }: { categories?: CourseCategory
         type="button"
         onClick={() => scrollBy(-200)}
         aria-label="Scroll categories left"
-        className="z-10 shrink-0 rounded p-0.5 text-white/60 opacity-0 transition-all hover:text-white group-hover:opacity-100"
+        className="z-10 shrink-0 rounded p-0.5 text-white/60 opacity-0 transition-all group-hover:opacity-100 hover:text-white"
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
 
       {/* Scrollable track with auto-scroll illusion via marquee when not hovered */}
-      <div className="relative min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+      <div className="relative min-w-0 flex-1 overflow-hidden mask-[linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
         {/* Auto-scroll strip — hidden when hovered */}
         <div
           style={{ animationDuration: "80s" }}
@@ -61,7 +61,7 @@ export function CategoriesScroller({ categories }: { categories?: CourseCategory
         {/* Manual scroll track — shown when hovered */}
         <div
           ref={trackRef}
-          className={`flex items-center gap-0 overflow-x-auto transition-opacity duration-200 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${paused ? "opacity-100" : "pointer-events-none absolute inset-0 opacity-0"}`}
+          className={`flex scrollbar-none items-center gap-0 overflow-x-auto transition-opacity duration-200 [&::-webkit-scrollbar]:hidden ${paused ? "opacity-100" : "pointer-events-none absolute inset-0 opacity-0"}`}
           aria-hidden={!paused}
         >
           {items.map((cat, i) => (
@@ -75,7 +75,7 @@ export function CategoriesScroller({ categories }: { categories?: CourseCategory
         type="button"
         onClick={() => scrollBy(200)}
         aria-label="Scroll categories right"
-        className="z-10 shrink-0 rounded p-0.5 text-white/60 opacity-0 transition-all hover:text-white group-hover:opacity-100"
+        className="z-10 shrink-0 rounded p-0.5 text-white/60 opacity-0 transition-all group-hover:opacity-100 hover:text-white"
       >
         <ChevronRight className="h-4 w-4" />
       </button>
@@ -88,7 +88,7 @@ function Item({ name, slug }: { name: string; slug: string }) {
     <span className="ml-2 flex shrink-0 items-center gap-6">
       <Link
         href={`/course-cat/${slug}`}
-        className="whitespace-nowrap font-open-sans text-base font-normal leading-[1.5] text-white transition-colors hover:text-white/80"
+        className="font-open-sans text-base leading-normal font-normal whitespace-nowrap text-white transition-colors hover:text-white/80"
       >
         {name}
       </Link>

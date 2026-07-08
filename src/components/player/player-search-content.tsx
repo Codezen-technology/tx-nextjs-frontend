@@ -35,9 +35,9 @@ export function PlayerSearchContent({ items, courseId }: PlayerSearchContentProp
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search course content"
-            className="w-full rounded-md border border-gray-300 py-3 pl-4 pr-24 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-md border border-gray-300 py-3 pr-24 pl-4 focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
           />
-          <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
+          <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-2">
             {searchQuery ? (
               <button
                 type="button"

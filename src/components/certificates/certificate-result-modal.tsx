@@ -15,10 +15,10 @@ export interface VerifyResult {
 function InfoField({ label, value }: { label: string; value: string }) {
   return (
     <div className="space-y-1">
-      <p className="font-open-sans text-xs font-semibold uppercase tracking-wide text-[#3b5374]">
+      <p className="font-open-sans text-xs font-semibold tracking-wide text-neutral-500 uppercase">
         {label}
       </p>
-      <div className="rounded border border-[#ebedf1] bg-white px-3 py-2 font-open-sans text-sm text-[#00204a]">
+      <div className="border-neutral-30 font-open-sans rounded border bg-white px-3 py-2 text-sm text-neutral-900">
         {value}
       </div>
     </div>
@@ -58,7 +58,7 @@ export function CertificateResultModal({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-200 flex items-center justify-center bg-black/50 p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -68,8 +68,8 @@ export function CertificateResultModal({
     >
       <div className="w-full max-w-xl overflow-hidden rounded-xl bg-white shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#ebedf1] px-5 py-4">
-          <p className="font-suse text-base font-bold text-[#00204a]">Certificate Validator</p>
+        <div className="border-neutral-30 flex items-center justify-between border-b px-5 py-4">
+          <p className="font-suse text-base font-bold text-neutral-900">Certificate Validator</p>
           <button
             onClick={onClose}
             aria-label="Close"
@@ -93,7 +93,7 @@ export function CertificateResultModal({
             <div className="flex flex-col gap-5 bg-[#f5f3ee] p-5 sm:flex-row">
               {/* Left: information fields */}
               <div className="flex-1 space-y-3">
-                <p className="font-suse text-base font-bold text-[#00204a]">Information</p>
+                <p className="font-suse text-base font-bold text-neutral-900">Information</p>
                 <InfoField label="Student name" value={result.student_name ?? "—"} />
                 <InfoField label="Course name" value={result.course?.title ?? "—"} />
                 <InfoField label="Certificate code" value={result.code} />
@@ -103,8 +103,8 @@ export function CertificateResultModal({
               {/* Right: PDF preview — no toolbar, no download, overlay blocks interaction */}
               {result.certificate_url && (
                 <div className="flex w-full flex-col gap-2 sm:w-[200px]">
-                  <p className="font-suse text-base font-bold text-[#00204a]">Certificate</p>
-                  <div className="relative h-[180px] overflow-hidden rounded border border-[#ebedf1] bg-white shadow-sm">
+                  <p className="font-suse text-base font-bold text-neutral-900">Certificate</p>
+                  <div className="border-neutral-30 relative h-[180px] overflow-hidden rounded border bg-white shadow-xs">
                     <iframe
                       src={`${result.certificate_url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
                       title="Certificate preview"
@@ -134,7 +134,7 @@ export function CertificateResultModal({
             </p>
             <button
               onClick={onClose}
-              className="mt-2 rounded bg-secondary-500 px-6 py-2 font-open-sans text-sm font-semibold text-white hover:bg-secondary-600"
+              className="bg-secondary-500 font-open-sans hover:bg-secondary-600 mt-2 rounded px-6 py-2 text-sm font-semibold text-white"
             >
               Try again
             </button>

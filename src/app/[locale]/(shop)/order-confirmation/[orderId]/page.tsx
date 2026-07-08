@@ -30,8 +30,8 @@ function formatPurchaseDate(iso?: string): string {
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex w-full items-start justify-between gap-6">
-      <span className="font-suse text-lg font-medium text-[#3b5374] sm:text-xl">{label}</span>
-      <span className="text-right font-suse text-lg font-bold text-[#00204a] sm:text-xl">
+      <span className="font-suse text-lg font-medium text-neutral-500 sm:text-xl">{label}</span>
+      <span className="font-suse text-right text-lg font-bold text-neutral-900 sm:text-xl">
         {children}
       </span>
     </div>
@@ -74,10 +74,10 @@ export default function OrderConfirmationPage() {
   if (isError) {
     return (
       <div className="container py-20 text-center">
-        <p className="text-[#3b5374]">
+        <p className="text-neutral-500">
           We could not load your order. Check your confirmation email or log in to view orders.
         </p>
-        <Link href="/login" className="mt-4 inline-block text-[#9e6f21] underline">
+        <Link href="/login" className="text-secondary-500 mt-4 inline-block underline">
           Log in
         </Link>
       </div>
@@ -107,7 +107,7 @@ export default function OrderConfirmationPage() {
   const loginHref = loginEmail ? `/login?email=${encodeURIComponent(loginEmail)}` : "/login";
 
   return (
-    <div className="min-h-screen bg-[#fafbfb]">
+    <div className="bg-neutral-10 min-h-screen">
       <div className="container py-12 sm:py-16">
         <div className="mx-auto flex w-full max-w-[636px] flex-col items-center gap-10 rounded-lg bg-white p-6 shadow-[0_8px_16px_rgba(0,0,0,0.15)] sm:gap-[53px] sm:p-10">
           {/* Header: success icon + headings */}
@@ -119,22 +119,22 @@ export default function OrderConfirmationPage() {
             </div>
 
             <div className="flex w-full flex-col items-center gap-3">
-              <p className="font-suse text-[28px] font-medium leading-tight text-[#198754] sm:text-[32px]">
+              <p className="font-suse text-[28px] leading-tight font-medium text-[#198754] sm:text-[32px]">
                 Payment Success!
               </p>
-              <h1 className="font-suse text-[32px] font-bold leading-[1.2] text-[#00204a] sm:text-[40px]">
+              <h1 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900 sm:text-[40px]">
                 Thank you for your purchase{firstName ? `, ${firstName}` : ""}!
               </h1>
               {order?.billing?.email && (
-                <p className="max-w-[455px] text-base text-[#3b5374]">
+                <p className="max-w-[455px] text-base text-neutral-500">
                   We&apos;ve sent an email with next steps to{" "}
-                  <strong className="text-[#00204a]">{order.billing.email}</strong>
+                  <strong className="text-neutral-900">{order.billing.email}</strong>
                 </p>
               )}
             </div>
           </div>
 
-          <div className="h-px w-full bg-[#ebedf1]" />
+          <div className="bg-neutral-30 h-px w-full" />
 
           {/* Payment details */}
           <div className="flex w-full flex-col items-center gap-6">
@@ -144,14 +144,14 @@ export default function OrderConfirmationPage() {
               {order?.payment_method_title && (
                 <DetailRow label="Payment Method">
                   <span className="inline-flex items-center gap-2">
-                    <CreditCard className="size-5 text-[#00204a]" />
+                    <CreditCard className="size-5 text-neutral-900" />
                     {order.payment_method_title}
                   </span>
                 </DetailRow>
               )}
             </div>
 
-            <div className="h-px w-full bg-[#ebedf1]" />
+            <div className="bg-neutral-30 h-px w-full" />
 
             {/* Amounts */}
             <div className="flex w-full flex-col gap-5">
@@ -160,7 +160,7 @@ export default function OrderConfirmationPage() {
                 {subtotal.toFixed(2)}
               </DetailRow>
               {discount > 0 && (
-                <div className="flex w-full items-start justify-between gap-6 font-suse text-lg font-bold text-[#dc3545] sm:text-xl">
+                <div className="font-suse flex w-full items-start justify-between gap-6 text-lg font-bold text-[#dc3545] sm:text-xl">
                   <span className="flex-1">Discount</span>
                   <span className="text-right">
                     -{symbol}
@@ -181,13 +181,13 @@ export default function OrderConfirmationPage() {
             </div>
           </div>
 
-          <div className="h-px w-full bg-[#ebedf1]" />
+          <div className="bg-neutral-30 h-px w-full" />
 
           {accountExists && !isLoggedIn && loginEmail && (
-            <p className="w-full text-center text-base text-[#3b5374]">
-              An account already exists for <strong className="text-[#00204a]">{loginEmail}</strong>
-              .{" "}
-              <Link href={loginHref} className="font-bold text-[#9e6f21] underline">
+            <p className="w-full text-center text-base text-neutral-500">
+              An account already exists for{" "}
+              <strong className="text-neutral-900">{loginEmail}</strong>.{" "}
+              <Link href={loginHref} className="text-secondary-500 font-bold underline">
                 Log in
               </Link>{" "}
               to access your courses.
@@ -198,21 +198,21 @@ export default function OrderConfirmationPage() {
           <div className="flex w-full flex-col gap-4 sm:flex-row sm:gap-6">
             <Link
               href="/courses"
-              className="flex flex-1 items-center justify-center rounded border border-[#9e6f21] px-4 py-2.5 text-base font-medium text-[#9e6f21] transition-colors hover:bg-[#f5f1e9]"
+              className="border-secondary-500 text-secondary-500 hover:bg-secondary-50 flex flex-1 items-center justify-center rounded border px-4 py-2.5 text-base font-medium transition-colors"
             >
               Browse more courses
             </Link>
             {isLoggedIn ? (
               <Link
                 href="/dashboard"
-                className="flex flex-1 items-center justify-center rounded border border-[#9e6f21] bg-[#9e6f21] px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#7d5819]"
+                className="border-secondary-500 bg-secondary-500 flex flex-1 items-center justify-center rounded border px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#7d5819]"
               >
                 Start Learning
               </Link>
             ) : (
               <Link
                 href={loginHref}
-                className="flex flex-1 items-center justify-center rounded border border-[#9e6f21] bg-[#9e6f21] px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#7d5819]"
+                className="border-secondary-500 bg-secondary-500 flex flex-1 items-center justify-center rounded border px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#7d5819]"
               >
                 Log in to start learning
               </Link>

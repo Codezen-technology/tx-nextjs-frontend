@@ -15,7 +15,7 @@ function ExpertCard({ expert }: { expert: CourseExpert }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="rounded-xl border border-[#ebedf1] bg-white p-6 shadow-sm">
+    <div className="border-neutral-30 rounded-xl border bg-white p-6 shadow-xs">
       <div className="flex items-start gap-4">
         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-neutral-100">
           {isRenderableImageSrc(expert.image?.full) ? (
@@ -49,12 +49,12 @@ function ExpertCard({ expert }: { expert: CourseExpert }) {
       {expert.bio ? (
         <div className="mt-4">
           <div
-            className={`prose prose-sm prose-neutral max-w-none text-neutral-600 overflow-hidden transition-all duration-300 ${expanded ? "" : "line-clamp-3"}`}
+            className={`prose prose-sm prose-neutral max-w-none overflow-hidden text-neutral-600 transition-all duration-300 ${expanded ? "" : "line-clamp-3"}`}
             dangerouslySetInnerHTML={{ __html: expert.bio }}
           />
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="mt-2 text-sm font-medium text-secondary-500 hover:underline"
+            className="text-secondary-500 mt-2 text-sm font-medium hover:underline"
           >
             {expanded ? "Show less" : "Show bio"}
           </button>
@@ -70,10 +70,10 @@ export function CourseExperts({ experts }: CourseExpertsProps) {
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900 sm:text-[38px]">
+        <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900 sm:text-[38px]">
           Empower and Engage
         </h2>
-        <p className="mt-4 font-open-sans text-base leading-[1.5] text-neutral-600">
+        <p className="font-open-sans mt-4 text-base leading-normal text-neutral-600">
           Our expert Learning Designers craft every course to provide your learners with the most
           engaging and impactful training experience.
         </p>

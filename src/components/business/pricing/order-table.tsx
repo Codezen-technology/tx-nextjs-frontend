@@ -29,7 +29,7 @@ function OrderRow({ item, onQtyChange, onRemove }: OrderRowProps) {
               const v = parseInt(e.target.value, 10);
               if (!Number.isNaN(v) && v >= 1) onQtyChange(item.courseId, v);
             }}
-            className="w-12 rounded border border-neutral-200 px-1 py-0.5 text-center text-sm font-semibold [appearance:textfield] focus:outline-none focus:ring-2 focus:ring-[#3F576F]/30 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            className="w-12 [appearance:textfield] rounded border border-neutral-200 px-1 py-0.5 text-center text-sm font-semibold focus:ring-2 focus:ring-[#3F576F]/30 focus:outline-hidden [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           />
           <button
             type="button"
@@ -40,10 +40,10 @@ function OrderRow({ item, onQtyChange, onRemove }: OrderRowProps) {
           </button>
         </div>
       </td>
-      <td className="whitespace-nowrap py-3 pr-4 text-sm text-neutral-600">
+      <td className="py-3 pr-4 text-sm whitespace-nowrap text-neutral-600">
         £{item.pricePerLicence.toFixed(2)}/licence
       </td>
-      <td className="whitespace-nowrap py-3 pr-2 text-right text-sm text-neutral-800">
+      <td className="py-3 pr-2 text-right text-sm whitespace-nowrap text-neutral-800">
         £{item.lineSubtotal.toFixed(2)}
       </td>
       <td className="py-3 pl-2">
@@ -78,11 +78,11 @@ export function OrderTable({ items, onQtyChange, onRemove }: OrderTableProps) {
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="border-b text-left text-xs uppercase tracking-wide text-neutral-500">
-          <th className="pb-2 pr-4 font-medium">Course</th>
-          <th className="pb-2 pr-4 font-medium">Quantity</th>
-          <th className="pb-2 pr-4 font-medium">Price</th>
-          <th className="pb-2 pr-2 text-right font-medium">Subtotal</th>
+        <tr className="border-b text-left text-xs tracking-wide text-neutral-500 uppercase">
+          <th className="pr-4 pb-2 font-medium">Course</th>
+          <th className="pr-4 pb-2 font-medium">Quantity</th>
+          <th className="pr-4 pb-2 font-medium">Price</th>
+          <th className="pr-2 pb-2 text-right font-medium">Subtotal</th>
           <th className="pb-2 pl-2" />
         </tr>
       </thead>

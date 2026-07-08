@@ -30,20 +30,20 @@ export default async function CertificatePage() {
   return (
     <>
       {/* ── Hero ──────────────────────────────────────────────────────── */}
-      <section className="bg-[#0d2b53]">
+      <section className="bg-neutral-800">
         <div className="container py-14">
           <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
             <div className="max-w-2xl">
-              <h1 className="font-suse text-3xl font-bold leading-tight text-white md:text-4xl">
+              <h1 className="font-suse text-3xl leading-tight font-bold text-white md:text-4xl">
                 Power Your Professional Growth with CPD Certification &amp; Transcript
               </h1>
               <ul className="mt-6 space-y-3">
                 {BENEFITS.map((b) => (
                   <li
                     key={b}
-                    className="flex items-center gap-3 font-open-sans text-sm text-[#ebedf1]"
+                    className="font-open-sans text-neutral-30 flex items-center gap-3 text-sm"
                   >
-                    <CheckCircle2 className="h-5 w-5 shrink-0 text-[#00bbf0]" />
+                    <CheckCircle2 className="text-primary-500 h-5 w-5 shrink-0" />
                     {b}
                   </li>
                 ))}
@@ -66,17 +66,17 @@ export default async function CertificatePage() {
           <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
             <div className="space-y-8">
               {/* CPD accreditation strip */}
-              <div className="flex flex-col items-center justify-between gap-4 rounded-2xl bg-[#0d2b53] px-6 py-5 sm:flex-row">
+              <div className="flex flex-col items-center justify-between gap-4 rounded-2xl bg-neutral-800 px-6 py-5 sm:flex-row">
                 <p className="font-suse text-base font-semibold text-white">
                   Get an Official Accredited Certificate Directly from CPD Service
                 </p>
-                <span className="rounded-full bg-[#00bbf0] px-5 py-2 text-sm font-semibold text-[#0d2b53]">
+                <span className="bg-primary-500 rounded-full px-5 py-2 text-sm font-semibold text-neutral-800">
                   CPD Accredited
                 </span>
               </div>
 
-              <div className="rounded-2xl border border-neutral-200 p-6 shadow-sm md:p-8">
-                <h2 className="mb-6 font-suse text-2xl font-bold text-neutral-900">
+              <div className="rounded-2xl border border-neutral-200 p-6 shadow-xs md:p-8">
+                <h2 className="font-suse mb-6 text-2xl font-bold text-neutral-900">
                   Order Your New Certificate
                 </h2>
                 <CertificateForm />
@@ -85,7 +85,7 @@ export default async function CertificatePage() {
 
             {/* Promo sidebar */}
             <aside className="hidden lg:block">
-              <div className="flex h-[453px] items-center justify-center rounded-2xl bg-gradient-to-b from-[#0d2b53] to-[#1c395e] p-6 text-center">
+              <div className="flex h-[453px] items-center justify-center rounded-2xl bg-linear-to-b from-neutral-800 to-neutral-700 p-6 text-center">
                 <span className="font-suse text-lg font-semibold text-white/90">
                   Promotional Banner
                 </span>

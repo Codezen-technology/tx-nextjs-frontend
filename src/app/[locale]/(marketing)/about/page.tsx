@@ -98,7 +98,7 @@ function CheckList({ points }: { points: string[] }) {
     <ul className="mt-6 space-y-3">
       {points.map((point) => (
         <li key={point} className="flex items-start gap-3">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-secondary-500" />
+          <CheckCircle2 className="text-secondary-500 mt-0.5 h-5 w-5 shrink-0" />
           <span className="font-open-sans text-sm text-neutral-600">{point}</span>
         </li>
       ))}
@@ -110,9 +110,9 @@ function SectionImage({ label }: { label: string }) {
   return (
     <div
       aria-hidden="true"
-      className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-gradient-to-br from-primary-50 to-primary-100"
+      className="from-primary-50 to-primary-100 flex aspect-4/3 w-full items-center justify-center rounded-xl bg-linear-to-br"
     >
-      <span className="px-6 text-center font-suse text-lg font-bold text-primary-300">{label}</span>
+      <span className="font-suse text-primary-300 px-6 text-center text-lg font-bold">{label}</span>
     </div>
   );
 }
@@ -127,17 +127,17 @@ export default function AboutPage() {
 
       <section className="bg-primary-50 py-16 text-center">
         <div className="container">
-          <p className="font-open-sans text-sm font-semibold uppercase tracking-wide text-secondary-500">
+          <p className="font-open-sans text-secondary-500 text-sm font-semibold tracking-wide uppercase">
             About us
           </p>
-          <h1 className="mt-2 font-suse text-4xl font-bold text-neutral-900 sm:text-5xl">
+          <h1 className="font-suse mt-2 text-4xl font-bold text-neutral-900 sm:text-5xl">
             Empowering Careers, Ensuring Compliance.
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl font-open-sans text-neutral-500">
+          <p className="font-open-sans mx-auto mt-4 max-w-2xl text-neutral-500">
             Expert-led training to enhance skills, ensure compliance, and support career growth.
           </p>
           <div className="mt-8 flex justify-center gap-3">
-            <Button asChild className="bg-secondary-500 text-white hover:bg-secondary-600">
+            <Button asChild className="bg-secondary-500 hover:bg-secondary-600 text-white">
               <Link href="/all-courses">Find a course</Link>
             </Button>
             <Button asChild variant="outline">
@@ -152,7 +152,7 @@ export default function AboutPage() {
           <h2 className="font-suse text-3xl font-bold text-neutral-900">
             Our Commitment to Excellence
           </h2>
-          <p className="mt-4 font-open-sans text-neutral-500">
+          <p className="font-open-sans mt-4 text-neutral-500">
             At Training Excellence, we are committed to delivering flexible, accessible, and fully
             accredited online training that helps individuals upskill, stay compliant, and grow
             their careers — and helps businesses keep their teams safe and certified.
@@ -164,7 +164,7 @@ export default function AboutPage() {
         <div className="container grid grid-cols-1 items-center gap-10 lg:grid-cols-2">
           <div>
             <h2 className="font-suse text-2xl font-bold text-neutral-900">What We Offer?</h2>
-            <p className="mt-3 font-open-sans text-sm text-neutral-500">
+            <p className="font-open-sans mt-3 text-sm text-neutral-500">
               Whether you&apos;re an individual or an organisation, our course library covers the
               compliance and professional skills you need.
             </p>
@@ -179,7 +179,7 @@ export default function AboutPage() {
           <SectionImage label="Train anywhere, anytime" />
           <div>
             <h2 className="font-suse text-2xl font-bold text-neutral-900">Why Train with Us?</h2>
-            <p className="mt-3 font-open-sans text-sm text-neutral-500">
+            <p className="font-open-sans mt-3 text-sm text-neutral-500">
               We are dedicated to removing every barrier between you and your next certificate.
             </p>
             <CheckList points={TRAIN_POINTS} />
@@ -193,12 +193,12 @@ export default function AboutPage() {
             <h2 className="font-suse text-2xl font-bold text-neutral-900">
               Train Your Workforce with Confidence
             </h2>
-            <p className="mt-3 font-open-sans text-sm text-neutral-500">
+            <p className="font-open-sans mt-3 text-sm text-neutral-500">
               A team-based approach makes workplace compliance simpler, smarter, and easier to
               manage — for businesses of any size.
             </p>
             <CheckList points={WORKFORCE_POINTS} />
-            <Button asChild className="mt-8 bg-secondary-500 text-white hover:bg-secondary-600">
+            <Button asChild className="bg-secondary-500 hover:bg-secondary-600 mt-8 text-white">
               <Link href="/contact-us?enquiry=teams">Talk to our team</Link>
             </Button>
           </div>
@@ -206,20 +206,20 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="mt-10 bg-primary-50 py-16">
+      <section className="bg-primary-50 mt-10 py-16">
         <div className="container">
-          <h2 className="mx-auto max-w-2xl text-center font-suse text-2xl font-bold text-neutral-900">
+          <h2 className="font-suse mx-auto max-w-2xl text-center text-2xl font-bold text-neutral-900">
             We value excellence, flexibility, and integrity, empowering growth through quality
             training.
           </h2>
           <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {VALUES.map(({ icon: Icon, title, description }) => (
               <div key={title} className="text-center">
-                <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white text-secondary-500 shadow-sm">
+                <span className="text-secondary-500 mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-xs">
                   <Icon className="h-5 w-5" />
                 </span>
-                <h3 className="mt-4 font-suse text-lg font-bold text-neutral-900">{title}</h3>
-                <p className="mt-2 font-open-sans text-sm text-neutral-500">{description}</p>
+                <h3 className="font-suse mt-4 text-lg font-bold text-neutral-900">{title}</h3>
+                <p className="font-open-sans mt-2 text-sm text-neutral-500">{description}</p>
               </div>
             ))}
           </div>
@@ -228,13 +228,13 @@ export default function AboutPage() {
 
       <section className="py-16">
         <div className="container text-center">
-          <p className="font-open-sans text-sm font-semibold uppercase tracking-wide text-secondary-500">
+          <p className="font-open-sans text-secondary-500 text-sm font-semibold tracking-wide uppercase">
             Our journey
           </p>
-          <h2 className="mt-2 font-suse text-3xl font-bold text-neutral-900">
+          <h2 className="font-suse mt-2 text-3xl font-bold text-neutral-900">
             We&apos;re just getting started
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl font-open-sans text-neutral-500">
+          <p className="font-open-sans mx-auto mt-4 max-w-2xl text-neutral-500">
             Our platform is trusted by learners and growing businesses across the UK — and we keep
             adding new accredited courses every month.
           </p>
@@ -246,8 +246,8 @@ export default function AboutPage() {
               { value: "14-day", label: "Money-back guarantee" },
             ].map(({ value, label }) => (
               <div key={label}>
-                <p className="font-suse text-3xl font-bold text-secondary-500">{value}</p>
-                <p className="mt-1 font-open-sans text-sm text-neutral-500">{label}</p>
+                <p className="font-suse text-secondary-500 text-3xl font-bold">{value}</p>
+                <p className="font-open-sans mt-1 text-sm text-neutral-500">{label}</p>
               </div>
             ))}
           </div>

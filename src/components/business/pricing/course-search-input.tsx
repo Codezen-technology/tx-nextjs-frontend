@@ -50,7 +50,7 @@ export function CourseSearchInput({ cartCourseIds, onSelect }: CourseSearchInput
           }}
           onFocus={() => setOpen(true)}
           placeholder="Search for courses..."
-          className="flex-1 px-4 py-2.5 text-sm outline-none"
+          className="flex-1 px-4 py-2.5 text-sm outline-hidden"
         />
         <div className="px-3 text-neutral-400">
           {isFetching ? (
@@ -62,7 +62,7 @@ export function CourseSearchInput({ cartCourseIds, onSelect }: CourseSearchInput
       </div>
 
       {open && query.length > 1 && (
-        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-lg border border-neutral-200 bg-white shadow-lg">
+        <div className="absolute top-full right-0 left-0 z-20 mt-1 max-h-60 overflow-y-auto rounded-lg border border-neutral-200 bg-white shadow-lg">
           {filtered.length === 0 ? (
             <div className="px-4 py-3 text-sm text-neutral-500">
               {isFetching ? "Searching…" : "No courses found."}

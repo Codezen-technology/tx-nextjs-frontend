@@ -14,13 +14,13 @@ export function PricingHero({
     <>
       <nav
         aria-label="Breadcrumb"
-        className="border-b border-neutral-30 bg-white py-2.5 font-open-sans text-sm text-neutral-500"
+        className="border-neutral-30 font-open-sans border-b bg-white py-2.5 text-sm text-neutral-500"
       >
         <ol className="container mx-auto flex max-w-[1296px] flex-wrap items-center gap-1.5">
           <li>
             <Link
               href="/"
-              className="flex items-center gap-1 transition-colors hover:text-primary-600"
+              className="hover:text-primary-600 flex items-center gap-1 transition-colors"
             >
               <Home className="h-3.5 w-3.5" aria-hidden />
               Home
@@ -33,16 +33,16 @@ export function PricingHero({
         </ol>
       </nav>
 
-      <section className="relative overflow-hidden bg-[#f5f1e9]">
+      <section className="bg-secondary-50 relative overflow-hidden">
         <div
           className="pointer-events-none absolute inset-0 bg-[url('/images/plus-shape.png')] bg-contain bg-right bg-no-repeat opacity-40"
           aria-hidden="true"
         />
-        <div className="container relative mx-auto flex flex-col gap-6 py-16 md:flex-row md:items-center md:justify-between md:gap-12">
-          <h1 className="shrink-0 font-suse text-[2.5rem] font-bold leading-[1.2] text-neutral-900">
+        <div className="relative container mx-auto flex flex-col gap-6 py-16 md:flex-row md:items-center md:justify-between md:gap-12">
+          <h1 className="font-suse shrink-0 text-[2.5rem] leading-[1.2] font-bold text-neutral-900">
             {title}
           </h1>
-          <p className="max-w-[856px] font-open-sans text-base leading-[1.6] text-neutral-600">
+          <p className="font-open-sans max-w-[856px] text-base leading-[1.6] text-neutral-600">
             {description}
           </p>
         </div>

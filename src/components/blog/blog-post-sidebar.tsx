@@ -41,7 +41,7 @@ export function BlogPostSidebar({ toc, contributors }: BlogPostSidebarProps) {
     <aside className="space-y-8">
       {toc.length > 0 && (
         <div>
-          <p className="mb-4 font-open-sans text-sm font-semibold text-secondary-500">
+          <p className="font-open-sans text-secondary-500 mb-4 text-sm font-semibold">
             Table of Contents
           </p>
           <nav aria-label="Table of contents">
@@ -50,10 +50,10 @@ export function BlogPostSidebar({ toc, contributors }: BlogPostSidebarProps) {
                 <li key={id}>
                   <a
                     href={`#${id}`}
-                    className={`block font-open-sans text-sm leading-snug transition-colors ${
+                    className={`font-open-sans block text-sm leading-snug transition-colors ${
                       activeId === id
-                        ? "font-semibold text-secondary-500"
-                        : "text-[#00204a] hover:text-secondary-500"
+                        ? "text-secondary-500 font-semibold"
+                        : "hover:text-secondary-500 text-neutral-900"
                     }`}
                   >
                     {text}
@@ -65,11 +65,11 @@ export function BlogPostSidebar({ toc, contributors }: BlogPostSidebarProps) {
         </div>
       )}
 
-      {toc.length > 0 && contributors.length > 0 && <div className="border-t border-[#ebedf1]" />}
+      {toc.length > 0 && contributors.length > 0 && <div className="border-neutral-30 border-t" />}
 
       {contributors.length > 0 && (
         <div>
-          <p className="mb-4 font-open-sans text-sm font-semibold text-secondary-500">
+          <p className="font-open-sans text-secondary-500 mb-4 text-sm font-semibold">
             Contributors
           </p>
           <ul className="space-y-4">
@@ -88,14 +88,16 @@ export function BlogPostSidebar({ toc, contributors }: BlogPostSidebarProps) {
                       unoptimized
                     />
                   ) : (
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-50 font-suse text-lg font-bold text-primary-500">
+                    <div className="bg-primary-50 font-suse text-primary-500 flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-bold">
                       {c.name?.[0]?.toUpperCase() ?? "?"}
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="font-open-sans text-sm font-semibold text-[#00204a]">{c.name}</p>
+                    <p className="font-open-sans text-sm font-semibold text-neutral-900">
+                      {c.name}
+                    </p>
                     {role && (
-                      <p className="truncate font-open-sans text-xs text-neutral-500">{role}</p>
+                      <p className="font-open-sans truncate text-xs text-neutral-500">{role}</p>
                     )}
                   </div>
                 </li>

@@ -92,7 +92,7 @@ export default function BusinessOverviewPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded-xl border border-neutral-30 bg-white p-6 shadow-sm">
+        <div className="border-neutral-30 rounded-xl border bg-white p-6 shadow-xs">
           <h3 className="mb-4 text-lg font-semibold text-neutral-900">Licence usage</h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm">
@@ -111,7 +111,7 @@ export default function BusinessOverviewPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-neutral-30 bg-white p-6 shadow-sm">
+        <div className="border-neutral-30 rounded-xl border bg-white p-6 shadow-xs">
           <h3 className="mb-4 text-lg font-semibold text-neutral-900">Course Assignment Status</h3>
           <div className="space-y-4">
             {[

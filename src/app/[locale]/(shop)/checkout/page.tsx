@@ -66,9 +66,9 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafbfb]">
+    <div className="bg-neutral-10 min-h-screen">
       {/* Breadcrumb */}
-      <div className="bg-[#00204a] py-2.5">
+      <div className="bg-neutral-900 py-2.5">
         <div className="container">
           <p className="text-sm text-white">
             <Link href="/" className="font-bold underline">
@@ -88,11 +88,11 @@ export default function CheckoutPage() {
         <div className="mx-auto max-w-[856px] space-y-8">
           {/* Page title */}
           <div className="space-y-2">
-            <h1 className="font-suse text-3xl font-medium text-[#00204a]">Checkout</h1>
+            <h1 className="font-suse text-3xl font-medium text-neutral-900">Checkout</h1>
             {!isLoggedIn && (
-              <p className="text-lg text-[#3b5374]">
+              <p className="text-lg text-neutral-500">
                 Returning customer?{" "}
-                <Link href="/login" className="font-bold text-[#9e6f21] underline">
+                <Link href="/login" className="text-secondary-500 font-bold underline">
                   Click here to login
                 </Link>
               </p>
@@ -100,14 +100,16 @@ export default function CheckoutPage() {
           </div>
 
           {/* Billing details */}
-          <div className="rounded-lg bg-white p-8 shadow-sm">
-            <h2 className="mb-6 font-suse text-2xl font-medium text-[#00204a]">Billing Details</h2>
+          <div className="rounded-lg bg-white p-8 shadow-xs">
+            <h2 className="font-suse mb-6 text-2xl font-medium text-neutral-900">
+              Billing Details
+            </h2>
             <BillingForm ref={billingRef} defaultValues={billingDefaults} />
           </div>
 
           {/* Order summary */}
-          <div className="rounded-lg bg-white p-8 shadow-sm">
-            <h2 className="mb-6 font-suse text-2xl font-medium text-[#00204a]">Order Summary</h2>
+          <div className="rounded-lg bg-white p-8 shadow-xs">
+            <h2 className="font-suse mb-6 text-2xl font-medium text-neutral-900">Order Summary</h2>
             <CheckoutOrderSummary />
           </div>
 
@@ -116,7 +118,7 @@ export default function CheckoutPage() {
 
           {/* Payment */}
           <div className="rounded-lg bg-[rgba(245,241,233,0.5)] p-8">
-            <h2 className="mb-6 font-suse text-2xl font-medium text-[#1a171b]">Payment method</h2>
+            <h2 className="font-suse mb-6 text-2xl font-medium text-[#1a171b]">Payment method</h2>
             {/* Always mount Elements (accepts stripe={null} while unconfigured/loading) so
                 free (£0) orders can complete even when Stripe isn't set up. The selector
                 shows a config warning + disables submit for paid orders when stripe is null. */}

@@ -40,15 +40,15 @@ export default async function VerifyCertificatePage({
       />
       <section className="bg-primary-50 py-20">
         <div className="container max-w-lg">
-          <div className="rounded-xl border border-[#ebedf1] bg-white p-8 shadow-sm sm:p-10">
+          <div className="border-neutral-30 rounded-xl border bg-white p-8 shadow-xs sm:p-10">
             <div className="text-center">
-              <p className="font-open-sans text-sm font-semibold uppercase tracking-wide text-secondary-500">
+              <p className="font-open-sans text-secondary-500 text-sm font-semibold tracking-wide uppercase">
                 Certificate Validator
               </p>
-              <h1 className="mt-2 font-suse text-3xl font-bold text-neutral-900">
+              <h1 className="font-suse mt-2 text-3xl font-bold text-neutral-900">
                 Check Certificate
               </h1>
-              <p className="mt-3 font-open-sans text-sm text-neutral-500">
+              <p className="font-open-sans mt-3 text-sm text-neutral-500">
                 Quickly and easily check the validity of your Training Excellence course
                 certificates with Training Excellence&apos;s Course Certificate Validator tool.
               </p>

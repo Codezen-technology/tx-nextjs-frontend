@@ -83,17 +83,17 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
 
   return (
     <div className={cn("w-full lg:w-[307px]", className)}>
-      <div className="overflow-hidden rounded-lg border border-neutral-30 bg-white shadow-sm">
-        <div className="flex border-b border-neutral-30">
+      <div className="border-neutral-30 overflow-hidden rounded-lg border bg-white shadow-xs">
+        <div className="border-neutral-30 flex border-b">
           {(["me", "teams"] as PurchaseTab[]).map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => setTab(t)}
               className={cn(
-                "flex-1 py-2.5 font-open-sans text-base font-medium transition-colors",
+                "font-open-sans flex-1 py-2.5 text-base font-medium transition-colors",
                 tab === t
-                  ? "border-b-2 border-secondary-500 text-secondary-600"
+                  ? "border-secondary-500 text-secondary-600 border-b-2"
                   : "text-neutral-500 hover:text-neutral-700",
               )}
             >
@@ -106,12 +106,12 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
           {/* Price row — shared by both tabs */}
           {pricing ? (
             <div className="flex items-center gap-4">
-              <span className="font-suse text-[32px] font-bold leading-none text-neutral-900">
+              <span className="font-suse text-[32px] leading-none font-bold text-neutral-900">
                 {formatCoursePrice(pricing.price * (tab === "teams" ? qty : 1), pricing.currency)}
               </span>
               {pricing.is_on_sale && pricing.regular_price > pricing.price ? (
                 <>
-                  <span className="h-10 w-px bg-neutral-30" aria-hidden />
+                  <span className="bg-neutral-30 h-10 w-px" aria-hidden />
                   <div className="font-open-sans text-sm">
                     <p className="text-neutral-500">Regular price</p>
                     <p className="font-medium text-red-500 line-through">
@@ -136,18 +136,18 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                 onClick={() => setQty((q) => Math.max(1, q - 1))}
                 aria-label="Decrease quantity"
                 disabled={qty <= 1}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-30 font-open-sans text-lg text-neutral-700 transition-colors hover:bg-neutral-10 disabled:opacity-40"
+                className="border-neutral-30 font-open-sans hover:bg-neutral-10 flex h-8 w-8 items-center justify-center rounded-full border text-lg text-neutral-700 transition-colors disabled:opacity-40"
               >
                 −
               </button>
-              <span className="w-8 text-center font-open-sans text-base font-medium text-neutral-900">
+              <span className="font-open-sans w-8 text-center text-base font-medium text-neutral-900">
                 {qty}
               </span>
               <button
                 type="button"
                 onClick={() => setQty((q) => q + 1)}
                 aria-label="Increase quantity"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-30 font-open-sans text-lg text-neutral-700 transition-colors hover:bg-neutral-10"
+                className="border-neutral-30 font-open-sans hover:bg-neutral-10 flex h-8 w-8 items-center justify-center rounded-full border text-lg text-neutral-700 transition-colors"
               >
                 +
               </button>
@@ -166,21 +166,21 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                 type="button"
                 onClick={handleBuyNow}
                 disabled={isBuyingNow || isAddingToBasket}
-                className="block w-full rounded bg-secondary-500 py-2.5 text-center font-open-sans text-sm font-semibold text-white transition-colors hover:bg-secondary-600 disabled:cursor-not-allowed disabled:opacity-60"
+                className="bg-secondary-500 font-open-sans hover:bg-secondary-600 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isBuyingNow ? "Adding…" : "Buy this course"}
               </button>
             ) : (
               <Link
                 href="/contact-us"
-                className="block w-full rounded bg-secondary-500 py-2.5 text-center font-open-sans text-sm font-semibold text-white transition-colors hover:bg-secondary-600"
+                className="bg-secondary-500 font-open-sans hover:bg-secondary-600 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors"
               >
                 Get in Touch
               </Link>
             )}
 
-            <p className="flex items-center justify-center gap-2 font-open-sans text-xs text-neutral-600">
-              <Check className="h-4 w-4 text-secondary-500" aria-hidden />
+            <p className="font-open-sans flex items-center justify-center gap-2 text-xs text-neutral-600">
+              <Check className="text-secondary-500 h-4 w-4" aria-hidden />
               14 Days Money-Back Guarantee
             </p>
 
@@ -190,10 +190,10 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                 onClick={handleAddToBasket}
                 disabled={isAddingToBasket || isBuyingNow || addedFeedback || !canPurchase}
                 className={cn(
-                  "block w-full rounded border py-2.5 text-center font-open-sans text-sm font-semibold transition-colors disabled:cursor-not-allowed",
+                  "font-open-sans block w-full rounded border py-2.5 text-center text-sm font-semibold transition-colors disabled:cursor-not-allowed",
                   addedFeedback
                     ? "border-green-500 bg-green-50 text-green-700"
-                    : "border-neutral-30 text-neutral-800 hover:bg-neutral-10 disabled:opacity-60",
+                    : "border-neutral-30 hover:bg-neutral-10 text-neutral-800 disabled:opacity-60",
                 )}
               >
                 {addedFeedback ? (
@@ -215,7 +215,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
           </div>
 
           {/* Feature list — same for both tabs */}
-          <ul className="space-y-2 border-t border-neutral-30 pt-4 font-open-sans text-sm text-neutral-700">
+          <ul className="border-neutral-30 font-open-sans space-y-2 border-t pt-4 text-sm text-neutral-700">
             {[
               "100% online & self-paced learning",
               durationLabel,
@@ -225,14 +225,14 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
               .filter(Boolean)
               .map((item) => (
                 <li key={item} className="flex items-start gap-2">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-secondary-500" />
+                  <Check className="text-secondary-500 mt-0.5 h-4 w-4 shrink-0" />
                   {item}
                 </li>
               ))}
           </ul>
 
           {tab === "me" && (
-            <div className="flex items-center gap-4 border-t border-neutral-30 pt-4">
+            <div className="border-neutral-30 flex items-center gap-4 border-t pt-4">
               <span className="font-open-sans text-sm text-neutral-600">Share on:</span>
               <div className="flex gap-2">
                 {[
@@ -244,7 +244,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                     key={label}
                     type="button"
                     aria-label={`Share on ${label}`}
-                    className="flex h-6 w-6 items-center justify-center rounded-full text-neutral-500 transition-colors hover:text-primary-600"
+                    className="hover:text-primary-600 flex h-6 w-6 items-center justify-center rounded-full text-neutral-500 transition-colors"
                   >
                     <Icon className="h-5 w-5" />
                   </button>

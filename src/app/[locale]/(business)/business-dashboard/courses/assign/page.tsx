@@ -42,7 +42,7 @@ export default function BusinessAssignCoursesPage() {
       />
 
       <form onSubmit={onSearch} className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-300" />
+        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-300" />
         <Input
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
@@ -56,12 +56,12 @@ export default function BusinessAssignCoursesPage() {
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="h-36 animate-pulse rounded-xl border border-neutral-30 bg-white"
+              className="border-neutral-30 h-36 animate-pulse rounded-xl border bg-white"
             />
           ))}
         </div>
       ) : isError ? (
-        <div className="rounded-xl border border-neutral-30 bg-white p-10 text-center text-sm text-red-600">
+        <div className="border-neutral-30 rounded-xl border bg-white p-10 text-center text-sm text-red-600">
           Could not load courses.
         </div>
       ) : !courses.length ? (
@@ -72,7 +72,7 @@ export default function BusinessAssignCoursesPage() {
             {courses.map((course: AssignedCourse) => (
               <div
                 key={course.id}
-                className="rounded-xl border border-neutral-30 bg-white p-5 shadow-sm"
+                className="border-neutral-30 rounded-xl border bg-white p-5 shadow-xs"
               >
                 {course.featured_image ? (
                   // eslint-disable-next-line @next/next/no-img-element

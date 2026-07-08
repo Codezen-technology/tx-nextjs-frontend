@@ -25,7 +25,7 @@ export function BusinessShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className="flex min-h-screen bg-[#f5f6f8] pt-[var(--imp-offset)]"
+      className="bg-neutral-20 flex min-h-screen pt-(--imp-offset)"
       style={{ "--imp-offset": impersonating ? "40px" : "0px" } as React.CSSProperties}
     >
       <ImpersonationBanner variant="fixed" />
@@ -42,7 +42,7 @@ export function BusinessShell({ children }: { children: React.ReactNode }) {
       />
       <main
         className={cn(
-          "mt-16 min-h-screen w-full min-w-0 flex-1 px-4 pb-10 pt-6 md:px-8",
+          "mt-16 min-h-screen w-full min-w-0 flex-1 px-4 pt-6 pb-10 md:px-8",
           sidebarOpen ? "md:ml-[280px]" : "md:ml-[72px]",
         )}
       >

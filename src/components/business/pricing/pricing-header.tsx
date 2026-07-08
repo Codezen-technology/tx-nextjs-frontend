@@ -23,7 +23,7 @@ export function PricingHeader({
   return (
     <>
       <div className="mb-8 text-center">
-        <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-[#3F576F]">
+        <p className="mb-2 text-sm font-semibold tracking-widest text-[#3F576F] uppercase">
           Pricing
         </p>
         <h1 className="mb-2 text-3xl font-bold text-neutral-900">Simple, transparent pricing</h1>
@@ -48,7 +48,7 @@ export function PricingHeader({
             className={cn(
               "rounded-lg px-5 py-2 text-sm font-semibold transition-all",
               tab === "licence"
-                ? "bg-[#3F576F] text-white shadow-sm"
+                ? "bg-[#3F576F] text-white shadow-xs"
                 : "bg-transparent text-neutral-500 hover:text-neutral-800",
             )}
           >
@@ -60,7 +60,7 @@ export function PricingHeader({
             className={cn(
               "flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold transition-all",
               tab === "subscription"
-                ? "bg-[#3F576F] text-white shadow-sm"
+                ? "bg-[#3F576F] text-white shadow-xs"
                 : "bg-transparent text-neutral-500 hover:text-neutral-800",
             )}
           >

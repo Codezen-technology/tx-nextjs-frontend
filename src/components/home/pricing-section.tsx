@@ -23,7 +23,7 @@ export function PricingSection({ data }: PricingSectionProps) {
           </div>
           <Link
             href={header.ctaHref}
-            className="inline-flex shrink-0 items-center gap-2 font-open-sans text-base font-medium text-secondary-500 transition-colors hover:text-secondary-600"
+            className="font-open-sans text-secondary-500 hover:text-secondary-600 inline-flex shrink-0 items-center gap-2 text-base font-medium transition-colors"
           >
             {header.ctaLabel}
             <ArrowRight className="h-5 w-5" />
@@ -35,10 +35,10 @@ export function PricingSection({ data }: PricingSectionProps) {
             <div key={plan.name} className="relative">
               {plan.badge === "best-value" && (
                 <div className="absolute -top-4 right-6 z-20 flex items-start">
-                  <div className="relative rounded-b-lg bg-white p-4 text-sm font-medium text-secondary-700 shadow-md">
+                  <div className="text-secondary-700 relative rounded-b-lg bg-white p-4 text-sm font-medium shadow-md">
                     Best Value
                     <svg
-                      className="absolute -right-[0.75rem] top-0"
+                      className="absolute top-0 -right-3"
                       xmlns="http://www.w3.org/2000/svg"
                       width={12}
                       height={18}
@@ -59,7 +59,7 @@ export function PricingSection({ data }: PricingSectionProps) {
                   >
                     Most Popular
                     <svg
-                      className="absolute -right-[0.75rem] top-0"
+                      className="absolute top-0 -right-3"
                       xmlns="http://www.w3.org/2000/svg"
                       width={12}
                       height={18}
@@ -75,8 +75,8 @@ export function PricingSection({ data }: PricingSectionProps) {
               <div
                 className={cn(
                   "relative flex h-full flex-col gap-6 overflow-hidden rounded-[12px] p-8",
-                  plan.variant === "default" && "border border-[#ebedf1] bg-white shadow-sm",
-                  plan.variant === "beige" && "border border-[#ebedf1] shadow-sm",
+                  plan.variant === "default" && "border-neutral-30 border bg-white shadow-xs",
+                  plan.variant === "beige" && "border-neutral-30 border shadow-xs",
                   plan.variant === "navy" && "border-transparent shadow-lg",
                 )}
                 style={
@@ -100,7 +100,7 @@ export function PricingSection({ data }: PricingSectionProps) {
                       "font-suse text-xl font-bold",
                       plan.variant === "default" && "text-neutral-900",
                       plan.variant === "beige" && "text-secondary-500",
-                      plan.variant === "navy" && "text-[#00bbf0]",
+                      plan.variant === "navy" && "text-primary-500",
                     )}
                   >
                     {plan.name}
@@ -161,13 +161,13 @@ export function PricingSection({ data }: PricingSectionProps) {
                 <PricingCta
                   plan={plan}
                   className={cn(
-                    "mt-auto flex h-10 items-center justify-center rounded-full font-open-sans text-sm font-medium transition-transform hover:scale-105",
+                    "font-open-sans mt-auto flex h-10 items-center justify-center rounded-full text-sm font-medium transition-transform hover:scale-105",
                     plan.variant === "default" &&
-                      "border border-secondary-500 bg-transparent text-secondary-500",
+                      "border-secondary-500 text-secondary-500 border bg-transparent",
                     plan.variant === "beige" &&
-                      "border border-secondary-500 bg-white text-secondary-500",
+                      "border-secondary-500 text-secondary-500 border bg-white",
                     plan.variant === "navy" &&
-                      "border border-[#00bbf0] text-base font-bold text-neutral-900",
+                      "border-primary-500 border text-base font-bold text-neutral-900",
                   )}
                   style={
                     plan.variant === "navy"

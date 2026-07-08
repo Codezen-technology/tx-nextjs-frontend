@@ -112,7 +112,7 @@ function EmailPreviewDialog({
             {message && (
               <div>
                 <p className="text-[12px] text-[#586973]">Personal message:</p>
-                <p className="whitespace-pre-line italic text-[#2e4450]">{message}</p>
+                <p className="whitespace-pre-line text-[#2e4450] italic">{message}</p>
               </div>
             )}
             <a
@@ -234,8 +234,8 @@ export function CertificateShareDialog({
       <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
         <DialogContent className="max-w-3xl gap-0 overflow-hidden rounded-2xl p-0 shadow-[0_4px_60px_rgba(0,0,0,0.3)]">
           {/* Header */}
-          <div className="flex items-center justify-between px-8 pb-0 pt-8">
-            <h2 className="text-[32px] font-semibold leading-tight text-[#2e4450]">
+          <div className="flex items-center justify-between px-8 pt-8 pb-0">
+            <h2 className="text-[32px] leading-tight font-semibold text-[#2e4450]">
               Share your certificate
             </h2>
             <button
@@ -318,7 +318,7 @@ export function CertificateShareDialog({
                 placeholder="Type something..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="mb-5 w-full resize-none rounded-lg border border-[#bec5c9] px-3 py-2 text-base text-[#2e4450] placeholder:text-[#667085] focus:border-[#3f4d97] focus:outline-none focus:ring-1 focus:ring-[#3f4d97]"
+                className="mb-5 w-full resize-none rounded-lg border border-[#bec5c9] px-3 py-2 text-base text-[#2e4450] placeholder:text-[#667085] focus:border-[#3f4d97] focus:ring-1 focus:ring-[#3f4d97] focus:outline-hidden"
               />
 
               <hr className="mb-5 border-[#eaecee]" />
@@ -331,7 +331,7 @@ export function CertificateShareDialog({
                   onClick={() => {
                     if (email) setPreviewOpen(true);
                   }}
-                  className="rounded-lg border-[#d0d5dd] text-[18px] text-[#344054] shadow-sm"
+                  className="rounded-lg border-[#d0d5dd] text-[18px] text-[#344054] shadow-xs"
                 >
                   Preview
                 </Button>
@@ -339,7 +339,7 @@ export function CertificateShareDialog({
                   type="button"
                   disabled={!email || isPending}
                   onClick={handleSendEmail}
-                  className="rounded-lg bg-[#3f4d97] text-[18px] text-white shadow-sm hover:bg-[#2e3a7a]"
+                  className="rounded-lg bg-[#3f4d97] text-[18px] text-white shadow-xs hover:bg-[#2e3a7a]"
                 >
                   {isPending ? "Sending..." : "Send Email"}
                 </Button>

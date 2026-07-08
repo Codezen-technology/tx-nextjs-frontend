@@ -11,9 +11,9 @@ function Section({ title, html }: { title?: string; html: string }) {
   return (
     <section className="mb-8">
       {title ? (
-        <h2 className="mb-3 font-suse text-2xl font-bold text-neutral-900">{title}</h2>
+        <h2 className="font-suse mb-3 text-2xl font-bold text-neutral-900">{title}</h2>
       ) : null}
-      <ParsedHtml as="div" className="prose-wp font-open-sans text-[#3b5374]" content={html} />
+      <ParsedHtml as="div" className="prose-wp font-open-sans text-neutral-500" content={html} />
     </section>
   );
 }
@@ -26,19 +26,19 @@ export function BundleDetail({ bundle }: { bundle: BundleDetail }) {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-[#00204a] py-10">
-        <div className="container relative grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
+      <section className="relative overflow-hidden bg-neutral-900 py-10">
+        <div className="relative container grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
           <div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary-500/20 px-3 py-1 text-sm font-semibold text-primary-400">
+            <span className="bg-primary-500/20 text-primary-400 inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold">
               <Layers className="h-3.5 w-3.5" /> Course Bundle
             </span>
-            <h1 className="mt-4 font-suse text-3xl font-bold leading-tight text-white md:text-4xl">
+            <h1 className="font-suse mt-4 text-3xl leading-tight font-bold text-white md:text-4xl">
               {bundle.title}
             </h1>
             {bundle.excerpt ? (
-              <p className="mt-4 max-w-2xl font-open-sans text-white/70">{bundle.excerpt}</p>
+              <p className="font-open-sans mt-4 max-w-2xl text-white/70">{bundle.excerpt}</p>
             ) : null}
-            <div className="mt-5 flex flex-wrap items-center gap-5 font-open-sans text-sm text-white/80">
+            <div className="font-open-sans mt-5 flex flex-wrap items-center gap-5 text-sm text-white/80">
               <span className="inline-flex items-center gap-1.5">
                 <Layers className="h-4 w-4" /> {bundle.includedCoursesCount} courses
               </span>
@@ -61,7 +61,7 @@ export function BundleDetail({ bundle }: { bundle: BundleDetail }) {
             </div>
           </div>
           {(bundle.image?.large || bundle.image?.full) && (
-            <div className="relative aspect-[19/12] w-full overflow-hidden rounded-2xl bg-white/10">
+            <div className="relative aspect-19/12 w-full overflow-hidden rounded-2xl bg-white/10">
               <Image
                 src={(bundle.image.large ?? bundle.image.full) as string}
                 alt={bundle.title}
@@ -82,10 +82,10 @@ export function BundleDetail({ bundle }: { bundle: BundleDetail }) {
             <Section html={bundle.standards ?? ""} />
             <Section title="Objectives" html={bundle.objectives ?? ""} />
             {bundle.courseFor ? (
-              <div className="mb-8 rounded-2xl bg-primary-50 p-6">
+              <div className="bg-primary-50 mb-8 rounded-2xl p-6">
                 <ParsedHtml
                   as="div"
-                  className="prose-wp font-open-sans text-[#3b5374]"
+                  className="prose-wp font-open-sans text-neutral-500"
                   content={bundle.courseFor}
                 />
               </div>
@@ -95,7 +95,7 @@ export function BundleDetail({ bundle }: { bundle: BundleDetail }) {
             {/* Included courses */}
             {bundle.includedCourses.length > 0 && (
               <section className="mb-10">
-                <h2 className="mb-5 font-suse text-2xl font-bold text-neutral-900">
+                <h2 className="font-suse mb-5 text-2xl font-bold text-neutral-900">
                   Courses in this bundle
                 </h2>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -110,9 +110,9 @@ export function BundleDetail({ bundle }: { bundle: BundleDetail }) {
             {bundle.includedCoursesCards.length > 0 && (
               <section className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {bundle.includedCoursesCards.map((card, i) => (
-                  <div key={i} className="rounded-2xl bg-neutral-10 p-6">
+                  <div key={i} className="bg-neutral-10 rounded-2xl p-6">
                     <h3 className="font-suse text-lg font-bold text-neutral-900">{card.title}</h3>
-                    <p className="mt-2 font-open-sans text-sm text-[#667992]">
+                    <p className="font-open-sans mt-2 text-sm text-neutral-200">
                       {card.shortDescription}
                     </p>
                   </div>
@@ -123,21 +123,21 @@ export function BundleDetail({ bundle }: { bundle: BundleDetail }) {
             {/* FAQ */}
             {bundle.faq.length > 0 && (
               <section className="mb-6">
-                <h2 className="mb-5 font-suse text-2xl font-bold text-neutral-900">
+                <h2 className="font-suse mb-5 text-2xl font-bold text-neutral-900">
                   Frequently asked questions
                 </h2>
                 <div className="flex flex-col gap-3">
                   {bundle.faq.map((item, i) => (
                     <details
                       key={i}
-                      className="group rounded-xl border border-[#ebedf1] bg-white p-5"
+                      className="group border-neutral-30 rounded-xl border bg-white p-5"
                     >
-                      <summary className="cursor-pointer font-suse font-semibold text-neutral-900">
+                      <summary className="font-suse cursor-pointer font-semibold text-neutral-900">
                         {item.question}
                       </summary>
                       <ParsedHtml
                         as="div"
-                        className="prose-wp mt-3 font-open-sans text-sm text-[#3b5374]"
+                        className="prose-wp font-open-sans mt-3 text-sm text-neutral-500"
                         content={item.answer}
                       />
                     </details>
@@ -149,7 +149,7 @@ export function BundleDetail({ bundle }: { bundle: BundleDetail }) {
 
           {/* Sidebar */}
           <aside className="lg:sticky lg:top-24">
-            <div className="rounded-2xl border border-[#ebedf1] bg-white p-6 shadow-sm">
+            <div className="border-neutral-30 rounded-2xl border bg-white p-6 shadow-xs">
               <div className="flex items-baseline gap-3">
                 {pricing.price != null && (
                   <span className="font-open-sans text-3xl font-bold text-neutral-900">
@@ -169,7 +169,7 @@ export function BundleDetail({ bundle }: { bundle: BundleDetail }) {
 
               {pricing.price != null && (
                 <div className="mt-5">
-                  <p className="mb-2 font-suse text-sm font-semibold text-neutral-700">
+                  <p className="font-suse mb-2 text-sm font-semibold text-neutral-700">
                     Buying for a team?
                   </p>
                   <BulkDiscountTable unitPrice={pricing.price} currency="£" />
@@ -181,16 +181,16 @@ export function BundleDetail({ bundle }: { bundle: BundleDetail }) {
                   {bundle.benefits.map((b, i) => (
                     <li
                       key={i}
-                      className="flex items-start gap-2 font-open-sans text-sm text-[#3b5374]"
+                      className="font-open-sans flex items-start gap-2 text-sm text-neutral-500"
                     >
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" />
+                      <Check className="text-primary-500 mt-0.5 h-4 w-4 shrink-0" />
                       {b}
                     </li>
                   ))}
                 </ul>
               )}
 
-              <div className="mt-6 flex items-center justify-between border-t border-[#ebedf1] pt-4 font-open-sans text-sm text-[#667992]">
+              <div className="border-neutral-30 font-open-sans mt-6 flex items-center justify-between border-t pt-4 text-sm text-neutral-200">
                 <span className="inline-flex items-center gap-1.5">
                   <BookOpen className="h-4 w-4" /> {bundle.includedCoursesCount} courses
                 </span>

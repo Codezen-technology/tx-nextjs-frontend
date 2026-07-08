@@ -32,16 +32,16 @@ export function CategoryCourses({
       <div className="mx-auto max-w-[1296px] px-4 py-12">
         {/* Section header */}
         <div className="mb-8">
-          <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900">
+          <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
             {categoryName} Courses
           </h2>
           {categoryDescription ? (
-            <p className="mt-3 max-w-[856px] font-open-sans text-[16px] leading-[1.6] text-neutral-500">
+            <p className="font-open-sans mt-3 max-w-[856px] text-[16px] leading-[1.6] text-neutral-500">
               {categoryDescription}
             </p>
           ) : null}
           {total > 0 ? (
-            <p className="mt-2 font-open-sans text-[14px] text-neutral-400">
+            <p className="font-open-sans mt-2 text-[14px] text-neutral-400">
               {total} course{total !== 1 ? "s" : ""} available
             </p>
           ) : null}
@@ -68,7 +68,7 @@ export function CategoryCourses({
               <span
                 aria-label="Previous page"
                 aria-disabled="true"
-                className="flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-full border border-[#ebedf1] text-neutral-500 opacity-40"
+                className="border-neutral-30 flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-full border text-neutral-500 opacity-40"
               >
                 <ChevronLeft className="h-4 w-4" />
               </span>
@@ -76,7 +76,7 @@ export function CategoryCourses({
               <Link
                 href={pageHref(currentPage - 1)}
                 aria-label="Previous page"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-[#ebedf1] text-neutral-500 transition-colors hover:bg-neutral-50"
+                className="border-neutral-30 flex h-9 w-9 items-center justify-center rounded-full border text-neutral-500 transition-colors hover:bg-neutral-50"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Link>
@@ -88,7 +88,7 @@ export function CategoryCourses({
               <span
                 aria-label="Next page"
                 aria-disabled="true"
-                className="flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-full border border-[#ebedf1] text-neutral-500 opacity-40"
+                className="border-neutral-30 flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-full border text-neutral-500 opacity-40"
               >
                 <ChevronRight className="h-4 w-4" />
               </span>
@@ -96,7 +96,7 @@ export function CategoryCourses({
               <Link
                 href={pageHref(currentPage + 1)}
                 aria-label="Next page"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-[#ebedf1] text-neutral-500 transition-colors hover:bg-neutral-50"
+                className="border-neutral-30 flex h-9 w-9 items-center justify-center rounded-full border text-neutral-500 transition-colors hover:bg-neutral-50"
               >
                 <ChevronRight className="h-4 w-4" />
               </Link>
@@ -123,7 +123,7 @@ function PageLinks({
     <>
       {pages.map((p, i) =>
         p === "..." ? (
-          <span key={`ellipsis-${i}`} className="px-1 font-open-sans text-sm text-neutral-400">
+          <span key={`ellipsis-${i}`} className="font-open-sans px-1 text-sm text-neutral-400">
             …
           </span>
         ) : (
@@ -131,10 +131,10 @@ function PageLinks({
             key={p}
             href={pageHref(p as number)}
             aria-current={current === p ? "page" : undefined}
-            className={`flex h-9 w-9 items-center justify-center rounded-full border font-open-sans text-sm transition-colors ${
+            className={`font-open-sans flex h-9 w-9 items-center justify-center rounded-full border text-sm transition-colors ${
               current === p
                 ? "border-secondary-500 bg-secondary-500 text-white"
-                : "border-[#ebedf1] text-neutral-600 hover:bg-neutral-50"
+                : "border-neutral-30 text-neutral-600 hover:bg-neutral-50"
             }`}
           >
             {p}

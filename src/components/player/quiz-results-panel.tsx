@@ -60,7 +60,7 @@ export function QuizResultsPanel({
           <button
             type="button"
             onClick={() => onContinue(result.next_unit as number)}
-            className="rounded-md bg-sky-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-600"
+            className="rounded-md bg-sky-500 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-sky-600"
           >
             Continue to next unit
           </button>

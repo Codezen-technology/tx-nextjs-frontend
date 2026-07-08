@@ -64,7 +64,7 @@ function CategoryCard({ category }: { category: CourseCategory }) {
         "group flex items-center gap-4 rounded-lg border p-4 transition-all",
         isHighlighted
           ? "border-secondary-500 bg-secondary-50 hover:border-secondary-600 hover:bg-secondary-100"
-          : "border-neutral-40 bg-white hover:border-neutral-60 hover:bg-neutral-20",
+          : "border-neutral-40 hover:border-neutral-60 hover:bg-neutral-20 bg-white",
       ].join(" ")}
     >
       <div
@@ -79,7 +79,7 @@ function CategoryCard({ category }: { category: CourseCategory }) {
       </div>
       <span
         className={[
-          "flex-1 font-open-sans text-base font-bold leading-[1.5]",
+          "font-open-sans flex-1 text-base leading-normal font-bold",
           isHighlighted ? "text-secondary-500" : "text-neutral-500",
         ].join(" ")}
       >
@@ -113,7 +113,7 @@ export function MegaMenu({ onClose, categories }: MegaMenuProps) {
 
   return (
     <div
-      className="absolute left-0 right-0 top-full z-50 bg-neutral-10 shadow-[0_16px_24px_rgba(0,0,0,0.17)]"
+      className="bg-neutral-10 absolute top-full right-0 left-0 z-50 shadow-[0_16px_24px_rgba(0,0,0,0.17)]"
       role="dialog"
       aria-label="Our courses menu"
     >
@@ -125,18 +125,18 @@ export function MegaMenu({ onClose, categories }: MegaMenuProps) {
         >
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
-              <h3 className="font-suse text-xl font-bold leading-[1.2] text-primary-500">
+              <h3 className="font-suse text-primary-500 text-xl leading-[1.2] font-bold">
                 Business Training
               </h3>
-              <p className="font-open-sans text-base font-normal leading-[1.5] text-white">
+              <p className="font-open-sans text-base leading-normal font-normal text-white">
                 Transform Your Team&apos;s Potential
               </p>
             </div>
             <ul className="flex flex-col gap-4">
               {BUSINESS_FEATURES.map((feat) => (
                 <li key={feat} className="flex items-start gap-2">
-                  <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary-400" />
-                  <span className="font-open-sans text-base font-normal leading-[1.5] text-white">
+                  <CheckCircle className="text-primary-400 mt-0.5 h-5 w-5 shrink-0" />
+                  <span className="font-open-sans text-base leading-normal font-normal text-white">
                     {feat}
                   </span>
                 </li>
@@ -145,7 +145,7 @@ export function MegaMenu({ onClose, categories }: MegaMenuProps) {
           </div>
           <Link
             href="/training-teams"
-            className="mt-6 flex h-10 w-full items-center justify-center rounded-full border border-primary-500 bg-gradient-to-r from-primary-500 to-primary-200 px-4 font-open-sans text-base font-semibold text-neutral-900 shadow-sm transition-opacity hover:opacity-90"
+            className="border-primary-500 from-primary-500 to-primary-200 font-open-sans mt-6 flex h-10 w-full items-center justify-center rounded-full border bg-linear-to-r px-4 text-base font-semibold text-neutral-900 shadow-xs transition-opacity hover:opacity-90"
           >
             Request for a Quote
           </Link>
@@ -166,19 +166,19 @@ export function MegaMenu({ onClose, categories }: MegaMenuProps) {
           )}
 
           {/* Explore all banner */}
-          <div className="flex items-center justify-between rounded-2xl border border-neutral-40 bg-neutral-20 p-6">
+          <div className="border-neutral-40 bg-neutral-20 flex items-center justify-between rounded-2xl border p-6">
             <div className="flex flex-col gap-2">
-              <h4 className="font-suse text-xl font-bold leading-[1.2] text-neutral-500">
+              <h4 className="font-suse text-xl leading-[1.2] font-bold text-neutral-500">
                 Explore Our All Accredited Courses
               </h4>
-              <p className="font-open-sans text-base font-normal leading-[1.5] text-neutral-300">
+              <p className="font-open-sans text-base leading-normal font-normal text-neutral-300">
                 Our fully accredited online courses are widely trusted by leading organisations
                 across the UK and are ideal for training you and your team.
               </p>
             </div>
             <Link
               href="/all-courses"
-              className="ml-6 flex shrink-0 items-center justify-center rounded-full bg-secondary-500 px-6 py-4 font-open-sans text-base font-semibold text-white shadow-sm transition-colors hover:bg-secondary-600"
+              className="bg-secondary-500 font-open-sans hover:bg-secondary-600 ml-6 flex shrink-0 items-center justify-center rounded-full px-6 py-4 text-base font-semibold text-white shadow-xs transition-colors"
             >
               See All Courses
             </Link>

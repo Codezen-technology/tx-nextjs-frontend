@@ -153,7 +153,7 @@ function PaymentFields({ orderId, orderKey, total, onPaid, onCancel }: OrderPaym
 
       <div>
         <p className="mb-2 text-xs font-semibold text-[#1a171b]">Card details</p>
-        <div className="rounded border border-[#e1d2ba] bg-white px-4 py-3.5">
+        <div className="border-secondary-100 rounded border bg-white px-4 py-3.5">
           <CardElement options={CARD_OPTIONS} />
         </div>
       </div>
@@ -176,7 +176,7 @@ function PaymentFields({ orderId, orderKey, total, onPaid, onCancel }: OrderPaym
           type="button"
           onClick={pay}
           disabled={submitting || !stripe}
-          className="flex-1 bg-[#9e6f21] hover:bg-[#7d5819]"
+          className="bg-secondary-500 flex-1 hover:bg-[#7d5819]"
         >
           {submitting ? (
             <>

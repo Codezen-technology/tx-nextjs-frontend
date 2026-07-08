@@ -71,7 +71,7 @@ export function QuoteModal({ open, cart, onClose, onSubmit, isSubmitting }: Quot
               rows={3}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="w-full resize-none rounded-md border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F576F]/30"
+              className="w-full resize-none rounded-md border border-neutral-200 px-3 py-2 text-sm focus:ring-2 focus:ring-[#3F576F]/30 focus:outline-hidden"
               placeholder="Any specific requirements or questions…"
             />
           </div>

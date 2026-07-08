@@ -26,7 +26,7 @@ export const FIELD_CLASS = MARKETING_FIELD_CLASS;
 export const LABEL_CLASS = MARKETING_LABEL_CLASS;
 export const SECTION_CLASS = "font-suse text-lg font-semibold text-neutral-900";
 export const TEXTAREA_CLASS = cn(
-  "w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1",
+  "w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-hidden focus-visible:ring-1",
   FIELD_CLASS,
 );
 

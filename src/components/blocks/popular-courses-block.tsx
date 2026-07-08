@@ -28,7 +28,7 @@ export function PopularCoursesBlock({ block }: { block: PopularCoursesBlockData 
               </h2>
             )}
             {block.description && (
-              <p className="mt-3 font-open-sans text-[#667992]">{block.description}</p>
+              <p className="font-open-sans mt-3 text-neutral-200">{block.description}</p>
             )}
           </div>
         )}
@@ -43,7 +43,7 @@ export function PopularCoursesBlock({ block }: { block: PopularCoursesBlockData 
           <div className="mt-8 text-center">
             <Link
               href={block.cta.href}
-              className="inline-flex items-center gap-1 rounded-full bg-primary-500 px-6 py-2.5 font-open-sans text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+              className="bg-primary-500 font-open-sans hover:bg-primary-600 inline-flex items-center gap-1 rounded-full px-6 py-2.5 text-sm font-semibold text-white transition-colors"
             >
               {block.cta.label || "View all courses"} <ArrowRight className="h-4 w-4" />
             </Link>

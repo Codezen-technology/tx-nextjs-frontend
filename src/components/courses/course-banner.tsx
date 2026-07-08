@@ -72,7 +72,7 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
             className="object-cover object-center"
           />
         ) : (
-          <div className="absolute inset-0 bg-[#00204a]" aria-hidden />
+          <div className="absolute inset-0 bg-neutral-900" aria-hidden />
         )}
       </div>
 
@@ -85,17 +85,17 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
 
       {/* Course overview — Figma 256:11832 */}
       {course && (
-        <div className="relative z-10 mx-auto max-w-[1296px] px-4 pb-20 pt-10 lg:pb-24 lg:pt-14">
+        <div className="relative z-10 mx-auto max-w-[1296px] px-4 pt-10 pb-20 lg:pt-14 lg:pb-24">
           <div className="flex flex-col gap-6 lg:max-w-[966px] lg:flex-row lg:gap-6">
             {/* Left col: thumbnail + trust — desktop only */}
             <div className="hidden w-[306px] shrink-0 space-y-4 lg:block">
               <div className="overflow-hidden rounded-lg border border-white/20 bg-white p-2">
                 {showFeatured ? (
-                  <div className="relative aspect-[290/188] w-full overflow-hidden rounded-md bg-neutral-900">
+                  <div className="relative aspect-290/188 w-full overflow-hidden rounded-md bg-neutral-900">
                     <SafeImage src={src!} alt="" fill sizes="306px" className="object-cover" />
                   </div>
                 ) : isRenderableImageSrc(primaryAccreditation?.logo) ? (
-                  <div className="relative flex aspect-[290/188] items-center justify-center rounded-md bg-white p-4">
+                  <div className="relative flex aspect-290/188 items-center justify-center rounded-md bg-white p-4">
                     <SafeImage
                       src={primaryAccreditation!.logo}
                       alt={primaryAccreditation!.label}
@@ -105,7 +105,7 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                     />
                   </div>
                 ) : (
-                  <div className="flex aspect-[290/188] items-center justify-center rounded-md bg-neutral-800 text-sm text-white/60">
+                  <div className="flex aspect-290/188 items-center justify-center rounded-md bg-neutral-800 text-sm text-white/60">
                     Course preview
                   </div>
                 )}
@@ -116,7 +116,7 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                   Last updated: <span className="font-semibold text-white">{updatedLabel}</span>
                 </p>
               ) : (
-                <p className="font-open-sans text-xs font-semibold leading-snug text-white">
+                <p className="font-open-sans text-xs leading-snug font-semibold text-white">
                   A Trusted Assessed, Audited and Endorsed Training Provider
                 </p>
               )}
@@ -163,12 +163,12 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
 
             {/* Right col: title + rating + features */}
             <div className="min-w-0 flex-1">
-              <h1 className="font-suse text-2xl font-bold leading-tight text-white sm:text-[29px]">
+              <h1 className="font-suse text-2xl leading-tight font-bold text-white sm:text-[29px]">
                 {course.title}
               </h1>
 
               {course.rating !== undefined && (
-                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 font-open-sans text-base">
+                <div className="font-open-sans mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-base">
                   <span className="font-bold text-amber-400">{course.rating.toFixed(1)}</span>
                   <span className="flex gap-0.5" aria-hidden>
                     {Array.from({ length: 5 }).map((_, i) => (
@@ -184,7 +184,7 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                     ))}
                   </span>
                   {course.ratingCount ? (
-                    <span className="text-[#e1d2ba] underline">
+                    <span className="text-secondary-100 underline">
                       ({course.ratingCount.toLocaleString()} ratings)
                     </span>
                   ) : null}
@@ -203,9 +203,9 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                   {FEATURES_LEFT.map((feat) => (
                     <li
                       key={feat}
-                      className="flex items-start gap-2 font-open-sans text-base text-[#bfc7d2]"
+                      className="font-open-sans flex items-start gap-2 text-base text-neutral-50"
                     >
-                      <Wifi className="mt-0.5 h-5 w-5 shrink-0 text-primary-500" aria-hidden />
+                      <Wifi className="text-primary-500 mt-0.5 h-5 w-5 shrink-0" aria-hidden />
                       {feat}
                     </li>
                   ))}
@@ -214,9 +214,9 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                   {FEATURES_RIGHT.map((feat) => (
                     <li
                       key={feat}
-                      className="flex items-start gap-2 font-open-sans text-base text-[#bfc7d2]"
+                      className="font-open-sans flex items-start gap-2 text-base text-neutral-50"
                     >
-                      <Wifi className="mt-0.5 h-5 w-5 shrink-0 text-primary-500" aria-hidden />
+                      <Wifi className="text-primary-500 mt-0.5 h-5 w-5 shrink-0" aria-hidden />
                       {feat}
                     </li>
                   ))}
@@ -229,7 +229,7 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
 
       {/* Decorative wave + pattern — Figma 256:11795–11797 */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 overflow-hidden opacity-10 sm:h-20">
-        <div className="absolute left-1/2 top-0 flex h-[405.89px] w-[max(100%,1920px)] -translate-x-1/2 items-center justify-center">
+        <div className="absolute top-0 left-1/2 flex h-[405.89px] w-[max(100%,1920px)] -translate-x-1/2 items-center justify-center">
           <div className="shrink-0 -rotate-90">
             <img
               src="/images/course-banner-wave.svg"

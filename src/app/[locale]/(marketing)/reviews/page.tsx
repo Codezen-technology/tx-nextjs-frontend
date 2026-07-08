@@ -45,7 +45,7 @@ function Stars({ rating }: { rating: number }) {
           key={i}
           className={
             i < rating
-              ? "h-4 w-4 fill-secondary-500 text-secondary-500"
+              ? "fill-secondary-500 text-secondary-500 h-4 w-4"
               : "h-4 w-4 text-neutral-300"
           }
         />
@@ -68,7 +68,7 @@ function formatDate(dateStr: string): string {
 
 function ReviewCard({ review }: { review: ApiReview }) {
   return (
-    <article className="flex flex-col gap-3 rounded-lg border border-[#ebedf1] bg-white p-5 shadow-sm">
+    <article className="border-neutral-30 flex flex-col gap-3 rounded-lg border bg-white p-5 shadow-xs">
       <div className="flex items-center gap-3">
         {review.author.avatar ? (
           <Image
@@ -79,12 +79,12 @@ function ReviewCard({ review }: { review: ApiReview }) {
             className="h-10 w-10 rounded-full object-cover"
           />
         ) : (
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-50 font-suse font-bold text-secondary-500">
+          <span className="bg-primary-50 font-suse text-secondary-500 flex h-10 w-10 items-center justify-center rounded-full font-bold">
             {review.author.name.charAt(0).toUpperCase()}
           </span>
         )}
         <div className="min-w-0">
-          <p className="truncate font-open-sans text-sm font-semibold text-neutral-900">
+          <p className="font-open-sans truncate text-sm font-semibold text-neutral-900">
             {review.author.name}
           </p>
           <p className="font-open-sans text-xs text-neutral-400">{formatDate(review.created_at)}</p>
@@ -92,11 +92,11 @@ function ReviewCard({ review }: { review: ApiReview }) {
       </div>
       <Stars rating={review.rating} />
       {review.title && (
-        <h3 className="font-suse font-bold leading-snug text-neutral-900">
+        <h3 className="font-suse leading-snug font-bold text-neutral-900">
           {decodeEntities(review.title)}
         </h3>
       )}
-      <p className="line-clamp-6 font-open-sans text-sm leading-relaxed text-neutral-600">
+      <p className="font-open-sans line-clamp-6 text-sm leading-relaxed text-neutral-600">
         {decodeEntities(review.content).replace(/<[^>]+>/g, "")}
       </p>
     </article>
@@ -119,13 +119,13 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
       />
       <section className="bg-primary-50 py-14 text-center">
         <div className="container">
-          <p className="font-open-sans text-sm font-semibold uppercase tracking-wide text-secondary-500">
+          <p className="font-open-sans text-secondary-500 text-sm font-semibold tracking-wide uppercase">
             Testimonials
           </p>
-          <h1 className="mt-2 font-suse text-4xl font-bold text-neutral-900">
+          <h1 className="font-suse mt-2 text-4xl font-bold text-neutral-900">
             What do Learners Say About Our Courses?
           </h1>
-          <p className="mx-auto mt-3 max-w-2xl font-open-sans text-neutral-500">
+          <p className="font-open-sans mx-auto mt-3 max-w-2xl text-neutral-500">
             Genuine reviews from our learners — see how Training Excellence courses help people get
             skilled and get certified.
           </p>
@@ -154,7 +154,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
               action={
                 <Link
                   href="/all-courses"
-                  className="font-open-sans text-sm font-semibold text-secondary-500 hover:text-secondary-600"
+                  className="font-open-sans text-secondary-500 hover:text-secondary-600 text-sm font-semibold"
                 >
                   Browse courses →
                 </Link>

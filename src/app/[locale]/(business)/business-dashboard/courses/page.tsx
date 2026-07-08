@@ -29,7 +29,7 @@ function CourseCard({
     { label: "Certificates", value: stats?.certificate_count, icon: Award },
   ];
   return (
-    <div className="rounded-xl border border-neutral-30 bg-white p-5 shadow-sm">
+    <div className="border-neutral-30 rounded-xl border bg-white p-5 shadow-xs">
       <div className="mb-4 flex items-start gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#3F576F]/10 text-[#3F576F]">
           <BookOpen className="h-5 w-5" />
@@ -38,7 +38,7 @@ function CourseCard({
       </div>
       <dl className="grid grid-cols-2 gap-3">
         {items.map((s) => (
-          <div key={s.label} className="rounded-lg bg-neutral-10 p-3">
+          <div key={s.label} className="bg-neutral-10 rounded-lg p-3">
             <dt className="flex items-center gap-1.5 text-xs text-neutral-300">
               <s.icon className="h-3.5 w-3.5" />
               {s.label}
@@ -92,7 +92,7 @@ export default function BusinessAssignedCoursesPage() {
       />
 
       <form onSubmit={onSearch} className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-300" />
+        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-300" />
         <Input
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
@@ -106,12 +106,12 @@ export default function BusinessAssignedCoursesPage() {
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="h-44 animate-pulse rounded-xl border border-neutral-30 bg-white"
+              className="border-neutral-30 h-44 animate-pulse rounded-xl border bg-white"
             />
           ))}
         </div>
       ) : isError ? (
-        <div className="rounded-xl border border-neutral-30 bg-white p-10 text-center text-sm text-red-600">
+        <div className="border-neutral-30 rounded-xl border bg-white p-10 text-center text-sm text-red-600">
           Could not load courses. Please try again.
         </div>
       ) : !rows.length ? (

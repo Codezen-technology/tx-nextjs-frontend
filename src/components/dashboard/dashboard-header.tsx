@@ -44,20 +44,20 @@ export function DashboardHeader({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="rounded-full outline-none ring-offset-2 focus-visible:ring-2"
+          className="rounded-full ring-offset-2 outline-hidden focus-visible:ring-2"
         >
           <UserAvatar user={user} size="md" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[300px] rounded-3xl p-0">
-        <div className="flex items-center gap-3 px-6 pb-4 pt-6">
+        <div className="flex items-center gap-3 px-6 pt-6 pb-4">
           <UserAvatar user={user} size="lg" />
           <div className="min-w-0">
             {displayName ? (
               <p className="truncate font-bold text-[#213039]">{displayName}</p>
             ) : null}
             {user?.email && <p className="truncate text-xs text-[#586973]">{user.email}</p>}
-            <Link href="/dashboard/profile" className="text-sm text-lms-secondary hover:underline">
+            <Link href="/dashboard/profile" className="text-lms-secondary text-sm hover:underline">
               Edit Profile
             </Link>
           </div>
@@ -107,7 +107,7 @@ export function DashboardHeader({
   return (
     <header
       className={cn(
-        "fixed top-[var(--imp-offset)] z-40 flex h-16 w-full items-center bg-white shadow-sm transition-[width,margin] md:h-24 md:shadow-none",
+        "fixed top-(--imp-offset) z-40 flex h-16 w-full items-center bg-white shadow-xs transition-[width,margin] md:h-24 md:shadow-none",
         sidebarOpen
           ? "md:ml-[280px] md:w-[calc(100%-280px)]"
           : "md:ml-[65px] md:w-[calc(100%-65px)]",
@@ -122,7 +122,7 @@ export function DashboardHeader({
             className="rounded p-2 hover:bg-neutral-100"
             aria-label="Open sidebar"
           >
-            <Menu className="h-6 w-6 text-lms-text" />
+            <Menu className="text-lms-text h-6 w-6" />
           </button>
         )}
         <DashboardSearch />
@@ -130,7 +130,7 @@ export function DashboardHeader({
           <Button
             asChild
             variant="ghost"
-            className="rounded-full bg-[#F6F6FA] px-6 text-base font-semibold capitalize text-lms-primary hover:bg-[#F6F6FA]/80"
+            className="text-lms-primary rounded-full bg-[#F6F6FA] px-6 text-base font-semibold capitalize hover:bg-[#F6F6FA]/80"
           >
             <Link href="/" target="_blank">
               <Home className="mr-2 h-5 w-5" />

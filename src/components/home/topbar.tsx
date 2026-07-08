@@ -20,7 +20,7 @@ export function Topbar({ items }: TopbarProps) {
               height={16}
               className="shrink-0"
             />
-            <span className="font-open-sans text-sm font-normal leading-[1.5] text-neutral-500">
+            <span className="font-open-sans text-sm leading-normal font-normal text-neutral-500">
               {item.label}
             </span>
           </div>

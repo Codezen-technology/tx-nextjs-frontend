@@ -12,7 +12,7 @@ const VARIANT_STYLES: Record<PromoCardVariant, { bg: string; buttonClass: string
       bg: "bg-[#0b1759]",
       maxW: "max-w-lg",
       buttonClass:
-        "bg-gradient-to-r from-[#EE3D7B] to-[#FBB43F] text-white hover:from-[#d4356b] hover:to-[#e8a030]",
+        "bg-linear-to-r from-[#EE3D7B] to-[#FBB43F] text-white hover:from-[#d4356b] hover:to-[#e8a030]",
     },
     team: {
       bg: "bg-[#108a97]",

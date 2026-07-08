@@ -58,7 +58,7 @@ function TrendingPost({ post, category }: { post: BlogPost; category?: WPCategor
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group grid grid-cols-1 overflow-hidden rounded-xl border border-[#ebedf1] bg-white transition-shadow hover:shadow-lg md:grid-cols-2"
+      className="group border-neutral-30 grid grid-cols-1 overflow-hidden rounded-xl border bg-white transition-shadow hover:shadow-lg md:grid-cols-2"
     >
       <div className="relative min-h-[260px] overflow-hidden bg-neutral-100 md:min-h-[340px]">
         {image && (
@@ -73,18 +73,18 @@ function TrendingPost({ post, category }: { post: BlogPost; category?: WPCategor
         )}
       </div>
       <div className="flex flex-col justify-center gap-4 p-8 md:p-10">
-        <div className="flex items-center gap-0 font-open-sans text-sm font-semibold">
+        <div className="font-open-sans flex items-center gap-0 text-sm font-semibold">
           {category && <span className="text-primary-500">{category.name}</span>}
           {category && <span className="mx-2 text-neutral-400">•</span>}
           <span className="text-neutral-400">{formatDate(post.date)}</span>
         </div>
-        <h2 className="font-suse text-2xl font-bold leading-snug text-[#00204a] transition-colors group-hover:text-primary-500 md:text-3xl">
+        <h2 className="font-suse group-hover:text-primary-500 text-2xl leading-snug font-bold text-neutral-900 transition-colors md:text-3xl">
           {title}
         </h2>
         {excerpt && (
-          <p className="line-clamp-3 font-open-sans text-base text-[#3b5374]">{excerpt}</p>
+          <p className="font-open-sans line-clamp-3 text-base text-neutral-500">{excerpt}</p>
         )}
-        <span className="inline-flex items-center gap-1 font-open-sans text-base font-semibold text-secondary-500">
+        <span className="font-open-sans text-secondary-500 inline-flex items-center gap-1 text-base font-semibold">
           Read more <span aria-hidden>→</span>
         </span>
       </div>
@@ -103,7 +103,7 @@ export default async function BlogPage() {
       />
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-[#00204a] py-14 md:py-20">
+      <section className="relative overflow-hidden bg-neutral-900 py-14 md:py-20">
         <div
           className="pointer-events-none absolute inset-0 opacity-10"
           style={{
@@ -111,16 +111,16 @@ export default async function BlogPage() {
             backgroundSize: "32px 32px",
           }}
         />
-        <div className="container relative">
+        <div className="relative container">
           <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
             <div className="max-w-xl">
               <p className="font-open-sans text-sm font-normal text-white/70">
                 Training Excellence&apos;s
               </p>
-              <h1 className="mt-1 font-suse text-4xl font-bold text-white md:text-5xl">
+              <h1 className="font-suse mt-1 text-4xl font-bold text-white md:text-5xl">
                 Blogs &amp; Updates
               </h1>
-              <p className="mt-3 font-open-sans text-base text-white/70">
+              <p className="font-open-sans mt-3 text-base text-white/70">
                 Your Go-To Hub for Insights &amp; Career-Boosting Knowledge.
               </p>
             </div>
@@ -133,11 +133,11 @@ export default async function BlogPage() {
                 name="q"
                 type="search"
                 placeholder="Search..."
-                className="flex-1 bg-white px-4 py-3 font-open-sans text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none"
+                className="font-open-sans flex-1 bg-white px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-hidden"
               />
               <button
                 type="submit"
-                className="flex items-center gap-2 bg-secondary-500 px-5 py-3 font-open-sans text-sm font-semibold text-white transition-colors hover:bg-secondary-600"
+                className="bg-secondary-500 font-open-sans hover:bg-secondary-600 flex items-center gap-2 px-5 py-3 text-sm font-semibold text-white transition-colors"
               >
                 <Search className="h-4 w-4" />
                 Search
@@ -151,7 +151,7 @@ export default async function BlogPage() {
       {trending && (
         <section className="bg-[#f5f3ee] py-12 md:py-16">
           <div className="container">
-            <h2 className="mb-6 font-suse text-2xl font-bold text-[#00204a]">Trending Topics</h2>
+            <h2 className="font-suse mb-6 text-2xl font-bold text-neutral-900">Trending Topics</h2>
             <TrendingPost
               post={trending}
               category={
@@ -172,10 +172,10 @@ export default async function BlogPage() {
             {categorySections.map(({ category, posts }) => (
               <div key={category.id}>
                 <div className="mb-6 flex items-end justify-between">
-                  <h2 className="font-suse text-2xl font-bold text-[#00204a]">{category.name}</h2>
+                  <h2 className="font-suse text-2xl font-bold text-neutral-900">{category.name}</h2>
                   <Link
                     href={`/blog/category/${category.slug}`}
-                    className="flex items-center gap-1 font-open-sans text-sm font-semibold text-secondary-500 hover:text-secondary-600"
+                    className="font-open-sans text-secondary-500 hover:text-secondary-600 flex items-center gap-1 text-sm font-semibold"
                   >
                     View more <ChevronRight className="h-4 w-4" />
                   </Link>

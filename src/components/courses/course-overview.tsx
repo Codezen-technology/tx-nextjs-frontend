@@ -30,16 +30,15 @@ interface CourseOverviewProps {
 
 export function CourseOverview({ course }: CourseOverviewProps) {
   const primaryAccreditation = course.accreditations?.[0];
-  const showFeatured =
-    isRenderableImageSrc(course.featuredImage) && !primaryAccreditation?.logo;
+  const showFeatured = isRenderableImageSrc(course.featuredImage) && !primaryAccreditation?.logo;
 
   return (
     <div className="flex flex-col gap-8 lg:flex-row lg:gap-6">
       {/* Trust + preview image */}
       <div className="w-full shrink-0 lg:w-[306px]">
-        <div className="overflow-hidden rounded-lg border border-neutral-30 bg-white p-2">
+        <div className="border-neutral-30 overflow-hidden rounded-lg border bg-white p-2">
           {showFeatured ? (
-            <div className="relative aspect-[290/188] w-full overflow-hidden rounded-md bg-neutral-20">
+            <div className="bg-neutral-20 relative aspect-290/188 w-full overflow-hidden rounded-md">
               <SafeImage
                 src={course.featuredImage!}
                 alt=""
@@ -49,7 +48,7 @@ export function CourseOverview({ course }: CourseOverviewProps) {
               />
             </div>
           ) : isRenderableImageSrc(primaryAccreditation?.logo) ? (
-            <div className="relative flex aspect-[290/188] items-center justify-center rounded-md bg-neutral-10 p-4">
+            <div className="bg-neutral-10 relative flex aspect-290/188 items-center justify-center rounded-md p-4">
               <SafeImage
                 src={primaryAccreditation!.logo}
                 alt={primaryAccreditation!.label}
@@ -59,21 +58,21 @@ export function CourseOverview({ course }: CourseOverviewProps) {
               />
             </div>
           ) : (
-            <div className="flex aspect-[290/188] items-center justify-center rounded-md bg-neutral-20 text-sm text-neutral-500">
+            <div className="bg-neutral-20 flex aspect-290/188 items-center justify-center rounded-md text-sm text-neutral-500">
               Course preview
             </div>
           )}
         </div>
 
         <div className="mt-4 space-y-3">
-          <p className="font-open-sans text-sm font-semibold leading-snug text-neutral-900">
+          <p className="font-open-sans text-sm leading-snug font-semibold text-neutral-900">
             A Trusted Assessed, Audited and Endorsed Training Provider
           </p>
           <div className="flex gap-4">
             {TRUST_BADGES.map((badge) => (
               <div
                 key={badge.src}
-                className="flex h-14 w-[70px] items-center justify-center rounded border border-neutral-30 bg-white"
+                className="border-neutral-30 flex h-14 w-[70px] items-center justify-center rounded border bg-white"
               >
                 {publicImageExists(badge.src) ? (
                   <SafeImage
@@ -94,7 +93,7 @@ export function CourseOverview({ course }: CourseOverviewProps) {
               isRenderableImageSrc(acc.logo) ? (
                 <div
                   key={acc.slug}
-                  className="relative flex h-14 w-[70px] items-center justify-center rounded border border-neutral-30 bg-white p-1"
+                  className="border-neutral-30 relative flex h-14 w-[70px] items-center justify-center rounded border bg-white p-1"
                 >
                   <SafeImage
                     src={acc.logo}
@@ -112,12 +111,12 @@ export function CourseOverview({ course }: CourseOverviewProps) {
 
       {/* Title + rating + features */}
       <div className="min-w-0 flex-1">
-        <h1 className="font-suse text-2xl font-bold leading-tight text-neutral-900 sm:text-[29px]">
+        <h1 className="font-suse text-2xl leading-tight font-bold text-neutral-900 sm:text-[29px]">
           {course.title}
         </h1>
 
         {course.rating !== undefined ? (
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 font-open-sans text-base text-neutral-700">
+          <div className="font-open-sans mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-base text-neutral-700">
             <span className="font-semibold text-neutral-900">{course.rating.toFixed(1)}</span>
             <span className="flex gap-0.5" aria-hidden>
               {Array.from({ length: 5 }).map((_, i) => (
@@ -144,16 +143,22 @@ export function CourseOverview({ course }: CourseOverviewProps) {
         <div className="mt-6 grid gap-x-8 gap-y-3 sm:grid-cols-2">
           <ul className="space-y-4">
             {FEATURES_LEFT.map((feat) => (
-              <li key={feat} className="flex items-start gap-2 font-open-sans text-base text-neutral-800">
-                <Wifi className="mt-0.5 h-5 w-5 shrink-0 text-primary-500" aria-hidden />
+              <li
+                key={feat}
+                className="font-open-sans flex items-start gap-2 text-base text-neutral-800"
+              >
+                <Wifi className="text-primary-500 mt-0.5 h-5 w-5 shrink-0" aria-hidden />
                 {feat}
               </li>
             ))}
           </ul>
           <ul className="space-y-4">
             {FEATURES_RIGHT.map((feat) => (
-              <li key={feat} className="flex items-start gap-2 font-open-sans text-base text-neutral-800">
-                <Wifi className="mt-0.5 h-5 w-5 shrink-0 text-primary-500" aria-hidden />
+              <li
+                key={feat}
+                className="font-open-sans flex items-start gap-2 text-base text-neutral-800"
+              >
+                <Wifi className="text-primary-500 mt-0.5 h-5 w-5 shrink-0" aria-hidden />
                 {feat}
               </li>
             ))}

@@ -57,7 +57,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-[#00204a] py-12">
+      <section className="relative overflow-hidden bg-neutral-900 py-12">
         <div
           className="pointer-events-none absolute inset-0 opacity-10"
           style={{
@@ -65,15 +65,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             backgroundSize: "32px 32px",
           }}
         />
-        <div className="container relative">
+        <div className="relative container">
           {q ? (
             <>
               <p className="font-open-sans text-sm text-white/60">Search results</p>
-              <h1 className="mt-1 font-suse text-3xl font-bold text-white md:text-4xl">
+              <h1 className="font-suse mt-1 text-3xl font-bold text-white md:text-4xl">
                 &ldquo;{q}&rdquo;
               </h1>
               {totalResults > 0 && (
-                <p className="mt-2 font-open-sans text-sm text-white/70">
+                <p className="font-open-sans mt-2 text-sm text-white/70">
                   {totalResults} result{totalResults !== 1 ? "s" : ""} found
                 </p>
               )}
@@ -94,11 +94,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               defaultValue={q}
               placeholder="Search courses, topics..."
               autoFocus
-              className="flex-1 bg-white px-4 py-3 font-open-sans text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none"
+              className="font-open-sans flex-1 bg-white px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-hidden"
             />
             <button
               type="submit"
-              className="bg-secondary-500 px-6 py-3 font-open-sans text-sm font-semibold text-white transition-colors hover:bg-secondary-600"
+              className="bg-secondary-500 font-open-sans hover:bg-secondary-600 px-6 py-3 text-sm font-semibold text-white transition-colors"
             >
               Search
             </button>
@@ -126,9 +126,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           {courses.length > 0 && (
             <section>
               <div className="mb-6 flex items-end justify-between">
-                <h2 className="font-suse text-2xl font-bold text-[#00204a]">
+                <h2 className="font-suse text-2xl font-bold text-neutral-900">
                   Courses
-                  <span className="ml-2 font-open-sans text-base font-normal text-neutral-400">
+                  <span className="font-open-sans ml-2 text-base font-normal text-neutral-400">
                     ({courses.length})
                   </span>
                 </h2>
@@ -145,9 +145,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           {blogPosts.length > 0 && (
             <section>
               <div className="mb-6">
-                <h2 className="font-suse text-2xl font-bold text-[#00204a]">
+                <h2 className="font-suse text-2xl font-bold text-neutral-900">
                   Articles
-                  <span className="ml-2 font-open-sans text-base font-normal text-neutral-400">
+                  <span className="font-open-sans ml-2 text-base font-normal text-neutral-400">
                     ({blogPosts.length})
                   </span>
                 </h2>

@@ -51,7 +51,7 @@ export function PlayerUnitItem({
     >
       <div className="mr-3 shrink-0">
         {done ? (
-          <CheckCircle2 className="h-5 w-5 text-player-success" />
+          <CheckCircle2 className="text-player-success h-5 w-5" />
         ) : isMarkingComplete ? (
           <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
         ) : (
@@ -70,7 +70,7 @@ export function PlayerUnitItem({
         )}
       </div>
 
-      <div className="min-w-0 flex-grow overflow-hidden">
+      <div className="min-w-0 grow overflow-hidden">
         <h4
           className={cn(
             "truncate text-sm text-gray-900",

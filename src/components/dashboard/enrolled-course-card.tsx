@@ -25,8 +25,7 @@ export function EnrolledCourseCard({ enrollment }: EnrolledCourseCardProps) {
   const c = enrollment.course ?? course;
 
   const percent =
-    progress?.percent ??
-    (enrollment.progress !== undefined ? Math.round(enrollment.progress) : 0);
+    progress?.percent ?? (enrollment.progress !== undefined ? Math.round(enrollment.progress) : 0);
   const completed = progress?.completedUnits ?? enrollment.completedUnits ?? 0;
   const total =
     progress?.totalUnits ?? enrollment.totalUnits ?? c?.unitsCount ?? c?.lessonsCount ?? 0;
@@ -34,7 +33,7 @@ export function EnrolledCourseCard({ enrollment }: EnrolledCourseCardProps) {
   if (isLoading && !c) {
     return (
       <Card>
-        <Skeleton className="aspect-[3/1] w-full rounded-b-none" />
+        <Skeleton className="aspect-3/1 w-full rounded-b-none" />
         <CardContent className="space-y-3 p-5">
           <Skeleton className="h-5 w-2/3" />
           <Skeleton className="h-3 w-1/2" />
@@ -52,7 +51,7 @@ export function EnrolledCourseCard({ enrollment }: EnrolledCourseCardProps) {
 
   return (
     <Card className="overflow-hidden">
-      <div className="relative aspect-[3/1] w-full bg-muted">
+      <div className="bg-muted relative aspect-3/1 w-full">
         {c.featuredImage ? (
           <Image
             src={c.featuredImage}
@@ -62,12 +61,12 @@ export function EnrolledCourseCard({ enrollment }: EnrolledCourseCardProps) {
             className="object-cover"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
+          <div className="text-muted-foreground flex h-full items-center justify-center">
             <GraduationCap className="h-10 w-10" />
           </div>
         )}
         {enrollment.status === "completed" || percent === 100 ? (
-          <Badge variant="success" className="absolute right-3 top-3">
+          <Badge variant="success" className="absolute top-3 right-3">
             Completed
           </Badge>
         ) : null}
@@ -80,21 +79,25 @@ export function EnrolledCourseCard({ enrollment }: EnrolledCourseCardProps) {
               {c.title}
             </Link>
           </h3>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-xs">
             Enrolled {formatDate(enrollment.enrolledAt)}
           </p>
         </div>
 
         <div className="space-y-1.5">
           <Progress value={percent} />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             {completed}/{total} {pluralize(total, "unit")} \u2022 {percent}%
           </p>
         </div>
 
         <Button asChild size="sm" className="w-full">
           <Link href={targetUrl}>
-            {percent > 0 && percent < 100 ? "Continue learning" : percent === 100 ? "Review" : "Start learning"}
+            {percent > 0 && percent < 100
+              ? "Continue learning"
+              : percent === 100
+                ? "Review"
+                : "Start learning"}
             <ArrowRight />
           </Link>
         </Button>

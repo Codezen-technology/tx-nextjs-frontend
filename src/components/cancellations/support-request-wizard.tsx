@@ -69,26 +69,26 @@ export function SupportRequestWizard({ form, formId, supportEmail }: SupportRequ
     <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div aria-live="polite" className="space-y-6">
         {step === 2 && issue ? (
-          <div className="rounded-xl border border-primary-100 bg-primary-50/80 p-5 duration-200 animate-in fade-in">
-            <p className="flex items-center gap-2 font-open-sans text-xs font-semibold uppercase tracking-wide text-primary-600">
+          <div className="border-primary-100 bg-primary-50/80 animate-in fade-in rounded-xl border p-5 duration-200">
+            <p className="font-open-sans text-primary-600 flex items-center gap-2 text-xs font-semibold tracking-wide uppercase">
               How we fix this
             </p>
-            <p className="mt-2 font-open-sans text-sm leading-relaxed text-neutral-700">
+            <p className="font-open-sans mt-2 text-sm leading-relaxed text-neutral-700">
               {issue.fixCopy}
             </p>
           </div>
         ) : null}
 
-        <div className="rounded-2xl border border-neutral-30 bg-white p-6 shadow-sm md:p-8">
+        <div className="border-neutral-30 rounded-2xl border bg-white p-6 shadow-xs md:p-8">
           {step === 1 ? (
-            <div className="duration-200 animate-in fade-in">
-              <p className="font-open-sans text-xs font-semibold uppercase tracking-widest text-primary-500">
+            <div className="animate-in fade-in duration-200">
+              <p className="font-open-sans text-primary-500 text-xs font-semibold tracking-widest uppercase">
                 Step 1 of 2
               </p>
-              <h2 className="mt-4 font-suse text-2xl font-bold text-neutral-900 md:text-3xl">
+              <h2 className="font-suse mt-4 text-2xl font-bold text-neutral-900 md:text-3xl">
                 What do you need help with?
               </h2>
-              <p className="mt-3 font-open-sans text-sm leading-relaxed text-neutral-600">
+              <p className="font-open-sans mt-3 text-sm leading-relaxed text-neutral-600">
                 Pick the closest match. The form adapts so you do not have to explain everything
                 from scratch.
               </p>
@@ -97,30 +97,30 @@ export function SupportRequestWizard({ form, formId, supportEmail }: SupportRequ
                 <IssueTypePicker selected={selectedIssue} onSelect={handleSelect} />
               </div>
 
-              <p className="mt-8 border-t border-neutral-30 pt-6 font-open-sans text-sm text-neutral-500">
+              <p className="border-neutral-30 font-open-sans mt-8 border-t pt-6 text-sm text-neutral-500">
                 <Link
                   href="/cancellations?refund=1#refund-form"
-                  className="font-semibold text-secondary-500 underline hover:text-secondary-600"
+                  className="text-secondary-500 hover:text-secondary-600 font-semibold underline"
                 >
                   None of these apply — continue to refund request →
                 </Link>
               </p>
             </div>
           ) : (
-            <div className="duration-200 animate-in fade-in">
+            <div className="animate-in fade-in duration-200">
               <button
                 type="button"
                 onClick={handleChangeIssue}
-                className="-ml-1 inline-flex items-center gap-1 rounded font-open-sans text-sm font-semibold text-neutral-500 transition-colors hover:text-secondary-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+                className="font-open-sans hover:text-secondary-500 focus-visible:ring-primary-400 -ml-1 inline-flex items-center gap-1 rounded text-sm font-semibold text-neutral-500 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
               >
                 <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                 Change issue
               </button>
 
-              <p className="mt-4 font-open-sans text-xs font-semibold uppercase tracking-widest text-primary-500">
+              <p className="font-open-sans text-primary-500 mt-4 text-xs font-semibold tracking-widest uppercase">
                 Step 2 of 2
               </p>
-              <h2 className="mt-2 font-suse text-2xl font-bold text-neutral-900 md:text-3xl">
+              <h2 className="font-suse mt-2 text-2xl font-bold text-neutral-900 md:text-3xl">
                 {issue?.replyHeading ?? "Tell us where to reply"}
               </h2>
 

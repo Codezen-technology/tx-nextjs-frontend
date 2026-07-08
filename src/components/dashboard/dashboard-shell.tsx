@@ -35,7 +35,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className="flex min-h-screen bg-[#f8f8f8] pt-[var(--imp-offset)]"
+      className="flex min-h-screen bg-[#f8f8f8] pt-(--imp-offset)"
       style={{ "--imp-offset": impersonating ? "40px" : "0px" } as React.CSSProperties}
     >
       <ImpersonationBanner variant="fixed" />

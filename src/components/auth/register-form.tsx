@@ -24,8 +24,8 @@ export function RegisterForm() {
   const onSubmit = (values: RegisterInput) => reg.mutate(values);
 
   return (
-    <div className="w-full max-w-[416px] rounded-lg border border-[#ebedf1] bg-white p-10 text-[#3b5374] shadow-[0px_8px_8px_rgb(0_0_0/0.15)]">
-      <h1 className="mb-10 text-center font-suse text-[28px] font-bold leading-[1.2] text-[#00204a]">
+    <div className="border-neutral-30 w-full max-w-[416px] rounded-lg border bg-white p-10 text-neutral-500 shadow-[0px_8px_8px_rgb(0_0_0/0.15)]">
+      <h1 className="font-suse mb-10 text-center text-[28px] leading-[1.2] font-bold text-neutral-900">
         Create your account
       </h1>
 
@@ -33,9 +33,9 @@ export function RegisterForm() {
         <div className="flex flex-col gap-4">
           <SocialAuthButtons />
           <div className="flex items-center gap-2">
-            <div className="h-px flex-1 bg-[#ebedf1]" />
-            <span className="font-open-sans text-base text-[#3b5374]">OR</span>
-            <div className="h-px flex-1 bg-[#ebedf1]" />
+            <div className="bg-neutral-30 h-px flex-1" />
+            <span className="font-open-sans text-base text-neutral-500">OR</span>
+            <div className="bg-neutral-30 h-px flex-1" />
           </div>
         </div>
 
@@ -80,7 +80,7 @@ export function RegisterForm() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6c757d] hover:text-[#3b5374]"
+                  className="absolute top-1/2 right-3 -translate-y-1/2 text-[#6c757d] hover:text-neutral-500"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -92,12 +92,15 @@ export function RegisterForm() {
               <label className="flex cursor-pointer items-start gap-2">
                 <input
                   type="checkbox"
-                  className="mt-0.5 h-4 w-4 rounded border-[#bfc7d2] accent-[#9e6f21]"
+                  className="accent-secondary-500 mt-0.5 h-4 w-4 rounded border-neutral-50"
                   {...register("terms")}
                 />
-                <span className="font-open-sans text-base text-[#3b5374]">
+                <span className="font-open-sans text-base text-neutral-500">
                   I agree to the{" "}
-                  <Link href="/terms-and-conditions" className="font-bold text-[#9e6f21] underline">
+                  <Link
+                    href="/terms-and-conditions"
+                    className="text-secondary-500 font-bold underline"
+                  >
                     terms &amp; conditions
                   </Link>
                 </span>
@@ -109,7 +112,7 @@ export function RegisterForm() {
           <button
             type="submit"
             disabled={reg.isPending}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded border border-[#9e6f21] bg-[#9e6f21] font-open-sans text-base text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            className="border-secondary-500 bg-secondary-500 font-open-sans flex h-10 w-full items-center justify-center gap-2 rounded border text-base text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {reg.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             Register
@@ -117,9 +120,9 @@ export function RegisterForm() {
         </form>
       </div>
 
-      <p className="mt-8 text-center font-open-sans text-base text-[#3b5374]">
+      <p className="font-open-sans mt-8 text-center text-base text-neutral-500">
         Already have an account?{" "}
-        <Link href="/login" className="font-bold text-[#9e6f21] underline">
+        <Link href="/login" className="text-secondary-500 font-bold underline">
           Log in
         </Link>
       </p>

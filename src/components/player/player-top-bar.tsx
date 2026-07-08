@@ -24,7 +24,7 @@ export function PlayerTopBar({
   const openReview = usePlayerStore((s) => s.openReviewModal);
 
   return (
-    <div className="fixed left-0 right-0 top-0 z-50 bg-gray-800 text-white">
+    <div className="fixed top-0 right-0 left-0 z-50 bg-gray-800 text-white">
       <div className="flex h-16 items-center justify-between px-4">
         <div className="flex min-w-0 items-center gap-4">
           <button
@@ -46,7 +46,7 @@ export function PlayerTopBar({
               type="button"
               onClick={openReview}
               disabled={reviewLoading}
-              className="hidden rounded-md bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 sm:block"
+              className="hidden rounded-md bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-hidden sm:block"
             >
               {reviewLoading ? "Loading…" : "Leave a Review"}
             </button>
@@ -65,7 +65,7 @@ export function PlayerTopBar({
 
       <div className="hidden h-1 bg-gray-700 sm:block">
         <div
-          className="h-full bg-player-success transition-all duration-500"
+          className="bg-player-success h-full transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>

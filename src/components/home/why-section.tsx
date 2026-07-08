@@ -25,12 +25,12 @@ export function WhySection({ panels }: WhySectionProps) {
                   isImageLeft ? "lg:order-2 lg:col-start-6" : "lg:order-1 lg:col-start-1"
                 }`}
               >
-                <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900">
+                <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
                   {panel.title}
                 </h2>
 
                 {panel.body && (
-                  <p className="font-open-sans text-base leading-[1.5] text-neutral-500">
+                  <p className="font-open-sans text-base leading-normal text-neutral-500">
                     {panel.body}
                   </p>
                 )}
@@ -40,7 +40,7 @@ export function WhySection({ panels }: WhySectionProps) {
                     {panel.bullets.map((b, i) => (
                       <li
                         key={i}
-                        className="flex items-start gap-2 font-open-sans text-base leading-[1.5] text-neutral-500"
+                        className="font-open-sans flex items-start gap-2 text-base leading-normal text-neutral-500"
                       >
                         <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-500" />
                         {b}
@@ -51,7 +51,7 @@ export function WhySection({ panels }: WhySectionProps) {
 
                 <Link
                   href={panel.cta.href}
-                  className="inline-flex items-center gap-2 font-open-sans text-base font-medium leading-7 text-secondary-500 transition-colors hover:text-secondary-600"
+                  className="font-open-sans text-secondary-500 hover:text-secondary-600 inline-flex items-center gap-2 text-base leading-7 font-medium transition-colors"
                 >
                   {panel.cta.label}
                   <ArrowRight className="h-5 w-5" />

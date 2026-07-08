@@ -82,7 +82,7 @@ export function SocialAuthButtons({ onSuccess: _ }: Props) {
           type="button"
           disabled
           title="Coming soon"
-          className="flex w-full cursor-not-allowed items-center justify-center gap-3 rounded-lg border border-[#ebedf1] bg-[#fafbfb] px-4 py-2.5 font-open-sans text-base text-[#3b5374] opacity-60 shadow-[0px_1px_2px_rgb(16_24_40/0.05)]"
+          className="border-neutral-30 bg-neutral-10 font-open-sans flex w-full cursor-not-allowed items-center justify-center gap-3 rounded-lg border px-4 py-2.5 text-base text-neutral-500 opacity-60 shadow-[0px_1px_2px_rgb(16_24_40/0.05)]"
         >
           <Icon />
           {label}

@@ -239,7 +239,7 @@ export function GravityForm({
             <div className="relative flex justify-center">
               <span
                 className={cn(
-                  "px-3 font-open-sans text-[10px] font-semibold uppercase tracking-widest text-neutral-400",
+                  "font-open-sans px-3 text-[10px] font-semibold tracking-widest text-neutral-400 uppercase",
                   surfaceClass,
                 )}
               >
@@ -348,7 +348,7 @@ export function GravityForm({
     return (
       <div
         className={cn(
-          "rounded-lg border border-green-200 bg-green-50 p-8 text-center font-open-sans text-sm text-neutral-700",
+          "font-open-sans rounded-lg border border-green-200 bg-green-50 p-8 text-center text-sm text-neutral-700",
           className,
         )}
         // Confirmation HTML is authored in GF admin (trusted).
@@ -377,7 +377,7 @@ export function GravityForm({
       noValidate
     >
       {form.isMultiPage && (
-        <p className="font-open-sans text-xs font-medium uppercase tracking-wide text-neutral-400">
+        <p className="font-open-sans text-xs font-medium tracking-wide text-neutral-400 uppercase">
           Step {page} of {form.pageCount}
         </p>
       )}
@@ -398,7 +398,7 @@ export function GravityForm({
       {submitError ? (
         <div
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 p-4 font-open-sans text-sm text-red-800"
+          className="font-open-sans rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800"
         >
           {submitError}{" "}
           {fallbackEmail ? (
@@ -424,7 +424,7 @@ export function GravityForm({
       {showPrivacyLink ? (
         <p className="font-open-sans text-sm text-neutral-500">
           You agree to our{" "}
-          <Link href="/privacy-policy" className="font-semibold text-secondary-500 underline">
+          <Link href="/privacy-policy" className="text-secondary-500 font-semibold underline">
             privacy policy
           </Link>
           .
@@ -444,7 +444,7 @@ export function GravityForm({
             disabled={isSubmitting}
             className={cn(
               "w-full sm:w-auto",
-              isCancellations && "bg-secondary-500 text-white hover:bg-secondary-600",
+              isCancellations && "bg-secondary-500 hover:bg-secondary-600 text-white",
             )}
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -591,7 +591,7 @@ function FieldRow({
       <div className="border-b border-neutral-200 pb-2">
         <h3 className="font-suse text-lg font-semibold text-neutral-900">{field.label}</h3>
         {field.description && (
-          <p className="mt-1 font-open-sans text-sm text-neutral-500">{field.description}</p>
+          <p className="font-open-sans mt-1 text-sm text-neutral-500">{field.description}</p>
         )}
       </div>
     );
@@ -609,11 +609,11 @@ function FieldRow({
   if (field.type === "consent" || (field.type === "checkbox" && field.choices?.length === 1)) {
     return (
       <div className="space-y-1.5">
-        <label className="flex items-start gap-3 font-open-sans text-sm leading-relaxed text-neutral-700">
+        <label className="font-open-sans flex items-start gap-3 text-sm leading-relaxed text-neutral-700">
           <input
             type="checkbox"
             value="1"
-            className="mt-0.5 h-4 w-4 shrink-0 rounded border-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+            className="focus-visible:ring-primary-400 mt-0.5 h-4 w-4 shrink-0 rounded border-neutral-300 focus-visible:ring-2 focus-visible:outline-hidden"
             {...register(field.name, { required })}
           />
           <span>
@@ -730,7 +730,7 @@ function FieldControl({
                 ? field.allowedExtensions.map((e) => `.${e}`).join(",")
                 : undefined
             }
-            className="block w-full text-sm text-neutral-700 file:mr-4 file:rounded-md file:border-0 file:bg-primary-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-700 hover:file:bg-primary-100"
+            className="file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 block w-full text-sm text-neutral-700 file:mr-4 file:rounded-md file:border-0 file:px-4 file:py-2 file:text-sm file:font-medium"
             {...register(field.name, {
               validate: (v) =>
                 !field.isRequired ||
@@ -740,7 +740,7 @@ function FieldControl({
             })}
           />
           {field.allowedExtensions?.length ? (
-            <p className="mt-1 font-open-sans text-xs text-neutral-400">
+            <p className="font-open-sans mt-1 text-xs text-neutral-400">
               Allowed: {field.allowedExtensions.join(", ")}
               {field.maxFileSize ? ` · max ${field.maxFileSize}MB` : ""}
             </p>
@@ -756,7 +756,7 @@ function FieldControl({
           placeholder={placeholder}
           maxLength={field.maxLength}
           className={cn(
-            "flex w-full rounded-md border px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 disabled:opacity-50",
+            "flex w-full rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-hidden disabled:opacity-50",
             fieldClass,
           )}
           {...register(field.name, { required })}
@@ -769,7 +769,7 @@ function FieldControl({
           id={id}
           defaultValue=""
           className={cn(
-            "flex h-11 w-full rounded-md border px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1",
+            "flex h-11 w-full rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-hidden",
             fieldClass,
           )}
           {...register(field.name, { required })}
@@ -793,7 +793,7 @@ function FieldControl({
           {field.choices?.map((choice) => (
             <label
               key={choice.value}
-              className="flex items-center gap-2 font-open-sans text-sm text-neutral-700"
+              className="font-open-sans flex items-center gap-2 text-sm text-neutral-700"
             >
               <input
                 type="radio"
@@ -809,7 +809,7 @@ function FieldControl({
 
     case "checkbox":
       return (
-        <label className="flex items-center gap-2 font-open-sans text-sm text-neutral-700">
+        <label className="font-open-sans flex items-center gap-2 text-sm text-neutral-700">
           <input
             type="checkbox"
             value="1"

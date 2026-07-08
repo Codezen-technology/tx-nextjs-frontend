@@ -84,16 +84,16 @@ export default function HelpPage() {
       />
       <section className="bg-primary-50 py-16 text-center">
         <div className="container">
-          <p className="font-open-sans text-sm font-semibold uppercase tracking-wide text-secondary-500">
+          <p className="font-open-sans text-secondary-500 text-sm font-semibold tracking-wide uppercase">
             FAQs
           </p>
-          <h1 className="mt-2 font-suse text-4xl font-bold text-neutral-900">
+          <h1 className="font-suse mt-2 text-4xl font-bold text-neutral-900">
             We&apos;re here to help
           </h1>
-          <p className="mx-auto mt-3 max-w-xl font-open-sans text-neutral-500">
+          <p className="font-open-sans mx-auto mt-3 max-w-xl text-neutral-500">
             Have questions? We&apos;re here to help.
           </p>
-          <Button asChild className="mt-6 bg-secondary-500 text-white hover:bg-secondary-600">
+          <Button asChild className="bg-secondary-500 hover:bg-secondary-600 mt-6 text-white">
             <Link href="/contact-us">Get started</Link>
           </Button>
         </div>
@@ -101,7 +101,7 @@ export default function HelpPage() {
 
       <section className="py-16">
         <div className="container max-w-3xl">
-          <h2 className="mb-8 text-center font-suse text-2xl font-bold text-neutral-900">
+          <h2 className="font-suse mb-8 text-center text-2xl font-bold text-neutral-900">
             Frequently Asked Questions
           </h2>
           <Accordion type="single" collapsible className="space-y-3">
@@ -109,9 +109,9 @@ export default function HelpPage() {
               <AccordionItem
                 key={faq.question}
                 value={`faq-${i}`}
-                className="rounded-lg border border-[#ebedf1] bg-white px-5"
+                className="border-neutral-30 rounded-lg border bg-white px-5"
               >
-                <AccordionTrigger className="text-left font-open-sans font-semibold text-neutral-900 hover:no-underline">
+                <AccordionTrigger className="font-open-sans text-left font-semibold text-neutral-900 hover:no-underline">
                   {faq.question}
                 </AccordionTrigger>
                 <AccordionContent className="font-open-sans text-sm leading-relaxed text-neutral-600">
@@ -125,12 +125,12 @@ export default function HelpPage() {
 
       <section className="pb-20">
         <div className="container max-w-3xl">
-          <div className="rounded-xl border border-[#ebedf1] bg-primary-50 p-10 text-center">
+          <div className="border-neutral-30 bg-primary-50 rounded-xl border p-10 text-center">
             <h2 className="font-suse text-xl font-bold text-neutral-900">Still have questions?</h2>
-            <p className="mt-2 font-open-sans text-sm text-neutral-500">
+            <p className="font-open-sans mt-2 text-sm text-neutral-500">
               Can&apos;t find the answer you&apos;re looking for? Please chat to our friendly team.
             </p>
-            <Button asChild className="mt-6 bg-secondary-500 text-white hover:bg-secondary-600">
+            <Button asChild className="bg-secondary-500 hover:bg-secondary-600 mt-6 text-white">
               <Link href="/contact-us">Get in touch</Link>
             </Button>
           </div>

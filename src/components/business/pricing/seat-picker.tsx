@@ -41,7 +41,7 @@ export function SeatPicker({
             max={500}
             value={seatQty}
             onChange={(e) => onSetSeatQty(clamp(parseInt(e.target.value, 10) || 1))}
-            className="w-20 rounded-lg border border-neutral-300 px-2 py-2 text-center text-sm font-semibold [appearance:textfield] focus:outline-none focus:ring-2 focus:ring-[#3F576F]/30 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            className="w-20 [appearance:textfield] rounded-lg border border-neutral-300 px-2 py-2 text-center text-sm font-semibold focus:ring-2 focus:ring-[#3F576F]/30 focus:outline-hidden [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           />
           <button
             type="button"

@@ -15,14 +15,14 @@ export function CompletionModal({ courseId: _courseId }: { courseId: number }) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && close()}>
-      <DialogContent className="max-w-screen-sm overflow-hidden border-0 p-0">
+      <DialogContent className="max-w-(--breakpoint-sm) overflow-hidden border-0 p-0">
         <div className="relative px-8 py-12 text-center">
-          <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br from-blue-100 to-purple-50 opacity-40" />
+          <div className="pointer-events-none absolute -top-8 -right-8 h-32 w-32 rounded-full bg-linear-to-br from-blue-100 to-purple-50 opacity-40" />
 
           <PartyPopper className="mx-auto mb-4 h-16 w-16 text-[#EE3C7A]" />
 
           <h2
-            className="mb-4 text-xl font-extrabold uppercase tracking-wider sm:text-[48px]"
+            className="mb-4 text-xl font-extrabold tracking-wider uppercase sm:text-[48px]"
             style={{ color: "#EE3C7A" }}
           >
             Congratulations!
@@ -31,7 +31,7 @@ export function CompletionModal({ courseId: _courseId }: { courseId: number }) {
           {message ? (
             <ParsedHtml as="div" content={message} className="prose-wp mx-auto mb-4 text-sm" />
           ) : (
-            <p className="mb-4 text-xl font-bold leading-snug text-[#2E4450] sm:text-2xl">
+            <p className="mb-4 text-xl leading-snug font-bold text-[#2E4450] sm:text-2xl">
               We know it was hard but you have successfully completed the course!
             </p>
           )}

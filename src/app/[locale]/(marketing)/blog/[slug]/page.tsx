@@ -122,7 +122,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       ))}
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-[#00204a] pb-10 pt-8">
+      <section className="relative overflow-hidden bg-neutral-900 pt-8 pb-10">
         <div
           className="pointer-events-none absolute inset-0 opacity-10"
           style={{
@@ -130,10 +130,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             backgroundSize: "32px 32px",
           }}
         />
-        <div className="container relative">
+        <div className="relative container">
           <nav
             aria-label="Breadcrumb"
-            className="flex items-center gap-1 font-open-sans text-sm text-white/60"
+            className="font-open-sans flex items-center gap-1 text-sm text-white/60"
           >
             <Link href="/" className="transition-colors hover:text-white">
               Home
@@ -157,13 +157,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <span className="line-clamp-1 text-white/90">{title}</span>
           </nav>
 
-          <h1 className="mt-5 max-w-3xl font-suse text-3xl font-bold leading-tight text-white md:text-4xl">
+          <h1 className="font-suse mt-5 max-w-3xl text-3xl leading-tight font-bold text-white md:text-4xl">
             {title}
           </h1>
 
-          <div className="mt-4 flex flex-wrap items-center gap-4 font-open-sans text-sm text-white/70">
+          <div className="font-open-sans mt-4 flex flex-wrap items-center gap-4 text-sm text-white/70">
             {postCategory && (
-              <span className="rounded-full bg-primary-500/20 px-3 py-1 font-semibold text-primary-400">
+              <span className="bg-primary-500/20 text-primary-400 rounded-full px-3 py-1 font-semibold">
                 {postCategory.name}
               </span>
             )}
@@ -214,7 +214,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               )}
               <ParsedHtml
                 as="div"
-                className="prose-wp font-open-sans text-[#3b5374]"
+                className="prose-wp font-open-sans text-neutral-500"
                 content={contentWithIds}
               />
             </article>
@@ -224,13 +224,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
       {/* Related posts */}
       {morePosts.length > 0 && (
-        <section className="border-t border-[#ebedf1] bg-[#f5f3ee] py-14">
+        <section className="border-neutral-30 border-t bg-[#f5f3ee] py-14">
           <div className="container">
             <div className="mb-8 flex items-end justify-between">
-              <h2 className="font-suse text-2xl font-bold text-[#00204a]">More from the blog</h2>
+              <h2 className="font-suse text-2xl font-bold text-neutral-900">More from the blog</h2>
               <Link
                 href="/blog"
-                className="flex items-center gap-1 font-open-sans text-sm font-semibold text-secondary-500 hover:text-secondary-600"
+                className="font-open-sans text-secondary-500 hover:text-secondary-600 flex items-center gap-1 text-sm font-semibold"
               >
                 View all posts <ChevronRight className="h-4 w-4" />
               </Link>

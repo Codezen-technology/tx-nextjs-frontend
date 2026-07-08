@@ -46,16 +46,16 @@ export function BusinessDataTable<T>({
 }: BusinessDataTableProps<T>) {
   return (
     <div className={cn("space-y-4", className)}>
-      <div className="overflow-hidden rounded-xl border border-neutral-30 bg-white shadow-sm">
+      <div className="border-neutral-30 overflow-hidden rounded-xl border bg-white shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <thead>
-              <tr className="border-b border-neutral-30 bg-neutral-10">
+              <tr className="border-neutral-30 bg-neutral-10 border-b">
                 {columns.map((col) => (
                   <th
                     key={col.key}
                     className={cn(
-                      "px-5 py-3 text-xs font-semibold uppercase tracking-wide text-neutral-300",
+                      "px-5 py-3 text-xs font-semibold tracking-wide text-neutral-300 uppercase",
                       col.headerClassName,
                     )}
                   >
@@ -64,7 +64,7 @@ export function BusinessDataTable<T>({
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-30">
+            <tbody className="divide-neutral-30 divide-y">
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={`skeleton-${i}`}>
@@ -96,7 +96,7 @@ export function BusinessDataTable<T>({
                 </tr>
               ) : (
                 rows.map((row, i) => (
-                  <tr key={rowKey(row, i)} className="transition-colors hover:bg-neutral-10">
+                  <tr key={rowKey(row, i)} className="hover:bg-neutral-10 transition-colors">
                     {columns.map((col) => (
                       <td
                         key={col.key}

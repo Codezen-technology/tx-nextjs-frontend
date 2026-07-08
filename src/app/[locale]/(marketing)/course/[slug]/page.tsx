@@ -309,7 +309,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           </div>
 
           {/* ── Desktop sticky sidebar ── */}
-          <aside className="hidden shrink-0 lg:-mt-[428px] lg:block lg:w-[307px] lg:self-stretch">
+          <aside className="hidden shrink-0 lg:mt-[-428px] lg:block lg:w-[307px] lg:self-stretch">
             <div className="sticky top-24 z-20">
               <CoursePurchaseCard course={course} />
             </div>

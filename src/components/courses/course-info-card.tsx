@@ -34,9 +34,9 @@ function PurchaseCard({ course }: PurchaseCardProps) {
     : null;
 
   return (
-    <div className="rounded-xl border border-[#ebedf1] bg-white shadow-md">
+    <div className="border-neutral-30 rounded-xl border bg-white shadow-md">
       {/* Tabs */}
-      <div className="flex border-b border-[#ebedf1]">
+      <div className="border-neutral-30 flex border-b">
         {(["me", "teams"] as PurchaseTab[]).map((t) => (
           <button
             key={t}
@@ -44,7 +44,7 @@ function PurchaseCard({ course }: PurchaseCardProps) {
             className={cn(
               "flex-1 py-3 text-sm font-semibold transition-colors",
               tab === t
-                ? "border-b-2 border-secondary-500 text-secondary-600"
+                ? "border-secondary-500 text-secondary-600 border-b-2"
                 : "text-neutral-500 hover:text-neutral-700",
             )}
           >
@@ -80,14 +80,14 @@ function PurchaseCard({ course }: PurchaseCardProps) {
             {pricing ? (
               <Link
                 href={`/checkout?course=${course.id}`}
-                className="block w-full rounded-lg bg-secondary-500 py-3 text-center text-sm font-bold text-white transition-colors hover:bg-secondary-600"
+                className="bg-secondary-500 hover:bg-secondary-600 block w-full rounded-lg py-3 text-center text-sm font-bold text-white transition-colors"
               >
                 Buy Now
               </Link>
             ) : (
               <Link
                 href="/contact-us"
-                className="block w-full rounded-lg bg-secondary-500 py-3 text-center text-sm font-bold text-white transition-colors hover:bg-secondary-600"
+                className="bg-secondary-500 hover:bg-secondary-600 block w-full rounded-lg py-3 text-center text-sm font-bold text-white transition-colors"
               >
                 Get in Touch
               </Link>
@@ -95,8 +95,8 @@ function PurchaseCard({ course }: PurchaseCardProps) {
 
             <p className="text-center text-xs text-neutral-500">14 Days Money-Back Guarantee</p>
 
-            <div className="space-y-2.5 border-t border-[#ebedf1] pt-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            <div className="border-neutral-30 space-y-2.5 border-t pt-4">
+              <p className="text-xs font-semibold tracking-wide text-neutral-500 uppercase">
                 This course includes:
               </p>
               {[
@@ -108,14 +108,14 @@ function PurchaseCard({ course }: PurchaseCardProps) {
                 .filter(Boolean)
                 .map((item) => (
                   <div key={item} className="flex items-center gap-2 text-sm text-neutral-700">
-                    <Check className="h-4 w-4 shrink-0 text-secondary-500" />
+                    <Check className="text-secondary-500 h-4 w-4 shrink-0" />
                     {item}
                   </div>
                 ))}
             </div>
 
-            <div className="border-t border-[#ebedf1] pt-4">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            <div className="border-neutral-30 border-t pt-4">
+              <p className="mb-3 text-xs font-semibold tracking-wide text-neutral-500 uppercase">
                 Share this course:
               </p>
               <div className="flex gap-2">
@@ -147,7 +147,7 @@ function PurchaseCard({ course }: PurchaseCardProps) {
             </p>
             <Link
               href="/contact-us?enquiry=teams"
-              className="block w-full rounded-lg bg-secondary-500 py-3 text-center text-sm font-bold text-white transition-colors hover:bg-secondary-600"
+              className="bg-secondary-500 hover:bg-secondary-600 block w-full rounded-lg py-3 text-center text-sm font-bold text-white transition-colors"
             >
               Get a Team Quote
             </Link>
@@ -169,8 +169,8 @@ export function CourseInfoCard({ course }: CourseInfoCardProps) {
     <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
       {/* Left — accreditation logos */}
       {hasAccreditations ? (
-        <div className="space-y-4 rounded-xl border border-[#ebedf1] bg-white p-5 shadow-sm">
-          <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-500">
+        <div className="border-neutral-30 space-y-4 rounded-xl border bg-white p-5 shadow-xs">
+          <h3 className="text-sm font-bold tracking-wide text-neutral-500 uppercase">
             Accredited By
           </h3>
           <div className="grid grid-cols-2 gap-4">
@@ -197,7 +197,7 @@ export function CourseInfoCard({ course }: CourseInfoCardProps) {
       )}
 
       {/* Centre — details + features */}
-      <div className="space-y-4 rounded-xl border border-[#ebedf1] bg-white p-5 shadow-sm">
+      <div className="border-neutral-30 space-y-4 rounded-xl border bg-white p-5 shadow-xs">
         <h2 className="text-lg font-bold text-neutral-900">{course.title}</h2>
         {course.rating !== undefined ? (
           <div className="flex items-center gap-2 text-sm">
@@ -221,7 +221,7 @@ export function CourseInfoCard({ course }: CourseInfoCardProps) {
         <div className="space-y-2">
           {FEATURES.map((feat) => (
             <div key={feat} className="flex items-start gap-2.5 text-sm text-neutral-700">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-secondary-500" />
+              <Check className="text-secondary-500 mt-0.5 h-4 w-4 shrink-0" />
               {feat}
             </div>
           ))}

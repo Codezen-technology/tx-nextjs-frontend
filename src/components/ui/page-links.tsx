@@ -32,7 +32,7 @@ export function PageLinks({ page, totalPages, hrefFor, className }: PageLinksPro
       {page > 1 && (
         <Link
           href={hrefFor(page - 1)}
-          className="flex h-10 w-10 items-center justify-center rounded-md border border-[#ebedf1] text-neutral-500 hover:bg-primary-50"
+          className="border-neutral-30 hover:bg-primary-50 flex h-10 w-10 items-center justify-center rounded-md border text-neutral-500"
           aria-label="Previous page"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -49,10 +49,10 @@ export function PageLinks({ page, totalPages, hrefFor, className }: PageLinksPro
             href={hrefFor(item)}
             aria-current={item === page ? "page" : undefined}
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-md border font-open-sans text-sm",
+              "font-open-sans flex h-10 w-10 items-center justify-center rounded-md border text-sm",
               item === page
                 ? "border-secondary-500 bg-secondary-500 font-semibold text-white"
-                : "border-[#ebedf1] text-neutral-600 hover:bg-primary-50",
+                : "border-neutral-30 hover:bg-primary-50 text-neutral-600",
             )}
           >
             {item}
@@ -62,7 +62,7 @@ export function PageLinks({ page, totalPages, hrefFor, className }: PageLinksPro
       {page < totalPages && (
         <Link
           href={hrefFor(page + 1)}
-          className="flex h-10 w-10 items-center justify-center rounded-md border border-[#ebedf1] text-neutral-500 hover:bg-primary-50"
+          className="border-neutral-30 hover:bg-primary-50 flex h-10 w-10 items-center justify-center rounded-md border text-neutral-500"
           aria-label="Next page"
         >
           <ChevronRight className="h-4 w-4" />

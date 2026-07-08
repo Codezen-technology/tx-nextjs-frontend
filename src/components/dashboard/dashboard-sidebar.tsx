@@ -26,7 +26,7 @@ function SidebarPanel({
   return (
     <aside
       className={cn(
-        "fixed left-0 top-[var(--imp-offset)] z-30 flex h-[calc(100dvh-var(--imp-offset))] flex-col bg-lms-primary transition-[width] duration-300",
+        "bg-lms-primary fixed top-(--imp-offset) left-0 z-30 flex h-[calc(100dvh-var(--imp-offset))] flex-col transition-[width] duration-300",
         open ? "w-[280px]" : "w-[65px]",
         className,
       )}
@@ -68,7 +68,7 @@ export function DashboardSidebar({
     <>
       <SidebarPanel open={open} onClose={onClose} className="hidden md:flex" />
       <Sheet open={mobileOpen} onOpenChange={(v) => !v && onMobileClose()}>
-        <SheetContent side="left" className="w-[280px] border-none bg-lms-primary p-0 text-white">
+        <SheetContent side="left" className="bg-lms-primary w-[280px] border-none p-0 text-white">
           <SheetTitle className="sr-only">Navigation menu</SheetTitle>
           <div className="flex h-full flex-col">
             <div className="flex justify-center py-6">
