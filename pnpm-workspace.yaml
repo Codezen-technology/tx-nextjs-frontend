@@ -5,3 +5,11 @@ allowBuilds:
   msw: false
   sharp: true
   unrs-resolver: true
+
+overrides:
+  form-data: ^4.0.6
+  postcss: ^8.5.10
+  "@opentelemetry/core": ^2.8.0
+  "@babel/core": ^7.29.1
+  undici: ^7.28.0
+  vite: ^8.0.16
