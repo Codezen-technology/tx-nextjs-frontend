@@ -73,7 +73,7 @@ export default async function DynamicPage({ params }: PageProps) {
           content={page.content}
         />
 
-        {page.formIds.map((formId) => (
+        {page?.formIds.map((formId) => (
           <div key={formId} className="mt-10">
             <GravityFormLoader formId={formId} />
           </div>
