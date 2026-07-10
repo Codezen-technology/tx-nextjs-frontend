@@ -30,13 +30,20 @@ const openSans = Open_Sans({
   display: "swap",
 });
 
+function getMetadataBase(rawUrl: string | undefined): URL | undefined {
+  if (!rawUrl) return undefined;
+  try {
+    return new URL(rawUrl);
+  } catch {
+    return undefined;
+  }
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await fetchSettings();
   const siteName = settings.site_name || "Headless LMS";
   return {
-    metadataBase: process.env.NEXT_PUBLIC_SITE_URL
-      ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
-      : undefined,
+    metadataBase: getMetadataBase(process.env.NEXT_PUBLIC_SITE_URL),
     title: { default: siteName, template: `%s | ${siteName}` },
     description:
       settings.description ||
