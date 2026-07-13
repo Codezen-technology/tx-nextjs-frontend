@@ -43,9 +43,10 @@ function formatDate(dateStr: string): string {
 export async function generateStaticParams() {
   try {
     const { posts } = await fetchBlogPage(1, 500);
-    return posts.flatMap(({ slug }) => (slug ? [{ slug }] : []));
+    const params = (posts ?? []).flatMap((p) => (p.slug ? [{ slug: p.slug }] : []));
+    return params.length > 0 ? params : [{ slug: "__lms_static_params_placeholder__" }];
   } catch {
-    return [];
+    return [{ slug: "__lms_static_params_placeholder__" }];
   }
 }
 
