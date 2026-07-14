@@ -44,6 +44,18 @@ export interface Course {
   createdAt?: string;
   updatedAt?: string;
   modules_count?: number;
+  /** Promotional flags: subset of "bestseller" | "limited_time_offer" | "free_certificate" | "team_training". */
+  badges?: string[];
+  cpdPoints?: number;
+  sale?: CourseSale | null;
+}
+
+export interface CourseSale {
+  regularPrice: number | null;
+  salePrice: number | null;
+  isOnSale: boolean;
+  /** ISO 8601 datetime the sale ends, or null when no countdown is scheduled. */
+  saleEndsAt: string | null;
 }
 
 export interface CourseSection {

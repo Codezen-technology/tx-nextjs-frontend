@@ -1,12 +1,13 @@
 "use client";
 
-import type { HomeTrustedOrg } from "@/types/home";
+import type { HomeTrustedOrgsSection } from "@/types/home";
 
 interface TrustedOrgsProps {
-  sponsors?: HomeTrustedOrg[];
+  data?: HomeTrustedOrgsSection;
 }
 
-export function TrustedOrgs({ sponsors }: TrustedOrgsProps) {
+export function TrustedOrgs({ data }: TrustedOrgsProps) {
+  const sponsors = data?.orgs;
   if (!sponsors?.length) return null;
 
   const track = [...sponsors, ...sponsors];
@@ -17,7 +18,7 @@ export function TrustedOrgs({ sponsors }: TrustedOrgsProps) {
         <div className="flex w-[446px] shrink-0 flex-col gap-4">
           <div className="bg-secondary-500 h-0.5 w-24" />
           <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-neutral-900">
-            Trusted by Over 50,000 Organizations Worldwide
+            {data?.header?.title || "Trusted by Over 1000+ UK organisations"}
           </h2>
         </div>
 

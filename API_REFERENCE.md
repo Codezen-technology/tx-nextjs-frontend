@@ -283,6 +283,82 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
 
 ---
 
+## Home
+
+Each section is backed by a WP option / ACF field on the site's front page (JSON-encoded), with a hardcoded PHP fallback. Sections resolve in order: ACF (front page) → WP option → hardcoded default.
+
+### GET `/home`
+
+**Public.** Composite endpoint — every homepage section in one response, used for the full-page ISR fetch.
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "topbar": [{ "label": "Fully Accredited", "icon": "/icons/star.svg" }],
+    "hero_headline": {
+      "title": "UK's Leading eLearning Hub for Growth",
+      "description": "...",
+      "accreditations": [
+        {
+          "src": "/images/cpd-logo.png",
+          "alt": "CPD Certified",
+          "width": 56,
+          "height": 56,
+          "label": "CPD Certified"
+        }
+      ]
+    },
+    "trusted_orgs": {
+      "header": { "title": "Trusted by Over 1000+ UK organisations" },
+      "orgs": [{ "src": "/sponsors/hull-college.png", "alt": "Hull College" }]
+    },
+    "pricing": { "header": { "...": "..." }, "plans": [{ "...": "...", "badge": "most-popular" }] },
+    "popular_courses_header": {
+      "title": "Popular Courses",
+      "description": "...",
+      "ctaLabel": "...",
+      "ctaHref": "..."
+    },
+    "why": [{ "icon": "clock", "title": "Flexible Online Learning", "description": "..." }],
+    "team": {
+      "title": "Transform Your Team with Us",
+      "description": "...",
+      "bullets": [
+        { "icon": "user-round", "title": "Empower Your Workforce", "description": "..." }
+      ],
+      "images": ["/images/team/collaboration-1.jpg"],
+      "cta": { "label": "Request a Quote", "href": "/contact-us" }
+    },
+    "certificate": {
+      "title": "CPD Accredited Certificate & Transcript",
+      "description": "...",
+      "images": ["/images/certificate/certificate-frame.png"],
+      "cta": { "label": "Order Certificate", "href": "/verify-certificate" }
+    },
+    "testimonials": [
+      { "id": 1, "name": "...", "designation": "...", "rating": 4.5, "text": "...", "photo": null }
+    ]
+  }
+}
+```
+
+`why` is a fixed 4-item icon+title+description grid (icon is a lucide-react icon name) — **not** the alternating side/bullets/gif/cta slide shape used by the (now homepage-unused) `hero` field. `trusted_orgs` is `{ header, orgs }`, not a bare array — **BREAKING** vs. the pre-redesign shape.
+
+### GET `/home/{section}`
+
+Same data as the matching key in the composite response above, individually. `section` is one of: `topbar`, `hero`, `hero-headline`, `pricing`, `trusted-orgs`, `popular-courses-header`, `why`, `team`, `certificate`.
+
+### GET `/home/testimonials`
+
+**Public.** Live-queried from the `testimonials` CPT (not option/ACF-backed like the other sections).
+
+**Query:** `limit` (int, default 6, max 20)
+
+---
+
 ## Courses
 
 ### GET `/courses`
@@ -349,7 +425,15 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
         ],
         "primary_instructor": { ... },
         "author": { ... },
-        "menu_order": 0
+        "menu_order": 0,
+        "badges": ["bestseller", "limited_time_offer", "free_certificate", "team_training"],
+        "cpd_points": 5,
+        "sale": {
+          "regular_price": 199.0,
+          "sale_price": 49.0,
+          "is_on_sale": true,
+          "sale_ends_at": "2026-08-01T00:00:00+01:00"
+        }
       }
     ],
     "total": 150,
@@ -359,6 +443,8 @@ All protected endpoints require `Authorization: Bearer <access_token>` header.
   }
 }
 ```
+
+`badges` is a subset of `bestseller` | `limited_time_offer` | `free_certificate` | `team_training` (post-meta flags; `free_certificate`/`team_training` default to present unless explicitly turned off per course). `sale` is `null` for free/unlinked courses; `sale_ends_at` is the WooCommerce product's scheduled sale end (ISO 8601) or `null` when no countdown is scheduled. Present on every course-list-shaped endpoint (`/courses`, `/courses/search`, `/courses/featured`, `/courses/popular`).
 
 ---
 

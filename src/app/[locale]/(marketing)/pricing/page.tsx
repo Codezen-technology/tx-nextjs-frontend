@@ -43,7 +43,7 @@ export default async function PricingPage() {
 
       <Accreditations />
 
-      <TrustedOrgs sponsors={home?.trusted_orgs} />
+      <TrustedOrgs data={home?.trusted_orgs} />
 
       <ReviewsSection testimonials={home?.testimonials} />
 

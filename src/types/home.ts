@@ -32,6 +32,36 @@ export interface HomeWhyPanel {
   gifAlt: string;
 }
 
+/** "Why Choose Us" icon-grid item (redesigned homepage) — icon is a lucide-react icon name. */
+export interface HomeWhyFeature {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface HomeIconBullet {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+/** "Transform Your Team With Us" B2B teaser. */
+export interface HomeTeamSection {
+  title: string;
+  description: string;
+  bullets: HomeIconBullet[];
+  images: string[];
+  cta: HomeCta;
+}
+
+/** "CPD Accredited Certificate & Transcript" teaser. */
+export interface HomeCertificateSection {
+  title: string;
+  description: string;
+  images: string[];
+  cta: HomeCta;
+}
+
 export interface HomePricingFeature {
   label: string;
   included: boolean;
@@ -85,6 +115,11 @@ export interface HomeTrustedOrg {
   alt: string;
 }
 
+export interface HomeTrustedOrgsSection {
+  header: { title: string };
+  orgs: HomeTrustedOrg[];
+}
+
 export interface HomePopularCoursesHeader {
   title: string;
   description: string;
@@ -103,12 +138,15 @@ export interface HomeTestimonial {
 
 export interface HomePageData {
   topbar: HomeTopbarItem[];
+  /** Legacy alternating slide format — unused by the redesigned homepage, kept for other consumers. */
   hero: HomeWhyPanel[];
   hero_headline: HomeHeroHeadline;
   pricing: HomePricingSection;
-  trusted_orgs: HomeTrustedOrg[];
+  trusted_orgs: HomeTrustedOrgsSection;
   popular_courses_header: HomePopularCoursesHeader;
-  why: HomeWhyPanel[];
+  why: HomeWhyFeature[];
+  team: HomeTeamSection;
+  certificate: HomeCertificateSection;
   testimonials: HomeTestimonial[];
 }
 

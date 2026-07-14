@@ -207,6 +207,8 @@ export const endpoints = {
     trustedOrgs: `${lms}/home/trusted-orgs`,
     popularCoursesHeader: `${lms}/home/popular-courses-header`,
     why: `${lms}/home/why`,
+    team: `${lms}/home/team`,
+    certificate: `${lms}/home/certificate`,
     testimonials: `${lms}/home/testimonials`,
   },
   pricing: {

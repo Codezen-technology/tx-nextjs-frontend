@@ -37,6 +37,27 @@ function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
   );
 }
 
+function TrustpilotCard({ testimonials }: { testimonials: HomeTestimonial[] }) {
+  const average = testimonials.reduce((sum, t) => sum + t.rating, 0) / testimonials.length;
+
+  return (
+    <Link
+      href="/reviews"
+      className="border-neutral-30 flex flex-col justify-center gap-3 rounded-xl border bg-[#f0fbf1] p-6 transition-colors hover:bg-[#e5f8e6]"
+    >
+      <span className="font-suse flex items-center gap-1 text-lg font-bold text-neutral-900">
+        <Star className="h-5 w-5 fill-[#00b67a] text-[#00b67a]" />
+        Trustpilot
+      </span>
+      <StarRating rating={average} />
+      <p className="font-open-sans text-sm font-semibold text-neutral-900">Excellent</p>
+      <p className="font-open-sans text-xs text-neutral-500">
+        Based on {testimonials.length}+ reviews
+      </p>
+    </Link>
+  );
+}
+
 export function ReviewsSection({
   testimonials,
   title = "What Our Learners Have to Say",
@@ -46,18 +67,18 @@ export function ReviewsSection({
   if (!testimonials?.length) return null;
 
   return (
-    <section className="flex flex-col gap-4 bg-primary-50 py-16">
+    <section className="bg-primary-50 flex flex-col gap-4 py-16">
       <div className="container flex items-center justify-between">
         <div>
           <h2 className="font-suse text-3xl font-bold text-neutral-900 md:text-[2rem]">{title}</h2>
           {subtitle ? (
-            <p className="mt-2 font-open-sans text-base text-neutral-500">{subtitle}</p>
+            <p className="font-open-sans mt-2 text-base text-neutral-500">{subtitle}</p>
           ) : null}
         </div>
         {showViewAllLink ? (
           <Link
             href="/reviews"
-            className="flex items-center gap-1 font-open-sans text-base font-normal text-secondary-500 transition-colors hover:text-secondary-600"
+            className="font-open-sans text-secondary-500 hover:text-secondary-600 flex items-center gap-1 text-base font-normal transition-colors"
           >
             View all reviews
             <ChevronRight className="h-4 w-4" />
@@ -66,10 +87,12 @@ export function ReviewsSection({
       </div>
 
       <div className="container mt-6 grid flex-1 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <TrustpilotCard testimonials={testimonials} />
+
         {testimonials.map((review) => (
           <div
             key={review.id}
-            className="flex flex-col gap-4 rounded-xl border border-neutral-30 bg-white p-6"
+            className="border-neutral-30 flex flex-col gap-4 rounded-xl border bg-white p-6"
           >
             <div className="flex items-center gap-4">
               {review.photo ? (
@@ -86,11 +109,11 @@ export function ReviewsSection({
                 </div>
               )}
               <div>
-                <p className="mb-1 font-open-sans text-xl font-semibold text-neutral-900">
+                <p className="font-open-sans mb-1 text-xl font-semibold text-neutral-900">
                   {review.name}
                 </p>
                 {review.designation && (
-                  <p className="mb-2 font-open-sans text-sm text-neutral-500">
+                  <p className="font-open-sans mb-2 text-sm text-neutral-500">
                     {review.designation}
                   </p>
                 )}

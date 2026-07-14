@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Open_Sans } from "next/font/google";
+import { Open_Sans, SUSE } from "next/font/google";
 import { Providers } from "./providers";
 import { SiteSettingsProvider } from "@/components/providers/site-settings-provider";
 import { fetchSettings } from "@/lib/services/settings.server";
@@ -17,7 +17,7 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
   weight: "100 900",
 });
-const suse = Open_Sans({
+const suse = SUSE({
   subsets: ["latin"],
   variable: "--font-suse",
   weight: ["400", "600", "700", "800"],

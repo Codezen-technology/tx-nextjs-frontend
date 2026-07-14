@@ -7,7 +7,9 @@ import { HeroSection } from "@/components/home/hero-section";
 import { PricingSection } from "@/components/home/pricing-section";
 import { TrustedOrgs } from "@/components/home/trusted-orgs";
 import { CategoriesGrid } from "@/components/home/categories-grid";
-import { WhySection } from "@/components/home/why-section";
+import { WhyChooseGrid } from "@/components/home/why-choose-grid";
+import { TransformTeam } from "@/components/home/transform-team";
+import { CpdCertificate } from "@/components/home/cpd-certificate";
 import { ReviewsSection } from "@/components/home/reviews-section";
 import { PopularCourses } from "@/components/home/popular-courses";
 import { Topbar } from "@/components/home/topbar";
@@ -67,7 +69,6 @@ export default async function HomePage() {
     serverApi.home.get().catch(() => null),
     serverApi.taxonomy.categories({ per_page: 11 }).catch(() => null),
   ]);
-
   return (
     <>
       {HOME_SCHEMA.map((schema, i) => (
@@ -81,19 +82,23 @@ export default async function HomePage() {
 
       <HeroSection headline={home?.hero_headline} />
 
-      <PricingSection data={home?.pricing} />
-
-      <TrustedOrgs sponsors={home?.trusted_orgs} />
+      <TrustedOrgs data={home?.trusted_orgs} />
 
       <section className="flex flex-col gap-20 py-16 lg:py-20">
-        <PopularCourses limit={8} header={home?.popular_courses_header} />
-
         <CategoriesGrid categories={categoriesRes?.items} />
+
+        <PopularCourses limit={8} header={home?.popular_courses_header} />
       </section>
 
-      <WhySection panels={home?.why} />
-
       <ReviewsSection testimonials={home?.testimonials} />
+
+      <PricingSection data={home?.pricing} />
+
+      <WhyChooseGrid features={home?.why} />
+
+      <TransformTeam data={home?.team} />
+
+      <CpdCertificate data={home?.certificate} />
     </>
   );
 }

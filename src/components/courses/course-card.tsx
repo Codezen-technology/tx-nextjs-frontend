@@ -4,6 +4,7 @@ import type { Course } from "@/types/course";
 import { BookOpen, Check, Clock, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { SaleCountdown } from "./sale-countdown";
 
 interface CourseCardProps {
   course: Course;
@@ -12,8 +13,20 @@ interface CourseCardProps {
   priority?: boolean;
 }
 
+/** Fixed labels for the known promotional badge keys returned by the API. */
+const BADGE_LABELS: Record<string, string> = {
+  bestseller: "Bestseller",
+  limited_time_offer: "Limited Time Offer",
+  free_certificate: "Free Certificate Included",
+  team_training: "Team Training Available",
+};
+
 export function CourseCard({ course, className, priority = false }: CourseCardProps) {
-  const badges = course.categories?.slice(0, 3) ?? [];
+  const promoBadges = ["CPD", ...(course.badges ?? []).map((key) => BADGE_LABELS[key] ?? key)];
+  const isOnSale =
+    course.sale?.isOnSale ??
+    (course.originalPrice ? course.originalPrice > (course.price ?? 0) : false);
+  const saleEndsAt = course.sale?.saleEndsAt;
 
   return (
     <div
@@ -67,16 +80,16 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
           </h3>
         </Link>
 
-        {/* Accreditation badges */}
-        {badges.length > 0 && (
+        {/* Promotional badges */}
+        {promoBadges.length > 0 && (
           <div className="flex scrollbar-none gap-2 overflow-x-auto py-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {badges.map((cat) => (
+            {promoBadges.map((label) => (
               <span
-                key={cat.id}
+                key={label}
                 className="bg-secondary-50 font-open-sans text-secondary-900 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs whitespace-nowrap"
               >
                 <Check className="h-2.5 w-2.5 shrink-0" />
-                {cat.name}
+                {label}
               </span>
             ))}
           </div>
@@ -119,7 +132,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
                   <span className="text-xl">£{course.price}</span>
                   <span className="text-xs font-normal"> +VAT</span>
                 </span>
-                {course.originalPrice && course.originalPrice > course.price ? (
+                {isOnSale && course.originalPrice && course.originalPrice > course.price ? (
                   <span className="font-open-sans text-sm text-[#dc3545] line-through">
                     £{course.originalPrice}
                   </span>
@@ -134,6 +147,8 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
             View Course →
           </Link>
         </div>
+
+        {isOnSale && saleEndsAt ? <SaleCountdown endsAt={saleEndsAt} /> : null}
       </div>
     </div>
   );

@@ -86,6 +86,14 @@ interface RawCourse {
   menu_order?: number;
   seats?: number | null;
   start_date?: string | number | null;
+  badges?: string[];
+  cpd_points?: number;
+  sale?: {
+    regular_price?: number | string | null;
+    sale_price?: number | string | null;
+    is_on_sale?: boolean;
+    sale_ends_at?: string | null;
+  } | null;
 }
 
 const renderedOrString = (v: unknown): string => {
@@ -145,7 +153,10 @@ function normalizeInstructor(raw: RawInstructor) {
 export function normalizeCourse(raw: RawCourse): Course {
   const price = toPrice(raw?.price);
   const originalPrice =
-    toPrice(raw?.original_price) ?? toPrice(raw?.regular_price) ?? toPrice(raw?.compare_at_price);
+    toPrice(raw?.original_price) ??
+    toPrice(raw?.regular_price) ??
+    toPrice(raw?.compare_at_price) ??
+    (raw?.sale?.is_on_sale ? toPrice(raw?.sale?.regular_price) : undefined);
 
   // Instructor: real API uses instructors[] + primary_instructor; legacy uses instructor
   const instructorRaw =
@@ -183,6 +194,16 @@ export function normalizeCourse(raw: RawCourse): Course {
     createdAt: toUnixIso(raw?.date_created) ?? toUnixIso(raw?.date_gmt) ?? toUnixIso(raw?.date),
     updatedAt:
       toUnixIso(raw?.date_modified) ?? toUnixIso(raw?.modified_gmt) ?? toUnixIso(raw?.modified),
+    badges: raw?.badges,
+    cpdPoints: raw?.cpd_points,
+    sale: raw?.sale
+      ? {
+          regularPrice: toPrice(raw.sale.regular_price) ?? null,
+          salePrice: toPrice(raw.sale.sale_price) ?? null,
+          isOnSale: raw.sale.is_on_sale ?? false,
+          saleEndsAt: raw.sale.sale_ends_at ?? null,
+        }
+      : undefined,
   };
 }
 
