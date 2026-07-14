@@ -30,6 +30,13 @@ export const authService = {
     });
   },
 
+  async socialLogin(idToken: string): Promise<{ user: AuthUser }> {
+    return bffJson<{ user: AuthUser }>("/api/auth/social", {
+      method: "POST",
+      body: JSON.stringify({ id_token: idToken }),
+    });
+  },
+
   async me(): Promise<WpUser> {
     return bffJson<WpUser>("/api/users/me", { method: "GET" });
   },

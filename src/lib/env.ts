@@ -11,6 +11,26 @@ export const env = {
   B2B_NAMESPACE: process.env.NEXT_PUBLIC_B2B_NAMESPACE ?? "lms-b2b/v1",
   CDN_URL: process.env.NEXT_PUBLIC_CDN_URL ?? "",
 
+  // Firebase (client-side social sign-in — see wp-lms-backend-rest-api's
+  // docs/FIREBASE_PROJECT_SETUP.md for how the project ID is wired server-side)
+  FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
+  FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "",
+  FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "",
+  FIREBASE_STORAGE_BUCKET: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "",
+  FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "",
+  FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
+  /**
+   * Comma-separated Firebase sign-in providers actually enabled in the
+   * Console (Authentication → Sign-in method). Nothing enabled there is
+   * enforced client-side by Firebase itself — this only controls which
+   * buttons render, so an unconfigured provider never gets a dead button
+   * a user can click into an `auth/operation-not-allowed` error.
+   */
+  FIREBASE_ENABLED_PROVIDERS: (process.env.NEXT_PUBLIC_FIREBASE_ENABLED_PROVIDERS ?? "google")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean),
+
   // Payments
   STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "",
 

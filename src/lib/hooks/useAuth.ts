@@ -86,6 +86,30 @@ export function useLogin() {
   });
 }
 
+export function useSocialLogin() {
+  const setUser = useAuthStore((s) => s.setUser);
+  const router = useRouter();
+  const search = useSearchParams();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (idToken: string) => authService.socialLogin(idToken),
+    onSuccess: ({ user }) => {
+      setUser(user);
+      clearCartToken();
+      qc.invalidateQueries({ queryKey: queryKeys.user.me });
+      qc.invalidateQueries({ queryKey: queryKeys.enrollments.me });
+      qc.invalidateQueries({ queryKey: queryKeys.cart.detail });
+      toast.success(`Welcome, ${user.displayName}`);
+      const next = search.get("next");
+      router.replace(next && next.startsWith("/") ? next : "/dashboard/my-learning");
+    },
+    onError: (err: ApiError) => {
+      toast.error(err.message || "Social sign-in failed. Please try again.");
+    },
+  });
+}
+
 export function useRegister() {
   const setUser = useAuthStore((s) => s.setUser);
   const router = useRouter();

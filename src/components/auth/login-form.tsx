@@ -8,6 +8,7 @@ import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useLogin } from "@/lib/hooks/useAuth";
 import { loginSchema, type LoginInput } from "@/lib/schemas/auth";
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
+import { ENABLED_SOCIAL_PROVIDERS } from "@/lib/firebase/client";
 import { ParsedHtml } from "@/components/ui/parsed-html";
 import { FormField, FormInput } from "@/components/ui/form-field";
 
@@ -34,14 +35,16 @@ export function LoginForm() {
       </h1>
 
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-4">
-          <SocialAuthButtons />
-          <div className="flex items-center gap-2">
-            <div className="bg-neutral-30 h-px flex-1" />
-            <span className="font-open-sans text-base text-neutral-500">OR</span>
-            <div className="bg-neutral-30 h-px flex-1" />
+        {ENABLED_SOCIAL_PROVIDERS.length > 0 && (
+          <div className="flex flex-col gap-4">
+            <SocialAuthButtons />
+            <div className="flex items-center gap-2">
+              <div className="bg-neutral-30 h-px flex-1" />
+              <span className="font-open-sans text-base text-neutral-500">OR</span>
+              <div className="bg-neutral-30 h-px flex-1" />
+            </div>
           </div>
-        </div>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-6">
           <div className="flex flex-col gap-4">

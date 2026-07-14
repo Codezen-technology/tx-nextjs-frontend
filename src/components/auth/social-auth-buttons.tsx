@@ -1,5 +1,14 @@
 "use client";
 
+import { useState } from "react";
+import { toast } from "sonner";
+import { useSocialLogin } from "@/lib/hooks/useAuth";
+import {
+  signInWithSocialProvider,
+  ENABLED_SOCIAL_PROVIDERS,
+  type SocialProviderKey,
+} from "@/lib/firebase/client";
+
 const GoogleIcon = () => (
   <svg
     viewBox="0 0 24 24"
@@ -57,35 +66,48 @@ const AppleIcon = () => (
   </svg>
 );
 
-const PROVIDERS = [
+const PROVIDERS: { key: SocialProviderKey; label: string; Icon: () => React.JSX.Element }[] = [
   { key: "google", label: "Continue with Google", Icon: GoogleIcon },
   { key: "facebook", label: "Continue with Facebook", Icon: FacebookIcon },
   { key: "apple", label: "Continue with Apple", Icon: AppleIcon },
-] as const;
+];
 
-export type SocialAuthSuccessPayload = {
-  email: string;
-  displayName: string;
-  nicename: string;
-};
+export function SocialAuthButtons() {
+  const socialLogin = useSocialLogin();
+  const [pending, setPending] = useState<SocialProviderKey | null>(null);
 
-type Props = {
-  onSuccess?: (user: SocialAuthSuccessPayload) => void;
-};
+  const enabledProviders = PROVIDERS.filter(({ key }) => ENABLED_SOCIAL_PROVIDERS.includes(key));
+  if (enabledProviders.length === 0) return null;
 
-export function SocialAuthButtons({ onSuccess: _ }: Props) {
+  const handleClick = async (key: SocialProviderKey) => {
+    setPending(key);
+    try {
+      const idToken = await signInWithSocialProvider(key);
+      await socialLogin.mutateAsync(idToken);
+    } catch (err) {
+      // Popup closed by the user is not an error worth surfacing.
+      const code = (err as { code?: string })?.code;
+      if (code !== "auth/popup-closed-by-user" && code !== "auth/cancelled-popup-request") {
+        const message = err instanceof Error ? err.message : "Sign-in failed. Please try again.";
+        toast.error(message);
+      }
+    } finally {
+      setPending(null);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-3">
-      {PROVIDERS.map(({ key, label, Icon }) => (
+      {enabledProviders.map(({ key, label, Icon }) => (
         <button
           key={key}
           type="button"
-          disabled
-          title="Coming soon"
-          className="border-neutral-30 bg-neutral-10 font-open-sans flex w-full cursor-not-allowed items-center justify-center gap-3 rounded-lg border px-4 py-2.5 text-base text-neutral-500 opacity-60 shadow-[0px_1px_2px_rgb(16_24_40/0.05)]"
+          disabled={pending !== null}
+          onClick={() => handleClick(key)}
+          className="border-neutral-30 bg-neutral-10 font-open-sans flex w-full items-center justify-center gap-3 rounded-lg border px-4 py-2.5 text-base text-neutral-500 shadow-[0px_1px_2px_rgb(16_24_40/0.05)] transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Icon />
-          {label}
+          {pending === key ? "Signing in..." : label}
         </button>
       ))}
     </div>

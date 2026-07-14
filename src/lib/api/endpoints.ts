@@ -40,6 +40,7 @@ export const endpoints = {
     login: `${lms}/auth/login`,
     checkoutSession: `${lms}/auth/checkout-session`,
     register: `${lms}/auth/register`,
+    social: `${lms}/auth/social`,
     logout: `${lms}/auth/logout`,
     logoutAll: `${lms}/auth/logout-all`,
     refresh: `${lms}/auth/refresh`,
