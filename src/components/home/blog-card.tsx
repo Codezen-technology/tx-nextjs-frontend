@@ -58,15 +58,11 @@ export function BlogCard({ post, category, className }: BlogCardProps) {
 
       <div className="flex flex-1 flex-col gap-2 px-6 py-4">
         <div className="font-open-sans flex items-center gap-0 text-sm font-semibold">
-          {category ? <span className="text-primary-500">{category.name}</span> : null}
+          {category ? (
+            <span className="text-primary-500">{decodeEntities(category.name)}</span>
+          ) : null}
           {category && <span className="mx-2 text-neutral-400">•</span>}
           <span className="text-neutral-400">{formatDate(post.date)}</span>
-          {post.reading_time ? (
-            <>
-              <span className="mx-2 text-neutral-400">•</span>
-              <span className="text-neutral-400">{post.reading_time} min read</span>
-            </>
-          ) : null}
         </div>
 
         <div className="flex flex-col gap-2">

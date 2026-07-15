@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { getLocale, setRequestLocale } from "next-intl/server";
-import { ChevronRight, Search } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
+import { decodeEntities } from "@/lib/api/parsers";
 import { fetchBlogPageGrouped } from "@/lib/services/blog.server";
 import { BlogCard } from "@/components/home/blog-card";
+import { BlogHero } from "@/components/home/blog-hero";
+import { TrendingCarousel } from "@/components/home/trending-carousel";
+import { BlogTeamCta } from "@/components/home/blog-team-cta";
 import { EmptyState } from "@/components/ui/empty-state";
-import { decodeEntities } from "@/lib/api/parsers";
-import type { BlogPost, WPCategory } from "@/types/blog";
 
 export const revalidate = 300;
 
@@ -32,68 +33,8 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-function getFeaturedImage(post: BlogPost): string | undefined {
-  return post.featured_image_url ?? post._embedded?.["wp:featuredmedia"]?.[0]?.source_url;
-}
-
-function formatDate(dateStr: string): string {
-  try {
-    return new Date(dateStr).toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  } catch {
-    return dateStr;
-  }
-}
-
-function TrendingPost({ post, category }: { post: BlogPost; category?: WPCategory }) {
-  const image = getFeaturedImage(post);
-  const title = decodeEntities(post.title.rendered);
-  const excerpt = decodeEntities(post.excerpt.rendered)
-    .replace(/<[^>]+>/g, "")
-    .trim();
-
-  return (
-    <Link
-      href={`/blog/${post.slug}`}
-      className="group border-neutral-30 grid grid-cols-1 overflow-hidden rounded-xl border bg-white transition-shadow hover:shadow-lg md:grid-cols-2"
-    >
-      <div className="relative min-h-[260px] overflow-hidden bg-neutral-100 md:min-h-[340px]">
-        {image && (
-          <Image
-            src={image}
-            alt={title}
-            fill
-            sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            priority
-          />
-        )}
-      </div>
-      <div className="flex flex-col justify-center gap-4 p-8 md:p-10">
-        <div className="font-open-sans flex items-center gap-0 text-sm font-semibold">
-          {category && <span className="text-primary-500">{category.name}</span>}
-          {category && <span className="mx-2 text-neutral-400">•</span>}
-          <span className="text-neutral-400">{formatDate(post.date)}</span>
-        </div>
-        <h2 className="font-suse group-hover:text-primary-500 text-2xl leading-snug font-bold text-neutral-900 transition-colors md:text-3xl">
-          {title}
-        </h2>
-        {excerpt && (
-          <p className="font-open-sans line-clamp-3 text-base text-neutral-500">{excerpt}</p>
-        )}
-        <span className="font-open-sans text-secondary-500 inline-flex items-center gap-1 text-base font-semibold">
-          Read more <span aria-hidden>→</span>
-        </span>
-      </div>
-    </Link>
-  );
-}
-
 export default async function BlogPage() {
-  const { trending, categorySections, allPosts } = await fetchBlogPageGrouped(40);
+  const { trending, mostRecent, categorySections, allPosts } = await fetchBlogPageGrouped(40);
 
   return (
     <>
@@ -102,65 +43,28 @@ export default async function BlogPage() {
         dangerouslySetInnerHTML={{ __html: stringifyJsonLd(BLOG_LIST_SCHEMA) }}
       />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-neutral-900 py-14 md:py-20">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
-          }}
-        />
-        <div className="relative container">
-          <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-            <div className="max-w-xl">
-              <p className="font-open-sans text-sm font-normal text-white/70">
-                Training Excellence&apos;s
-              </p>
-              <h1 className="font-suse mt-1 text-4xl font-bold text-white md:text-5xl">
-                Blogs &amp; Updates
-              </h1>
-              <p className="font-open-sans mt-3 text-base text-white/70">
-                Your Go-To Hub for Insights &amp; Career-Boosting Knowledge.
-              </p>
-            </div>
-            <form
-              action="/search"
-              method="get"
-              className="flex w-full max-w-sm shrink-0 overflow-hidden rounded-lg shadow-lg"
-            >
-              <input
-                name="q"
-                type="search"
-                placeholder="Search..."
-                className="font-open-sans flex-1 bg-white px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-hidden"
-              />
-              <button
-                type="submit"
-                className="bg-secondary-500 font-open-sans hover:bg-secondary-600 flex items-center gap-2 px-5 py-3 text-sm font-semibold text-white transition-colors"
-              >
-                <Search className="h-4 w-4" />
-                Search
-              </button>
-            </form>
-          </div>
-        </div>
-      </section>
+      <BlogHero />
 
       {/* Trending Topics */}
-      {trending && (
+      {trending.length > 0 && (
         <section className="bg-[#f5f3ee] py-12 md:py-16">
           <div className="container">
             <h2 className="font-suse mb-6 text-2xl font-bold text-neutral-900">Trending Topics</h2>
-            <TrendingPost
-              post={trending}
-              category={
-                trending.categories?.[0]
-                  ? categorySections.find((s) => s.category.id === trending.categories![0])
-                      ?.category
-                  : undefined
-              }
-            />
+            <TrendingCarousel posts={trending} categorySections={categorySections} />
+          </div>
+        </section>
+      )}
+
+      {/* Most Recent */}
+      {mostRecent.length > 0 && (
+        <section className="py-12 md:py-16">
+          <div className="container">
+            <h2 className="font-suse mb-6 text-2xl font-bold text-neutral-900">Most Recent</h2>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {mostRecent.map((post) => (
+                <BlogCard key={post.id} post={post} />
+              ))}
+            </div>
           </div>
         </section>
       )}
@@ -172,7 +76,9 @@ export default async function BlogPage() {
             {categorySections.map(({ category, posts }) => (
               <div key={category.id}>
                 <div className="mb-6 flex items-end justify-between">
-                  <h2 className="font-suse text-2xl font-bold text-neutral-900">{category.name}</h2>
+                  <h2 className="font-suse text-2xl font-bold text-neutral-900">
+                    {decodeEntities(category.name)}
+                  </h2>
                   <Link
                     href={`/blog/category/${category.slug}`}
                     className="font-open-sans text-secondary-500 hover:text-secondary-600 flex items-center gap-1 text-sm font-semibold"
@@ -193,9 +99,16 @@ export default async function BlogPage() {
         <section className="py-12 md:py-16">
           <div className="container">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {allPosts.slice(0, 12).map((post) => (
-                <BlogCard key={post.id} post={post} />
-              ))}
+              {allPosts
+                .filter(
+                  (post) =>
+                    !trending.some((t) => t.id === post.id) &&
+                    !mostRecent.some((m) => m.id === post.id),
+                )
+                .slice(0, 12)
+                .map((post) => (
+                  <BlogCard key={post.id} post={post} />
+                ))}
             </div>
           </div>
         </section>
@@ -209,6 +122,8 @@ export default async function BlogPage() {
           </div>
         </section>
       )}
+
+      <BlogTeamCta />
     </>
   );
 }

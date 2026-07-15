@@ -167,7 +167,21 @@
     @apply mb-4 leading-relaxed;
   }
   & :where(ul) {
-    @apply mb-4 list-inside list-disc;
+    @apply mb-4 list-none space-y-2 pl-0;
+  }
+  & :where(ul li) {
+    @apply relative pl-5;
+  }
+  & :where(ul li)::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.65em;
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background-color: currentColor;
+    opacity: 0.6;
   }
   & :where(ol) {
     @apply mb-4 list-inside list-decimal;
@@ -183,6 +197,21 @@
   }
   & :where(pre) {
     @apply bg-muted mb-4 overflow-x-auto rounded-md p-4 text-sm;
+  }
+  & :where(table) {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    @apply mb-6 w-full border-collapse text-left text-sm;
+  }
+  & :where(th, td) {
+    @apply border-neutral-80 border p-4 align-top;
+  }
+  & :where(th) {
+    @apply bg-neutral-20 font-open-sans font-bold text-neutral-500;
+  }
+  & :where(tr:first-child td) {
+    @apply bg-neutral-20 font-bold;
   }
 }
 

@@ -359,6 +359,38 @@ Same data as the matching key in the composite response above, individually. `se
 
 ---
 
+## Blog (native WP — not `lms-backend/v1`)
+
+The `/blog` listing page is **not** backed by the custom plugin — it reads directly from native WordPress REST (`/wp/v2/posts`, `/wp/v2/categories`). It's documented here for completeness since other pages in this reference are `lms-backend/v1`-only.
+
+### GET `/wp/v2/posts`
+
+**Public, native WP.** Used with `per_page`, `_embed=wp:featuredmedia,author`. Standard WP post shape (`id`, `slug`, `title.rendered`, `excerpt.rendered`, `date`, `categories: number[]`, `_embedded`).
+
+### GET `/wp/v2/categories`
+
+**Public, native WP.** Used with `per_page=100&hide_empty=true&orderby=count&order=desc`.
+
+### `fetchBlogPageGrouped(perPage = 40)` — frontend service shape
+
+`src/lib/services/blog.server.ts` composes the two WP endpoints above into the shape `/blog` actually renders from:
+
+```ts
+{
+  trending: BlogPost[];      // top 5 posts by recency — rendered as the Trending Topics carousel
+  mostRecent: BlogPost[];    // next 4 posts by recency, excluding anything already in `trending`
+  categorySections: {        // up to 4 posts per category (first category per post), excluding
+    category: WPCategory;    // anything already in `trending`; posts are deduped across categories too
+    posts: BlogPost[];
+  }[];
+  allPosts: BlogPost[];       // the full fetched batch (used as a flat fallback when no categories resolve)
+}
+```
+
+No post appears in more than one of `trending` / `mostRecent` / `categorySections` — trending IDs are excluded up front, and the same dedupe set prevents cross-category duplicates.
+
+---
+
 ## Courses
 
 ### GET `/courses`

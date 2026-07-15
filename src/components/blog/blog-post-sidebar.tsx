@@ -1,21 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import type { TocItem } from "@/lib/utils/toc";
-
-interface Contributor {
-  name?: string;
-  description?: string;
-  avatar_urls?: Record<string, string>;
-}
 
 interface BlogPostSidebarProps {
   toc: TocItem[];
-  contributors: Contributor[];
 }
 
-export function BlogPostSidebar({ toc, contributors }: BlogPostSidebarProps) {
+export function BlogPostSidebar({ toc }: BlogPostSidebarProps) {
   const [activeId, setActiveId] = useState<string>("");
 
   useEffect(() => {
@@ -37,75 +29,36 @@ export function BlogPostSidebar({ toc, contributors }: BlogPostSidebarProps) {
     return () => observer.disconnect();
   }, [toc]);
 
+  if (!toc.length) return null;
+
   return (
-    <aside className="space-y-8">
-      {toc.length > 0 && (
-        <div>
-          <p className="font-open-sans text-secondary-500 mb-4 text-sm font-semibold">
-            Table of Contents
-          </p>
-          <nav aria-label="Table of contents">
-            <ul className="space-y-2.5">
-              {toc.map(({ id, text }) => (
-                <li key={id}>
-                  <a
-                    href={`#${id}`}
-                    className={`font-open-sans block text-sm leading-snug transition-colors ${
-                      activeId === id
-                        ? "text-secondary-500 font-semibold"
-                        : "hover:text-secondary-500 text-neutral-900"
-                    }`}
-                  >
-                    {text}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-      )}
-
-      {toc.length > 0 && contributors.length > 0 && <div className="border-neutral-30 border-t" />}
-
-      {contributors.length > 0 && (
-        <div>
-          <p className="font-open-sans text-secondary-500 mb-4 text-sm font-semibold">
-            Contributors
-          </p>
-          <ul className="space-y-4">
-            {contributors.map((c, i) => {
-              const avatar = c.avatar_urls?.["96"] ?? c.avatar_urls?.["48"];
-              const role = c.description?.trim().slice(0, 80) || "";
-              return (
-                <li key={i} className="flex items-center gap-3">
-                  {avatar ? (
-                    <Image
-                      src={avatar}
-                      alt={c.name ?? ""}
-                      width={48}
-                      height={48}
-                      className="shrink-0 rounded-full object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="bg-primary-50 font-suse text-primary-500 flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-bold">
-                      {c.name?.[0]?.toUpperCase() ?? "?"}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="font-open-sans text-sm font-semibold text-neutral-900">
-                      {c.name}
-                    </p>
-                    {role && (
-                      <p className="font-open-sans truncate text-xs text-neutral-500">{role}</p>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
+    <aside className="border-neutral-30 overflow-hidden rounded-lg border bg-white">
+      <div className="border-neutral-40 bg-neutral-30 border-b p-4">
+        <p className="font-suse text-xl leading-[1.2] font-bold text-neutral-900">
+          Table of Contents
+        </p>
+      </div>
+      <nav aria-label="Table of contents" className="flex flex-col gap-1 pb-2">
+        {toc.map(({ id, text }, i) => {
+          const active = activeId === id;
+          return (
+            <a
+              key={id}
+              href={`#${id}`}
+              className={`font-open-sans flex items-start gap-2 border-l-[3px] px-4 py-2.5 text-base leading-normal transition-colors ${
+                active
+                  ? "border-secondary-500 bg-secondary-50 text-secondary-500 font-semibold"
+                  : "hover:text-secondary-500 border-transparent text-neutral-500"
+              }`}
+            >
+              <span className="font-suse shrink-0 font-semibold">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="min-w-0 flex-1">{text}</span>
+            </a>
+          );
+        })}
+      </nav>
     </aside>
   );
 }

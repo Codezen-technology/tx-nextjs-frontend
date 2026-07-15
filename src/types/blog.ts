@@ -3,6 +3,7 @@ export interface WPCategory {
   name: string;
   slug: string;
   count: number;
+  description?: string;
 }
 
 export interface BlogPost {
