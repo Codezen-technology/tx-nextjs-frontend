@@ -80,7 +80,7 @@ const SOCIAL_LABEL_MAP: Record<string, string> = {
 };
 
 const FALLBACK_NAV_LINKS: FooterNavLink[] = [
-  { href: "/about", label: "About us" },
+  { href: "/about-us", label: "About us" },
   { href: "/careers", label: "Work for us" },
   { href: "/resources", label: "Resources", badge: "New" },
   { href: "/force-for-good", label: "Force for Good" },

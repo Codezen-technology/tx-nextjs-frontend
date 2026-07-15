@@ -13,6 +13,7 @@ import { getServerWpJsonBase, env } from "@/lib/env";
 import type { WCStoreProduct } from "@/types/product";
 import type { FooterData } from "@/types/settings";
 import type { HomePageData, PricingPageData } from "@/types/home";
+import type { AboutPageData } from "@/types/about";
 import type { CourseSections, CourseFlatCurriculumItem } from "@/types/course";
 import type { RawBundle } from "@/lib/services/bundles";
 import type { RawPage } from "@/lib/services/pages";
@@ -551,6 +552,14 @@ export const serverApi = {
       serverFetch<PricingPageData>(`${lms}/pricing`, {
         revalidate: 300,
         tags: ["pricing"],
+      }),
+  },
+
+  about: {
+    get: () =>
+      serverFetch<AboutPageData>(`${lms}/about/page`, {
+        revalidate: 300,
+        tags: ["about"],
       }),
   },
 

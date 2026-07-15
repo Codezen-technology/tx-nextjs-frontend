@@ -25,7 +25,7 @@ import type { CourseCategory } from "@/types/course";
 const resourcesLinks = [
   { href: "/blog", label: "Blog" },
   { href: "/help", label: "Help Centre" },
-  { href: "/about", label: "About Us" },
+  { href: "/about-us", label: "About Us" },
 ];
 
 function NavDropdown({
@@ -314,12 +314,12 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
           {/* Row 1: utility */}
           <div className="flex items-center gap-6">
             <Link
-              href="/about"
+              href="/about-us"
               className={cn(
                 "font-open-sans text-neutral-30 hover:text-primary-300 text-[14px] font-medium transition-colors",
-                pathname === "/about" && "text-primary-400",
+                pathname === "/about-us" && "text-primary-400",
               )}
-              aria-current={pathname === "/about" ? "page" : undefined}
+              aria-current={pathname === "/about-us" ? "page" : undefined}
             >
               About us
             </Link>
@@ -417,7 +417,7 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
         >
           <div className="flex flex-col gap-1 pt-4">
             <Link
-              href="/about"
+              href="/about-us"
               onClick={() => setMobileOpen(false)}
               className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
             >
