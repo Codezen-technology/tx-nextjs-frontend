@@ -1,15 +1,28 @@
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
+import { serverFetch } from "@/lib/api/server";
 import type {
   CertConfig,
   CertContact,
   CertFieldValues,
   CertIntent,
+  CertPageContent,
   CertQuote,
   CertSelection,
 } from "@/types/certificate";
 
 export const certificateService = {
+  /**
+   * Editable page content (hero/trust badges/accreditation banner/order section/
+   * promo banner) — Server Component only, uses `serverFetch` for Next.js caching.
+   */
+  async getPage(): Promise<CertPageContent> {
+    return serverFetch<CertPageContent>(endpoints.certificate.page, {
+      revalidate: 3600,
+      tags: ["certificate-page"],
+    });
+  },
+
   /** Pricing schema (products/choices/prices/quantities/shipping) from GF form. */
   async getConfig(): Promise<CertConfig> {
     const { data } = await api.get<CertConfig>(endpoints.certificate.config);

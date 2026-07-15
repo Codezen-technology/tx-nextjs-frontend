@@ -1,17 +1,23 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
 import { env } from "@/lib/env";
 import { CertificateForm } from "@/components/certificate/certificate-form";
+import { certificateService } from "@/lib/services/certificate";
+import type { CertPageContent } from "@/types/certificate";
 
 export const revalidate = 3600;
 
-const BENEFITS = [
+const DEFAULT_HERO_HEADING = "Power Your Professional Growth with CPD Certification & Transcript";
+const DEFAULT_BENEFITS = [
   "Showcase Your Professional Growth",
   "Strengthen Your CV & Career Opportunities",
   "Meet CPD & Professional Requirements",
 ];
+const DEFAULT_ORDER_HEADING = "Order Your New Certificate";
+const DEFAULT_PROMO_LABEL = "Promotional Banner";
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
@@ -27,6 +33,14 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function CertificatePage() {
   setRequestLocale(await getLocale());
 
+  const content = await certificateService.getPage().catch(() => null);
+
+  const heroHeading = content?.hero.heading || DEFAULT_HERO_HEADING;
+  const benefits = content?.hero.benefits.length ? content.hero.benefits : DEFAULT_BENEFITS;
+  const heroImages = content?.hero.images ?? [];
+  const orderHeading = content?.orderSection.heading || DEFAULT_ORDER_HEADING;
+  const promoBanner = content?.promoBanner;
+
   return (
     <>
       {/* ── Hero ──────────────────────────────────────────────────────── */}
@@ -35,10 +49,10 @@ export default async function CertificatePage() {
           <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
             <div className="max-w-2xl">
               <h1 className="font-suse text-3xl leading-tight font-bold text-white md:text-4xl">
-                Power Your Professional Growth with CPD Certification &amp; Transcript
+                {heroHeading}
               </h1>
               <ul className="mt-6 space-y-3">
-                {BENEFITS.map((b) => (
+                {benefits.map((b) => (
                   <li
                     key={b}
                     className="font-open-sans text-neutral-30 flex items-center gap-3 text-sm"
@@ -49,12 +63,44 @@ export default async function CertificatePage() {
                 ))}
               </ul>
             </div>
-            <div className="hidden gap-4 lg:flex">
-              <div className="h-56 w-44 rounded-lg bg-white/10 ring-1 ring-white/20" aria-hidden />
-              <div
-                className="mt-6 h-56 w-44 rounded-lg bg-white/10 ring-1 ring-white/20"
-                aria-hidden
-              />
+            <div className="hidden items-center gap-6 lg:flex">
+              {heroImages.length > 0 ? (
+                heroImages.map((img, i) => (
+                  <div
+                    key={img.url}
+                    className={i % 2 === 1 ? "relative mt-6 h-56 w-44" : "relative h-56 w-44"}
+                  >
+                    <Image
+                      src={img.url}
+                      alt={img.alt}
+                      fill
+                      sizes="176px"
+                      className="rounded-lg object-cover shadow-[4px_4px_10px_0px_rgba(0,0,0,0.25),16px_18px_15px_0px_rgba(0,0,0,0.2)]"
+                    />
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="relative h-[231px] w-[306px] shrink-0">
+                    <Image
+                      src="/images/certificate/hero-certificate.jpg"
+                      alt="Sample CPD accredited certificate"
+                      fill
+                      sizes="306px"
+                      className="rounded-lg object-cover shadow-[4px_4px_10px_0px_rgba(0,0,0,0.25),16px_18px_15px_0px_rgba(0,0,0,0.2)]"
+                    />
+                  </div>
+                  <div className="relative h-[260px] w-[196px] shrink-0">
+                    <Image
+                      src="/images/certificate/hero-transcript.jpg"
+                      alt="Sample official transcript"
+                      fill
+                      sizes="196px"
+                      className="rounded-lg object-cover shadow-[4px_4px_10px_0px_rgba(0,0,0,0.25),16px_18px_15px_0px_rgba(0,0,0,0.2)]"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -65,19 +111,9 @@ export default async function CertificatePage() {
         <div className="container">
           <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
             <div className="space-y-8">
-              {/* CPD accreditation strip */}
-              <div className="flex flex-col items-center justify-between gap-4 rounded-2xl bg-neutral-800 px-6 py-5 sm:flex-row">
-                <p className="font-suse text-base font-semibold text-white">
-                  Get an Official Accredited Certificate Directly from CPD Service
-                </p>
-                <span className="bg-primary-500 rounded-full px-5 py-2 text-sm font-semibold text-neutral-800">
-                  CPD Accredited
-                </span>
-              </div>
-
               <div className="rounded-2xl border border-neutral-200 p-6 shadow-xs md:p-8">
                 <h2 className="font-suse mb-6 text-2xl font-bold text-neutral-900">
-                  Order Your New Certificate
+                  {orderHeading}
                 </h2>
                 <CertificateForm />
               </div>
@@ -85,15 +121,35 @@ export default async function CertificatePage() {
 
             {/* Promo sidebar */}
             <aside className="hidden lg:block">
-              <div className="flex h-[453px] items-center justify-center rounded-2xl bg-linear-to-b from-neutral-800 to-neutral-700 p-6 text-center">
-                <span className="font-suse text-lg font-semibold text-white/90">
-                  Promotional Banner
-                </span>
-              </div>
+              <PromoBanner promoBanner={promoBanner} />
             </aside>
           </div>
         </div>
       </section>
     </>
+  );
+}
+
+function PromoBanner({ promoBanner }: { promoBanner: CertPageContent["promoBanner"] | undefined }) {
+  if (promoBanner?.image) {
+    return (
+      <div className="relative h-[453px] w-full overflow-hidden rounded-2xl">
+        <Image
+          src={promoBanner.image.url}
+          alt={promoBanner.image.alt}
+          fill
+          sizes="320px"
+          className="object-cover"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-[453px] items-center justify-center rounded-2xl bg-linear-to-b from-neutral-800 to-neutral-700 p-6 text-center">
+      <span className="font-suse text-lg font-semibold text-white/90">
+        {promoBanner?.heading || DEFAULT_PROMO_LABEL}
+      </span>
+    </div>
   );
 }

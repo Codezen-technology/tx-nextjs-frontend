@@ -33,6 +33,7 @@ export const endpoints = {
     submit: (id: number | string) => `${lms}/forms/${encodeURIComponent(String(id))}/submissions`,
   },
   certificate: {
+    page: `${lms}/certificate/page`,
     config: `${lms}/certificate/config`,
     quote: `${lms}/certificate/quote`,
   },

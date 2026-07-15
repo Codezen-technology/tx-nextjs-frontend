@@ -84,3 +84,31 @@ export interface CertIntent {
   total_minor: number;
   currency: string;
 }
+
+/**
+ * Editable `/certificate` page content (hero, order section, sidebar promo banner)
+ * from `GET /certificate/page`. Sourced from ACF — empty/null fields mean "use the
+ * static fallback" (see certificate/page.tsx). Only fields the Figma design
+ * actually renders are typed here — the API returns more (trustBadges,
+ * accreditationBanner, formId, txnFieldId, hero.eyebrow/text) but the frontend
+ * doesn't consume them.
+ */
+export interface CertImage {
+  url: string;
+  alt: string;
+}
+
+export interface CertPageContent {
+  hero: {
+    heading: string;
+    benefits: string[];
+    images: CertImage[];
+  };
+  orderSection: {
+    heading: string;
+  };
+  promoBanner: {
+    image: CertImage | null;
+    heading: string;
+  };
+}
