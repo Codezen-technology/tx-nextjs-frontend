@@ -14,6 +14,7 @@ export function makeCourse(overrides: Partial<Course> = {}): Course {
     rating: 4.5,
     ratingCount: 20,
     unitsCount: 10,
+    feature_img_ribbon: null,
     ...overrides,
   };
 }

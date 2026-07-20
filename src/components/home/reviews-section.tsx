@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Star } from "lucide-react";
+import { ChevronRight, Star, Quote } from "lucide-react";
 import type { HomeTestimonial } from "@/types/home";
 import { cn } from "@/lib/utils/cn";
 
@@ -37,27 +37,6 @@ function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
   );
 }
 
-function TrustpilotCard({ testimonials }: { testimonials: HomeTestimonial[] }) {
-  const average = testimonials.reduce((sum, t) => sum + t.rating, 0) / testimonials.length;
-
-  return (
-    <Link
-      href="/reviews"
-      className="border-neutral-30 flex flex-col justify-center gap-3 rounded-xl border bg-[#f0fbf1] p-6 transition-colors hover:bg-[#e5f8e6]"
-    >
-      <span className="font-suse flex items-center gap-1 text-lg font-bold text-neutral-900">
-        <Star className="h-5 w-5 fill-[#00b67a] text-[#00b67a]" />
-        Trustpilot
-      </span>
-      <StarRating rating={average} />
-      <p className="font-open-sans text-sm font-semibold text-neutral-900">Excellent</p>
-      <p className="font-open-sans text-xs text-neutral-500">
-        Based on {testimonials.length}+ reviews
-      </p>
-    </Link>
-  );
-}
-
 export function ReviewsSection({
   testimonials,
   title = "What Our Learners Have to Say",
@@ -67,7 +46,7 @@ export function ReviewsSection({
   if (!testimonials?.length) return null;
 
   return (
-    <section className="bg-primary-50 flex flex-col gap-4 py-16">
+    <section className="bg-secondary-50 flex flex-col gap-8 py-16">
       <div className="container flex items-center justify-between">
         <div>
           <h2 className="font-suse text-3xl font-bold text-neutral-900 md:text-[2rem]">{title}</h2>
@@ -86,15 +65,22 @@ export function ReviewsSection({
         ) : null}
       </div>
 
-      <div className="container mt-6 grid flex-1 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <TrustpilotCard testimonials={testimonials} />
-
-        {testimonials.map((review) => (
+      <div className="container grid flex-1 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {testimonials.slice(0, 3).map((review) => (
           <div
             key={review.id}
-            className="border-neutral-30 flex flex-col gap-4 rounded-xl border bg-white p-6"
+            className="border-neutral-30 flex flex-col justify-between gap-4 border bg-white p-6"
           >
-            <div className="flex items-center gap-4">
+            <div className="flex flex-row items-center justify-between gap-2">
+              <StarRating rating={review.rating} />
+              <Quote className="text-secondary-100 h-6 w-6" />
+            </div>
+
+            <p className="font-open-sans line-clamp-4 text-sm leading-relaxed text-neutral-500">
+              {review.text}
+            </p>
+
+            <div className="border-neutral-40 flex items-center gap-4 border-t pt-4">
               {review.photo ? (
                 <img
                   src={review.photo}
@@ -109,18 +95,16 @@ export function ReviewsSection({
                 </div>
               )}
               <div>
-                <p className="font-open-sans mb-1 text-xl font-semibold text-neutral-900">
+                <p className="font-open-sans mb-1 text-xl font-bold text-neutral-900">
                   {review.name}
                 </p>
                 {review.designation && (
-                  <p className="font-open-sans mb-2 text-sm text-neutral-500">
+                  <p className="font-open-sans mb-2 text-sm text-neutral-400">
                     {review.designation}
                   </p>
                 )}
-                <StarRating rating={review.rating} />
               </div>
             </div>
-            <p className="font-open-sans text-sm leading-relaxed text-neutral-500">{review.text}</p>
           </div>
         ))}
       </div>

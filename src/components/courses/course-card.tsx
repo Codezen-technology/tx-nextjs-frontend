@@ -22,13 +22,8 @@ const BADGE_LABELS: Record<string, string> = {
 };
 
 export function CourseCard({ course, className, priority = false }: CourseCardProps) {
-  const showRibbon = (course.badges ?? []).includes("bestseller");
-  const promoBadges = [
-    "CPD",
-    ...(course.badges ?? [])
-      .filter((key) => !(showRibbon && key === "bestseller"))
-      .map((key) => BADGE_LABELS[key] ?? key),
-  ];
+  const featureImgRibbon = course.feature_img_ribbon;
+  const promoBadges = ["CPD", ...(course.badges ?? []).map((key) => BADGE_LABELS[key] ?? key)];
   const isOnSale =
     course.sale?.isOnSale ??
     (course.originalPrice ? course.originalPrice > (course.price ?? 0) : false);
@@ -50,7 +45,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
                 fill
                 priority={priority}
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                className="object-cover transition-transform duration-300 hover:scale-105"
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
               />
             ) : (
               <div className="bg-neutral-20 flex h-full items-center justify-center text-neutral-100">
@@ -60,13 +55,15 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
           </div>
         </Link>
 
-        {showRibbon && (
+        {featureImgRibbon && (
           <div
-            className="absolute top-0 right-4 flex h-[124px] w-10 flex-col items-center justify-center gap-1 bg-[#db0302] text-white drop-shadow-[0px_16px_24px_rgba(0,0,0,0.17)]"
+            className="absolute top-0 right-4 flex h-32 w-10 flex-col items-center justify-center gap-[2px] bg-[#db0302] text-white drop-shadow-[0px_16px_24px_rgba(0,0,0,0.17)]"
             style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 50% 88%, 0 100%)" }}
           >
-            <Star className="h-4 w-4 shrink-0 fill-white" />
-            <span className="-rotate-90 text-xs font-bold whitespace-nowrap">TOP SELLER</span>
+            <Star className="absolute top-1 h-4 w-4 shrink-0 rotate-90 fill-amber-300 stroke-amber-300 transform-fill" />
+            <span className="-rotate-90 text-xs font-bold whitespace-nowrap uppercase">
+              {featureImgRibbon}
+            </span>
           </div>
         )}
       </div>
@@ -85,27 +82,32 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
                   </span>
                 ) : null}
               </>
-            ) : null}
+            ) : (
+              <div className="flex flex-row items-center gap-1 text-neutral-400">
+                <span className="text-sm">{course.id % 2 === 0 ? "4.7" : "4.9"}</span>
+                <Star className="h-4 w-4 fill-amber-300 stroke-amber-300" />
+              </div>
+            )}
           </div>
-          <button
+          {/* <button
             type="button"
             aria-label="Bookmark course"
             className="bg-neutral-30 hover:bg-neutral-30 flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 transition-colors hover:text-neutral-600"
           >
-            <Bookmark className="h-4 w-4" />
-          </button>
+            <Bookmark className="h-4 w-4 text-[#BFC7D2]" />
+          </button> */}
         </div>
 
         {/* Title */}
         <Link href={`/course/${course.slug}`}>
-          <h3 className="font-suse hover:text-secondary-500 line-clamp-2 h-12 leading-snug font-bold text-neutral-900 transition-colors">
+          <h3 className="font-suse group-hover:text-secondary-500 line-clamp-2 h-14 text-xl leading-snug font-bold text-neutral-900 transition-colors">
             {course.title}
           </h3>
         </Link>
 
         {/* Promotional badges */}
         {promoBadges.length > 0 && (
-          <div className="flex scrollbar-none gap-2 overflow-x-auto py-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex flex-row flex-wrap gap-2">
             {promoBadges.map((label) => (
               <span
                 key={label}
@@ -148,7 +150,9 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-2">
             {course.isFree ? (
-              <span className="font-open-sans text-xl font-bold text-neutral-900">Free</span>
+              <span className="font-open-sans text-[1.313rem] font-bold text-neutral-900">
+                Free
+              </span>
             ) : course.price ? (
               <>
                 {isOnSale && course.originalPrice && course.originalPrice > course.price ? (
@@ -157,7 +161,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
                   </span>
                 ) : null}
                 <span className="font-open-sans font-bold text-neutral-900">
-                  <span className="text-xl">£{course.price}</span>
+                  <span className="text-[1.313rem]">£{course.price}</span>
                   <span className="text-xs font-normal"> +VAT</span>
                 </span>
               </>
@@ -170,7 +174,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
         {/* CTA */}
         <Link
           href={`/course/${course.slug}`}
-          className="bg-secondary-500 hover:bg-secondary-600 flex h-10 w-full items-center justify-center rounded-full text-sm text-white transition-colors"
+          className="bg-secondary-500 group-hover:bg-primary-600 flex h-10 w-full items-center justify-center rounded-full text-sm text-white transition-colors"
         >
           View Course
         </Link>

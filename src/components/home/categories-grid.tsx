@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GraduationCap, ChevronRight } from "lucide-react";
+import { Album, ChevronRight } from "lucide-react";
 import { serverApi, type ApiCategory } from "@/lib/api/server";
 
 interface CategoryItem {
@@ -30,7 +30,7 @@ async function getCategories(provided?: CategoryItem[]): Promise<CategoryItem[]>
   if (provided?.length) return provided;
 
   try {
-    const res = await serverApi.taxonomy.categories({ per_page: 11 });
+    const res = await serverApi.taxonomy.categories({ per_page: 12 });
     if (res.items?.length) return res.items.map(mapApiCategory);
   } catch {
     return [];
@@ -44,7 +44,7 @@ export async function CategoriesGrid({ categories: provided }: CategoriesGridPro
 
   if (!categories.length) return null;
 
-  const displayed = categories.slice(0, 11);
+  const displayed = categories.slice(0, 12);
 
   return (
     <div className="container">
@@ -61,29 +61,29 @@ export async function CategoriesGrid({ categories: provided }: CategoriesGridPro
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
         {displayed.map((cat) => {
           const icon = resolveIcon(cat);
           return (
             <Link
               key={cat.id}
               href={`/course-cat/${cat.slug}`}
-              className="group bg-secondary-50 hover:bg-primary-50 flex h-[196px] w-auto shrink-0 flex-col items-center justify-center gap-1 rounded-[8px] transition-all hover:shadow-xs"
+              className="group bg-neutral-0 hover:bg-secondary-500 flex h-[156px] flex-col items-center justify-start gap-4 px-4 py-6 transition-all"
             >
-              <div className="flex h-14 w-14 items-center justify-center overflow-hidden">
+              <div className="bg-neutral-20 group-hover:bg-secondary-50 flex h-14 w-14 items-center justify-center overflow-hidden rounded transition-colors">
                 {icon.type === "img" ? (
                   <img
                     src={encodeURI(icon.src)}
                     alt={cat.name}
-                    width={56}
-                    height={56}
-                    className="h-14 w-14 object-contain"
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 object-contain"
                   />
                 ) : (
-                  <GraduationCap className="h-8 w-8 text-neutral-300" />
+                  <Album className="text-secondary-500 h-8 w-8" />
                 )}
               </div>
-              <span className="font-open-sans px-2 text-center text-base text-neutral-700 group-hover:text-neutral-900">
+              <span className="font-suse w-full text-center text-lg leading-[1.2] font-bold text-neutral-900 transition-colors group-hover:text-white">
                 {cat.name}
               </span>
             </Link>

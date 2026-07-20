@@ -67,9 +67,9 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
   if (total === 0) return null;
 
   return (
-    <div className="relative hidden lg:flex lg:flex-1 lg:flex-col">
+    <div className="relative hidden gap-8 lg:flex lg:flex-1 lg:flex-col">
       {/* Stacked cards — anchored at behind-left card origin */}
-      <div className="relative h-[500px] w-full overflow-visible">
+      <div className="relative h-[520px] w-full overflow-visible">
         {courses.map((course, ci) => {
           const offset = CARD_OFFSETS[slotOf(ci)];
           if (!offset) return null;

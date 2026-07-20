@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAddToCart } from "@/lib/hooks/useCart";
@@ -10,28 +9,22 @@ import { cn } from "@/lib/utils/cn";
 
 interface PricingCtaProps {
   plan: HomePricingPlan;
+  quantity?: number;
   className?: string;
   style?: React.CSSProperties;
 }
 
-export function PricingCta({ plan, className, style }: PricingCtaProps) {
+export function PricingCta({ plan, quantity = 1, className, style }: PricingCtaProps) {
   const router = useRouter();
   const { mutate: addToCart, isPending } = useAddToCart();
 
-  // No linked product → plain link CTA (falls back to ctaHref).
-  if (!plan.product) {
-    return (
-      <Link href={plan.ctaHref || "#"} className={className} style={style}>
-        {plan.ctaLabel}
-      </Link>
-    );
-  }
-
-  const productId = plan.product.id;
-
   const handleAddToCart = () => {
+    if (!plan.product) {
+      router.push(plan.ctaHref || "#");
+      return;
+    }
     addToCart(
-      { product_id: productId },
+      { product_id: plan.product.id, quantity },
       {
         onSuccess: () => {
           toast.success(`${plan.product?.name ?? plan.name} added to cart`);

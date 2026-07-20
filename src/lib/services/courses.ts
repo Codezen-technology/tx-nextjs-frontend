@@ -87,6 +87,7 @@ interface RawCourse {
   seats?: number | null;
   start_date?: string | number | null;
   badges?: string[];
+  feature_img_ribbon?: string | null;
   cpd_points?: number;
   sale?: {
     regular_price?: number | string | null;
@@ -194,6 +195,7 @@ export function normalizeCourse(raw: RawCourse): Course {
     createdAt: toUnixIso(raw?.date_created) ?? toUnixIso(raw?.date_gmt) ?? toUnixIso(raw?.date),
     updatedAt:
       toUnixIso(raw?.date_modified) ?? toUnixIso(raw?.modified_gmt) ?? toUnixIso(raw?.modified),
+    feature_img_ribbon: raw?.feature_img_ribbon ?? null,
     badges: raw?.badges,
     cpdPoints: raw?.cpd_points,
     sale: raw?.sale
