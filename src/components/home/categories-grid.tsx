@@ -68,7 +68,7 @@ export async function CategoriesGrid({ categories: provided }: CategoriesGridPro
             <Link
               key={cat.id}
               href={`/course-cat/${cat.slug}`}
-              className="group bg-neutral-0 hover:bg-secondary-500 flex h-[156px] flex-col items-center justify-start gap-4 px-4 py-6 transition-all"
+              className="group bg-neutral-0 hover:bg-secondary-500 flex h-39 flex-col items-center justify-start gap-4 px-4 py-6 transition-all"
             >
               <div className="bg-neutral-20 group-hover:bg-secondary-50 flex h-14 w-14 items-center justify-center overflow-hidden rounded transition-colors">
                 {icon.type === "img" ? (

@@ -148,7 +148,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
 
         {/* Price + countdown */}
         <div className="flex items-center justify-between">
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-baseline gap-0.5">
             {course.isFree ? (
               <span className="font-open-sans text-[1.313rem] font-bold text-neutral-900">
                 Free
