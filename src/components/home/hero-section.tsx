@@ -41,8 +41,8 @@ export async function HeroSection({ headline }: HeroSectionProps) {
       className="bg-primary-50 relative overflow-x-clip bg-cover bg-center"
       style={{ backgroundImage: `url(${overlayImage})` }}
     >
-      <div className="mx-auto flex max-w-none flex-col items-start gap-12 px-4 py-[60px] lg:max-w-[1400px] lg:items-center lg:py-[170px] xl:flex-row xl:px-0">
-        <div className="flex w-full min-w-0 flex-col gap-6 lg:max-w-[636px]">
+      <div className="mx-auto flex max-w-none flex-col items-start gap-12 px-4 py-15 lg:max-w-350 lg:items-center lg:py-42.5 xl:flex-row xl:px-0">
+        <div className="flex w-full min-w-0 flex-col gap-6 lg:max-w-159">
           <div className="flex flex-col gap-4">
             <h1 className="font-suse text-[40px] leading-[1.2] font-bold text-neutral-900 md:text-[48px] lg:text-[56px]">
               {headline.title}
@@ -59,7 +59,7 @@ export async function HeroSection({ headline }: HeroSectionProps) {
               {accreditations.map((badge) => (
                 <div
                   key={badge.src}
-                  className="flex h-[80px] w-[100px] items-center justify-center overflow-hidden rounded-[8px] border border-[#eaecee] bg-white px-2"
+                  className="flex h-20 w-25 items-center justify-center overflow-hidden rounded-[8px] border border-[#eaecee] bg-white px-2"
                 >
                   {publicImageExists(badge.src) ? (
                     <SafeImage
@@ -79,7 +79,7 @@ export async function HeroSection({ headline }: HeroSectionProps) {
             </div>
           )}
 
-          <div className="overflow-hidden rounded-[4px] bg-[rgba(0,32,74,0.4)] backdrop-blur-sm">
+          <div className="overflow-hidden rounded-lg bg-[rgba(0,32,74,0.4)] backdrop-blur-sm">
             <form
               action="/search"
               method="get"
@@ -89,11 +89,11 @@ export async function HeroSection({ headline }: HeroSectionProps) {
                 name="q"
                 type="text"
                 placeholder="Subject or qualification, e.g. IT Course"
-                className="font-open-sans h-[56px] flex-1 rounded-[2px] bg-white px-8 text-sm text-[#767476] outline-hidden placeholder:text-[#767476]"
+                className="font-open-sans h-14 flex-1 rounded-[2px] bg-white px-8 text-sm text-[#767476] outline-hidden placeholder:text-[#767476]"
               />
               <button
                 type="submit"
-                className="bg-secondary-500 font-open-sans shrink-0 rounded-[2px] px-[25px] py-4 text-base leading-normal font-normal text-white transition-opacity hover:opacity-90"
+                className="bg-secondary-500 font-open-sans shrink-0 rounded-[2px] px-6.25 py-4 text-base leading-normal font-normal text-white transition-opacity hover:opacity-90"
               >
                 Search Courses
               </button>

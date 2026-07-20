@@ -13,7 +13,7 @@ export function CpdCertificate({ data }: CpdCertificateProps) {
   return (
     <section className="py-16 lg:py-20">
       <div className="container flex flex-row items-center justify-between gap-10 lg:grid-cols-2">
-        <div className="flex max-w-none flex-col gap-4 md:max-w-[416px]">
+        <div className="flex max-w-none flex-col gap-4 md:max-w-104">
           <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
             {data.title}
           </h2>
@@ -35,7 +35,7 @@ export function CpdCertificate({ data }: CpdCertificateProps) {
         </div>
 
         {images.length > 0 && (
-          <div className="flex items-center gap-6 rounded-lg bg-[#f5f6f8] p-10">
+          <div className="bg-neutral-20 flex items-center gap-6 rounded-lg p-10">
             {images[0] && (
               <img src={images[0]} alt="" className="h-auto w-auto rounded-lg object-cover" />
             )}

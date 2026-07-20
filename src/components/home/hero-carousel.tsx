@@ -69,7 +69,7 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
   return (
     <div className="relative hidden gap-8 lg:flex lg:flex-1 lg:flex-col">
       {/* Stacked cards — anchored at behind-left card origin */}
-      <div className="relative h-[520px] w-full overflow-visible">
+      <div className="relative h-130 w-full overflow-visible">
         {courses.map((course, ci) => {
           const offset = CARD_OFFSETS[slotOf(ci)];
           if (!offset) return null;
@@ -77,7 +77,7 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
             <div
               key={course.id}
               className={cn(
-                "absolute w-[306px]",
+                "absolute w-76.5",
                 snap.has(course.id) ? "transition-none" : "transition-all duration-500",
                 offset.shadow,
               )}
