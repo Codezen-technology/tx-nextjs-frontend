@@ -20,7 +20,7 @@ export function CourseHero({ course }: CourseHeroProps) {
     : null;
 
   return (
-    <section className="relative min-h-[420px] bg-neutral-900 text-white">
+    <section className="relative min-h-105 bg-neutral-900 text-white">
       {isRenderableImageSrc(course.featuredImage) ? (
         <>
           <SafeImage

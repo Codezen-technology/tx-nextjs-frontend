@@ -57,7 +57,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
 
         {featureImgRibbon && (
           <div
-            className="absolute top-0 right-4 flex h-32 w-10 flex-col items-center justify-center gap-[2px] bg-[#db0302] text-white drop-shadow-[0px_16px_24px_rgba(0,0,0,0.17)]"
+            className="absolute top-0 right-4 flex h-32 w-10 flex-col items-center justify-center gap-0.5 bg-[#db0302] text-white drop-shadow-[0px_16px_24px_rgba(0,0,0,0.17)]"
             style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 50% 88%, 0 100%)" }}
           >
             <Star className="absolute top-1 h-4 w-4 shrink-0 rotate-90 fill-amber-300 stroke-amber-300 transform-fill" />
