@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { HomePricingSection } from "@/types/home";
 import { cn } from "@/lib/utils/cn";
-import { PricingCta } from "./pricing-cta";
+import { QuantitySelector } from "./quantity-selector";
 
 interface PricingSectionProps {
   data?: HomePricingSection;
@@ -33,10 +33,10 @@ export function PricingSection({ data }: PricingSectionProps) {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {plans.map((plan) => (
             <div key={plan.name} className="relative">
-              {plan.badge === "best-value" && (
+              {plan.badge === "most-popular" && (
                 <div className="absolute -top-4 right-6 z-20 flex items-start">
-                  <div className="text-secondary-700 relative rounded-b-lg bg-white p-4 text-sm font-medium shadow-md">
-                    Best Value
+                  <div className="text-secondary-500 relative rounded-b-lg bg-white p-4 text-sm font-medium shadow-md">
+                    Most Popular
                     <svg
                       className="absolute top-0 -right-3"
                       xmlns="http://www.w3.org/2000/svg"
@@ -51,13 +51,13 @@ export function PricingSection({ data }: PricingSectionProps) {
                 </div>
               )}
 
-              {plan.badge === "most-popular" && (
+              {plan.badge === "best-value" && (
                 <div className="absolute -top-4 right-6 z-20 flex items-start">
                   <div
                     className="relative rounded-b-lg p-4 text-sm font-medium text-neutral-900 shadow-md"
                     style={{ background: "linear-gradient(85deg, #01aee0 0%, #00c7ff 100%)" }}
                   >
-                    Most Popular
+                    Best Value
                     <svg
                       className="absolute top-0 -right-3"
                       xmlns="http://www.w3.org/2000/svg"
@@ -74,7 +74,7 @@ export function PricingSection({ data }: PricingSectionProps) {
 
               <div
                 className={cn(
-                  "relative flex h-full flex-col gap-6 overflow-hidden rounded-[12px] p-8",
+                  "relative flex h-full flex-col gap-6 overflow-hidden rounded-lg p-8",
                   plan.variant === "default" && "border-neutral-30 border bg-white shadow-xs",
                   plan.variant === "beige" && "border-neutral-30 border shadow-xs",
                   plan.variant === "navy" && "border-transparent shadow-lg",
@@ -95,86 +95,69 @@ export function PricingSection({ data }: PricingSectionProps) {
                 )}
 
                 <div className="flex flex-col gap-4">
-                  <p
-                    className={cn(
-                      "font-suse text-xl font-bold",
-                      plan.variant === "default" && "text-neutral-900",
-                      plan.variant === "beige" && "text-secondary-500",
-                      plan.variant === "navy" && "text-primary-500",
-                    )}
-                  >
-                    {plan.name}
-                  </p>
-
-                  {plan.subtitle && (
-                    <p
-                      className={cn(
-                        "font-open-sans text-base",
-                        plan.variant === "navy" && "text-white",
-                      )}
-                    >
-                      {plan.subtitle}
-                    </p>
-                  )}
-
-                  <div className="flex items-baseline gap-2">
-                    {plan.originalPrice && (
-                      <span className="text-xl font-bold text-[#dc3545] line-through">
-                        {plan.originalPrice}
-                      </span>
-                    )}
-                    <span
-                      className={cn(
-                        "font-suse font-bold",
-                        plan.variant === "navy" ? "text-white" : "text-neutral-900",
-                      )}
-                    >
-                      <span className="text-2xl">{plan.price}</span>
-                      {plan.priceUnit && <span className="text-base">{plan.priceUnit}</span>}
-                    </span>
-                  </div>
-
-                  <ul className="flex flex-col gap-3">
-                    {plan.features.map((feat) => (
-                      <li key={feat.label} className="flex items-center gap-2">
-                        <img
-                          src={feat.included ? "/icons/tick-circle.svg" : "/icons/close-circle.svg"}
-                          alt=""
-                          aria-hidden="true"
-                          width={24}
-                          height={24}
-                          className="shrink-0 self-start"
-                        />
-                        <span
+                  <div className="flex flex-col gap-4">
+                    {/* Plan Name & Subtitle */}
+                    <div className="flex flex-col gap-2">
+                      <p
+                        className={cn(
+                          "font-suse text-xl font-bold",
+                          plan.variant === "default" && "text-neutral-900",
+                          plan.variant === "beige" && "text-secondary-500",
+                          plan.variant === "navy" && "text-primary-500",
+                        )}
+                      >
+                        {plan.name}
+                      </p>
+                      {plan.subtitle && (
+                        <p
                           className={cn(
                             "font-open-sans text-base",
-                            plan.variant === "navy" ? "text-white" : "text-neutral-900",
+                            plan.variant === "navy" && "text-white",
+                            plan.variant !== "navy" && "text-neutral-500",
                           )}
                         >
-                          {feat.label}
-                        </span>
-                      </li>
-                    ))}
+                          {plan.subtitle}
+                        </p>
+                      )}
+                    </div>
+                    {/* Quantity & CTA */}
+                    <QuantitySelector plan={plan} />
+                  </div>
+
+                  {/* Features */}
+                  <ul className="flex flex-col gap-3">
+                    {plan.features.map((feat) => {
+                      const tickSrc =
+                        plan.variant === "navy"
+                          ? "/icons/tick-circle.svg"
+                          : "/icons/tick-circle-green.svg";
+                      const crossSrc =
+                        plan.variant === "navy"
+                          ? "/icons/close-circle.svg"
+                          : "/icons/close-circle-green.svg";
+                      return (
+                        <li key={feat.label} className="flex items-center gap-2">
+                          <img
+                            src={feat.included ? tickSrc : crossSrc}
+                            alt=""
+                            aria-hidden="true"
+                            width={24}
+                            height={24}
+                            className="shrink-0 self-start"
+                          />
+                          <span
+                            className={cn(
+                              "font-open-sans text-base",
+                              plan.variant === "navy" ? "text-white" : "text-neutral-900",
+                            )}
+                          >
+                            {feat.label}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
-
-                <PricingCta
-                  plan={plan}
-                  className={cn(
-                    "font-open-sans mt-auto flex h-10 items-center justify-center rounded-full text-sm font-medium transition-transform hover:scale-105",
-                    plan.variant === "default" &&
-                      "border-secondary-500 text-secondary-500 border bg-transparent",
-                    plan.variant === "beige" &&
-                      "border-secondary-500 text-secondary-500 border bg-white",
-                    plan.variant === "navy" &&
-                      "border-primary-500 border text-base font-bold text-neutral-900",
-                  )}
-                  style={
-                    plan.variant === "navy"
-                      ? { background: "linear-gradient(90deg, #00bbf0, #8AE0F8)" }
-                      : undefined
-                  }
-                />
               </div>
             </div>
           ))}

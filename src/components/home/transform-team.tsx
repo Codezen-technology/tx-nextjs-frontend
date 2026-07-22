@@ -13,10 +13,16 @@ export function TransformTeam({ data }: TransformTeamProps) {
 
   return (
     <section
-      className="py-14 lg:py-16"
+      className="relative overflow-hidden py-14 lg:py-16"
       style={{ background: "linear-gradient(113.58deg, #00204a 0%, #004f65 100%)" }}
     >
-      <div className="container flex flex-col items-center gap-10">
+      <img
+        src="https://trainingexcellence-media.s3.eu-west-2.amazonaws.com/wp-content/uploads/2026/07/16092625/transfrom-team-bg-shape.png"
+        alt="Bg Shape"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+
+      <div className="container flex flex-col items-center justify-between gap-10">
         <div className="flex max-w-2xl flex-col items-center gap-4 text-center">
           <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-white">{data.title}</h2>
           {data.description && (
@@ -49,19 +55,12 @@ export function TransformTeam({ data }: TransformTeamProps) {
 
           {images.length > 0 && (
             <div className="flex shrink-0 items-center gap-6">
-              <div className="flex h-105 w-76.5 flex-col gap-6">
+              <div className="flex h-auto w-76.5 flex-col gap-6">
                 {images.slice(0, 2).map((src) => (
-                  <img
-                    key={src}
-                    src={src}
-                    alt=""
-                    className="w-full flex-1 rounded-xl object-cover"
-                  />
+                  <img key={src} src={src} alt="" className="w-full flex-1 object-cover" />
                 ))}
               </div>
-              {images[2] && (
-                <img src={images[2]} alt="" className="h-105 w-76.5 rounded-xl object-cover" />
-              )}
+              {images[2] && <img src={images[2]} alt="" className="h-auto w-76.5 object-cover" />}
             </div>
           )}
         </div>
@@ -69,7 +68,7 @@ export function TransformTeam({ data }: TransformTeamProps) {
         {data.cta?.href && (
           <Link
             href={data.cta.href}
-            className="bg-secondary-500 font-open-sans inline-flex w-50 items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition-opacity hover:opacity-90"
+            className="bg-secondary-500 hover:bg-secondary-600 font-open-sans inline-flex w-50 cursor-pointer items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition-opacity hover:opacity-90"
           >
             {data.cta.label}
           </Link>

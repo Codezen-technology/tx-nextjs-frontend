@@ -12,8 +12,8 @@ export function CpdCertificate({ data }: CpdCertificateProps) {
 
   return (
     <section className="py-16 lg:py-20">
-      <div className="container grid grid-cols-1 items-center gap-10 lg:grid-cols-2">
-        <div className="flex flex-col gap-4">
+      <div className="container flex flex-row items-center justify-between gap-10 lg:grid-cols-2">
+        <div className="flex max-w-none flex-col gap-4 md:max-w-104">
           <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
             {data.title}
           </h2>
@@ -26,7 +26,7 @@ export function CpdCertificate({ data }: CpdCertificateProps) {
             <div>
               <Link
                 href={data.cta.href}
-                className="border-secondary-500 text-secondary-500 hover:bg-secondary-50 font-open-sans inline-flex items-center rounded border px-6 py-4 text-base leading-normal transition-colors"
+                className="bg-secondary-500 hover:bg-primary-600 font-open-sans mt-4 inline-flex w-50 cursor-pointer items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition-colors transition-opacity hover:opacity-90"
               >
                 {data.cta.label}
               </Link>
@@ -35,15 +35,13 @@ export function CpdCertificate({ data }: CpdCertificateProps) {
         </div>
 
         {images.length > 0 && (
-          <div className="flex items-center justify-center gap-6">
-            {images.map((src, i) => (
-              <img
-                key={src}
-                src={src}
-                alt=""
-                className={`rounded-lg object-contain shadow-lg ${i === 0 ? "w-2/3" : "w-1/3"}`}
-              />
-            ))}
+          <div className="bg-neutral-20 flex items-center gap-6 rounded-lg p-10">
+            {images[0] && (
+              <img src={images[0]} alt="" className="h-auto w-auto rounded-lg object-cover" />
+            )}
+            {images[1] && (
+              <img src={images[1]} alt="" className="h-auto w-auto rounded-lg object-cover" />
+            )}
           </div>
         )}
       </div>

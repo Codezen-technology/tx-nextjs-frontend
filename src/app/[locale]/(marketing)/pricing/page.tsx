@@ -30,7 +30,7 @@ export default async function PricingPage() {
   const [pricing, home, categoriesRes] = await Promise.all([
     serverApi.pricing.get().catch(() => null),
     serverApi.home.get().catch(() => null),
-    serverApi.taxonomy.categories({ per_page: 11 }).catch(() => null),
+    serverApi.taxonomy.categories({ per_page: 12 }).catch(() => null),
   ]);
 
   return (

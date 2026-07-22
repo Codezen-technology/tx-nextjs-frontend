@@ -1,2 +1,2 @@
-. ~/.nvm/nvm.sh
+[ -f ~/.nvm/nvm.sh ] && . ~/.nvm/nvm.sh
 pnpm lint-staged

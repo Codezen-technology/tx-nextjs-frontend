@@ -46,6 +46,8 @@ export interface Course {
   modules_count?: number;
   /** Promotional flags: subset of "bestseller" | "limited_time_offer" | "free_certificate" | "team_training". */
   badges?: string[];
+  /** Feature image ribbon badge from `vibe_course_badge_title` meta. */
+  feature_img_ribbon?: string | null;
   cpdPoints?: number;
   sale?: CourseSale | null;
 }
