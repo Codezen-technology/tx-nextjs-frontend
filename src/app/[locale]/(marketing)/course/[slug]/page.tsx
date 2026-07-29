@@ -15,7 +15,6 @@ import { CourseWhatYouLearn } from "@/components/courses/course-what-you-learn";
 import { CourseAbout } from "@/components/courses/course-about";
 import { CourseTabNav } from "@/components/courses/course-tab-nav";
 import { CourseAccreditations } from "@/components/courses/course-accreditations";
-import { CourseInAction } from "@/components/courses/course-in-action";
 import { CourseScreenshots } from "@/components/courses/course-screenshots";
 import { CourseExperts } from "@/components/courses/course-experts";
 import { CourseFlatCurriculum } from "@/components/courses/course-flat-curriculum";
@@ -224,13 +223,6 @@ export default async function CourseDetailPage({ params }: PageProps) {
             {accreditations.length > 0 ? (
               <section id="accreditations" className="mt-12 scroll-mt-28">
                 <CourseAccreditations accreditations={accreditations} />
-              </section>
-            ) : null}
-
-            {/* ── Course in action ── */}
-            {course.video_url ? (
-              <section className="mt-16 scroll-mt-28">
-                <CourseInAction videoUrl={course.video_url} />
               </section>
             ) : null}
 
