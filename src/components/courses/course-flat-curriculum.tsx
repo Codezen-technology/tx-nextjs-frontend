@@ -42,7 +42,7 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
   const groups = buildGroups(items);
   const sectionCount = groups.length;
   const unitCount = items.filter((i) => i.type !== "section").length;
-  const totalSeconds = groups.reduce((acc, g) => acc + (g.section.section_duration ?? 0), 0);
+  const totalSeconds = groups.reduce((acc, g) => acc + (g.section.section_duration ?? 0) * 60, 0);
 
   const [openSections, setOpenSections] = useState<Set<number>>(new Set([0]));
   const [allExpanded, setAllExpanded] = useState(false);
@@ -77,8 +77,8 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900 sm:text-[38px]">
+    <div className="space-y-3">
+      <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-neutral-900">
         Course Curriculum
       </h2>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -96,7 +96,7 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
       </div>
 
       {/* Sections */}
-      <div className="border-neutral-30 overflow-hidden rounded-lg border bg-white shadow-xs">
+      <div className="border-neutral-30 mt-4 overflow-hidden border bg-white shadow-xs">
         {groups.map((group, gi) => {
           const isOpen = openSections.has(gi);
           return (
@@ -104,7 +104,7 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
               {/* Section header */}
               <button
                 onClick={() => toggleSection(gi)}
-                className="flex w-full items-center gap-3 bg-neutral-50 px-4 py-3.5 text-left transition-colors hover:bg-neutral-100"
+                className="bg-neutral-30 flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors"
                 aria-expanded={isOpen}
               >
                 <ChevronDown
@@ -113,13 +113,13 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
                     isOpen && "rotate-180",
                   )}
                 />
-                <span className="flex-1 text-sm font-semibold text-neutral-900">
+                <span className="flex-1 text-lg font-bold text-neutral-900">
                   {group.section.title}
                 </span>
-                <span className="shrink-0 text-xs text-neutral-500">
+                <span className="shrink-0 text-base text-neutral-500">
                   {group.units.length} {group.units.length === 1 ? "lecture" : "lectures"}
                   {group.section.section_duration
-                    ? ` • ${formatDuration(group.section.section_duration)}`
+                    ? ` • ${formatDuration(group.section.section_duration * 60)}`
                     : ""}
                 </span>
               </button>
@@ -133,7 +133,9 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <UnitIcon icon={unit.icon} />
-                      <span className="truncate text-neutral-700">{unit.title}</span>
+                      <span className="text-secondary-500 truncate text-base font-normal">
+                        {unit.title}
+                      </span>
                     </div>
                     <div className="flex shrink-0 items-center gap-3 text-xs text-neutral-400">
                       {unit.is_free_preview ? (
@@ -141,7 +143,9 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
                           Preview
                         </span>
                       ) : null}
-                      {unit.duration ? <span>{formatDuration(unit.duration)}</span> : null}
+                      {unit.duration ? (
+                        <span className="text-base">{formatDuration(unit.duration * 60)}</span>
+                      ) : null}
                     </div>
                   </li>
                 ))}

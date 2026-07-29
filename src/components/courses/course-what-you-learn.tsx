@@ -7,11 +7,11 @@ export function CourseWhatYouLearn({ html }: CourseWhatYouLearnProps) {
 
   return (
     <section>
-      <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900 sm:text-[38px]">
+      <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-neutral-900">
         What you&apos;ll learn
       </h2>
       <div
-        className="prose prose-neutral mt-6 max-w-none font-open-sans text-base leading-[1.6] text-neutral-700"
+        className="prose-wp font-open-sans mt-6 text-base leading-normal text-neutral-500"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </section>

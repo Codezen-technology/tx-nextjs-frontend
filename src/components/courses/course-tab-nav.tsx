@@ -78,18 +78,18 @@ export function CourseTabNav({
   }
 
   return (
-    <div className="sticky top-0 z-30 -mx-4 mt-12 bg-white px-4 py-4">
-      <nav className="flex flex-wrap gap-2.5 overflow-x-auto" aria-label="Course sections">
+    <div className="bg-primary-50 sticky top-0 z-30 mt-12 px-4 py-4">
+      <nav className="flex flex-wrap gap-10 overflow-x-auto" aria-label="Course sections">
         {items.map((item) => (
           <button
             key={item.id}
             type="button"
             onClick={() => scrollTo(item.id)}
             className={cn(
-              "shrink-0 rounded px-5 py-2 font-open-sans text-sm font-semibold transition-colors",
+              "shrink-0 transition-colors",
               active === item.id
-                ? "bg-primary-600 text-white"
-                : "bg-primary-500 text-white hover:bg-primary-600",
+                ? "bg-primary-500 font-suse rounded-lg px-3 py-2 text-base leading-[1.2] font-bold text-white"
+                : "font-open-sans hover:text-primary-500 text-[15px] leading-none font-bold text-neutral-900",
             )}
           >
             {item.label}

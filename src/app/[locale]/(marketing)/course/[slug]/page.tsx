@@ -15,6 +15,7 @@ import { CourseWhatYouLearn } from "@/components/courses/course-what-you-learn";
 import { CourseAbout } from "@/components/courses/course-about";
 import { CourseTabNav } from "@/components/courses/course-tab-nav";
 import { CourseAccreditations } from "@/components/courses/course-accreditations";
+import { CourseInAction } from "@/components/courses/course-in-action";
 import { CourseScreenshots } from "@/components/courses/course-screenshots";
 import { CourseExperts } from "@/components/courses/course-experts";
 import { CourseFlatCurriculum } from "@/components/courses/course-flat-curriculum";
@@ -201,7 +202,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
             {/* ── What you'll learn + About ── */}
             {whatYouLearn || sections?.at_a_glance ? (
-              <div className="mt-10 space-y-10">
+              <div id="course-content" className="mt-10 space-y-10">
                 {whatYouLearn ? <CourseWhatYouLearn html={whatYouLearn} /> : null}
                 {sections?.at_a_glance ? (
                   <CourseAbout heading={sections.description_heading} html={sections.at_a_glance} />
@@ -226,12 +227,21 @@ export default async function CourseDetailPage({ params }: PageProps) {
               </section>
             ) : null}
 
-            {/* ── Course in action (screenshots) ── */}
-            {screenshots.length > 0 ? (
-              <section id="course-content" className="mt-16 scroll-mt-28">
-                <CourseScreenshots screenshots={screenshots} />
+            {/* ── Course in action ── */}
+            {course.video_url ? (
+              <section className="mt-16 scroll-mt-28">
+                <CourseInAction videoUrl={course.video_url} />
               </section>
             ) : null}
+
+            {/* ── Sneak Peek (screenshots) ── */}
+            <section className="mt-16 scroll-mt-28">
+              <CourseScreenshots
+                screenshots={screenshots}
+                title={course.title}
+                defaultImage="/images/sample_mockup.webp"
+              />
+            </section>
 
             {/* ── Empower and Engage (experts) ── */}
             {experts.length > 0 ? (
