@@ -67,8 +67,12 @@ export type ApiTerm = {
   parent: number;
 };
 
-/** format_category() — ApiTerm + image field */
-export type ApiCategory = ApiTerm & { image: string | null };
+/** format_category() — ApiTerm + image field + why_choose_us + faq */
+export type ApiCategory = ApiTerm & {
+  image: string | null;
+  why_choose_us: string | null;
+  faq: Array<{ question: string; answer: string }>;
+};
 
 // ── Course ────────────────────────────────────────────────────────────────────
 

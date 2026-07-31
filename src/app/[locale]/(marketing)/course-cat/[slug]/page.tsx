@@ -11,10 +11,12 @@ import { CategoryCourses } from "@/components/courses/category-courses";
 import { CategoryWhyChooseUs } from "@/components/courses/category-why-choose-us";
 import type { PaginatedResponse } from "@/types/api";
 import type { Course } from "@/types/course";
+import { CourseTrustedStrip } from "@/components/courses/course-trusted-strip";
+import { CourseFaq } from "@/components/courses/course-faq";
 
 const fetchCategories = cache(() => serverApi.taxonomy.categories({ per_page: 100 }));
 
-const PER_PAGE = 30;
+const PER_PAGE = 16;
 
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>;
@@ -139,7 +141,7 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
       ];
 
   return (
-    <>
+    <div className="bg-white">
       {jsonLd.map((schema, i) => (
         <script
           key={i}
@@ -147,6 +149,10 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
           dangerouslySetInnerHTML={{ __html: stringifyJsonLd(schema) }}
         />
       ))}
+
+      {/* Trusted Topbar */}
+      <CourseTrustedStrip />
+
       <CategoryHero category={category} />
       <CategoryCourses
         data={coursesPageData}
@@ -155,7 +161,18 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
         currentPage={page}
         basePath={`/course-cat/${slug}`}
       />
-      <CategoryWhyChooseUs image={category.image} categoryName={category.name} />
-    </>
+
+      {/* FAQ */}
+      {(category.faq ?? []).length > 0 && (
+        <div className="mx-auto max-w-[1296px] px-4 py-12">
+          <CourseFaq
+            heading={`Frequently Asked Questions About ${category.name} Training`}
+            items={category.faq}
+          />
+        </div>
+      )}
+
+      <CategoryWhyChooseUs whyChooseUs={category.why_choose_us} categoryName={category.name} />
+    </div>
   );
 }

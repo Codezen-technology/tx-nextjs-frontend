@@ -6,6 +6,7 @@ import { serverApi } from "@/lib/api/server";
 import { normalizeCourse } from "@/lib/services/courses";
 import { AllCoursesHero } from "@/components/courses/all-courses-hero";
 import { AllCoursesClient } from "@/components/courses/all-courses-client";
+import { CourseTrustedStrip } from "@/components/courses/course-trusted-strip";
 
 export const revalidate = 300;
 
@@ -55,6 +56,7 @@ export default async function AllCoursesPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: stringifyJsonLd(ALL_COURSES_SCHEMA) }}
       />
+      <CourseTrustedStrip />
       <AllCoursesHero />
       <AllCoursesClient categoryData={categoryData.filter((d) => d.courses.length > 0)} />
     </>

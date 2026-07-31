@@ -13,7 +13,6 @@ import {
   Heart,
   Briefcase,
   MoveRight,
-  CheckCircle,
 } from "lucide-react";
 import type { CourseCategory } from "@/types/course";
 
@@ -63,31 +62,34 @@ function CategoryCard({ category }: { category: CourseCategory }) {
       className={[
         "group flex items-center gap-4 rounded-lg border p-4 transition-all",
         isHighlighted
-          ? "border-secondary-500 bg-secondary-50 hover:border-secondary-600 hover:bg-secondary-100"
-          : "border-neutral-40 hover:border-neutral-60 hover:bg-neutral-20 bg-white",
+          ? "bg-secondary-50 hover:bg-secondary-100"
+          : "border-neutral-40 hover:border-secondary-500 hover:bg-secondary-50",
       ].join(" ")}
     >
       <div
         className={[
-          "flex h-10 w-10 shrink-0 items-center justify-center rounded",
+          "group-hover:bg-secondary-500 flex h-10 w-10 shrink-0 items-center justify-center rounded",
           isHighlighted ? "bg-secondary-500" : "bg-neutral-30",
         ].join(" ")}
       >
         <Icon
-          className={["h-5 w-5", isHighlighted ? "text-white" : "text-neutral-500"].join(" ")}
+          className={[
+            "h-5 w-5",
+            isHighlighted ? "text-neutral-500" : "text-neutral-500 group-hover:text-white",
+          ].join(" ")}
         />
       </div>
       <span
         className={[
-          "font-open-sans flex-1 text-base leading-normal font-bold",
-          isHighlighted ? "text-secondary-500" : "text-neutral-500",
+          "font-open-sans flex-1 text-base leading-normal font-bold text-neutral-500",
+          isHighlighted ? "text-neutral-500" : "group-hover:text-secondary-500",
         ].join(" ")}
       >
         {category.name}
       </span>
       <MoveRight
         className={[
-          "h-5 w-5 shrink-0 transition-transform group-hover:translate-x-0.5",
+          "group-hover:text-secondary-500 h-5 w-5 shrink-0 transition-transform group-hover:translate-x-0.5",
           isHighlighted ? "text-secondary-500" : "text-neutral-300",
         ].join(" ")}
       />
@@ -117,10 +119,10 @@ export function MegaMenu({ onClose, categories }: MegaMenuProps) {
       role="dialog"
       aria-label="Our courses menu"
     >
-      <div className="mx-auto flex max-w-[1400px] gap-6 px-6 py-14 lg:px-10">
+      <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-4 py-14 md:flex-row lg:px-0">
         {/* Left: Business Training promo */}
         <div
-          className="flex w-[280px] shrink-0 flex-col items-start justify-between rounded-2xl p-6"
+          className="flex w-75 shrink-0 flex-col items-start justify-between rounded-2xl p-6"
           style={{ background: "linear-gradient(40deg, #00204a 9%, #1c395e 92%)" }}
         >
           <div className="flex flex-col gap-6">
@@ -135,7 +137,7 @@ export function MegaMenu({ onClose, categories }: MegaMenuProps) {
             <ul className="flex flex-col gap-4">
               {BUSINESS_FEATURES.map((feat) => (
                 <li key={feat} className="flex items-start gap-2">
-                  <CheckCircle className="text-primary-400 mt-0.5 h-5 w-5 shrink-0" />
+                  <img src="/icons/tick-circle.svg" alt="" className="mt-0.5 h-5 w-5 shrink-0" />
                   <span className="font-open-sans text-base leading-normal font-normal text-white">
                     {feat}
                   </span>
@@ -156,7 +158,7 @@ export function MegaMenu({ onClose, categories }: MegaMenuProps) {
           {rows.length > 0 && (
             <div className="flex flex-col gap-6">
               {rows.map((row, ri) => (
-                <div key={ri} className="grid grid-cols-3 gap-6">
+                <div key={ri} className="grid grid-cols-1 gap-6 md:grid-cols-3">
                   {row.map((cat) => (
                     <CategoryCard key={cat.id} category={cat} />
                   ))}
@@ -166,7 +168,7 @@ export function MegaMenu({ onClose, categories }: MegaMenuProps) {
           )}
 
           {/* Explore all banner */}
-          <div className="border-neutral-40 bg-neutral-20 flex items-center justify-between rounded-2xl border p-6">
+          <div className="border-neutral-40 bg-neutral-20 flex flex-col items-center justify-between rounded-2xl border p-6 md:flex-row">
             <div className="flex flex-col gap-2">
               <h4 className="font-suse text-xl leading-[1.2] font-bold text-neutral-500">
                 Explore Our All Accredited Courses

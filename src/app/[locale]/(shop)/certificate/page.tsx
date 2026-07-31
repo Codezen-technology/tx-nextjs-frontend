@@ -43,8 +43,26 @@ export default async function CertificatePage() {
 
   return (
     <>
-      {/* ── Hero ──────────────────────────────────────────────────────── */}
-      <section className="bg-neutral-800">
+      {/* ── Hero ── */}
+      <section
+        className="relative w-full overflow-hidden py-14"
+        style={{ background: "linear-gradient(88deg, rgb(0, 32, 74) 0%, rgb(0, 79, 101) 100.15%)" }}
+      >
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 overflow-hidden opacity-10 sm:h-20">
+          <div className="absolute top-0 left-1/2 flex h-[405.89px] w-[max(100%,1920px)] -translate-x-1/2 items-center justify-center">
+            <div className="shrink-0 -rotate-90">
+              <Image
+                src="/images/course-banner-wave.svg"
+                alt=""
+                width={406}
+                height={1920}
+                decoding="async"
+                className="block h-[1920px] w-[405.89px] max-w-none"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+        </div>
         <div className="container py-14">
           <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
             <div className="max-w-2xl">
@@ -111,7 +129,7 @@ export default async function CertificatePage() {
         <div className="container">
           <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
             <div className="space-y-8">
-              <div className="rounded-2xl border border-neutral-200 p-6 shadow-xs md:p-8">
+              <div className="border-neutral-20 rounded-lg border p-6">
                 <h2 className="font-suse mb-6 text-2xl font-bold text-neutral-900">
                   {orderHeading}
                 </h2>

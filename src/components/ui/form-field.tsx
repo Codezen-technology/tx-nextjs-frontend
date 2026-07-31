@@ -5,11 +5,11 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils/cn";
 
 /** Visible label for marketing/auth/checkout forms. */
-export const FORM_LABEL_CLASS = "mb-1 block font-open-sans text-sm font-medium text-neutral-500";
+export const FORM_LABEL_CLASS = "mb-2 block font-open-sans text-sm font-medium text-neutral-500";
 
 /** Base input styling — Figma gold focus, navy text. */
 export const FORM_INPUT_CLASS =
-  "w-full rounded border border-[#ced4da] bg-white px-3.5 py-[7px] font-open-sans text-base text-neutral-900 placeholder:text-[#6c757d] focus:border-secondary-500 focus:outline-hidden focus:ring-2 focus:ring-secondary-500/30 disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full rounded border border-neutral-40 bg-white px-4 py-2 font-open-sans text-base text-neutral-900 placeholder:text-[#6c757d] focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50";
 
 export const FORM_ERROR_CLASS = "mt-1 text-xs text-[#dc3545]";
 
@@ -18,7 +18,7 @@ export const FORM_INPUT_AUTH_CLASS = cn(FORM_INPUT_CLASS, "text-neutral-500");
 
 /** GF/contact light-palette override (neutral tokens, pinned light). */
 export const MARKETING_FIELD_CLASS =
-  "bg-white border-neutral-300 text-neutral-900 placeholder:text-neutral-400 focus-visible:ring-primary-500";
+  "w-full rounded-lg border border-neutral-40 bg-white px-3 py-3 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:outline-hidden focus-visible:outline-hidden";
 
 export const MARKETING_LABEL_CLASS = "text-neutral-700";
 
