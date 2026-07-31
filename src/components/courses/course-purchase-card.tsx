@@ -30,6 +30,7 @@ interface CoursePurchaseCardProps {
 export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProps) {
   const [tab, setTab] = useState<PurchaseTab>("me");
   const [qty, setQty] = useState(1);
+  const [qtyText, setQtyText] = useState("1");
   const [addedFeedback, setAddedFeedback] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const router = useRouter();
@@ -146,6 +147,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                 onClick={() => {
                   const next = Math.max(1, qty - 1);
                   setQty(next);
+                  setQtyText(String(next));
                   if (tab === "teams" && next === 1) setTab("me");
                 }}
                 aria-label="Decrease quantity"
@@ -154,15 +156,30 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
               >
                 <Minus className="h-5 w-5" />
               </button>
-              <div className="flex h-10 w-12 items-center justify-center border-x border-neutral-50">
-                <span className="font-open-sans text-[18px] leading-6 font-semibold text-neutral-900">
-                  {qty}
-                </span>
-              </div>
+              <input
+                type="number"
+                min={1}
+                value={qtyText}
+                onChange={(e) => setQtyText(e.target.value)}
+                onBlur={() => {
+                  const val = parseInt(qtyText, 10);
+                  if (isNaN(val) || val < 1) {
+                    setQty(1);
+                    setQtyText("1");
+                  } else {
+                    setQty(val);
+                    setQtyText(String(val));
+                    if (tab === "me" && val > 1) setTab("teams");
+                  }
+                }}
+                className="font-open-sans h-10 w-12 border-x border-neutral-50 bg-white px-1 text-center text-[18px] leading-6 font-semibold text-neutral-900 outline-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
               <button
                 type="button"
                 onClick={() => {
-                  setQty((q) => q + 1);
+                  const next = qty + 1;
+                  setQty(next);
+                  setQtyText(String(next));
                   if (tab === "me") setTab("teams");
                 }}
                 aria-label="Increase quantity"
