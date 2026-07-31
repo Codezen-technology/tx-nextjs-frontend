@@ -9,7 +9,7 @@ const TRUST_BADGES = [
   { src: "/images/cpd-logo.png", label: "CPD" },
   { src: "/images/ukrlp-logo.png", label: "UKRLP" },
   { src: "/images/disability.png", label: "Disability" },
-  { src: "/images/aoht.png", label: "Disability" },
+  { src: "/images/aoht.png", label: "AOHT" },
 ] as const;
 
 const FEATURES_LEFT = [
