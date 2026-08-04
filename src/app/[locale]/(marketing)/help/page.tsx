@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import {
   Accordion,
@@ -15,7 +16,7 @@ export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
-  const seo = await fetchRankMathSeo("/help");
+  const seo = await fetchRankMathSeo(wpPath.page("help"));
   return buildPageMetadata(seo, {
     title: "Help & FAQs | Training Excellence",
     description:

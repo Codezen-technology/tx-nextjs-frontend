@@ -5,6 +5,7 @@ import { serverApi } from "@/lib/api/server";
 import { normalizeRichCourse } from "@/lib/services/courses";
 import { truncate, stripHtml } from "@/lib/utils/format";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { CourseAnnouncement } from "@/components/courses/course-announcement";
 import { CourseBreadcrumb } from "@/components/courses/course-breadcrumb";
@@ -50,7 +51,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   try {
     const [raw, seo] = await Promise.all([
       serverApi.courses.richDetail(slug),
-      fetchRankMathSeo(`/course/${slug}`),
+      fetchRankMathSeo(wpPath.course(slug)),
     ]);
     const course = normalizeRichCourse(raw);
     const siteUrl = env.SITE_URL.replace(/\/$/, "");
@@ -150,7 +151,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
     serverApi.courses.richDetail(slug),
     serverApi.courses.sections(slug),
     serverApi.courses.curriculum(slug),
-    fetchRankMathSeo(`/course/${slug}`),
+    fetchRankMathSeo(wpPath.course(slug)),
   ]);
 
   if (courseResult.status === "rejected") notFound();

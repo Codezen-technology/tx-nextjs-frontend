@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { SiteSettingsProvider } from "@/components/providers/site-settings-provider";
 import { fetchSettings } from "@/lib/services/settings.server";
 import { hexToHslChannels } from "@/lib/utils/color";
+import { env } from "@/lib/env";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -43,7 +44,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await fetchSettings();
   const siteName = settings.site_name || "Headless LMS";
   return {
-    metadataBase: getMetadataBase(process.env.NEXT_PUBLIC_SITE_URL),
+    // Read via env, not process.env — an unset var must fall back to the
+    // localhost default, otherwise metadataBase is undefined and Next emits
+    // relative OG/Twitter image URLs that no social crawler can resolve.
+    metadataBase: getMetadataBase(env.SITE_URL),
     title: { default: siteName, template: `%s | ${siteName}` },
     description:
       settings.description ||

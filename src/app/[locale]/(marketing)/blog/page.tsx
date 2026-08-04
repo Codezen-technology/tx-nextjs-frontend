@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { ChevronRight } from "lucide-react";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { decodeEntities } from "@/lib/api/parsers";
 import { fetchBlogPageGrouped } from "@/lib/services/blog.server";
@@ -24,7 +25,7 @@ const BLOG_LIST_SCHEMA = {
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
-  const seo = await fetchRankMathSeo("/blog");
+  const seo = await fetchRankMathSeo(wpPath.page("blog"));
   return buildPageMetadata(seo, {
     title: "Blog | Training Excellence",
     description:

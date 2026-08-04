@@ -5,6 +5,7 @@ import { getLocale, setRequestLocale } from "next-intl/server";
 import { serverApi } from "@/lib/api/server";
 import { normalizeCourse } from "@/lib/services/courses";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { CategoryHero } from "@/components/courses/category-hero";
 import { CategoryCourses } from "@/components/courses/category-courses";
@@ -30,30 +31,52 @@ export async function generateStaticParams() {
   }
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+/** `?page=N` for N > 1, empty for page 1 — read identically in metadata and page. */
+function pageParam(raw: string | string[] | undefined): number {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  const n = Number.parseInt(value ?? "1", 10);
+  return Number.isFinite(n) && n > 1 ? n : 1;
+}
+
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
+  const [{ slug }, sp] = await Promise.all([params, searchParams]);
   setRequestLocale(await getLocale());
   const siteUrl = env.SITE_URL.replace(/\/$/, "");
+
+  // Each page in a paginated series self-references. Canonicalising page 2+ back
+  // to page 1 tells Google the deeper pages are duplicates of it.
+  const page = pageParam(sp?.page);
+  const canonical = `${siteUrl}/course-cat/${slug}${page > 1 ? `?page=${page}` : ""}`;
+
   try {
     const [categoriesResult, seo] = await Promise.all([
       fetchCategories(),
-      fetchRankMathSeo(`/course-category/${slug}`),
+      // Rank Math is asked about the unparameterised path — WordPress has no
+      // metadata for `?page=2`, so title and description are inherited from
+      // page 1 and only the canonical differs. That is the intended shape.
+      fetchRankMathSeo(wpPath.courseCategory(slug)),
     ]);
     const category = categoriesResult.items.find((c) => c.slug === slug);
     if (!category) return {};
-    return buildPageMetadata(seo, {
+    const metadata = buildPageMetadata(seo, {
       title: `${category.name} Courses | Training Excellence`,
       description:
         category.description ||
         `Browse our accredited ${category.name} online courses. Flexible, CPD-certified training for professionals.`,
       image: category.image ?? undefined,
-      canonical: `${siteUrl}/course-cat/${slug}`,
+      canonical,
     });
+    // buildPageMetadata prefers Rank Math's canonical, which is always page 1's.
+    return {
+      ...metadata,
+      alternates: { canonical },
+      openGraph: { ...metadata.openGraph, url: canonical },
+    };
   } catch {
     return {
       title: "Online Courses | Training Excellence",
       description: "Browse accredited online training courses.",
-      alternates: { canonical: `${siteUrl}/course-cat/${slug}` },
+      alternates: { canonical },
     };
   }
 }
@@ -105,7 +128,7 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
   const [categoriesResult, coursesResult, seoResult] = await Promise.allSettled([
     fetchCategories(),
     serverApi.courses.list({ category: slug, per_page: PER_PAGE, page }),
-    fetchRankMathSeo(`/course-category/${slug}`),
+    fetchRankMathSeo(wpPath.courseCategory(slug)),
   ]);
 
   const category =

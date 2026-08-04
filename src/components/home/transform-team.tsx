@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { HomeIcon } from "./home-icon";
 import type { HomeTeamSection } from "@/types/home";
@@ -16,10 +17,14 @@ export function TransformTeam({ data }: TransformTeamProps) {
       className="relative overflow-hidden py-14 lg:py-16"
       style={{ background: "linear-gradient(113.58deg, #00204a 0%, #004f65 100%)" }}
     >
-      <img
+      {/* Purely decorative backdrop — empty alt keeps it out of the a11y tree. */}
+      <Image
         src="https://trainingexcellence-media.s3.eu-west-2.amazonaws.com/wp-content/uploads/2026/07/16092625/transfrom-team-bg-shape.png"
-        alt="Bg Shape"
-        className="absolute inset-0 h-full w-full object-cover"
+        alt=""
+        aria-hidden
+        fill
+        sizes="100vw"
+        className="absolute inset-0 object-cover"
       />
 
       <div className="container flex flex-col items-center justify-between gap-10">
@@ -55,12 +60,32 @@ export function TransformTeam({ data }: TransformTeamProps) {
 
           {images.length > 0 && (
             <div className="flex shrink-0 items-center gap-6">
+              {/* Explicit dimensions reserve the space so the section does not
+                  shift as these load. Decorative team photography — the section
+                  heading and bullets carry the meaning. */}
               <div className="flex h-auto w-76.5 flex-col gap-6">
                 {images.slice(0, 2).map((src) => (
-                  <img key={src} src={src} alt="" className="w-full flex-1 object-cover" />
+                  <Image
+                    key={src}
+                    src={src}
+                    alt=""
+                    aria-hidden
+                    width={306}
+                    height={200}
+                    className="w-full flex-1 object-cover"
+                  />
                 ))}
               </div>
-              {images[2] && <img src={images[2]} alt="" className="h-auto w-76.5 object-cover" />}
+              {images[2] && (
+                <Image
+                  src={images[2]}
+                  alt=""
+                  aria-hidden
+                  width={306}
+                  height={424}
+                  className="h-auto w-76.5 object-cover"
+                />
+              )}
             </div>
           )}
         </div>

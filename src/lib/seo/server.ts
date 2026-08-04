@@ -20,43 +20,99 @@
 import type { Metadata } from "next";
 import { serverApi } from "@/lib/api/server";
 import { parseRankMathHead, stringifyJsonLd, type ParsedSeo } from "@/lib/utils/seo";
-import { toFrontendUrl, replaceWpOrigin } from "@/lib/utils/url";
-import { env } from "@/lib/env";
+import { toFrontendUrl, replaceWpOrigin, SITE_ORIGIN } from "@/lib/utils/url";
+import { normalizePath } from "@/lib/seo/wp-paths";
+import { getServerWpOrigin } from "@/lib/env";
 
 export type { ParsedSeo };
 export { stringifyJsonLd };
 
 /**
- * Fetch + parse Rank Math SEO for a WP page path.
- * Automatically patches canonical URL and all JSON-LD @id/url fields to use
- * the headless frontend domain instead of the WP backend domain.
+ * Strip a trailing slash from an absolute URL, preserving the root path.
  *
- * @param wpPath  - Path as it exists on WP, e.g. `/course/my-course` or `/`
- * @returns Parsed SEO data, or null if Rank Math is unreachable or disabled
+ * WordPress permalinks are trailing-slash; Next.js runs `trailingSlash: false`.
+ * Left unreconciled, every Rank Math canonical points at a URL that 308-redirects
+ * and disagrees with the matching `sitemap.xml` entry.
+ *
+ * Deliberately NOT in `src/lib/utils/url.ts` — `toFrontendUrl` is shared with the
+ * service layer, where content permalinks must round-trip WordPress URLs verbatim.
+ * Slash normalisation is an SEO concern and stays on this boundary.
+ */
+export function canonicalize(url: string): string {
+  try {
+    const u = new URL(url);
+    u.pathname = normalizePath(u.pathname);
+    // URL.toString() re-appends `/` for a root pathname — strip it back off,
+    // but never past the origin.
+    const out = u.toString();
+    return u.pathname === "/" && !u.search && !u.hash ? out.replace(/\/$/, "") : out;
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Fetch + parse Rank Math SEO for a WP page path.
+ *
+ * Validates that the head Rank Math returned actually belongs to the page that
+ * was requested. The endpoint answers 200 with the homepage's head (or a bare
+ * 404 head) for any URL it cannot resolve, so an unvalidated payload silently
+ * publishes another page's canonical, title and JSON-LD. Compare paths only —
+ * the canonical is still on the backend origin at that point.
+ *
+ * Patches the canonical and all JSON-LD `@id` / `url` fields onto the headless
+ * frontend domain, and normalises both onto the no-trailing-slash URL form the
+ * app and its sitemap use.
+ *
+ * @param wpPath - Path as it exists on WP. Use `wpPath.*` from `@/lib/seo/wp-paths`.
+ * @returns Parsed SEO data, or null if Rank Math is unreachable, disabled, or
+ *          returned a head for a different page.
  */
 export async function fetchRankMathSeo(wpPath: string): Promise<ParsedSeo | null> {
   try {
-    const wpBase = env.WP_API_URL.replace(/\/$/, "");
+    // Ask the backend about its own origin. The transport resolves its request
+    // base via getServerWpJsonBase(); building the `url=` param from the
+    // browser-public value would ask an overridden host about a different host.
+    const wpBase = getServerWpOrigin();
     const head = await serverApi.rankmath.getHead(`${wpBase}${wpPath}`);
     if (!head) return null;
 
     const seo = parseRankMathHead(head);
 
-    // Rewrite all backend-origin URLs to the headless frontend origin.
-    // See src/lib/utils/url.ts for the shared rewriting rules.
     if (seo.canonical) {
-      seo.canonical = toFrontendUrl(seo.canonical);
+      const returned = normalizePath(new URL(seo.canonical).pathname);
+      const requested = normalizePath(wpPath);
+      if (returned !== requested) {
+        console.warn(`[seo] Rank Math path mismatch: requested ${requested}, got ${returned}`);
+        return null;
+      }
+      // Rewrite the backend origin to the frontend origin, then reconcile the
+      // slash form. See src/lib/utils/url.ts for the shared rewriting rules.
+      seo.canonical = canonicalize(toFrontendUrl(seo.canonical));
     }
+    // A canonical-less payload is accepted, not rejected: Rank Math legitimately
+    // omits the canonical on a `noindex` page, and discarding that payload would
+    // drop a real noindex directive — declaring a page indexable that WordPress
+    // says is not. Wrong mappings are caught by the mapping tests instead.
 
-    // Patch WP domain in JSON-LD (affects @id, url, mainEntityOfPage, etc.)
+    // Patch WP domain in JSON-LD (affects @id, url, mainEntityOfPage, etc.),
+    // then reconcile the slash form so a schema @id matches the page canonical
+    // it identifies. Requires at least one path segment, so a bare
+    // `https://site/` @id for the homepage is left intact.
     if (seo.jsonLd?.length) {
-      seo.jsonLd = JSON.parse(replaceWpOrigin(JSON.stringify(seo.jsonLd))) as typeof seo.jsonLd;
+      const patched = replaceWpOrigin(JSON.stringify(seo.jsonLd));
+      const trailingSlash = new RegExp(`"(${escapeRegExp(SITE_ORIGIN)}/[^"]+)/"`, "g");
+      seo.jsonLd = JSON.parse(patched.replace(trailingSlash, '"$1"')) as typeof seo.jsonLd;
     }
 
     return seo;
-  } catch (error) {
+  } catch {
     return null;
   }
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 interface MetadataFallback {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { fetchWpPage } from "@/lib/services/pages.server";
 import { LegalPage } from "@/components/legal/legal-page";
@@ -14,7 +15,7 @@ const TERMS_SCHEMA = {
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
-  const seo = await fetchRankMathSeo("/terms-and-conditions");
+  const seo = await fetchRankMathSeo(wpPath.page("terms-and-conditions"));
   return buildPageMetadata(seo, {
     title: "Terms & Conditions | Training Excellence",
     description:

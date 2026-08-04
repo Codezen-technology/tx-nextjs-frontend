@@ -467,6 +467,13 @@ export const serverApi = {
         revalidate: 300,
         tags: [`product:${slug}`, "products:list"],
       }),
+
+    /** WooCommerce Store API — published products. Used by the sitemap and prerender. */
+    list: (params?: Record<string, string | number>) =>
+      serverFetch<WCStoreProduct[]>(`${endpoints.products.list}${qs(params)}`, {
+        revalidate: 300,
+        tags: ["products:list"],
+      }),
   },
 
   taxonomy: {

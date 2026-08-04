@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { CertificateVerifyForm } from "@/components/certificates/certificate-verify-form";
 
@@ -15,7 +16,7 @@ const VERIFY_SCHEMA = {
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
-  const seo = await fetchRankMathSeo("/verify-certificate");
+  const seo = await fetchRankMathSeo(wpPath.page("verify-certificate"));
   return buildPageMetadata(seo, {
     title: "Verify Certificate | Training Excellence",
     description:

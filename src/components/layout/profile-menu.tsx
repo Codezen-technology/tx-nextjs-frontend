@@ -26,7 +26,7 @@ const STUDENT_LINKS = [
   { href: "/dashboard/my-learning", label: "My Learning", Icon: BookOpen },
   { href: "/dashboard/all-courses", label: "All Courses", Icon: BookOpen },
   { href: "/dashboard/my-learning?tab=certificates", label: "Certificates", Icon: Award },
-  { href: "/special-offers", label: "Special Offers", Icon: Gift },
+  // "/special-offers" removed — no such WP page, so the catch-all route 404s.
 ];
 
 const ACCOUNT_LINKS = [
@@ -62,7 +62,7 @@ export function ProfileMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex items-center gap-1.5 font-open-sans text-[14px] font-medium text-neutral-30 transition-colors hover:text-primary-300"
+        className="font-open-sans text-neutral-30 hover:text-primary-300 flex items-center gap-1.5 text-[14px] font-medium transition-colors"
       >
         <UserAvatar
           user={wpUser ?? { display_name: user.displayName, email: user.email }}
@@ -78,10 +78,10 @@ export function ProfileMenu() {
         <div
           role="menu"
           aria-label="Profile menu"
-          className="absolute right-0 top-full z-50 mt-2 w-64 rounded-md border border-neutral-200 bg-white py-2 shadow-xl"
+          className="absolute top-full right-0 z-50 mt-2 w-64 rounded-md border border-neutral-200 bg-white py-2 shadow-xl"
         >
           {/* Identity header */}
-          <div className="flex items-center gap-3 px-4 pb-3 pt-2">
+          <div className="flex items-center gap-3 px-4 pt-2 pb-3">
             <UserAvatar
               user={wpUser ?? { display_name: user.displayName, email: user.email }}
               size="lg"
@@ -89,14 +89,14 @@ export function ProfileMenu() {
               fallbackClassName="bg-primary-400 text-[15px] font-bold text-white"
             />
             <div className="min-w-0">
-              <p className="truncate font-open-sans text-[14px] font-semibold text-neutral-900">
+              <p className="font-open-sans truncate text-[14px] font-semibold text-neutral-900">
                 {displayName}
               </p>
               <Link
                 href="/dashboard/profile"
                 onClick={() => setOpen(false)}
                 role="menuitem"
-                className="font-open-sans text-[12px] text-primary-400 hover:underline"
+                className="font-open-sans text-primary-400 text-[12px] hover:underline"
               >
                 Edit Profile
               </Link>
@@ -111,7 +111,7 @@ export function ProfileMenu() {
               href="/dashboard/my-learning"
               onClick={() => setOpen(false)}
               role="menuitem"
-              className="flex items-center justify-center gap-2 rounded border border-neutral-300 px-3 py-2 font-open-sans text-[13px] font-medium text-neutral-800 transition-colors hover:border-primary-400 hover:text-primary-400"
+              className="font-open-sans hover:border-primary-400 hover:text-primary-400 flex items-center justify-center gap-2 rounded border border-neutral-300 px-3 py-2 text-[13px] font-medium text-neutral-800 transition-colors"
             >
               <LayoutDashboard className="h-4 w-4 shrink-0" />
               Go to My Dashboard
@@ -121,7 +121,7 @@ export function ProfileMenu() {
                 href="/business-dashboard"
                 onClick={() => setOpen(false)}
                 role="menuitem"
-                className="flex items-center justify-center gap-2 rounded border border-neutral-300 px-3 py-2 font-open-sans text-[13px] font-medium text-neutral-800 transition-colors hover:border-primary-400 hover:text-primary-400"
+                className="font-open-sans hover:border-primary-400 hover:text-primary-400 flex items-center justify-center gap-2 rounded border border-neutral-300 px-3 py-2 text-[13px] font-medium text-neutral-800 transition-colors"
               >
                 <Briefcase className="h-4 w-4 shrink-0" />
                 Go to Business Dashboard
@@ -139,7 +139,7 @@ export function ProfileMenu() {
                 href={href}
                 onClick={() => setOpen(false)}
                 role="menuitem"
-                className="flex items-center gap-2.5 px-4 py-2 font-open-sans text-[13px] text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-primary-400"
+                className="font-open-sans hover:text-primary-400 flex items-center gap-2.5 px-4 py-2 text-[13px] text-neutral-700 transition-colors hover:bg-neutral-50"
               >
                 <Icon className="h-4 w-4 shrink-0 text-neutral-400" />
                 {label}
@@ -157,7 +157,7 @@ export function ProfileMenu() {
                 href={href}
                 onClick={() => setOpen(false)}
                 role="menuitem"
-                className="flex items-center gap-2.5 px-4 py-2 font-open-sans text-[13px] text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-primary-400"
+                className="font-open-sans hover:text-primary-400 flex items-center gap-2.5 px-4 py-2 text-[13px] text-neutral-700 transition-colors hover:bg-neutral-50"
               >
                 <Icon className="h-4 w-4 shrink-0 text-neutral-400" />
                 {label}
@@ -173,7 +173,7 @@ export function ProfileMenu() {
               href="/help"
               onClick={() => setOpen(false)}
               role="menuitem"
-              className="flex items-center gap-2.5 px-4 py-2 font-open-sans text-[13px] text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-primary-400"
+              className="font-open-sans hover:text-primary-400 flex items-center gap-2.5 px-4 py-2 text-[13px] text-neutral-700 transition-colors hover:bg-neutral-50"
             >
               <HelpCircle className="h-4 w-4 shrink-0 text-neutral-400" />
               Help & Support
@@ -185,7 +185,7 @@ export function ProfileMenu() {
               }}
               disabled={isLoggingOut}
               role="menuitem"
-              className="flex w-full items-center gap-2.5 px-4 py-2 font-open-sans text-[13px] text-red-500 transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-70"
+              className="font-open-sans flex w-full items-center gap-2.5 px-4 py-2 text-[13px] text-red-500 transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isLoggingOut ? (
                 <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
@@ -217,7 +217,7 @@ export function ProfileNavLinks({ onClose }: { onClose: () => void }) {
       <Link
         href="/dashboard/my-learning"
         onClick={onClose}
-        className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+        className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
       >
         My Dashboard
       </Link>
@@ -225,7 +225,7 @@ export function ProfileNavLinks({ onClose }: { onClose: () => void }) {
         <Link
           href="/business-dashboard"
           onClick={onClose}
-          className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+          className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
         >
           Business Dashboard
         </Link>
@@ -233,28 +233,28 @@ export function ProfileNavLinks({ onClose }: { onClose: () => void }) {
       <Link
         href="/dashboard/my-learning"
         onClick={onClose}
-        className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+        className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
       >
         My Courses
       </Link>
       <Link
         href="/dashboard/my-learning?tab=certificates"
         onClick={onClose}
-        className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+        className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
       >
         Certificates
       </Link>
       <Link
         href="/dashboard/my-orders"
         onClick={onClose}
-        className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+        className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
       >
         Purchase History
       </Link>
       <Link
         href="/dashboard/profile"
         onClick={onClose}
-        className="py-2 font-open-sans text-[15px] font-medium text-neutral-30 hover:text-primary-300"
+        className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
       >
         Edit Profile
       </Link>
@@ -264,7 +264,7 @@ export function ProfileNavLinks({ onClose }: { onClose: () => void }) {
           logout();
         }}
         disabled={isLoggingOut}
-        className="flex items-center gap-2 py-2 text-left font-open-sans text-[15px] font-medium text-red-400 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-70"
+        className="font-open-sans flex items-center gap-2 py-2 text-left text-[15px] font-medium text-red-400 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         {isLoggingOut ? "Signing out…" : "Log out"}

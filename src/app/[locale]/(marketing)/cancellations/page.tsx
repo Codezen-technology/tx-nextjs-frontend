@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { serverApi } from "@/lib/api/server";
 import { fetchCancellationsPage } from "@/lib/services/cancellations.server";
@@ -18,7 +19,7 @@ export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
-  const seo = await fetchRankMathSeo("/cancellations");
+  const seo = await fetchRankMathSeo(wpPath.page("cancellations"));
   return buildPageMetadata(seo, {
     title: "Cancellations & Refunds | Training Excellence",
     description:
@@ -65,7 +66,7 @@ export default async function CancellationsPage() {
               <Button asChild variant="outline" className="border-neutral-300 bg-white">
                 <Link href="/support-request">{content.cancellations.cta.supportLabel}</Link>
               </Button>
-              <Button asChild className="bg-secondary-500 text-white hover:bg-secondary-600">
+              <Button asChild className="bg-secondary-500 hover:bg-secondary-600 text-white">
                 <Link href="/cancellations?refund=1#refund-form">
                   {content.cancellations.cta.refundLabel}
                 </Link>
@@ -87,17 +88,17 @@ export default async function CancellationsPage() {
           <h2 className="font-suse text-2xl font-bold text-neutral-900 md:text-3xl">
             Start with what happened
           </h2>
-          <p className="mt-3 font-open-sans text-sm text-neutral-600">
+          <p className="font-open-sans mt-3 text-sm text-neutral-600">
             Many refund requests begin as access, billing, or course selection issues. Pick the
             closest option so we can route you faster.
           </p>
           <div className="mt-8">
             <IssueTypePicker linkMode issues={CANCELLATIONS_ISSUE_GATE} />
           </div>
-          <p className="mt-6 font-open-sans text-sm text-neutral-500">
+          <p className="font-open-sans mt-6 text-sm text-neutral-500">
             <Link
               href="/cancellations?refund=1#refund-form"
-              className="font-semibold text-secondary-500 underline hover:text-secondary-600"
+              className="text-secondary-500 hover:text-secondary-600 font-semibold underline"
             >
               None of these apply — continue to refund request →
             </Link>

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { fetchBlogPost, fetchBlogPage, fetchCategories } from "@/lib/services/blog.server";
 import { serverApi } from "@/lib/api/server";
@@ -61,7 +62,10 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const { slug } = await params;
   setRequestLocale(await getLocale());
   try {
-    const [post, seo] = await Promise.all([fetchBlogPost(slug), fetchRankMathSeo(`/${slug}`)]);
+    const [post, seo] = await Promise.all([
+      fetchBlogPost(slug),
+      fetchRankMathSeo(wpPath.blogPost(slug)),
+    ]);
     if (!post) return { title: "Post not found" };
     return buildPageMetadata(seo, {
       title: decodeEntities(post.title.rendered),
@@ -81,7 +85,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
   const [pR, sR, rR, catsR, coursesR] = await Promise.allSettled([
     fetchBlogPost(slug),
-    fetchRankMathSeo(`/${slug}`),
+    fetchRankMathSeo(wpPath.blogPost(slug)),
     fetchBlogPage(1, 6),
     fetchCategories(),
     serverApi.courses.popular(4),
