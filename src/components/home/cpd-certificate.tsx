@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { HomeCertificateSection } from "@/types/home";
 
@@ -36,11 +37,26 @@ export function CpdCertificate({ data }: CpdCertificateProps) {
 
         {images.length > 0 && (
           <div className="bg-neutral-20 flex items-center gap-6 rounded-lg p-10">
+            {/* Certificate imagery is content, not decoration — it gets real alt
+                text. Explicit dimensions reserve the space and stop the section
+                shifting as the images load. */}
             {images[0] && (
-              <img src={images[0]} alt="" className="h-auto w-auto rounded-lg object-cover" />
+              <Image
+                src={images[0]}
+                alt={`${data.title} — sample certificate`}
+                width={280}
+                height={396}
+                className="h-auto w-auto rounded-lg object-cover"
+              />
             )}
             {images[1] && (
-              <img src={images[1]} alt="" className="h-auto w-auto rounded-lg object-cover" />
+              <Image
+                src={images[1]}
+                alt={`${data.title} — sample certificate reverse`}
+                width={280}
+                height={396}
+                className="h-auto w-auto rounded-lg object-cover"
+              />
             )}
           </div>
         )}

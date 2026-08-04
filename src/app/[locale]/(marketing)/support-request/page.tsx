@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { serverApi } from "@/lib/api/server";
 import { fetchCancellationsPage } from "@/lib/services/cancellations.server";
@@ -14,7 +15,7 @@ export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
-  const seo = await fetchRankMathSeo("/support-request");
+  const seo = await fetchRankMathSeo(wpPath.page("support-request"));
   return buildPageMetadata(seo, {
     title: "Get Support | Training Excellence",
     description:

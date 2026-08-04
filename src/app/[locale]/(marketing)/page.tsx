@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { serverApi } from "@/lib/api/server";
 import { HeroSection } from "@/components/home/hero-section";
@@ -19,7 +20,7 @@ export const revalidate = 300;
 export async function generateMetadata(): Promise<Metadata> {
   try {
     setRequestLocale(await getLocale());
-    const seo = await fetchRankMathSeo("/");
+    const seo = await fetchRankMathSeo(wpPath.home());
     return buildPageMetadata(seo, {
       title: env.SITE_NAME || "Training Excellence — Online Courses",
       description:

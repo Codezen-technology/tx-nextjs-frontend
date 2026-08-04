@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Star } from "lucide-react";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { serverApi, type ApiReview } from "@/lib/api/server";
 import { decodeEntities } from "@/lib/api/parsers";
@@ -20,7 +21,7 @@ const REVIEWS_SCHEMA = {
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
-  const seo = await fetchRankMathSeo("/reviews");
+  const seo = await fetchRankMathSeo(wpPath.page("reviews"));
   return buildPageMetadata(seo, {
     title: "Course Reviews | Training Excellence",
     description:

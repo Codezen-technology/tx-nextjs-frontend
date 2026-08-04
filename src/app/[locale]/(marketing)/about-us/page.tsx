@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { serverApi } from "@/lib/api/server";
 import { getAboutPage } from "@/lib/services/about";
@@ -23,7 +24,7 @@ const ABOUT_SCHEMA = {
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
-  const seo = await fetchRankMathSeo("/about-us");
+  const seo = await fetchRankMathSeo(wpPath.page("about-us"));
   return buildPageMetadata(seo, {
     title: "About Us | Training Excellence",
     description:

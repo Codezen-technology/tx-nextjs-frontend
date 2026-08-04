@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { fetchContactPage } from "@/lib/services/contact.server";
 import { GravityFormLoader } from "@/components/forms/gravity-form-loader";
@@ -12,7 +13,7 @@ export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
-  const seo = await fetchRankMathSeo("/contact-us");
+  const seo = await fetchRankMathSeo(wpPath.page("contact-us"));
   return buildPageMetadata(seo, {
     title: "Contact Us | Training Excellence",
     description:

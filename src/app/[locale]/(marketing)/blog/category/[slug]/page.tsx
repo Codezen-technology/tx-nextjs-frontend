@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { decodeEntities } from "@/lib/api/parsers";
 import { fetchTrending, fetchPostsByCategory, fetchCategories } from "@/lib/services/blog.server";
@@ -38,7 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const [result, seo] = await Promise.all([
     fetchPostsByCategory(slug, 1, PER_PAGE),
-    fetchRankMathSeo(`/blog/category/${slug}`),
+    fetchRankMathSeo(wpPath.blogCategory(slug)),
   ]);
   if (!result) return {};
 
