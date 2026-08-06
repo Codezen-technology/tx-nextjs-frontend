@@ -7,13 +7,15 @@ import { cn } from "@/lib/utils/cn";
 
 interface CourseScreenshotsProps {
   screenshots: string[];
-  title?: string;
-  defaultImage?: string;
+  /** Overlay caption on the first slide — `sneak_peek_text` from the sections endpoint. */
+  caption?: string | null;
 }
 
-export function CourseScreenshots({ screenshots, title, defaultImage }: CourseScreenshotsProps) {
-  const allSources = [defaultImage, ...screenshots].filter(Boolean) as string[];
+export function CourseScreenshots({ screenshots, caption }: CourseScreenshotsProps) {
+  const allSources = screenshots.filter(Boolean);
   const [index, setIndex] = useState(0);
+
+  if (!allSources.length) return null;
 
   return (
     <section className="space-y-8">
@@ -48,9 +50,9 @@ export function CourseScreenshots({ screenshots, title, defaultImage }: CourseSc
         )}
 
         <div className="relative aspect-video w-full overflow-hidden rounded lg:h-132 lg:flex-1">
-          {title && index === 0 ? (
+          {caption && index === 0 ? (
             <div className="absolute inset-x-0 bottom-48 z-10 px-6">
-              <h2 className="font-suse text-xl font-bold text-neutral-900">{title}</h2>
+              <p className="font-suse text-xl font-bold text-neutral-900">{caption}</p>
             </div>
           ) : null}
           {isRenderableImageSrc(allSources[index]) ? (

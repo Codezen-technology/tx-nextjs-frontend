@@ -2,7 +2,7 @@ import { SafeImage } from "@/components/ui/safe-image";
 import { isRenderableImageSrc } from "@/lib/utils/image";
 import { publicImageExists } from "@/lib/utils/public-image.server";
 import { cn } from "@/lib/utils/cn";
-import { Star, Users, Wifi } from "lucide-react";
+import { Star, Wifi } from "lucide-react";
 import type { CourseRichData } from "@/types/course";
 
 const TRUST_BADGES = [
@@ -121,24 +121,26 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                 {course.title}
               </h1>
 
-              {course.rating !== undefined && (
+              {course.rating || course.studentsCount ? (
                 <div className="font-open-sans mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-base">
-                  <span className="font-bold text-amber-400">
-                    {course.rating ? course.rating.toFixed(1) : course.id % 2 === 0 ? "4.7" : "4.9"}
-                  </span>
-                  <span className="flex gap-0.5" aria-hidden>
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className={cn(
-                          "h-4 w-4",
-                          i < Math.round(course.rating!)
-                            ? "fill-[#FFC107] text-[#FFC107]"
-                            : "text-white/30",
-                        )}
-                      />
-                    ))}
-                  </span>
+                  {course.rating ? (
+                    <>
+                      <span className="font-bold text-amber-400">{course.rating.toFixed(1)}</span>
+                      <span className="flex gap-0.5" aria-hidden>
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={cn(
+                              "h-4 w-4",
+                              i < Math.round(course.rating ?? 0)
+                                ? "fill-[#FFC107] text-[#FFC107]"
+                                : "text-white/30",
+                            )}
+                          />
+                        ))}
+                      </span>
+                    </>
+                  ) : null}
                   {course.ratingCount ? (
                     <span className="text-secondary-100 underline">
                       ({course.ratingCount.toLocaleString()} ratings)
@@ -146,12 +148,11 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                   ) : null}
                   {course.studentsCount ? (
                     <span className="flex items-center gap-1 text-white">
-                      {/* <Users className="h-4 w-4" aria-hidden /> */}
                       {course.studentsCount.toLocaleString()} Students
                     </span>
                   ) : null}
                 </div>
-              )}
+              ) : null}
 
               {/* Features grid — desktop only */}
               <div className="mt-6 hidden lg:grid lg:grid-cols-2 lg:gap-x-8 lg:gap-y-3">
