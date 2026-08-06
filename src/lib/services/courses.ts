@@ -9,6 +9,7 @@ import type {
   CourseBreadcrumb,
   CourseCurriculum,
   CourseDetail,
+  CourseFlatCurriculumItem,
   CourseListFilters,
   CourseSection,
   CourseSections,
@@ -207,6 +208,24 @@ export function normalizeCourse(raw: RawCourse): Course {
         }
       : undefined,
   };
+}
+
+/**
+ * The flat-curriculum endpoint reports `section_duration` and `duration` in
+ * **minutes**, while `formatDuration()` and every other duration in the app are
+ * seconds. Convert once here — components must not rescale units themselves.
+ */
+export function normalizeFlatCurriculum(
+  items: CourseFlatCurriculumItem[],
+): CourseFlatCurriculumItem[] {
+  const toSeconds = (minutes: number | null | undefined) =>
+    minutes == null ? minutes : minutes * 60;
+
+  return items.map((item) => ({
+    ...item,
+    section_duration: toSeconds(item.section_duration) ?? undefined,
+    duration: toSeconds(item.duration),
+  }));
 }
 
 /** WooCommerce product ID for cart/checkout — from API root or nested pricing. */

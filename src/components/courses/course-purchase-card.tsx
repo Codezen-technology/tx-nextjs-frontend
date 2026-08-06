@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, Minus, Plus } from "lucide-react";
@@ -30,10 +31,8 @@ interface CoursePurchaseCardProps {
 export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProps) {
   const [tab, setTab] = useState<PurchaseTab>("me");
   const [qty, setQty] = useState(1);
-  const [addedFeedback, setAddedFeedback] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const router = useRouter();
-  const { mutate: addToBasket, isPending: isAddingToBasket } = useAddToCart();
   const { mutate: addToCartAndGo, isPending: isBuyingNow } = useAddToCart();
   const { pricing } = course;
   const { data: tiers } = useBulkTiers();
@@ -54,26 +53,6 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
 
   const wcProductId = resolveCourseProductId(course);
   const canPurchase = wcProductId != null;
-
-  const handleAddToBasket = () => {
-    if (!wcProductId) {
-      setAddError("This course is not available for purchase.");
-      return;
-    }
-    setAddError(null);
-    addToBasket(
-      { product_id: wcProductId },
-      {
-        onSuccess: () => {
-          setAddedFeedback(true);
-          setTimeout(() => setAddedFeedback(false), 2500);
-        },
-        onError: (err) => {
-          setAddError((err as Error).message ?? "Could not add to basket.");
-        },
-      },
-    );
-  };
 
   const handleBuyNow = () => {
     if (!wcProductId) {
@@ -184,7 +163,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
               <button
                 type="button"
                 onClick={handleBuyNow}
-                disabled={isBuyingNow || isAddingToBasket}
+                disabled={isBuyingNow}
                 className="bg-secondary-500 font-open-sans hover:bg-secondary-600 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isBuyingNow ? "Adding…" : "Buy this course"}
@@ -203,31 +182,6 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
               14 Days Money-Back Guarantee
             </p>
 
-            {/* {tab === "me" && pricing && (
-              <button
-                type="button"
-                onClick={handleAddToBasket}
-                disabled={isAddingToBasket || isBuyingNow || addedFeedback || !canPurchase}
-                className={cn(
-                  "font-open-sans block w-full rounded border py-2.5 text-center text-sm font-semibold transition-colors disabled:cursor-not-allowed",
-                  addedFeedback
-                    ? "border-green-500 bg-green-50 text-green-700"
-                    : "border-neutral-30 hover:bg-neutral-10 text-neutral-800 disabled:opacity-60",
-                )}
-              >
-                {addedFeedback ? (
-                  <span className="flex items-center justify-center gap-1.5">
-                    <Check className="h-4 w-4" />
-                    Added to Basket
-                  </span>
-                ) : isAddingToBasket ? (
-                  "Adding…"
-                ) : (
-                  "Add to Basket"
-                )}
-              </button>
-            )} */}
-
             {addError && (
               <p className="rounded bg-red-50 px-3 py-2 text-xs text-red-600">{addError}</p>
             )}
@@ -239,9 +193,11 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
               .filter(Boolean)
               .map((item) => (
                 <li key={item} className="flex items-start gap-2">
-                  <img
+                  <Image
                     src="/icons/check-secondary.svg"
                     alt=""
+                    width={16}
+                    height={16}
                     aria-hidden="true"
                     className="mt-0.5 h-4 w-4 shrink-0"
                   />
@@ -253,9 +209,11 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
           {/* CPD Points */}
           {course.cpd_points ? (
             <div className="mt-2 flex items-center gap-2">
-              <img
+              <Image
                 src="/icons/check-secondary.svg"
                 alt=""
+                width={16}
+                height={16}
                 aria-hidden="true"
                 className="h-4 w-4 shrink-0"
               />
@@ -281,7 +239,13 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                   aria-label={`Share on ${label}`}
                   className="hover:text-primary-600 flex h-6 w-6 items-center justify-center rounded-full text-neutral-500 transition-colors"
                 >
-                  <img src={src} alt={label} className="h-6 w-6 cursor-pointer hover:scale-110" />
+                  <Image
+                    src={src}
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="h-6 w-6 cursor-pointer hover:scale-110"
+                  />
                 </button>
               ))}
             </div>

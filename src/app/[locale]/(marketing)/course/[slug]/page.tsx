@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { serverApi } from "@/lib/api/server";
-import { normalizeRichCourse } from "@/lib/services/courses";
+import { normalizeFlatCurriculum, normalizeRichCourse } from "@/lib/services/courses";
 import { truncate, stripHtml } from "@/lib/utils/format";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { env } from "@/lib/env";
@@ -156,7 +156,9 @@ export default async function CourseDetailPage({ params }: PageProps) {
   if (courseResult.status === "rejected") notFound();
   const course = normalizeRichCourse(courseResult.value);
   const sections = sectionsResult.status === "fulfilled" ? sectionsResult.value : null;
-  const curriculum = curriculumResult.status === "fulfilled" ? (curriculumResult.value ?? []) : [];
+  const curriculum = normalizeFlatCurriculum(
+    curriculumResult.status === "fulfilled" ? (curriculumResult.value ?? []) : [],
+  );
   const rmSeo = seoResult.status === "fulfilled" ? seoResult.value : null;
 
   const accreditations = course.accreditations ?? [];
@@ -213,7 +215,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
             <CourseTabNav
               accreditations={accreditations}
               curriculum={curriculum}
-              hasScreenshots={screenshots.length > 0}
+              hasCourseContent={!!(whatYouLearn || sections?.at_a_glance)}
               hasReviews={!!course.ratingCount}
               sections={sections}
               courseId={course.id}

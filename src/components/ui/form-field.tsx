@@ -9,7 +9,7 @@ export const FORM_LABEL_CLASS = "mb-2 block font-open-sans text-sm font-medium t
 
 /** Base input styling — Figma gold focus, navy text. */
 export const FORM_INPUT_CLASS =
-  "w-full rounded border border-neutral-40 bg-white px-4 py-2 font-open-sans text-base text-neutral-900 placeholder:text-[#6c757d] focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full rounded border border-neutral-40 bg-white px-4 py-2 font-open-sans text-base text-neutral-900 placeholder:text-[#6c757d] focus:outline-hidden focus-visible:border-secondary-500 focus-visible:ring-2 focus-visible:ring-secondary-500/30 disabled:cursor-not-allowed disabled:opacity-50";
 
 export const FORM_ERROR_CLASS = "mt-1 text-xs text-[#dc3545]";
 
@@ -18,7 +18,7 @@ export const FORM_INPUT_AUTH_CLASS = cn(FORM_INPUT_CLASS, "text-neutral-500");
 
 /** GF/contact light-palette override (neutral tokens, pinned light). */
 export const MARKETING_FIELD_CLASS =
-  "w-full rounded-lg border border-neutral-40 bg-white px-3 py-3 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:outline-hidden focus-visible:outline-hidden";
+  "w-full rounded-lg border border-neutral-40 bg-white px-3 py-3 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:outline-hidden focus-visible:outline-hidden focus-visible:border-secondary-500 focus-visible:ring-2 focus-visible:ring-secondary-500/30";
 
 export const MARKETING_LABEL_CLASS = "text-neutral-700";
 
@@ -28,10 +28,10 @@ export const formInputVariants = cva(FORM_INPUT_CLASS, {
       default: "",
       auth: "text-neutral-500",
       compact:
-        "h-12 rounded-l border-neutral-30 px-[13px] py-[7px] placeholder:text-neutral-100 focus:ring-1",
+        "h-12 rounded-l border-neutral-30 px-[13px] py-[7px] placeholder:text-neutral-100 focus-visible:ring-1",
     },
     hasError: {
-      true: "border-[#dc3545] focus:border-[#dc3545] focus:ring-[#dc3545]/30",
+      true: "border-[#dc3545] focus-visible:border-[#dc3545] focus-visible:ring-[#dc3545]/30",
       false: "",
     },
   },

@@ -5,6 +5,7 @@ import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
 import { env } from "@/lib/env";
 import { CertificateForm } from "@/components/certificate/certificate-form";
+import { HeroWave, HERO_GRADIENT } from "@/components/courses/hero-wave";
 import { certificateService } from "@/lib/services/certificate";
 import type { CertPageContent } from "@/types/certificate";
 
@@ -44,25 +45,8 @@ export default async function CertificatePage() {
   return (
     <>
       {/* ── Hero ── */}
-      <section
-        className="relative w-full overflow-hidden py-14"
-        style={{ background: "linear-gradient(88deg, rgb(0, 32, 74) 0%, rgb(0, 79, 101) 100.15%)" }}
-      >
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 overflow-hidden opacity-10 sm:h-20">
-          <div className="absolute top-0 left-1/2 flex h-[405.89px] w-[max(100%,1920px)] -translate-x-1/2 items-center justify-center">
-            <div className="shrink-0 -rotate-90">
-              <Image
-                src="/images/course-banner-wave.svg"
-                alt=""
-                width={406}
-                height={1920}
-                decoding="async"
-                className="block h-[1920px] w-[405.89px] max-w-none"
-                aria-hidden="true"
-              />
-            </div>
-          </div>
-        </div>
+      <section className="relative w-full overflow-hidden" style={{ background: HERO_GRADIENT }}>
+        <HeroWave />
         <div className="container py-14">
           <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
             <div className="max-w-2xl">

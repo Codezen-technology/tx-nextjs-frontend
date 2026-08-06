@@ -1,4 +1,5 @@
 import { SafeImage } from "@/components/ui/safe-image";
+import { HeroWave } from "@/components/courses/hero-wave";
 import { isRenderableImageSrc } from "@/lib/utils/image";
 import { publicImageExists } from "@/lib/utils/public-image.server";
 import { cn } from "@/lib/utils/cn";
@@ -72,7 +73,7 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
               <div className="overflow-hidden border border-white/20 bg-white p-2">
                 {hasImage ? (
                   <div className="relative aspect-290/188 w-full overflow-hidden bg-neutral-900">
-                    <SafeImage src={src!} alt="" fill sizes="306px" className="object-cover" />
+                    <SafeImage src={src!} alt={alt} fill sizes="306px" className="object-cover" />
                   </div>
                 ) : (
                   <div className="flex aspect-290/188 items-center justify-center rounded-md bg-neutral-800 text-sm text-white/60">
@@ -121,37 +122,39 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                 {course.title}
               </h1>
 
-              {course.rating !== undefined && (
+              {course.rating || course.studentsCount ? (
                 <div className="font-open-sans mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-base">
-                  <span className="font-bold text-amber-400">
-                    {course.rating ? course.rating.toFixed(1) : course.id % 2 === 0 ? "4.7" : "4.9"}
-                  </span>
-                  <span className="flex gap-0.5" aria-hidden>
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className={cn(
-                          "h-4 w-4",
-                          i < Math.round(course.rating!)
-                            ? "fill-[#FFC107] text-[#FFC107]"
-                            : "text-white/30",
-                        )}
-                      />
-                    ))}
-                  </span>
-                  {course.ratingCount ? (
-                    <span className="text-secondary-100 underline">
-                      ({course.ratingCount.toLocaleString()} ratings)
-                    </span>
+                  {course.rating ? (
+                    <>
+                      <span className="font-bold text-amber-400">{course.rating.toFixed(1)}</span>
+                      <span className="flex gap-0.5" aria-hidden>
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={cn(
+                              "h-4 w-4",
+                              i < Math.round(course.rating!)
+                                ? "fill-[#FFC107] text-[#FFC107]"
+                                : "text-white/30",
+                            )}
+                          />
+                        ))}
+                      </span>
+                      {course.ratingCount ? (
+                        <span className="text-secondary-100 underline">
+                          ({course.ratingCount.toLocaleString()} ratings)
+                        </span>
+                      ) : null}
+                    </>
                   ) : null}
                   {course.studentsCount ? (
                     <span className="flex items-center gap-1 text-white">
-                      {/* <Users className="h-4 w-4" aria-hidden /> */}
+                      <Users className="h-4 w-4" aria-hidden />
                       {course.studentsCount.toLocaleString()} Students
                     </span>
                   ) : null}
                 </div>
-              )}
+              ) : null}
 
               {/* Features grid — desktop only */}
               <div className="mt-6 hidden lg:grid lg:grid-cols-2 lg:gap-x-8 lg:gap-y-3">
@@ -184,21 +187,7 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
       )}
 
       {/* Decorative wave + pattern — Figma 256:11795–11797 */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 overflow-hidden opacity-10 sm:h-20">
-        <div className="absolute top-0 left-1/2 flex h-[405.89px] w-[max(100%,1920px)] -translate-x-1/2 items-center justify-center">
-          <div className="shrink-0 -rotate-90">
-            <img
-              src="/images/course-banner-wave.svg"
-              alt=""
-              width={406}
-              height={1920}
-              decoding="async"
-              className="block h-[1920px] w-[405.89px] max-w-none"
-              aria-hidden
-            />
-          </div>
-        </div>
-      </div>
+      <HeroWave />
     </section>
   );
 }

@@ -140,6 +140,8 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
         buildBreadcrumbSchema(category.name, siteUrl, categoryUrl),
       ];
 
+  const categoryFaq = category.faq ?? [];
+
   return (
     <div className="bg-white">
       {jsonLd.map((schema, i) => (
@@ -163,16 +165,19 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
       />
 
       {/* FAQ */}
-      {(category.faq ?? []).length > 0 && (
+      {categoryFaq.length > 0 && (
         <div className="mx-auto max-w-[1296px] px-4 py-12">
           <CourseFaq
             heading={`Frequently Asked Questions About ${category.name} Training`}
-            items={category.faq}
+            items={categoryFaq}
           />
         </div>
       )}
 
-      <CategoryWhyChooseUs whyChooseUs={category.why_choose_us} categoryName={category.name} />
+      <CategoryWhyChooseUs
+        whyChooseUs={category.why_choose_us ?? category.image}
+        categoryName={category.name}
+      />
     </div>
   );
 }

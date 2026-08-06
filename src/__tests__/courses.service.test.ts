@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { normalizeCourse, normalizeRichCourse } from "@/lib/services/courses";
+import {
+  normalizeCourse,
+  normalizeFlatCurriculum,
+  normalizeRichCourse,
+} from "@/lib/services/courses";
 
 describe("normalizeCourse", () => {
   it("maps id and slug", () => {
@@ -188,5 +192,55 @@ describe("normalizeRichCourse", () => {
       },
     });
     expect(c.product_id).toBe(77);
+  });
+});
+
+describe("normalizeFlatCurriculum", () => {
+  it("converts section_duration from minutes to seconds", () => {
+    const [section] = normalizeFlatCurriculum([
+      { id: 1, title: "Intro", type: "section", section_duration: 90 },
+    ]);
+    expect(section.section_duration).toBe(5400);
+  });
+
+  it("converts unit duration from minutes to seconds", () => {
+    const [unit] = normalizeFlatCurriculum([
+      { id: 2, title: "Lesson 1", type: "unit", duration: 12 },
+    ]);
+    expect(unit.duration).toBe(720);
+  });
+
+  it("leaves missing durations untouched", () => {
+    const [section, unit] = normalizeFlatCurriculum([
+      { id: 1, title: "Intro", type: "section" },
+      { id: 2, title: "Lesson 1", type: "unit", duration: null },
+    ]);
+    expect(section.section_duration).toBeUndefined();
+    expect(unit.duration).toBeNull();
+  });
+
+  it("keeps zero as zero rather than dropping it", () => {
+    const [unit] = normalizeFlatCurriculum([
+      { id: 2, title: "Lesson 1", type: "unit", duration: 0 },
+    ]);
+    expect(unit.duration).toBe(0);
+  });
+
+  it("preserves every other field", () => {
+    const [unit] = normalizeFlatCurriculum([
+      { id: 3, title: "Quiz", type: "quiz", icon: "quiz", is_free_preview: true, duration: 5 },
+    ]);
+    expect(unit).toMatchObject({
+      id: 3,
+      title: "Quiz",
+      type: "quiz",
+      icon: "quiz",
+      is_free_preview: true,
+      duration: 300,
+    });
+  });
+
+  it("returns an empty array unchanged", () => {
+    expect(normalizeFlatCurriculum([])).toEqual([]);
   });
 });

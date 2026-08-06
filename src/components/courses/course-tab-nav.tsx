@@ -12,7 +12,8 @@ interface NavItem {
 interface CourseTabNavProps {
   accreditations: CourseAccreditation[];
   curriculum: CourseFlatCurriculumItem[];
-  hasScreenshots: boolean;
+  /** Whether the `#course-content` block (what-you'll-learn / about) is rendered. */
+  hasCourseContent: boolean;
   hasReviews: boolean;
   sections: CourseSections | null;
   courseId: number | string;
@@ -21,7 +22,7 @@ interface CourseTabNavProps {
 export function CourseTabNav({
   accreditations,
   curriculum,
-  hasScreenshots,
+  hasCourseContent,
   hasReviews,
   sections,
   courseId: _courseId,
@@ -30,7 +31,7 @@ export function CourseTabNav({
 
   const items: NavItem[] = [
     ...(accreditations.length ? [{ id: "accreditations", label: "Accreditations" }] : []),
-    ...(hasScreenshots ? [{ id: "course-content", label: "Course Content" }] : []),
+    ...(hasCourseContent ? [{ id: "course-content", label: "Course Content" }] : []),
     ...(curriculum.length ? [{ id: "curriculum", label: "Course Curriculum" }] : []),
     ...(sections?.who_should_take?.items?.length
       ? [{ id: "suitable-for", label: "Suitable For" }]

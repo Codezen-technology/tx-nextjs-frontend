@@ -42,7 +42,7 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
   const groups = buildGroups(items);
   const sectionCount = groups.length;
   const unitCount = items.filter((i) => i.type !== "section").length;
-  const totalSeconds = groups.reduce((acc, g) => acc + (g.section.section_duration ?? 0) * 60, 0);
+  const totalSeconds = groups.reduce((acc, g) => acc + (g.section.section_duration ?? 0), 0);
 
   const [openSections, setOpenSections] = useState<Set<number>>(new Set([0]));
   const [allExpanded, setAllExpanded] = useState(false);
@@ -119,7 +119,7 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
                 <span className="shrink-0 text-base text-neutral-500">
                   {group.units.length} {group.units.length === 1 ? "lecture" : "lectures"}
                   {group.section.section_duration
-                    ? ` • ${formatDuration(group.section.section_duration * 60)}`
+                    ? ` • ${formatDuration(group.section.section_duration)}`
                     : ""}
                 </span>
               </button>
@@ -144,7 +144,7 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
                         </span>
                       ) : null}
                       {unit.duration ? (
-                        <span className="text-base">{formatDuration(unit.duration * 60)}</span>
+                        <span className="text-base">{formatDuration(unit.duration)}</span>
                       ) : null}
                     </div>
                   </li>

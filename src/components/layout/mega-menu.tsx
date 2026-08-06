@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   Utensils,
@@ -137,7 +138,13 @@ export function MegaMenu({ onClose, categories }: MegaMenuProps) {
             <ul className="flex flex-col gap-4">
               {BUSINESS_FEATURES.map((feat) => (
                 <li key={feat} className="flex items-start gap-2">
-                  <img src="/icons/tick-circle.svg" alt="" className="mt-0.5 h-5 w-5 shrink-0" />
+                  <Image
+                    src="/icons/tick-circle.svg"
+                    alt=""
+                    width={20}
+                    height={20}
+                    className="mt-0.5 h-5 w-5 shrink-0"
+                  />
                   <span className="font-open-sans text-base leading-normal font-normal text-white">
                     {feat}
                   </span>

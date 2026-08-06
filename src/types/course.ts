@@ -169,9 +169,11 @@ export interface CourseFlatCurriculumItem {
   id: number | null;
   title: string;
   type: "section" | "unit" | "quiz";
+  /** Seconds — the API sends minutes; `normalizeFlatCurriculum()` converts. */
   section_duration?: number;
   unit_count?: number;
   icon?: string;
+  /** Seconds — the API sends minutes; `normalizeFlatCurriculum()` converts. */
   duration?: number | null;
   is_free_preview?: boolean;
 }
