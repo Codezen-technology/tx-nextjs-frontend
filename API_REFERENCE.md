@@ -534,15 +534,44 @@ No post appears in more than one of `trending` / `mostRecent` / `categorySection
 {
   "success": true,
   "data": [
-    { "id": null, "title": "Section 1: Introduction", "type": "section" },
-    { "id": 100, "title": "Lesson 1", "type": "unit" },
-    { "id": 101, "title": "Lesson 2", "type": "unit" },
+    {
+      "id": null,
+      "title": "Section 1: Introduction",
+      "type": "section",
+      "section_duration": 24,
+      "unit_count": 7
+    },
+    {
+      "id": 100,
+      "title": "Lesson 1",
+      "type": "unit",
+      "icon": "unit",
+      "duration": 4,
+      "is_free_preview": false
+    },
+    {
+      "id": 101,
+      "title": "Lesson 2",
+      "type": "unit",
+      "icon": "unit",
+      "duration": 5,
+      "is_free_preview": false
+    },
     { "id": 102, "title": "Module Quiz", "type": "quiz" },
     { "id": null, "title": "Section 2: Advanced Topics", "type": "section" },
     { "id": 103, "title": "Lesson 3", "type": "unit" }
   ]
 }
 ```
+
+**Duration units:** `section_duration` and a unit's `duration` are **minutes** (verified against
+production, e.g. course 120671: a 24-minute section over units of 1–5 minutes). `section_duration`
+is the sum of its units. Everything else in the API reports duration in seconds, so the frontend
+converts once in `normalizeFlatCurriculum` (`src/lib/services/courses.ts`) — components read
+`durationSeconds`.
+
+> The course endpoints' own `duration` field is unrelated: production currently returns the string
+> `"9999"` for every course and `duration_seconds: null`, so it is treated as absent.
 
 ---
 
