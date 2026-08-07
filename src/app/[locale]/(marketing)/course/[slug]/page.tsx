@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   } catch {
     const siteUrl = env.SITE_URL.replace(/\/$/, "");
     return {
-      title: "Online Training Course | Training Excellence",
+      title: "Online Training Course",
       description:
         "Professional online training courses. Instant digital certificate on completion.",
       alternates: { canonical: `${siteUrl}/course/${slug}` },

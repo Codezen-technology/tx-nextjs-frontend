@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
 import { wpPath } from "@/lib/seo/wp-paths";
+import { isServableWpPage } from "@/lib/seo/wp-pages";
 import { env } from "@/lib/env";
 import { serverApi } from "@/lib/api/server";
 import { normalizePage } from "@/lib/services/pages";
@@ -49,7 +50,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ]);
     const page = normalizePage(raw);
     return buildPageMetadata(seo, {
-      title: `${page.title} | Training Excellence`,
+      title: page.title,
       description: page.excerpt || page.title,
       canonical: `${env.SITE_URL.replace(/\/$/, "")}/${slug}`,
     });
@@ -70,6 +71,13 @@ export default async function DynamicPage({ params }: PageProps) {
   }
   if (!raw) notFound();
   const page = normalizePage(raw);
+
+  // WordPress answers 200 for pages this app has nothing to render — `/shop`
+  // came back with no content, no blocks and a Rank Math 404 head, and was
+  // served as an indexable "Page Not Found" at HTTP 200. A soft 404 spends
+  // crawl budget and can be indexed as a real page.
+  const seo = await fetchRankMathSeo(wpPath.page(slug));
+  if (!isServableWpPage(page, seo?.canonical)) notFound();
 
   if (page.isBlocks) {
     return <BlockRenderer blocks={page.blocks} />;

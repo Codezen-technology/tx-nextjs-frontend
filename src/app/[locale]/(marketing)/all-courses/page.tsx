@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
   const seo = await fetchRankMathSeo(wpPath.page("all-courses"));
   return buildPageMetadata(seo, {
-    title: "All Online Courses | Training Excellence",
+    title: "All Online Courses",
     description:
       "Browse our full range of fully accredited online courses across health & safety, food hygiene, safeguarding, mental health, and more. Instant digital certificate on completion.",
     canonical: `${env.SITE_URL.replace(/\/$/, "")}/all-courses`,

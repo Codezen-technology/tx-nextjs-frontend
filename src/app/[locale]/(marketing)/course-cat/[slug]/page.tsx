@@ -58,8 +58,8 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     ]);
     const category = categoriesResult.items.find((c) => c.slug === slug);
     if (!category) return {};
-    const metadata = buildPageMetadata(seo, {
-      title: `${category.name} Courses | Training Excellence`,
+    const metadata = await buildPageMetadata(seo, {
+      title: `${category.name} Courses`,
       description:
         category.description ||
         `Browse our accredited ${category.name} online courses. Flexible, CPD-certified training for professionals.`,
@@ -74,7 +74,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     };
   } catch {
     return {
-      title: "Online Courses | Training Excellence",
+      title: "Online Courses",
       description: "Browse accredited online training courses.",
       alternates: { canonical },
     };

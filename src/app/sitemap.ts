@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import { env } from "@/lib/env";
 import { serverApi } from "@/lib/api/server";
 import { fetchBlogPage, fetchCategories } from "@/lib/services/blog.server";
+import { staticIndexableRoutes } from "@/lib/seo/app-routes";
+import { isCatchAllSlug, isIndexableWpPage, filterWithConcurrency } from "@/lib/seo/wp-pages";
 
 const base = env.SITE_URL.replace(/\/$/, "");
 
@@ -38,30 +40,100 @@ interface SitemapEntry {
  * Every sitemap source degrades to an empty array. A single failing upstream
  * must shrink the document, never fail it — an erroring sitemap route is worse
  * for crawling than a partial one.
+ *
+ * An empty family is logged: silence is how zero blog posts looked identical to
+ * a site with no blog for the life of the previous change.
  */
-async function safely<T>(fn: () => Promise<T[]>): Promise<T[]> {
+async function safely<T>(family: string, fn: () => Promise<T[]>): Promise<T[]> {
   try {
-    return await fn();
-  } catch {
+    const items = await fn();
+    if (!items.length) console.warn(`[sitemap] ${family} resolved to zero entries`);
+    return items;
+  } catch (error) {
+    console.warn(`[sitemap] ${family} failed:`, error);
     return [];
   }
 }
 
+/**
+ * Every source here caps a page at 100 items. The LMS endpoint clamps silently
+ * (a `per_page=500` request answers 200 with 100 of 238 courses), WooCommerce
+ * clamps the same way, and `wp/v2/posts` rejects the request outright — so
+ * "ask for everything at once" reads as full coverage while dropping most of it.
+ */
+const MAX_PER_PAGE = 100;
+
+/** Runaway guard: 50 pages × 100 = 5,000 URLs per route family. */
+const MAX_PAGES = 50;
+
+/**
+ * Page through a source until it is exhausted.
+ *
+ * `fetchPage` returns the sitemap entries on that page, how many rows the API
+ * actually sent (`received` — entries may be filtered, rows are what signals a
+ * short page), and where reported, the total page count. Stops on a short page,
+ * on the reported total, or at `MAX_PAGES`. A page that throws ends the walk
+ * with whatever was collected — partial coverage beats no document.
+ */
+interface SourcePage<T> {
+  items: T[];
+  received: number;
+  totalPages?: number;
+}
+
+async function collectAllPages<T>(
+  family: string,
+  fetchPage: (page: number, perPage: number) => Promise<SourcePage<T>>,
+): Promise<T[]> {
+  const collected: T[] = [];
+
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    let result: SourcePage<T>;
+    try {
+      result = await fetchPage(page, MAX_PER_PAGE);
+    } catch (error) {
+      console.warn(
+        `[sitemap] ${family} failed on page ${page}, keeping ${collected.length}:`,
+        error,
+      );
+      return collected;
+    }
+
+    collected.push(...result.items);
+
+    if (result.received < MAX_PER_PAGE) return collected;
+    if (result.totalPages && page >= result.totalPages) return collected;
+    if (page === MAX_PAGES) {
+      console.warn(`[sitemap] ${family} hit the ${MAX_PAGES}-page cap — later entries are missing`);
+    }
+  }
+
+  return collected;
+}
+
 async function getCourses(): Promise<SitemapEntry[]> {
-  return safely(async () => {
-    const data = await serverApi.courses.list({ per_page: 500 });
-    const items = Array.isArray(data)
-      ? data
-      : ((data as { items?: Record<string, unknown>[] }).items ?? []);
-    return (items as Record<string, unknown>[])
-      .filter((c) => typeof c.slug === "string" && c.slug)
-      .map((c) => ({ slug: c.slug as string, lastModified: toDate(c.date_modified) }));
-  });
+  return safely("courses", () =>
+    collectAllPages("courses", async (page, per_page) => {
+      const data = await serverApi.courses.list({ page, per_page });
+      const items = Array.isArray(data)
+        ? data
+        : ((data as { items?: Record<string, unknown>[] }).items ?? []);
+      const rows = items as Record<string, unknown>[];
+      const total = Array.isArray(data) ? undefined : (data as { total?: number }).total;
+      return {
+        items: rows
+          .filter((c) => typeof c.slug === "string" && c.slug)
+          .map((c) => ({ slug: c.slug as string, lastModified: toDate(c.date_modified) })),
+        received: rows.length,
+        totalPages: total ? Math.ceil(total / per_page) : undefined,
+      };
+    }),
+  );
 }
 
 async function getCourseCategories(): Promise<SitemapEntry[]> {
-  return safely(async () => {
-    const data = await serverApi.taxonomy.categories({ per_page: 100 });
+  return safely("course categories", async () => {
+    const data = await serverApi.taxonomy.categories({ per_page: MAX_PER_PAGE });
     return data.items
       .filter((c) => c.slug)
       .map((c) => ({ slug: c.slug, lastModified: STATIC_LAST_MODIFIED }));
@@ -69,19 +141,25 @@ async function getCourseCategories(): Promise<SitemapEntry[]> {
 }
 
 async function getBlogPosts(): Promise<SitemapEntry[]> {
-  return safely(async () => {
-    const { posts } = await fetchBlogPage(1, 500);
-    return posts
-      .filter((p) => p.slug)
-      .map((p) => {
-        const raw = p as unknown as { modified_gmt?: string; modified?: string };
-        return { slug: p.slug, lastModified: toDate(raw.modified_gmt ?? raw.modified) };
-      });
-  });
+  return safely("blog posts", () =>
+    collectAllPages("blog posts", async (page, perPage) => {
+      const { posts, totalPages } = await fetchBlogPage(page, perPage);
+      return {
+        items: posts
+          .filter((p) => p.slug)
+          .map((p) => {
+            const raw = p as unknown as { modified_gmt?: string; modified?: string };
+            return { slug: p.slug, lastModified: toDate(raw.modified_gmt ?? raw.modified) };
+          }),
+        received: posts.length,
+        totalPages: totalPages || undefined,
+      };
+    }),
+  );
 }
 
 async function getBlogCategories(): Promise<SitemapEntry[]> {
-  return safely(async () => {
+  return safely("blog categories", async () => {
     const cats = await fetchCategories();
     return cats
       .filter((c) => c.slug)
@@ -90,103 +168,74 @@ async function getBlogCategories(): Promise<SitemapEntry[]> {
 }
 
 async function getBundles(): Promise<SitemapEntry[]> {
-  return safely(async () => {
-    const data = await serverApi.bundles.list({ per_page: 100 });
-    return (data.items ?? [])
-      .filter((b) => b.slug)
-      .map((b) => ({
-        slug: b.slug,
-        // RawBundle carries no modification date; fall back to the constant.
-        lastModified: toDate((b as { date_modified?: number }).date_modified),
-      }));
-  });
+  return safely("bundles", () =>
+    collectAllPages("bundles", async (page, per_page) => {
+      const data = await serverApi.bundles.list({ page, per_page });
+      const rows = data.items ?? [];
+      return {
+        items: rows
+          .filter((b) => b.slug)
+          .map((b) => ({
+            slug: b.slug,
+            // RawBundle carries no modification date; fall back to the constant.
+            lastModified: toDate((b as { date_modified?: number }).date_modified),
+          })),
+        received: rows.length,
+      };
+    }),
+  );
 }
 
 async function getProducts(): Promise<SitemapEntry[]> {
-  return safely(async () => {
-    const rows = await serverApi.products.list({ per_page: 100 });
-    return (rows ?? [])
-      .filter((p) => p.slug)
-      .map((p) => ({ slug: p.slug, lastModified: STATIC_LAST_MODIFIED }));
-  });
+  return safely("products", () =>
+    collectAllPages("products", async (page, per_page) => {
+      const rows = (await serverApi.products.list({ page, per_page })) ?? [];
+      return {
+        items: rows
+          .filter((p) => p.slug)
+          .map((p) => ({ slug: p.slug, lastModified: STATIC_LAST_MODIFIED })),
+        received: rows.length,
+      };
+    }),
+  );
 }
-
-/**
- * WP page slugs that have a dedicated Next.js route, plus WP-only pages with no
- * frontend equivalent (`/student-portal/`, `/course-player/`, `/lostpassword/`).
- * The catch-all enumeration below must not emit either group.
- */
-const EXPLICIT_ROUTES = new Set([
-  "about-us",
-  "all-courses",
-  "blog",
-  "bundles",
-  "cancellations",
-  "cart",
-  "certificate",
-  "checkout",
-  "contact-us",
-  "course-player",
-  "course-selector-page",
-  "help",
-  "login",
-  "lostpassword",
-  "my-account",
-  "pricing",
-  "privacy-policy",
-  "reviews",
-  "sitemap",
-  "student-portal",
-  "support-request",
-  "terms-and-conditions",
-  "thank-you-for-ordering-certificate",
-  "verify-certificate",
-]);
 
 /**
  * WordPress pages served by the `[slug]` catch-all route.
  *
- * Enumerated from the API rather than hardcoded, so a new WP page reaches the
- * sitemap without a code change — hardcoding is why `/training-teams`,
- * `/force-for-good` and `/resources` were missing.
+ * Two gates, both derived rather than remembered:
+ *
+ *  A. the slug is not claimed by one of this app's own route files, and is not
+ *     a WordPress-only page the frontend has no route for (`app-routes.ts`);
+ *  B. WordPress publishes that exact path as indexable — Rank Math answers with
+ *     a self-referencing canonical (`wp-pages.ts`).
+ *
+ * The denylist this replaced advertised `/register`, `/business-dashboard`,
+ * `/shop`, `/home`, `/activate`, `/activity` and `/pwa` on the live site.
  */
 async function getCatchAllPages(): Promise<SitemapEntry[]> {
-  return safely(async () => {
+  return safely("catch-all pages", async () => {
     const { items } = await serverApi.pages.list();
-    return (items ?? [])
-      .filter((p) => p.slug && !EXPLICIT_ROUTES.has(p.slug))
-      .map((p) => ({ slug: p.slug, lastModified: STATIC_LAST_MODIFIED }));
+    const candidates = (items ?? []).filter((p) => p.slug && isCatchAllSlug(p.slug));
+    const servable = await filterWithConcurrency(candidates, (p) => isIndexableWpPage(p.slug));
+    return servable.map((p) => ({ slug: p.slug, lastModified: STATIC_LAST_MODIFIED }));
   });
 }
 
-const staticRoutes: MetadataRoute.Sitemap = (
-  [
-    { url: base, changeFrequency: "daily", priority: 1.0 },
-    { url: `${base}/all-courses`, changeFrequency: "daily", priority: 0.9 },
-    { url: `${base}/bundles`, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/blog`, changeFrequency: "daily", priority: 0.8 },
-    { url: `${base}/pricing`, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/reviews`, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/certificate`, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${base}/help`, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${base}/about-us`, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${base}/contact-us`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/cancellations`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/support-request`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/verify-certificate`, changeFrequency: "monthly", priority: 0.4 },
-    { url: `${base}/terms-and-conditions`, changeFrequency: "yearly", priority: 0.2 },
-    { url: `${base}/privacy-policy`, changeFrequency: "yearly", priority: 0.2 },
-  ] as const
-).map((r) => ({ ...r, lastModified: STATIC_LAST_MODIFIED }));
-
-// Excluded intentionally:
-// /search                                       — noindex
-// /cart, /checkout, /order-confirmation         — transactional, noindex
-// /dashboard, /learn, /profile, /orders,
-// /business-dashboard                           — protected (robots.txt disallow)
-// /login, /register, /forgot-password,
-// /reset-password                               — auth, noindex
-// /design-system                                — 404 in production
+/**
+ * Static entries come from the route registry, so a route the app stops serving
+ * cannot linger here, and a new indexable route cannot be forgotten.
+ *
+ * Non-indexable routes — search, auth, cart, checkout, order confirmation, the
+ * student and business dashboards, the learn player and the design system — are
+ * flagged in `app-routes.ts` and excluded there.
+ */
+const staticRoutes: MetadataRoute.Sitemap = staticIndexableRoutes.map((route) => ({
+  url: route.path === "/" ? base : `${base}${route.path}`,
+  lastModified: STATIC_LAST_MODIFIED,
+  changeFrequency: route.changeFrequency,
+  priority: route.priority,
+}));
 
 function toEntries(
   entries: SitemapEntry[],

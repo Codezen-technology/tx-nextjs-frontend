@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const categoryName = decodeEntities(result.category.name);
   return buildPageMetadata(seo, {
-    title: `${categoryName} | Training Excellence Blog`,
+    title: `${categoryName} — Blog`,
     description:
       result.category.description ||
       `Browse ${categoryName} articles and updates from Training Excellence.`,

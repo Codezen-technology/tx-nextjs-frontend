@@ -16,11 +16,19 @@ export interface CategorySection {
   posts: BlogPost[];
 }
 
+/**
+ * WordPress rejects `per_page` outside 1–100 with HTTP 400 `rest_invalid_param`
+ * — not a clamp. A caller asking for "everything" in one page therefore gets an
+ * empty result, which is how every blog post disappeared from the sitemap.
+ */
+const WP_MAX_PER_PAGE = 100;
+
 export async function fetchBlogPage(page = 1, perPage = 12): Promise<BlogPage> {
   const base = getServerWpJsonBase();
   if (!base) return { posts: [], total: 0, totalPages: 0 };
 
-  const url = `${base}/wp/v2/posts?per_page=${perPage}&page=${page}&_embed=wp:featuredmedia,author`;
+  const bounded = Math.min(Math.max(1, Math.trunc(perPage)), WP_MAX_PER_PAGE);
+  const url = `${base}/wp/v2/posts?per_page=${bounded}&page=${page}&_embed=wp:featuredmedia,author`;
   const res = await fetch(url, { next: { revalidate: 300, tags: ["blog:posts"] } });
 
   if (!res.ok) return { posts: [], total: 0, totalPages: 0 };

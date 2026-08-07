@@ -23,6 +23,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
+      // `server-only` is a build-time boundary marker with no runtime entry
+      // point Vitest can resolve.
+      "server-only": path.resolve(__dirname, "src/__tests__/mocks/server-only.ts"),
     },
   },
 });
