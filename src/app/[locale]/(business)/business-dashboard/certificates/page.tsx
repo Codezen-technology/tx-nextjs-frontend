@@ -85,7 +85,7 @@ export default function BusinessCertificatesPage() {
       />
 
       <form onSubmit={onSearch} className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-300" />
+        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-300" />
         <Input
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}

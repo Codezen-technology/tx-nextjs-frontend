@@ -25,12 +25,12 @@ export function DashboardSearch({ className }: { className?: string }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search courses..."
-        className="h-12 rounded-full border-lms-primary pl-4 pr-24"
+        className="border-lms-primary h-12 rounded-full pr-24 pl-4"
       />
       <Button
         type="submit"
         size="sm"
-        className="hover:bg-lms-primary/90 absolute right-1 top-1/2 h-9 -translate-y-1/2 rounded-full bg-lms-primary px-4"
+        className="hover:bg-lms-primary/90 bg-lms-primary absolute top-1/2 right-1 h-9 -translate-y-1/2 rounded-full px-4"
       >
         <Search className="h-4 w-4 lg:mr-1" />
         <span className="hidden lg:inline">Search</span>
@@ -47,9 +47,9 @@ export function CartIconButton({ count, onClick }: { count: number; onClick: () 
       className="relative rounded-full p-2 transition hover:bg-neutral-100"
       aria-label="Open cart"
     >
-      <ShoppingCart className="h-6 w-6 text-lms-text" />
+      <ShoppingCart className="text-lms-text h-6 w-6" />
       {count > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-lms-secondary px-1 text-xs font-bold text-white">
+        <span className="bg-lms-secondary absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold text-white">
           {count}
         </span>
       )}

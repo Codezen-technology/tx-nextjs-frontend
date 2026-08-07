@@ -26,7 +26,7 @@ export function CoursesGrid() {
     <section className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
             value={search}
             onChange={(e) => {
@@ -39,7 +39,7 @@ export function CoursesGrid() {
           />
         </div>
         {data?.total ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             {data.total.toLocaleString()} courses
             {isFetching ? " \u2022 updating\u2026" : ""}
           </p>
@@ -84,7 +84,7 @@ export function CoursesGrid() {
           >
             <ChevronLeft className="h-4 w-4" /> Previous
           </Button>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             Page {page} of {totalPages}
           </span>
           <Button

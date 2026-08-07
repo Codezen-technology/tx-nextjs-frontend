@@ -139,7 +139,7 @@ export function SubContactModal({ open, onClose }: { open: boolean; onClose: () 
         {email ? (
           <a
             href={`mailto:${email}`}
-            className="break-all font-semibold text-[#3F576F] hover:underline"
+            className="font-semibold break-all text-[#3F576F] hover:underline"
           >
             {email}
           </a>

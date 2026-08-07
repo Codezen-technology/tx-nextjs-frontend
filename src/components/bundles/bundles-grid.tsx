@@ -8,7 +8,7 @@ interface BundlesGridProps {
 export function BundlesGrid({ bundles }: BundlesGridProps) {
   if (bundles.length === 0) {
     return (
-      <p className="py-16 text-center font-open-sans text-neutral-400">
+      <p className="font-open-sans py-16 text-center text-neutral-400">
         No bundles available right now. Please check back soon.
       </p>
     );

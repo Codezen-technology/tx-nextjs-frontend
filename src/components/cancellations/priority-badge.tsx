@@ -9,7 +9,7 @@ export function PriorityBadge({ label = "High priority", className }: PriorityBa
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 font-open-sans text-xs font-semibold uppercase tracking-wide text-green-800",
+        "font-open-sans inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold tracking-wide text-green-800 uppercase",
         className,
       )}
     >

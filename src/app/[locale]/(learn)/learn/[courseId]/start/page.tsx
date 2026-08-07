@@ -37,7 +37,7 @@ export default function LearnStartPage() {
 
   return (
     <div className="flex min-h-svh items-center justify-center">
-      <div className="flex items-center gap-3 text-muted-foreground">
+      <div className="text-muted-foreground flex items-center gap-3">
         <Loader2 className="h-5 w-5 animate-spin" />
         <span>Preparing your unit\u2026</span>
       </div>

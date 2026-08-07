@@ -38,7 +38,7 @@ export function Pagination({ page, totalPages, onPageChange, className }: Pagina
         const showEllipsis = prev !== undefined && p - prev > 1;
         return (
           <span key={p} className="flex items-center gap-1">
-            {showEllipsis && <span className="px-2 text-muted-foreground">…</span>}
+            {showEllipsis && <span className="text-muted-foreground px-2">…</span>}
             <Button
               variant={p === page ? "default" : "outline"}
               size="icon"

@@ -141,7 +141,7 @@ export default function BusinessAnalyticsPage() {
       />
 
       <Tabs defaultValue="courses">
-        <TabsList className="h-auto w-full justify-start gap-2 rounded-none border-b border-neutral-30 bg-transparent p-0">
+        <TabsList className="border-neutral-30 h-auto w-full justify-start gap-2 rounded-none border-b bg-transparent p-0">
           <TabsTrigger value="courses" className={TAB_TRIGGER}>
             Course Reports
           </TabsTrigger>

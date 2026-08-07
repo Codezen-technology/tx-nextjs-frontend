@@ -12,12 +12,12 @@
 
 The existing scaffold under `src/` is a clean Next 14 starter, but **it was wired to a generic LMS plugin, not this one**. Three things are wrong out of the box and will produce 404s on day one if shipped as-is:
 
-| What the code does | What `lms-backend/v1` actually does | Impact |
-|---|---|---|
-| Hits `/${LMS_NAMESPACE}/courses` with default `lms/v1` | Real namespace is `lms-backend/v1` | 100% of LMS calls 404 |
-| Hits `/jwt-auth/v1/token` (Toranj/JWT plugin) | Real auth is `POST /lms-backend/v1/auth/login` with `{ access_token, refresh_token, expires_in, user }` | Login broken, no refresh logic |
-| Treats `data` as a flat array | API wraps everything: `{ success: true, data: { items, total, page, per_page, totalPages } }` | All list endpoints break parsers |
-| Calls "lessons" everywhere | Backend post type is `unit` and the route is `/units/{id}` | Lesson player breaks |
+| What the code does                                     | What `lms-backend/v1` actually does                                                                     | Impact                           |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| Hits `/${LMS_NAMESPACE}/courses` with default `lms/v1` | Real namespace is `lms-backend/v1`                                                                      | 100% of LMS calls 404            |
+| Hits `/jwt-auth/v1/token` (Toranj/JWT plugin)          | Real auth is `POST /lms-backend/v1/auth/login` with `{ access_token, refresh_token, expires_in, user }` | Login broken, no refresh logic   |
+| Treats `data` as a flat array                          | API wraps everything: `{ success: true, data: { items, total, page, per_page, totalPages } }`           | All list endpoints break parsers |
+| Calls "lessons" everywhere                             | Backend post type is `unit` and the route is `/units/{id}`                                              | Lesson player breaks             |
 
 We fix that in P0 below. **No new pages get built until the API layer matches the contract in `LMS_API_PLAN.md`.**
 
@@ -57,20 +57,20 @@ The live site (`trainingexcellence.org.uk`) is a paid LMS — courses at £29–
 
 ### What must NOT be hardcoded
 
-| Data | Where it comes from | Implementation |
-|---|---|---|
-| Site name, tagline, description | Backend `/lms-backend/v1/settings` (new) or `wp/v2/settings` | Fetch at build time via `generateMetadata()`, cache in env at deploy |
-| Logo (light + dark variants) | Backend `/settings` or env `NEXT_PUBLIC_LOGO_URL` / `NEXT_PUBLIC_LOGO_DARK_URL` | Fallback to text if not set |
-| Primary/accent colors | Backend `/settings` → CSS variables or env `NEXT_PUBLIC_PRIMARY_COLOR` | Injected into `:root` via `layout.tsx` |
-| Hero headline, subheadline, CTA | WP page with slug `home` or a dedicated `site_content` CPT | Fetch in RSC, render dynamically |
-| Pricing plans (Monthly, Premium, Business) | Backend `/memberships/plans` (WC Subscriptions wrapper) | **Never hardcode** — fetch and render from API |
-| Footer links, social URLs | Backend `/settings` or WP menu via `wp/v2/menus` | Configurable per site |
-| Testimonials | `wp/v2/testimonial` CPT | Already CMS-driven ✓ |
-| Partner logos | `wp/v2/partner_logo` CPT | Already CMS-driven ✓ |
-| Contact email, address, phone | Backend `/settings` | Display on `/contact`, footer |
-| Currency symbol, locale | Backend `/settings` → `currency: "GBP"`, `locale: "en-GB"` | Format prices with `Intl.NumberFormat` |
-| Blog categories, featured posts | `wp/v2/posts`, `wp/v2/categories` | Already dynamic ✓ |
-| Favicon, OG image | Backend `/settings` or env | `app/icon.tsx`, `app/opengraph-image.tsx` read from config |
+| Data                                       | Where it comes from                                                             | Implementation                                                       |
+| ------------------------------------------ | ------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Site name, tagline, description            | Backend `/lms-backend/v1/settings` (new) or `wp/v2/settings`                    | Fetch at build time via `generateMetadata()`, cache in env at deploy |
+| Logo (light + dark variants)               | Backend `/settings` or env `NEXT_PUBLIC_LOGO_URL` / `NEXT_PUBLIC_LOGO_DARK_URL` | Fallback to text if not set                                          |
+| Primary/accent colors                      | Backend `/settings` → CSS variables or env `NEXT_PUBLIC_PRIMARY_COLOR`          | Injected into `:root` via `layout.tsx`                               |
+| Hero headline, subheadline, CTA            | WP page with slug `home` or a dedicated `site_content` CPT                      | Fetch in RSC, render dynamically                                     |
+| Pricing plans (Monthly, Premium, Business) | Backend `/memberships/plans` (WC Subscriptions wrapper)                         | **Never hardcode** — fetch and render from API                       |
+| Footer links, social URLs                  | Backend `/settings` or WP menu via `wp/v2/menus`                                | Configurable per site                                                |
+| Testimonials                               | `wp/v2/testimonial` CPT                                                         | Already CMS-driven ✓                                                 |
+| Partner logos                              | `wp/v2/partner_logo` CPT                                                        | Already CMS-driven ✓                                                 |
+| Contact email, address, phone              | Backend `/settings`                                                             | Display on `/contact`, footer                                        |
+| Currency symbol, locale                    | Backend `/settings` → `currency: "GBP"`, `locale: "en-GB"`                      | Format prices with `Intl.NumberFormat`                               |
+| Blog categories, featured posts            | `wp/v2/posts`, `wp/v2/categories`                                               | Already dynamic ✓                                                    |
+| Favicon, OG image                          | Backend `/settings` or env                                                      | `app/icon.tsx`, `app/opengraph-image.tsx` read from config           |
 
 ### New backend endpoint: `GET /lms-backend/v1/settings`
 
@@ -114,14 +114,14 @@ This is the **single source of truth** for site-specific configuration. Returns:
 
 The `features` object above controls what the frontend renders:
 
-| Flag | Effect when `false` |
-|---|---|
-| `memberships` | Hide `/pricing` page, show only single-course purchase |
-| `bundles` | Hide `/bundles` routes |
-| `certificates` | Hide certificates section in dashboard |
-| `badges` | Hide badges section |
-| `reviews` | Hide review submission (read-only or hidden) |
-| `blog` | Hide `/blog` routes, remove from nav |
+| Flag           | Effect when `false`                                    |
+| -------------- | ------------------------------------------------------ |
+| `memberships`  | Hide `/pricing` page, show only single-course purchase |
+| `bundles`      | Hide `/bundles` routes                                 |
+| `certificates` | Hide certificates section in dashboard                 |
+| `badges`       | Hide badges section                                    |
+| `reviews`      | Hide review submission (read-only or hidden)           |
+| `blog`         | Hide `/blog` routes, remove from nav                   |
 
 Frontend reads `features` from `/settings` at build time (ISR) and conditionally renders nav items, pages, and components. **No code change required to enable/disable features per site.**
 
@@ -224,24 +224,24 @@ Env vars **override** `/settings` response — useful for quick testing or sites
 
 The scaffold's choices are correct. Keep them. Notes added.
 
-| Layer | Choice | Why |
-|---|---|---|
-| Framework | Next.js 14 App Router | RSC + per-route caching match a content-heavy LMS |
-| Language | TypeScript strict, `noUncheckedIndexedAccess` (add) | Stops the "object is possibly undefined" class of bugs cold |
-| Styling | Tailwind + shadcn primitives | Already wired; matches the live site's utility-driven look |
-| Server state | TanStack Query v5 | SSR hydration + mutation invalidation are first-class |
-| Auth/UI state | Zustand + `persist` + cookie mirror | Cookie is what `middleware.ts` reads; do not remove it |
-| Forms | React Hook Form + Zod | Single source of truth for schema + types |
-| HTTP | `axios` singleton + interceptors | Already wired; needs unwrap interceptor (see §4) |
-| Theming | `next-themes` | OK |
-| Icons | `lucide-react` | OK |
-| Toasts | `sonner` | OK |
-| Payments (web) | Stripe Elements (via `@stripe/react-stripe-js`) | Card fields stay PCI-SAQ-A; backend issues PaymentIntents |
-| Analytics | Vercel Analytics + GA4 (consent-gated) | Add a thin `useAnalytics` hook |
-| Error monitoring | Sentry (browser + edge + server) | Wire into `instrumentation.ts` and `error.tsx` |
-| Image | `next/image` with `remotePatterns` for WP host + CDN | Already configured |
-| Testing | Vitest + React Testing Library + Playwright (E2E) | Add `vitest`, `@testing-library/*`, `playwright` |
-| Linting | ESLint Next preset + Prettier + tw plugin + Husky + lint-staged | Already wired |
+| Layer            | Choice                                                          | Why                                                         |
+| ---------------- | --------------------------------------------------------------- | ----------------------------------------------------------- |
+| Framework        | Next.js 14 App Router                                           | RSC + per-route caching match a content-heavy LMS           |
+| Language         | TypeScript strict, `noUncheckedIndexedAccess` (add)             | Stops the "object is possibly undefined" class of bugs cold |
+| Styling          | Tailwind + shadcn primitives                                    | Already wired; matches the live site's utility-driven look  |
+| Server state     | TanStack Query v5                                               | SSR hydration + mutation invalidation are first-class       |
+| Auth/UI state    | Zustand + `persist` + cookie mirror                             | Cookie is what `middleware.ts` reads; do not remove it      |
+| Forms            | React Hook Form + Zod                                           | Single source of truth for schema + types                   |
+| HTTP             | `axios` singleton + interceptors                                | Already wired; needs unwrap interceptor (see §4)            |
+| Theming          | `next-themes`                                                   | OK                                                          |
+| Icons            | `lucide-react`                                                  | OK                                                          |
+| Toasts           | `sonner`                                                        | OK                                                          |
+| Payments (web)   | Stripe Elements (via `@stripe/react-stripe-js`)                 | Card fields stay PCI-SAQ-A; backend issues PaymentIntents   |
+| Analytics        | Vercel Analytics + GA4 (consent-gated)                          | Add a thin `useAnalytics` hook                              |
+| Error monitoring | Sentry (browser + edge + server)                                | Wire into `instrumentation.ts` and `error.tsx`              |
+| Image            | `next/image` with `remotePatterns` for WP host + CDN            | Already configured                                          |
+| Testing          | Vitest + React Testing Library + Playwright (E2E)               | Add `vitest`, `@testing-library/*`, `playwright`            |
+| Linting          | ESLint Next preset + Prettier + tw plugin + Husky + lint-staged | Already wired                                               |
 
 **Add to `package.json` (Phase 0):**
 
@@ -302,36 +302,36 @@ For a production LMS with authentication, payments, and user data, use **Next.js
 
 ### 3.2 Why This Pattern
 
-| Benefit | Explanation |
-|---------|-------------|
-| **httpOnly cookies** | Tokens never touch client JavaScript — immune to XSS token theft |
-| **Automatic refresh** | BFF handles 401 → refresh → retry transparently |
-| **No CORS headaches** | Browser talks to same origin; server talks to WP |
-| **Hidden backend URL** | Attackers don't see your WordPress domain |
-| **Response shaping** | Unwrap envelope, normalize errors, add cache headers in one place |
-| **Rate limiting** | Add throttling at the edge before hitting WP |
+| Benefit                | Explanation                                                       |
+| ---------------------- | ----------------------------------------------------------------- |
+| **httpOnly cookies**   | Tokens never touch client JavaScript — immune to XSS token theft  |
+| **Automatic refresh**  | BFF handles 401 → refresh → retry transparently                   |
+| **No CORS headaches**  | Browser talks to same origin; server talks to WP                  |
+| **Hidden backend URL** | Attackers don't see your WordPress domain                         |
+| **Response shaping**   | Unwrap envelope, normalize errors, add cache headers in one place |
+| **Rate limiting**      | Add throttling at the edge before hitting WP                      |
 
 ### 3.3 What Goes Where
 
-| Data Type | Fetch Method | Why |
-|-----------|--------------|-----|
-| Course list, detail, curriculum | RSC direct to WP | Public, cacheable with ISR |
-| Categories, levels, tags | RSC direct to WP | Public, rarely changes |
-| Reviews (read) | RSC direct to WP | Public |
-| Blog posts | RSC direct to WP | Public |
-| Site settings | RSC direct to WP | Public |
-| **Login, Register** | **POST `/api/auth/login`** | Sets httpOnly cookie |
-| **Logout** | **POST `/api/auth/logout`** | Clears cookie, revokes token |
-| **Current user profile** | **GET `/api/users/me`** | Authenticated |
-| **User progress** | **GET `/api/users/me/progress`** | Authenticated |
-| **Enrollments** | **`/api/enrollments/*`** | Authenticated |
-| **Unit content** | **GET `/api/units/{id}/content`** | Requires enrollment |
-| **Complete unit** | **POST `/api/units/{id}/complete`** | Authenticated |
-| **Quiz start/submit** | **`/api/quizzes/*`** | Authenticated |
-| **Assignment submit** | **`/api/assignments/*`** | Authenticated |
-| **Cart operations** | **`/api/cart/*`** | Guest or authenticated |
-| **Checkout, Orders** | **`/api/orders/*`** | Authenticated |
-| **Reviews (create)** | **POST `/api/courses/{id}/reviews`** | Authenticated |
+| Data Type                       | Fetch Method                         | Why                          |
+| ------------------------------- | ------------------------------------ | ---------------------------- |
+| Course list, detail, curriculum | RSC direct to WP                     | Public, cacheable with ISR   |
+| Categories, levels, tags        | RSC direct to WP                     | Public, rarely changes       |
+| Reviews (read)                  | RSC direct to WP                     | Public                       |
+| Blog posts                      | RSC direct to WP                     | Public                       |
+| Site settings                   | RSC direct to WP                     | Public                       |
+| **Login, Register**             | **POST `/api/auth/login`**           | Sets httpOnly cookie         |
+| **Logout**                      | **POST `/api/auth/logout`**          | Clears cookie, revokes token |
+| **Current user profile**        | **GET `/api/users/me`**              | Authenticated                |
+| **User progress**               | **GET `/api/users/me/progress`**     | Authenticated                |
+| **Enrollments**                 | **`/api/enrollments/*`**             | Authenticated                |
+| **Unit content**                | **GET `/api/units/{id}/content`**    | Requires enrollment          |
+| **Complete unit**               | **POST `/api/units/{id}/complete`**  | Authenticated                |
+| **Quiz start/submit**           | **`/api/quizzes/*`**                 | Authenticated                |
+| **Assignment submit**           | **`/api/assignments/*`**             | Authenticated                |
+| **Cart operations**             | **`/api/cart/*`**                    | Guest or authenticated       |
+| **Checkout, Orders**            | **`/api/orders/*`**                  | Authenticated                |
+| **Reviews (create)**            | **POST `/api/courses/{id}/reviews`** | Authenticated                |
 
 ### 3.4 Token Flow (Secure)
 
@@ -387,6 +387,7 @@ WordPress (lms-backend/v1, wp/v2) ──► cached public data
 ```
 
 **Hard rules:**
+
 1. UI never stores tokens in localStorage or JS-accessible cookies
 2. Client components fetch from `/api/*`, not WP directly (for auth'd data)
 3. RSC fetches public data directly from WP (faster, cacheable)
@@ -394,18 +395,18 @@ WordPress (lms-backend/v1, wp/v2) ──► cached public data
 
 ### 3.2 RSC vs Client split
 
-| Page | Render | Data |
-|---|---|---|
-| `/` (home) | RSC + ISR `revalidate: 300` | Featured courses, popular courses, taxonomy, testimonials prefetched server-side, hydrated to React Query cache |
-| `/courses` (list) | RSC for first page, client for filters/pagination | Initial page SSR, subsequent client-side `useQuery` |
-| `/courses/[slug]` | RSC + ISR `revalidate: 600` | Detail + curriculum + reviews + stats prefetched in parallel |
-| `/categories/[slug]` | RSC + ISR | Category + filtered course list |
-| `/bundles`, `/bundles/[slug]` | RSC + ISR | Bundle detail with included courses |
-| `/blog`, `/blog/[slug]` | RSC + ISR | Direct `wp/v2/posts` |
-| `/cart`, `/checkout`, `/dashboard/*`, `/learn/*` | Client (auth-gated) | Live data; no caching |
-| `/login`, `/register`, `/forgot-password` | Client | Forms |
-| `/order/[id]/received` | RSC (with auth check) | One-shot order fetch |
-| `/certificates/verify?code=...` | RSC | Public, no auth |
+| Page                                             | Render                                            | Data                                                                                                            |
+| ------------------------------------------------ | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `/` (home)                                       | RSC + ISR `revalidate: 300`                       | Featured courses, popular courses, taxonomy, testimonials prefetched server-side, hydrated to React Query cache |
+| `/courses` (list)                                | RSC for first page, client for filters/pagination | Initial page SSR, subsequent client-side `useQuery`                                                             |
+| `/courses/[slug]`                                | RSC + ISR `revalidate: 600`                       | Detail + curriculum + reviews + stats prefetched in parallel                                                    |
+| `/categories/[slug]`                             | RSC + ISR                                         | Category + filtered course list                                                                                 |
+| `/bundles`, `/bundles/[slug]`                    | RSC + ISR                                         | Bundle detail with included courses                                                                             |
+| `/blog`, `/blog/[slug]`                          | RSC + ISR                                         | Direct `wp/v2/posts`                                                                                            |
+| `/cart`, `/checkout`, `/dashboard/*`, `/learn/*` | Client (auth-gated)                               | Live data; no caching                                                                                           |
+| `/login`, `/register`, `/forgot-password`        | Client                                            | Forms                                                                                                           |
+| `/order/[id]/received`                           | RSC (with auth check)                             | One-shot order fetch                                                                                            |
+| `/certificates/verify?code=...`                  | RSC                                               | Public, no auth                                                                                                 |
 
 **Rule of thumb:** if it changes per user (cart, dashboard, learn) it is a client component or a route handler call. Everything else is RSC.
 
@@ -615,150 +616,150 @@ LMS_NAMESPACE: process.env.NEXT_PUBLIC_LMS_NAMESPACE ?? "lms-backend/v1",
 `src/lib/api/endpoints.ts` is rebuilt against the real namespace and the real auth controller. Delete the JWT-plugin paths.
 
 ```ts
-const lms = `/${env.LMS_NAMESPACE}`;   // /lms-backend/v1
-const wp  = `/wp/v2`;
-const swca = `/swca/v1`;               // legacy certificate plugin (read-only fallback)
+const lms = `/${env.LMS_NAMESPACE}`; // /lms-backend/v1
+const wp = `/wp/v2`;
+const swca = `/swca/v1`; // legacy certificate plugin (read-only fallback)
 
 export const endpoints = {
   auth: {
-    login:           `${lms}/auth/login`,
-    register:        `${lms}/auth/register`,
-    logout:          `${lms}/auth/logout`,
-    refresh:         `${lms}/auth/refresh`,
-    forgotPassword:  `${lms}/auth/forgot-password`,
-    resetPassword:   `${lms}/auth/reset-password`,
+    login: `${lms}/auth/login`,
+    register: `${lms}/auth/register`,
+    logout: `${lms}/auth/logout`,
+    refresh: `${lms}/auth/refresh`,
+    forgotPassword: `${lms}/auth/forgot-password`,
+    resetPassword: `${lms}/auth/reset-password`,
   },
   user: {
-    me:              `${lms}/users/me`,
-    updateMe:        `${lms}/users/me`,
-    avatar:          `${lms}/users/me/avatar`,
-    enrollments:     `${lms}/users/me/enrollments`,
-    progress:        `${lms}/users/me/progress`,
-    certificates:    `${lms}/users/me/certificates`,
-    badges:          `${lms}/users/me/badges`,
-    notifications:   `${lms}/users/me/notifications`,
-    publicProfile:   (id: number) => `${lms}/users/${id}`,
+    me: `${lms}/users/me`,
+    updateMe: `${lms}/users/me`,
+    avatar: `${lms}/users/me/avatar`,
+    enrollments: `${lms}/users/me/enrollments`,
+    progress: `${lms}/users/me/progress`,
+    certificates: `${lms}/users/me/certificates`,
+    badges: `${lms}/users/me/badges`,
+    notifications: `${lms}/users/me/notifications`,
+    publicProfile: (id: number) => `${lms}/users/${id}`,
   },
   courses: {
-    list:            `${lms}/courses`,
-    detail:          (id: string | number) => `${lms}/courses/${id}`,
-    search:          `${lms}/courses/search`,
-    featured:        `${lms}/courses/featured`,
-    popular:         `${lms}/courses/popular`,
-    free:            `${lms}/courses/free`,
-    curriculum:      (id: string | number) => `${lms}/courses/${id}/curriculum`,
-    students:        (id: number) => `${lms}/courses/${id}/students`,      // instructor only
-    instructors:     (id: number) => `${lms}/courses/${id}/instructors`,
+    list: `${lms}/courses`,
+    detail: (id: string | number) => `${lms}/courses/${id}`,
+    search: `${lms}/courses/search`,
+    featured: `${lms}/courses/featured`,
+    popular: `${lms}/courses/popular`,
+    free: `${lms}/courses/free`,
+    curriculum: (id: string | number) => `${lms}/courses/${id}/curriculum`,
+    students: (id: number) => `${lms}/courses/${id}/students`, // instructor only
+    instructors: (id: number) => `${lms}/courses/${id}/instructors`,
     // NOT YET IMPLEMENTED: stats, certificate, announcements
   },
   units: {
-    list:            `${lms}/units`,
-    detail:          (id: number) => `${lms}/units/${id}`,
-    content:         (id: number) => `${lms}/units/${id}/content`,  // rendered content
-    complete:        (id: number) => `${lms}/units/${id}/complete`,
+    list: `${lms}/units`,
+    detail: (id: number) => `${lms}/units/${id}`,
+    content: (id: number) => `${lms}/units/${id}/content`, // rendered content
+    complete: (id: number) => `${lms}/units/${id}/complete`,
   },
   quizzes: {
-    list:            `${lms}/quizzes`,
-    detail:          (id: number) => `${lms}/quizzes/${id}`,
-    questions:       (id: number) => `${lms}/quizzes/${id}/questions`,
-    start:           (id: number) => `${lms}/quizzes/${id}/start`,
-    submit:          (id: number) => `${lms}/quizzes/${id}/submit`,
-    results:         (id: number) => `${lms}/quizzes/${id}/results`,
+    list: `${lms}/quizzes`,
+    detail: (id: number) => `${lms}/quizzes/${id}`,
+    questions: (id: number) => `${lms}/quizzes/${id}/questions`,
+    start: (id: number) => `${lms}/quizzes/${id}/start`,
+    submit: (id: number) => `${lms}/quizzes/${id}/submit`,
+    results: (id: number) => `${lms}/quizzes/${id}/results`,
     // NOT YET IMPLEMENTED: attempts, retake, retakeCount
   },
   assignments: {
-    list:            `${lms}/assignments`,
-    detail:          (id: number) => `${lms}/assignments/${id}`,
-    submit:          (id: number) => `${lms}/assignments/${id}/submit`,
-    status:          (id: number) => `${lms}/assignments/${id}/status`,
-    grade:           (id: number) => `${lms}/assignments/${id}/grade`,  // instructor only
+    list: `${lms}/assignments`,
+    detail: (id: number) => `${lms}/assignments/${id}`,
+    submit: (id: number) => `${lms}/assignments/${id}/submit`,
+    status: (id: number) => `${lms}/assignments/${id}/status`,
+    grade: (id: number) => `${lms}/assignments/${id}/grade`, // instructor only
   },
   enrollments: {
-    enroll:          (courseId: number) => `${lms}/courses/${courseId}/enroll`,  // POST
-    me:              `${lms}/users/me/enrollments`,  // GET
+    enroll: (courseId: number) => `${lms}/courses/${courseId}/enroll`, // POST
+    me: `${lms}/users/me/enrollments`, // GET
     // NOT YET IMPLEMENTED: delete
   },
   progress: {
-    all:             `${lms}/users/me/progress`,
-    course:          (courseId: number) => `${lms}/users/me/courses/${courseId}/progress`,
+    all: `${lms}/users/me/progress`,
+    course: (courseId: number) => `${lms}/users/me/courses/${courseId}/progress`,
   },
   reviews: {
-    list:            `${lms}/reviews`,
-    courseReviews:   (courseId: number) => `${lms}/courses/${courseId}/reviews`,  // GET + POST
-    mine:            `${lms}/reviews/my-reviews`,
-    update:          (id: number) => `${lms}/reviews/${id}`,
-    delete:          (id: number) => `${lms}/reviews/${id}`,
+    list: `${lms}/reviews`,
+    courseReviews: (courseId: number) => `${lms}/courses/${courseId}/reviews`, // GET + POST
+    mine: `${lms}/reviews/my-reviews`,
+    update: (id: number) => `${lms}/reviews/${id}`,
+    delete: (id: number) => `${lms}/reviews/${id}`,
   },
   taxonomy: {
-    courseCategories: `${lms}/course-categories`,  // NO /taxonomy/ prefix
-    tags:             `${lms}/tags`,
-    levels:           `${lms}/levels`,
+    courseCategories: `${lms}/course-categories`, // NO /taxonomy/ prefix
+    tags: `${lms}/tags`,
+    levels: `${lms}/levels`,
     // NOT YET IMPLEMENTED: industries
   },
   cart: {
-    get:             `${lms}/cart`,
-    addItem:         `${lms}/cart/items`,
-    updateItem:      (key: string) => `${lms}/cart/items/${key}`,
-    removeItem:      (key: string) => `${lms}/cart/items/${key}`,
-    applyCoupon:     `${lms}/cart/coupon`,
-    removeCoupon:    (code: string) => `${lms}/cart/coupon/${code}`,
-    empty:           `${lms}/cart`,
+    get: `${lms}/cart`,
+    addItem: `${lms}/cart/items`,
+    updateItem: (key: string) => `${lms}/cart/items/${key}`,
+    removeItem: (key: string) => `${lms}/cart/items/${key}`,
+    applyCoupon: `${lms}/cart/coupon`,
+    removeCoupon: (code: string) => `${lms}/cart/coupon/${code}`,
+    empty: `${lms}/cart`,
   },
   orders: {
-    create:          `${lms}/orders`,
-    list:            `${lms}/orders`,
-    detail:          (id: number) => `${lms}/orders/${id}`,
-    items:           (id: number) => `${lms}/orders/${id}/items`,
-    pay:             (id: number) => `${lms}/orders/${id}/pay`,
+    create: `${lms}/orders`,
+    list: `${lms}/orders`,
+    detail: (id: number) => `${lms}/orders/${id}`,
+    items: (id: number) => `${lms}/orders/${id}/items`,
+    pay: (id: number) => `${lms}/orders/${id}/pay`,
   },
   payment: {
-    methods:         `${lms}/payment/methods`,
-    intent:          `${lms}/payment/intent`,
+    methods: `${lms}/payment/methods`,
+    intent: `${lms}/payment/intent`,
   },
   bundles: {
-    list:            `${lms}/bundles`,
-    detail:          (id: number) => `${lms}/bundles/${id}`,
-    featured:        `${lms}/bundles/featured`,
+    list: `${lms}/bundles`,
+    detail: (id: number) => `${lms}/bundles/${id}`,
+    featured: `${lms}/bundles/featured`,
   },
   instructors: {
-    list:            `${lms}/instructors`,
-    detail:          (id: number) => `${lms}/instructors/${id}`,
-    courses:         (id: number) => `${lms}/instructors/${id}/courses`,
-    reviews:         (id: number) => `${lms}/instructors/${id}/reviews`,
+    list: `${lms}/instructors`,
+    detail: (id: number) => `${lms}/instructors/${id}`,
+    courses: (id: number) => `${lms}/instructors/${id}/courses`,
+    reviews: (id: number) => `${lms}/instructors/${id}/reviews`,
   },
   certificates: {
-    verify:          `${lms}/certificates/verify`,
-    legacyVerify:    `${swca}/get-certificate`,                // fallback
+    verify: `${lms}/certificates/verify`,
+    legacyVerify: `${swca}/get-certificate`, // fallback
   },
   search: {
-    unified:         `${lms}/search`,
-    suggestions:     `${lms}/search/suggestions`,
+    unified: `${lms}/search`,
+    suggestions: `${lms}/search/suggestions`,
   },
   media: {
-    upload:          `${lms}/media`,
-    delete:          (id: number) => `${lms}/media/${id}`,
+    upload: `${lms}/media`,
+    delete: (id: number) => `${lms}/media/${id}`,
   },
   blog: {
-    posts:           `${wp}/posts`,
-    post:            (slug: string) => `${wp}/posts?slug=${slug}`,
-    pages:           `${wp}/pages`,
-    categories:      `${wp}/categories`,
+    posts: `${wp}/posts`,
+    post: (slug: string) => `${wp}/posts?slug=${slug}`,
+    pages: `${wp}/pages`,
+    categories: `${wp}/categories`,
   },
   // === WHITE-LABEL / MULTI-SITE ===
   settings: {
-    get:             `${lms}/settings`,   // site name, logo, colors, features, contact, social
+    get: `${lms}/settings`, // site name, logo, colors, features, contact, social
   },
   memberships: {
-    plans:           `${lms}/memberships/plans`,
-    subscribe:       `${lms}/memberships/subscribe`,
-    cancel:          `${lms}/memberships/cancel`,
-    myMembership:    `${lms}/users/me/membership`,
+    plans: `${lms}/memberships/plans`,
+    subscribe: `${lms}/memberships/subscribe`,
+    cancel: `${lms}/memberships/cancel`,
+    myMembership: `${lms}/users/me/membership`,
   },
   partners: {
-    list:            `${wp}/partner_logo`,   // CPT: trusted-by logos
+    list: `${wp}/partner_logo`, // CPT: trusted-by logos
   },
   testimonials: {
-    list:            `${wp}/testimonial`,    // CPT: customer testimonials
+    list: `${wp}/testimonial`, // CPT: customer testimonials
   },
 } as const;
 ```
@@ -780,13 +781,17 @@ api.interceptors.response.use(
       }
       // success:false comes through as throw
       const err = body.error ?? { code: "unknown", message: "Request failed" };
-      return Promise.reject(toApiError({
-        response: { status: response.status, data: err },
-      } as AxiosError));
+      return Promise.reject(
+        toApiError({
+          response: { status: response.status, data: err },
+        } as AxiosError),
+      );
     }
     return response;
   },
-  (error: AxiosError) => { /* existing 401/403 logout flow */ },
+  (error: AxiosError) => {
+    /* existing 401/403 logout flow */
+  },
 );
 ```
 
@@ -801,57 +806,54 @@ Tokens are **never stored in client JavaScript**. The BFF (Next.js API routes) m
 `src/app/api/auth/login/route.ts`:
 
 ```ts
-import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 const WP_API = process.env.WP_API_URL!;
-const LMS_NS = process.env.LMS_NAMESPACE ?? 'lms-backend/v1';
+const LMS_NS = process.env.LMS_NAMESPACE ?? "lms-backend/v1";
 
 export async function POST(request: Request) {
   const body = await request.json();
 
   const wpRes = await fetch(`${WP_API}/wp-json/${LMS_NS}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
 
   const json = await wpRes.json();
 
   if (!wpRes.ok || !json.success) {
-    return NextResponse.json(
-      { error: json.message ?? 'Login failed' },
-      { status: wpRes.status }
-    );
+    return NextResponse.json({ error: json.message ?? "Login failed" }, { status: wpRes.status });
   }
 
   const { access_token, refresh_token, expires_in, user } = json.data;
   const cookieStore = cookies();
 
   // httpOnly cookies — NOT accessible to JavaScript
-  cookieStore.set('access_token', access_token, {
+  cookieStore.set("access_token", access_token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
     maxAge: expires_in,
-    path: '/',
+    path: "/",
   });
 
-  cookieStore.set('refresh_token', refresh_token, {
+  cookieStore.set("refresh_token", refresh_token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60, // 7 days
-    path: '/',
+    path: "/",
   });
 
   // Non-httpOnly cookie for middleware/client auth awareness
-  cookieStore.set('user_logged_in', '1', {
+  cookieStore.set("user_logged_in", "1", {
     httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
     maxAge: expires_in,
-    path: '/',
+    path: "/",
   });
 
   // Return user data only — no tokens!
@@ -864,11 +866,11 @@ export async function POST(request: Request) {
 `src/lib/api/bff.ts`:
 
 ```ts
-import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 const WP_API = process.env.WP_API_URL!;
-const LMS_NS = process.env.LMS_NAMESPACE ?? 'lms-backend/v1';
+const LMS_NS = process.env.LMS_NAMESPACE ?? "lms-backend/v1";
 
 type ProxyOptions = {
   method?: string;
@@ -876,24 +878,21 @@ type ProxyOptions = {
   requiresAuth?: boolean;
 };
 
-export async function proxyToWP(
-  wpPath: string,
-  options: ProxyOptions = {}
-): Promise<NextResponse> {
-  const { method = 'GET', body, requiresAuth = true } = options;
+export async function proxyToWP(wpPath: string, options: ProxyOptions = {}): Promise<NextResponse> {
+  const { method = "GET", body, requiresAuth = true } = options;
   const cookieStore = cookies();
 
-  let token = cookieStore.get('access_token')?.value;
+  let token = cookieStore.get("access_token")?.value;
 
   if (requiresAuth && !token) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   };
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   let res = await fetch(`${WP_API}/wp-json/${LMS_NS}${wpPath}`, {
@@ -906,7 +905,7 @@ export async function proxyToWP(
   if (res.status === 401 && requiresAuth) {
     const refreshed = await tryRefresh();
     if (refreshed) {
-      headers['Authorization'] = `Bearer ${refreshed}`;
+      headers["Authorization"] = `Bearer ${refreshed}`;
       res = await fetch(`${WP_API}/wp-json/${LMS_NS}${wpPath}`, {
         method,
         headers,
@@ -923,28 +922,28 @@ export async function proxyToWP(
   }
 
   return NextResponse.json(
-    { error: json.message ?? 'Request failed', code: json.code },
-    { status: res.status }
+    { error: json.message ?? "Request failed", code: json.code },
+    { status: res.status },
   );
 }
 
 async function tryRefresh(): Promise<string | null> {
   const cookieStore = cookies();
-  const refreshToken = cookieStore.get('refresh_token')?.value;
+  const refreshToken = cookieStore.get("refresh_token")?.value;
 
   if (!refreshToken) return null;
 
   const res = await fetch(`${WP_API}/wp-json/${LMS_NS}/auth/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refresh_token: refreshToken }),
   });
 
   if (!res.ok) {
     // Refresh failed — clear cookies
-    cookieStore.delete('access_token');
-    cookieStore.delete('refresh_token');
-    cookieStore.delete('user_logged_in');
+    cookieStore.delete("access_token");
+    cookieStore.delete("refresh_token");
+    cookieStore.delete("user_logged_in");
     return null;
   }
 
@@ -954,20 +953,20 @@ async function tryRefresh(): Promise<string | null> {
   const { access_token, refresh_token, expires_in } = json.data;
 
   // Update cookies
-  cookieStore.set('access_token', access_token, {
+  cookieStore.set("access_token", access_token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
     maxAge: expires_in,
-    path: '/',
+    path: "/",
   });
 
-  cookieStore.set('refresh_token', refresh_token, {
+  cookieStore.set("refresh_token", refresh_token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60,
-    path: '/',
+    path: "/",
   });
 
   return access_token;
@@ -979,15 +978,15 @@ async function tryRefresh(): Promise<string | null> {
 `src/app/api/users/me/route.ts`:
 
 ```ts
-import { proxyToWP } from '@/lib/api/bff';
+import { proxyToWP } from "@/lib/api/bff";
 
 export async function GET() {
-  return proxyToWP('/users/me');
+  return proxyToWP("/users/me");
 }
 
 export async function PATCH(request: Request) {
   const body = await request.json();
-  return proxyToWP('/users/me', { method: 'PATCH', body });
+  return proxyToWP("/users/me", { method: "PATCH", body });
 }
 ```
 
@@ -998,55 +997,55 @@ export async function PATCH(request: Request) {
 ```ts
 export const authService = {
   async login(input: { username: string; password: string }) {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
-      credentials: 'include',
+      credentials: "include",
     });
     if (!res.ok) {
       const err = await res.json();
-      throw new Error(err.error ?? 'Login failed');
+      throw new Error(err.error ?? "Login failed");
     }
     return res.json(); // { user }
   },
 
   async register(input: { username: string; email: string; password: string }) {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
-      credentials: 'include',
+      credentials: "include",
     });
     if (!res.ok) throw new Error((await res.json()).error);
     return res.json();
   },
 
   async logout() {
-    await fetch('/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
     });
   },
 
   async me() {
-    const res = await fetch('/api/users/me', { credentials: 'include' });
-    if (!res.ok) throw new Error('Not authenticated');
+    const res = await fetch("/api/users/me", { credentials: "include" });
+    if (!res.ok) throw new Error("Not authenticated");
     return res.json();
   },
 
   async forgotPassword(email: string) {
-    await fetch('/api/auth/forgot-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
   },
 
   async resetPassword(input: { key: string; login: string; password: string }) {
-    const res = await fetch('/api/auth/reset-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
     });
     if (!res.ok) throw new Error((await res.json()).error);
@@ -1059,8 +1058,8 @@ export const authService = {
 `src/lib/stores/auth.store.ts` — stores **user only**, not tokens:
 
 ```ts
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 type User = {
   id: number;
@@ -1085,8 +1084,8 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user) => set({ user, isAuthenticated: !!user }),
       logout: () => set({ user: null, isAuthenticated: false }),
     }),
-    { name: 'auth-storage' }
-  )
+    { name: "auth-storage" },
+  ),
 );
 ```
 
@@ -1095,21 +1094,21 @@ export const useAuthStore = create<AuthState>()(
 `src/middleware.ts` — checks `user_logged_in` cookie:
 
 ```ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-const protectedPaths = ['/dashboard', '/learn', '/profile', '/orders', '/certificates'];
+const protectedPaths = ["/dashboard", "/learn", "/profile", "/orders", "/certificates"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
 
   if (isProtected) {
-    const loggedIn = request.cookies.get('user_logged_in')?.value;
+    const loggedIn = request.cookies.get("user_logged_in")?.value;
 
     if (!loggedIn) {
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
   }
@@ -1118,11 +1117,18 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/learn/:path*', '/profile/:path*', '/orders/:path*', '/certificates/:path*'],
+  matcher: [
+    "/dashboard/:path*",
+    "/learn/:path*",
+    "/profile/:path*",
+    "/orders/:path*",
+    "/certificates/:path*",
+  ],
 };
 ```
 
 **Key security improvements:**
+
 - Tokens never touch client JavaScript (XSS-immune)
 - Automatic token refresh handled server-side
 - Single point for auth logic (BFF)
@@ -1140,34 +1146,34 @@ Migration: keep `/learn/[courseId]/[lessonId]/page.tsx` as a redirect to `/learn
 
 This is the **honest** view. Anything in the right column blocks a live-site-parity feature. Cross-reference §11–§19 of `LMS_API_PLAN.md`.
 
-| Live site feature | Required backend | Status | Workaround / decision |
-|---|---|---|---|
-| Hero search | `GET /search/suggestions` | ❌ Not built | Phase 2: client-side `/courses/search` debounced; swap when ready |
-| Featured course grid | `GET /courses/featured` | ✅ | — |
-| Popular course grid | `GET /courses/popular` | ✅ | — |
-| Course card price (RRP slashed) | `price` + `regular_price` on Course | 🔧 Needs WC product join | Backend ticket: include `_regular_price`/`_sale_price` from linked WC product |
-| "Modules", duration, students count | course detail meta | 🔧 Partial | Add `lessons_count`, `duration_seconds`, `students_count` to `/courses` list response (`Course_Model::to_array_for_list`) |
-| Categories grid | `GET /taxonomy/course-categories` | ✅ | — |
-| Membership / Premium plan | WC Subscriptions wrapper | ❌ | **P0 blocker.** New `MembershipsController` wrapping `WC_Subscriptions` |
-| Business plan request | Contact form | N/A | Build as Next route handler → email/HubSpot/CRM |
-| Trusted-by logo strip | Static or CMS-driven | N/A | ACF or hard-coded in V1; CMS in V2 |
-| Testimonials | Custom CPT or `/wp/v2/posts?categories=testimonial` | ❌ | Backend ticket: `wp/v2/testimonial` CPT, or a `GET /lms-backend/v1/testimonials` |
-| Pricing comparison table | Static config | N/A | Hard-code the three plans, render from a typed config object |
-| Cart, Checkout, Order Received | §11 in API plan | ❌ | **P0 blocker.** Build before any paid course can launch |
-| Stripe payment | `POST /payment/intent` | ❌ | Same as above |
-| Newsletter | None | N/A | Next route handler → Mailchimp/Brevo |
-| Blog | `wp/v2/posts` | ✅ native | Use directly; CDN-rewrite via backend `MediaFilter` |
-| Auto-enrol after purchase | `woocommerce_order_status_completed` hook | ❌ | Wire in `Routes::register()` per §11 |
-| Certificates download | `GET /courses/{id}/certificate` | ❌ | Fallback to `swca/v1/get-certificate` until built |
-| Certificate verification page | `GET /certificates/verify?code=` | ❌ | Public `/certificates/verify` page on frontend, blocked until endpoint ships |
-| Reviews on course page | `GET /courses/{id}/reviews` | ✅ | — |
-| Submit review | `POST /courses/{id}/reviews` | ✅ | — |
-| Quiz inside lesson | `GET /units/{id}/quiz` + submit | ✅ | — |
-| Assignments | `POST /assignments/{id}/submit` | ✅ | — |
-| Notifications bell | `GET /users/me/notifications` | ❌ | Hide UI in V1 if not shipped; toggle by feature flag |
-| Avatar upload | `POST /users/me/avatar` | ❌ | Read-only avatar from `display_name` initial in V1 |
-| Instructor pages | `GET /instructors*` | ❌ | Defer; link to course → instructor section instead |
-| Bundle pages | `GET /bundles*` | ❌ | Defer or fake with WC `course_bundle` product type via direct WP query (not recommended) |
+| Live site feature                   | Required backend                                    | Status                   | Workaround / decision                                                                                                     |
+| ----------------------------------- | --------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Hero search                         | `GET /search/suggestions`                           | ❌ Not built             | Phase 2: client-side `/courses/search` debounced; swap when ready                                                         |
+| Featured course grid                | `GET /courses/featured`                             | ✅                       | —                                                                                                                         |
+| Popular course grid                 | `GET /courses/popular`                              | ✅                       | —                                                                                                                         |
+| Course card price (RRP slashed)     | `price` + `regular_price` on Course                 | 🔧 Needs WC product join | Backend ticket: include `_regular_price`/`_sale_price` from linked WC product                                             |
+| "Modules", duration, students count | course detail meta                                  | 🔧 Partial               | Add `lessons_count`, `duration_seconds`, `students_count` to `/courses` list response (`Course_Model::to_array_for_list`) |
+| Categories grid                     | `GET /taxonomy/course-categories`                   | ✅                       | —                                                                                                                         |
+| Membership / Premium plan           | WC Subscriptions wrapper                            | ❌                       | **P0 blocker.** New `MembershipsController` wrapping `WC_Subscriptions`                                                   |
+| Business plan request               | Contact form                                        | N/A                      | Build as Next route handler → email/HubSpot/CRM                                                                           |
+| Trusted-by logo strip               | Static or CMS-driven                                | N/A                      | ACF or hard-coded in V1; CMS in V2                                                                                        |
+| Testimonials                        | Custom CPT or `/wp/v2/posts?categories=testimonial` | ❌                       | Backend ticket: `wp/v2/testimonial` CPT, or a `GET /lms-backend/v1/testimonials`                                          |
+| Pricing comparison table            | Static config                                       | N/A                      | Hard-code the three plans, render from a typed config object                                                              |
+| Cart, Checkout, Order Received      | §11 in API plan                                     | ❌                       | **P0 blocker.** Build before any paid course can launch                                                                   |
+| Stripe payment                      | `POST /payment/intent`                              | ❌                       | Same as above                                                                                                             |
+| Newsletter                          | None                                                | N/A                      | Next route handler → Mailchimp/Brevo                                                                                      |
+| Blog                                | `wp/v2/posts`                                       | ✅ native                | Use directly; CDN-rewrite via backend `MediaFilter`                                                                       |
+| Auto-enrol after purchase           | `woocommerce_order_status_completed` hook           | ❌                       | Wire in `Routes::register()` per §11                                                                                      |
+| Certificates download               | `GET /courses/{id}/certificate`                     | ❌                       | Fallback to `swca/v1/get-certificate` until built                                                                         |
+| Certificate verification page       | `GET /certificates/verify?code=`                    | ❌                       | Public `/certificates/verify` page on frontend, blocked until endpoint ships                                              |
+| Reviews on course page              | `GET /courses/{id}/reviews`                         | ✅                       | —                                                                                                                         |
+| Submit review                       | `POST /courses/{id}/reviews`                        | ✅                       | —                                                                                                                         |
+| Quiz inside lesson                  | `GET /units/{id}/quiz` + submit                     | ✅                       | —                                                                                                                         |
+| Assignments                         | `POST /assignments/{id}/submit`                     | ✅                       | —                                                                                                                         |
+| Notifications bell                  | `GET /users/me/notifications`                       | ❌                       | Hide UI in V1 if not shipped; toggle by feature flag                                                                      |
+| Avatar upload                       | `POST /users/me/avatar`                             | ❌                       | Read-only avatar from `display_name` initial in V1                                                                        |
+| Instructor pages                    | `GET /instructors*`                                 | ❌                       | Defer; link to course → instructor section instead                                                                        |
+| Bundle pages                        | `GET /bundles*`                                     | ❌                       | Defer or fake with WC `course_bundle` product type via direct WP query (not recommended)                                  |
 
 **Decision matrix outcome:** the frontend can launch a marketing-only V1 against today's backend. **Paid course flow + memberships require backend P0 work in parallel.** Track those tickets in `LMS_API_PLAN.md` §11 and §12.
 
@@ -1180,6 +1186,7 @@ Phases run in parallel with the backend P0 work. Each phase ends in a deploy.
 ### Phase 0 — API alignment + BFF scaffolding (1 sprint, blocks all others)
 
 **Architecture (BFF Pattern):**
+
 - **Implement BFF proxy routes** (`src/app/api/`) for all authenticated operations (§3.1-3.5):
   - `/api/auth/*` — login, register, logout, forgot-password, reset-password
   - `/api/users/me/*` — profile, progress, enrollments
@@ -1192,6 +1199,7 @@ Phases run in parallel with the backend P0 work. Each phase ends in a deploy.
 - Update **middleware** to use `user_logged_in` cookie (§4.4.6)
 
 **API Alignment:**
+
 - Update `endpoints.ts` to `lms-backend/v1` namespace (§4.2)
 - Update `env.ts` default + `.env.example` with white-label env vars (§4.1, §1b)
 - Add response-unwrap interceptor to axios (§4.3) — used only for RSC direct calls
@@ -1199,11 +1207,13 @@ Phases run in parallel with the backend P0 work. Each phase ends in a deploy.
 - Rename `lessons` → `units` everywhere (§4.5)
 
 **Services & Providers:**
+
 - **Add `settings.ts` service + `SiteSettingsProvider`** — fetch `/settings`, inject CSS variables, provide feature flags context (§1b)
 - Add `src/lib/api/server.ts` for RSC-side fetching using native `fetch` with `next: { revalidate, tags }` — do **not** use axios in server components
 - Replace `paginate()` to consume the API's `{ items, total, page, per_page, totalPages }` envelope
 
 **Tooling:**
+
 - Wire Sentry, add `instrumentation.ts`
 - Add Vitest + Playwright config; one smoke test per layer
 - Add `next-intl` with `/[locale]/...` routing (§13 PR #6)
@@ -1322,33 +1332,33 @@ This is a content site. Treat it like one.
 
 ## 8. Security — non-negotiable
 
-| Concern | Rule |
-|---|---|
-| XSS via WP HTML | `dompurify` (server) before rendering any `course.content` / unit HTML / blog post HTML. Never `dangerouslySetInnerHTML` raw API content. |
-| JWT storage | V1: `localStorage` + non-HttpOnly cookie for middleware. V2: HttpOnly cookie via BFF. **Document the trade-off in PR description.** |
-| Refresh token | Same store as access token in V1; never log it; never include it in URL params; rotate on every refresh (backend already does SHA-256-stored rotation). |
-| CSRF | Until BFF: every mutation goes through axios with `Authorization` header — no cookie auth means no CSRF surface. Once BFF is on, add a `X-CSRF-Token` header backed by a per-session token in a separate cookie. |
-| File uploads | Server-side MIME check on the WP side (already enforced). Client only restricts UI via `accept=` and validates size before upload. |
-| Stripe | Publishable key in `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`. Secret key never appears in this repo. PaymentIntent created server-side by WP. |
-| CORS | Backend `LMS_BACKEND_API_ALLOWED_ORIGINS` lists exact deploy origins; wildcard never. |
-| Rate-limited endpoints | Reflect the backend's transient-based rate limiting (register, password reset, coupon) in the UI: disable submit + countdown after 5 attempts. |
-| Dependency CVEs | `npm audit --omit=dev` in CI; weekly Dependabot. |
-| Secrets in repo | None. `.env.local` git-ignored (already is). Vercel env vars managed in dashboard. |
-| Newsletter route | Validate input with zod, rate-limit by IP (in-memory LRU on edge), never echo upstream API errors to the client. |
-| Open redirects | `next` query param on `/login` whitelisted to internal paths only — `if (!next.startsWith('/')) next = '/dashboard'`. |
+| Concern                | Rule                                                                                                                                                                                                             |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| XSS via WP HTML        | `dompurify` (server) before rendering any `course.content` / unit HTML / blog post HTML. Never `dangerouslySetInnerHTML` raw API content.                                                                        |
+| JWT storage            | V1: `localStorage` + non-HttpOnly cookie for middleware. V2: HttpOnly cookie via BFF. **Document the trade-off in PR description.**                                                                              |
+| Refresh token          | Same store as access token in V1; never log it; never include it in URL params; rotate on every refresh (backend already does SHA-256-stored rotation).                                                          |
+| CSRF                   | Until BFF: every mutation goes through axios with `Authorization` header — no cookie auth means no CSRF surface. Once BFF is on, add a `X-CSRF-Token` header backed by a per-session token in a separate cookie. |
+| File uploads           | Server-side MIME check on the WP side (already enforced). Client only restricts UI via `accept=` and validates size before upload.                                                                               |
+| Stripe                 | Publishable key in `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`. Secret key never appears in this repo. PaymentIntent created server-side by WP.                                                                         |
+| CORS                   | Backend `LMS_BACKEND_API_ALLOWED_ORIGINS` lists exact deploy origins; wildcard never.                                                                                                                            |
+| Rate-limited endpoints | Reflect the backend's transient-based rate limiting (register, password reset, coupon) in the UI: disable submit + countdown after 5 attempts.                                                                   |
+| Dependency CVEs        | `npm audit --omit=dev` in CI; weekly Dependabot.                                                                                                                                                                 |
+| Secrets in repo        | None. `.env.local` git-ignored (already is). Vercel env vars managed in dashboard.                                                                                                                               |
+| Newsletter route       | Validate input with zod, rate-limit by IP (in-memory LRU on edge), never echo upstream API errors to the client.                                                                                                 |
+| Open redirects         | `next` query param on `/login` whitelisted to internal paths only — `if (!next.startsWith('/')) next = '/dashboard'`.                                                                                            |
 
 ---
 
 ## 9. Testing Strategy
 
-| Layer | Tool | Coverage target |
-|---|---|---|
-| Unit (utils, parsers, schemas) | Vitest | 80% lines |
-| Service (mocked HTTP) | Vitest + MSW | Every service function happy + error |
-| Hook | RTL + Vitest | Every hook with success/error/loading states |
-| Component | RTL | Smoke render for all UI primitives + auth forms |
-| Integration | Playwright (against staging WP) | Login → enrol → complete unit → review |
-| E2E commerce | Playwright (against staging WP + Stripe test mode) | Add to cart → checkout → order received → access course |
+| Layer                          | Tool                                               | Coverage target                                         |
+| ------------------------------ | -------------------------------------------------- | ------------------------------------------------------- |
+| Unit (utils, parsers, schemas) | Vitest                                             | 80% lines                                               |
+| Service (mocked HTTP)          | Vitest + MSW                                       | Every service function happy + error                    |
+| Hook                           | RTL + Vitest                                       | Every hook with success/error/loading states            |
+| Component                      | RTL                                                | Smoke render for all UI primitives + auth forms         |
+| Integration                    | Playwright (against staging WP)                    | Login → enrol → complete unit → review                  |
+| E2E commerce                   | Playwright (against staging WP + Stripe test mode) | Add to cart → checkout → order received → access course |
 
 CI gate (GitHub Actions): typecheck → lint → unit → build. Playwright on a separate workflow nightly + on `main`.
 
@@ -1366,16 +1376,16 @@ CI gate (GitHub Actions): typecheck → lint → unit → build. Playwright on a
 
 ## 11. Risks & Mitigations
 
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| Backend §11 (cart/checkout) slips | High | High | Build Phase 3 against MSW with the documented contract from `LMS_API_PLAN.md` so frontend is ready the day backend merges |
-| WC Subscriptions wrapper delayed | Medium | High | **Confirmed: using WC Subscriptions.** Backend ticket filed. If API not ready by Phase 3, membership plans show "Contact us" CTA as fallback. |
-| Token refresh race conditions | Medium | High | Single in-flight `refreshPromise` (§4.4), retry once, hard-logout on second 401 |
-| WP HTML breaks the layout | High | Medium | Sanitize + render in a constrained `prose` container; CSS-isolate with `:where` selectors |
-| Image hosts blocked by `next/image` | Medium | Medium | `next.config.mjs` `remotePatterns` already covers WP host, gravatar, wp.com; add CDN host when set |
-| SEO regression vs current site | High | High | Crawl current site sitemap, build a 301-map from old URLs to new in `next.config.mjs` `redirects()` before launch |
-| Cart token vs JWT collision | Medium | Medium | Two distinct stores; never put `Cart-Token` in `Authorization` header |
-| Free-course enrol used to bypass paid courses | Low | High | Backend already gates on `wplms_course_price == 0` for `POST /users/me/enrollments`; do **not** add an "enrol" CTA on paid courses, only "Buy" |
+| Risk                                          | Likelihood | Impact | Mitigation                                                                                                                                     |
+| --------------------------------------------- | ---------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend §11 (cart/checkout) slips             | High       | High   | Build Phase 3 against MSW with the documented contract from `LMS_API_PLAN.md` so frontend is ready the day backend merges                      |
+| WC Subscriptions wrapper delayed              | Medium     | High   | **Confirmed: using WC Subscriptions.** Backend ticket filed. If API not ready by Phase 3, membership plans show "Contact us" CTA as fallback.  |
+| Token refresh race conditions                 | Medium     | High   | Single in-flight `refreshPromise` (§4.4), retry once, hard-logout on second 401                                                                |
+| WP HTML breaks the layout                     | High       | Medium | Sanitize + render in a constrained `prose` container; CSS-isolate with `:where` selectors                                                      |
+| Image hosts blocked by `next/image`           | Medium     | Medium | `next.config.mjs` `remotePatterns` already covers WP host, gravatar, wp.com; add CDN host when set                                             |
+| SEO regression vs current site                | High       | High   | Crawl current site sitemap, build a 301-map from old URLs to new in `next.config.mjs` `redirects()` before launch                              |
+| Cart token vs JWT collision                   | Medium     | Medium | Two distinct stores; never put `Cart-Token` in `Authorization` header                                                                          |
+| Free-course enrol used to bypass paid courses | Low        | High   | Backend already gates on `wplms_course_price == 0` for `POST /users/me/enrollments`; do **not** add an "enrol" CTA on paid courses, only "Buy" |
 
 ---
 
@@ -1383,21 +1393,21 @@ CI gate (GitHub Actions): typecheck → lint → unit → build. Playwright on a
 
 ### Resolved
 
-| # | Question | Decision | Action |
-|---|---|---|---|
-| 1 | Memberships (Monthly £29 / Premium £79) | **WC Subscriptions** | Backend ticket: wrap WC Subscriptions in `/lms-backend/v1/memberships` (list plans, subscribe, cancel, status). Frontend: `/pricing` page calls this API. |
-| 2 | URL slug structure | **Mirror current site exactly** (e.g. `/courses/microsoft-excel-course-online`) | No 301 map needed at launch — slugs match. Confirm WP `post_name` values align before go-live. |
-| 3 | "Trusted by" logo strip | **CMS-driven** | Backend ticket: register `partner_logo` CPT with `title`, `logo` (attachment), `url`. Frontend: fetch via `wp/v2/partner_logo` or a thin `/lms-backend/v1/partners` wrapper. |
-| 4 | Testimonials | **Maintain in WP** (Trustpilot pull deferred) | Backend ticket: register `testimonial` CPT with `content`, `author_name`, `author_role`, `avatar`, `rating`. Frontend: fetch via `wp/v2/testimonial`. |
-| 5 | Cookie-consent compliance | **Not required for V1** | Skip consent banner. GA4 + Vercel Analytics load unconditionally. Revisit if UK ICO requirements tighten or business enters EU market. |
-| 7 | Languages | **English only at launch**, but structure routes for future i18n | Adopt `next-intl` now with `/[locale]/...` routing. Ship with `en` as only supported locale. Config: `locales: ['en'], defaultLocale: 'en'`. Zero user-facing impact, easy expansion later. |
+| #   | Question                                | Decision                                                                        | Action                                                                                                                                                                                      |
+| --- | --------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Memberships (Monthly £29 / Premium £79) | **WC Subscriptions**                                                            | Backend ticket: wrap WC Subscriptions in `/lms-backend/v1/memberships` (list plans, subscribe, cancel, status). Frontend: `/pricing` page calls this API.                                   |
+| 2   | URL slug structure                      | **Mirror current site exactly** (e.g. `/courses/microsoft-excel-course-online`) | No 301 map needed at launch — slugs match. Confirm WP `post_name` values align before go-live.                                                                                              |
+| 3   | "Trusted by" logo strip                 | **CMS-driven**                                                                  | Backend ticket: register `partner_logo` CPT with `title`, `logo` (attachment), `url`. Frontend: fetch via `wp/v2/partner_logo` or a thin `/lms-backend/v1/partners` wrapper.                |
+| 4   | Testimonials                            | **Maintain in WP** (Trustpilot pull deferred)                                   | Backend ticket: register `testimonial` CPT with `content`, `author_name`, `author_role`, `avatar`, `rating`. Frontend: fetch via `wp/v2/testimonial`.                                       |
+| 5   | Cookie-consent compliance               | **Not required for V1**                                                         | Skip consent banner. GA4 + Vercel Analytics load unconditionally. Revisit if UK ICO requirements tighten or business enters EU market.                                                      |
+| 7   | Languages                               | **English only at launch**, but structure routes for future i18n                | Adopt `next-intl` now with `/[locale]/...` routing. Ship with `en` as only supported locale. Config: `locales: ['en'], defaultLocale: 'en'`. Zero user-facing impact, easy expansion later. |
 
 ### Still Open (need answers before Phase 1 kickoff)
 
-| # | Question | Who owns the answer? |
-|---|---|---|
-| 6 | Search-without-results page copy/CTA | Marketing |
-| 8 | Business plan leads destination (HubSpot / Salesforce / email) | Product / Sales |
+| #   | Question                                                       | Who owns the answer? |
+| --- | -------------------------------------------------------------- | -------------------- |
+| 6   | Search-without-results page copy/CTA                           | Marketing            |
+| 8   | Business plan leads destination (HubSpot / Salesforce / email) | Product / Sales      |
 
 Once #6 and #8 are answered, update this section and unblock the `/search` empty-state component and `/contact` route handler implementation.
 
@@ -1482,13 +1492,13 @@ Each item is a PR. Order matters.
 
 These block Phase 1 / Phase 3 — file them immediately:
 
-| Ticket | Blocks | Description |
-|---|---|---|
-| **`Settings_Controller`** | **Phase 0 (white-label)** | `GET /lms-backend/v1/settings` — site name, logo URLs, colors, contact info, social links, currency, locale, feature flags. See §1b for full schema. **Critical for multi-site reusability.** |
-| `partner_logo` CPT | Phase 1 (TrustedBy section) | Register CPT with `title`, `logo` (attachment ID), `url`. Expose via `wp/v2/partner_logo` or `/lms-backend/v1/partners`. |
-| `testimonial` CPT | Phase 1 (Testimonials section) | Register CPT with `content`, `author_name`, `author_role`, `avatar`, `rating` (1-5). Expose via `wp/v2/testimonial`. |
-| WC Subscriptions wrapper | Phase 3 (Memberships) | `GET /memberships/plans`, `POST /memberships/subscribe`, `POST /memberships/cancel`, `GET /users/me/membership`. See §12 in `LMS_API_PLAN.md` for WC function calls. |
-| Cart/Checkout/Orders | Phase 3 (Commerce) | §11 in `LMS_API_PLAN.md` — full cart, order, and payment endpoints. |
+| Ticket                    | Blocks                         | Description                                                                                                                                                                                   |
+| ------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`Settings_Controller`** | **Phase 0 (white-label)**      | `GET /lms-backend/v1/settings` — site name, logo URLs, colors, contact info, social links, currency, locale, feature flags. See §1b for full schema. **Critical for multi-site reusability.** |
+| `partner_logo` CPT        | Phase 1 (TrustedBy section)    | Register CPT with `title`, `logo` (attachment ID), `url`. Expose via `wp/v2/partner_logo` or `/lms-backend/v1/partners`.                                                                      |
+| `testimonial` CPT         | Phase 1 (Testimonials section) | Register CPT with `content`, `author_name`, `author_role`, `avatar`, `rating` (1-5). Expose via `wp/v2/testimonial`.                                                                          |
+| WC Subscriptions wrapper  | Phase 3 (Memberships)          | `GET /memberships/plans`, `POST /memberships/subscribe`, `POST /memberships/cancel`, `GET /users/me/membership`. See §12 in `LMS_API_PLAN.md` for WC function calls.                          |
+| Cart/Checkout/Orders      | Phase 3 (Commerce)             | §11 in `LMS_API_PLAN.md` — full cart, order, and payment endpoints.                                                                                                                           |
 
 ---
 
@@ -1503,6 +1513,7 @@ These block Phase 1 / Phase 3 — file them immediately:
 - Models: `<plugin-root>/includes/Api/Models/`
 
 > **Note:** `<plugin-root>` refers to your local WordPress installation at `wp-content/plugins/lms-backend-rest-api/`. Clone from <https://github.com/Codezen-technology/wp-lms-backend-rest-api>.
+
 - Live site to replicate: <https://trainingexcellence.org.uk/>
 - WPLMS function reference: §"WPLMS Function Reference" in `LMS_API_PLAN.md`
 - Certificate plugin (legacy fallback): `wp-content/plugins/wplms-certificate-automation-aws-support`

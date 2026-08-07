@@ -30,7 +30,7 @@ export function PlayerCourseCompletionStatus({
         type="button"
         onClick={() => finish.mutate()}
         disabled={finish.isPending}
-        className="flex w-full items-center justify-center gap-2 rounded-md bg-player-success px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-600 disabled:opacity-60"
+        className="bg-player-success flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-600 disabled:opacity-60"
       >
         {finish.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         Complete Course

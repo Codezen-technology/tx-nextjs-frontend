@@ -151,14 +151,14 @@ export default function ProfilePage() {
                   <Label htmlFor="first_name">First name</Label>
                   <Input id="first_name" {...register("first_name")} />
                   {errors.first_name ? (
-                    <p className="text-sm text-destructive">{errors.first_name.message}</p>
+                    <p className="text-destructive text-sm">{errors.first_name.message}</p>
                   ) : null}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="last_name">Last name</Label>
                   <Input id="last_name" {...register("last_name")} />
                   {errors.last_name ? (
-                    <p className="text-sm text-destructive">{errors.last_name.message}</p>
+                    <p className="text-destructive text-sm">{errors.last_name.message}</p>
                   ) : null}
                 </div>
               </div>
@@ -167,7 +167,7 @@ export default function ProfilePage() {
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" {...register("email")} />
                 {errors.email ? (
-                  <p className="text-sm text-destructive">{errors.email.message}</p>
+                  <p className="text-destructive text-sm">{errors.email.message}</p>
                 ) : null}
               </div>
 

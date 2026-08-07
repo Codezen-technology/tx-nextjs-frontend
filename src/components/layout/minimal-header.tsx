@@ -30,7 +30,7 @@ export function MinimalHeader() {
               priority
             />
           ) : (
-            <span className="text-center font-suse text-xl font-bold leading-tight text-neutral-30">
+            <span className="font-suse text-neutral-30 text-center text-xl leading-tight font-bold">
               Training <span className="text-primary-400">Excellence</span>
             </span>
           )}

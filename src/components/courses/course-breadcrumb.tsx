@@ -10,17 +10,17 @@ export function CourseBreadcrumb({ course }: CourseBreadcrumbProps) {
   return (
     <nav
       aria-label="Breadcrumb"
-      className="border-b border-neutral-30 bg-white py-2.5 font-open-sans text-sm text-neutral-500"
+      className="border-neutral-30 font-open-sans border-b bg-white py-2.5 text-sm text-neutral-500"
     >
       <ol className="container flex max-w-[1296px] flex-wrap items-center gap-1.5 px-4">
         <li>
-          <Link href="/" className="transition-colors hover:text-primary-600">
+          <Link href="/" className="hover:text-primary-600 transition-colors">
             Home
           </Link>
         </li>
         <li className="flex items-center gap-1.5">
           <ChevronRight className="h-3.5 w-3.5 shrink-0 text-neutral-300" aria-hidden />
-          <Link href="/all-courses" className="transition-colors hover:text-primary-600">
+          <Link href="/all-courses" className="hover:text-primary-600 transition-colors">
             Courses
           </Link>
         </li>
@@ -29,7 +29,7 @@ export function CourseBreadcrumb({ course }: CourseBreadcrumbProps) {
             <ChevronRight className="h-3.5 w-3.5 shrink-0 text-neutral-300" aria-hidden />
             <Link
               href={`/course-cat/${crumb.slug}`}
-              className="transition-colors hover:text-primary-600"
+              className="hover:text-primary-600 transition-colors"
             >
               {crumb.name}
             </Link>

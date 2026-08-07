@@ -51,10 +51,10 @@ export default function ForgotPasswordPage() {
           <div className="flex flex-col items-center gap-3 py-4 text-center">
             <CheckCircle2 className="h-10 w-10 text-emerald-500" />
             <p className="text-sm font-medium">Check your inbox</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               If that email is registered, you&apos;ll receive a reset link shortly.
             </p>
-            <Link href="/login" className="text-sm text-primary hover:underline">
+            <Link href="/login" className="text-primary text-sm hover:underline">
               Back to sign in
             </Link>
           </div>
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
                 {...register("email")}
               />
               {errors.email ? (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-destructive text-sm">{errors.email.message}</p>
               ) : null}
             </div>
 
@@ -80,7 +80,7 @@ export default function ForgotPasswordPage() {
               Send reset link
             </Button>
 
-            <p className="text-center text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-center text-sm">
               <Link href="/login" className="hover:text-primary">
                 Back to sign in
               </Link>

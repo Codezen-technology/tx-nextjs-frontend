@@ -19,7 +19,7 @@ export function PlayerHoverNav({ prev, next, onNavigate, visible }: PlayerHoverN
           type="button"
           onClick={() => onNavigate(prev.id)}
           className={cn(
-            "absolute left-4 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white transition-opacity hover:bg-black/80",
+            "absolute top-1/2 left-4 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white transition-opacity hover:bg-black/80",
             visible ? "opacity-100" : "opacity-0",
           )}
           aria-label="Previous unit"
@@ -32,7 +32,7 @@ export function PlayerHoverNav({ prev, next, onNavigate, visible }: PlayerHoverN
           type="button"
           onClick={() => onNavigate(next.id)}
           className={cn(
-            "absolute right-4 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white transition-opacity hover:bg-black/80",
+            "absolute top-1/2 right-4 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white transition-opacity hover:bg-black/80",
             visible ? "opacity-100" : "opacity-0",
           )}
           aria-label="Next unit"

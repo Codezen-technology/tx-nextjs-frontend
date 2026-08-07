@@ -225,8 +225,8 @@ function CertificateFormInner() {
     return (
       <div className="rounded-2xl border border-green-200 bg-green-50 p-10 text-center">
         <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
-        <h3 className="mt-4 font-suse text-2xl font-bold text-neutral-900">Payment confirmed</h3>
-        <p className="mt-2 font-open-sans text-sm text-neutral-600">
+        <h3 className="font-suse mt-4 text-2xl font-bold text-neutral-900">Payment confirmed</h3>
+        <p className="font-open-sans mt-2 text-sm text-neutral-600">
           Thank you, {contactName.split(" ")[0] || "there"}. Your certificate order is confirmed —
           we&apos;ve emailed your receipt and will be in touch shortly.
         </p>
@@ -278,7 +278,7 @@ function CertificateFormInner() {
       {/* ── Total ───────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between rounded-lg bg-neutral-50 px-4 py-3">
         <span className="font-suse text-base font-semibold text-neutral-900">Total Fee</span>
-        <span className="font-suse text-xl font-bold text-primary-600">
+        <span className="font-suse text-primary-600 text-xl font-bold">
           {money(currency, total)}
         </span>
       </div>
@@ -318,7 +318,7 @@ function CertificateFormInner() {
         {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Pay {money(currency, total)}
       </Button>
-      <p className="text-center font-open-sans text-xs text-neutral-400">
+      <p className="font-open-sans text-center text-xs text-neutral-400">
         Secure payment by Stripe. Your card details never touch our servers.
       </p>
     </div>
@@ -347,7 +347,7 @@ function ProductGroup({
         {product.choices.map((c) => (
           <label
             key={c.value}
-            className="flex items-center gap-2 font-open-sans text-sm text-neutral-700"
+            className="font-open-sans flex items-center gap-2 text-sm text-neutral-700"
           >
             <input
               type="radio"

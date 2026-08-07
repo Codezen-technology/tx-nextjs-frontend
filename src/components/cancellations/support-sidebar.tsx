@@ -30,7 +30,7 @@ function SidebarPanel({
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-6">
       {label ? (
-        <p className="font-open-sans text-[10px] font-semibold uppercase tracking-widest text-neutral-400">
+        <p className="font-open-sans text-[10px] font-semibold tracking-widest text-neutral-400 uppercase">
           {label}
         </p>
       ) : null}
@@ -57,7 +57,7 @@ export function SupportSidebar({ variant = "support", className }: SupportSideba
         ) : null}
         <p className="font-open-sans text-sm font-medium text-neutral-800">Same working day</p>
         {variant === "support" ? (
-          <p className="mt-3 font-open-sans text-xs leading-relaxed text-neutral-500">
+          <p className="font-open-sans mt-3 text-xs leading-relaxed text-neutral-500">
             This route is for problems we can usually fix without making you wait for a refund
             review.
           </p>
@@ -65,7 +65,7 @@ export function SupportSidebar({ variant = "support", className }: SupportSideba
       </SidebarPanel>
 
       <SidebarPanel label="Our commitment">
-        <div className="mt-1 space-y-3 font-open-sans text-sm leading-relaxed text-neutral-600">
+        <div className="font-open-sans mt-1 space-y-3 text-sm leading-relaxed text-neutral-600">
           <p>Every request is read by a real person, not an automated reply.</p>
           <p>We check the account, order, and course details before recommending the next step.</p>
         </div>
@@ -74,8 +74,8 @@ export function SupportSidebar({ variant = "support", className }: SupportSideba
       <SidebarPanel label="What happens next">
         <ol className="mt-3 space-y-4">
           {steps.map((step, i) => (
-            <li key={step} className="flex gap-3 font-open-sans text-sm text-neutral-600">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 font-suse text-xs font-bold text-primary-700">
+            <li key={step} className="font-open-sans flex gap-3 text-sm text-neutral-600">
+              <span className="bg-primary-100 font-suse text-primary-700 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold">
                 {i + 1}
               </span>
               {step}

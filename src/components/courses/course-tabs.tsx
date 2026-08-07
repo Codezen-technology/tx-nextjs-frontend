@@ -44,7 +44,7 @@ export function CourseTabs({ courseId, accreditations, curriculum, sections }: C
 
   return (
     <div className="space-y-8">
-      <div className="sticky z-30 -mx-4 border-b border-neutral-30 bg-white px-4">
+      <div className="border-neutral-30 sticky z-30 -mx-4 border-b bg-white px-4">
         <nav className="flex gap-8 overflow-x-auto">
           {visibleTabs.map((tab) => (
             <button
@@ -52,9 +52,9 @@ export function CourseTabs({ courseId, accreditations, curriculum, sections }: C
               type="button"
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "shrink-0 py-4 font-open-sans text-[15px] font-medium uppercase tracking-wide transition-colors",
+                "font-open-sans shrink-0 py-4 text-[15px] font-medium tracking-wide uppercase transition-colors",
                 activeTab === tab.id
-                  ? "border-b-2 border-secondary-500 text-secondary-600"
+                  ? "border-secondary-500 text-secondary-600 border-b-2"
                   : "border-b-2 border-transparent text-neutral-500 hover:text-neutral-800",
               )}
             >

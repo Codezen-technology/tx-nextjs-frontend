@@ -144,12 +144,12 @@ export function CompletedCourseRow({
         </p>
       )}
       <div className="flex w-full min-w-0 items-center gap-4 py-6">
-        <h3 className="line-clamp-2 min-w-0 max-w-[350px] flex-1 text-[18px] font-bold leading-[1.3] text-[#2e4450]">
+        <h3 className="line-clamp-2 max-w-[350px] min-w-0 flex-1 text-[18px] leading-[1.3] font-bold text-[#2e4450]">
           {course.name}
         </h3>
 
         <div className="flex w-[280px] shrink-0 flex-col gap-2">
-          <span className="whitespace-nowrap text-[18px] font-medium text-[#2e323e]">
+          <span className="text-[18px] font-medium whitespace-nowrap text-[#2e323e]">
             {progress}% Completed
           </span>
           <Progress
@@ -161,7 +161,7 @@ export function CompletedCourseRow({
         <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
           <Link
             href={continueUrl}
-            className="flex h-14 min-w-[140px] max-w-[220px] flex-1 items-center justify-center rounded-lg bg-[#eaecee] text-[18px] font-bold text-[#2e4450] transition hover:bg-[#d8dadc]"
+            className="flex h-14 max-w-[220px] min-w-[140px] flex-1 items-center justify-center rounded-lg bg-[#eaecee] text-[18px] font-bold text-[#2e4450] transition hover:bg-[#d8dadc]"
           >
             Reset Course
           </Link>
@@ -181,7 +181,7 @@ export function CompletedCourseRow({
           {menuOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-              <div className="absolute right-0 top-full z-20 mt-1 min-w-[160px] rounded-lg bg-white py-1 shadow-md ring-1 ring-black/5">
+              <div className="absolute top-full right-0 z-20 mt-1 min-w-[160px] rounded-lg bg-white py-1 shadow-md ring-1 ring-black/5">
                 {!hasPdf && !isUnlocked && (
                   <button
                     type="button"

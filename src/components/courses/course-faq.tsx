@@ -23,12 +23,12 @@ export function CourseFaq({ heading, items }: CourseFaqProps) {
 
   return (
     <div className="space-y-8">
-      <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900 sm:text-[38px]">
+      <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900 sm:text-[38px]">
         {heading ?? "Frequently Asked Questions"}
       </h2>
-      <div className="overflow-hidden rounded-lg border border-neutral-30 bg-white">
+      <div className="border-neutral-30 overflow-hidden rounded-lg border bg-white">
         {items.map((faq, i) => (
-          <div key={i} className="border-b border-neutral-30 last:border-b-0">
+          <div key={i} className="border-neutral-30 border-b last:border-b-0">
             <button
               type="button"
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
@@ -46,9 +46,9 @@ export function CourseFaq({ heading, items }: CourseFaqProps) {
               />
             </button>
             {openIndex === i ? (
-              <div className="border-t border-neutral-30 bg-neutral-10 px-6 py-6">
+              <div className="border-neutral-30 bg-neutral-10 border-t px-6 py-6">
                 <div
-                  className="prose prose-neutral max-w-none font-open-sans text-sm leading-relaxed text-neutral-700"
+                  className="prose prose-neutral font-open-sans max-w-none text-sm leading-relaxed text-neutral-700"
                   dangerouslySetInnerHTML={{ __html: faq.answer }}
                 />
               </div>
