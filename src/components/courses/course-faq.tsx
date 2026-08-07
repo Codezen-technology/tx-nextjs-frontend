@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Minus, Plus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils/cn";
 
 interface FaqItem {
   question: string;
@@ -22,12 +23,12 @@ export function CourseFaq({ heading, items }: CourseFaqProps) {
 
   return (
     <div className="space-y-8">
-      <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-neutral-900">
+      <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900 sm:text-[38px]">
         {heading ?? "Frequently Asked Questions"}
       </h2>
-      <div className="border-secondary-50 bg-secondary-50 overflow-hidden rounded-lg border">
+      <div className="overflow-hidden rounded-lg border border-neutral-30 bg-white">
         {items.map((faq, i) => (
-          <div key={i} className="border-secondary-50 border-b last:border-b-0">
+          <div key={i} className="border-b border-neutral-30 last:border-b-0">
             <button
               type="button"
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
@@ -37,16 +38,17 @@ export function CourseFaq({ heading, items }: CourseFaqProps) {
               <span className="font-open-sans text-base font-medium text-neutral-900">
                 {faq.question}
               </span>
-              {openIndex === i ? (
-                <Minus className="text-secondary-500 h-5 w-5 shrink-0" />
-              ) : (
-                <Plus className="text-secondary-500 h-5 w-5 shrink-0" />
-              )}
+              <ChevronDown
+                className={cn(
+                  "h-5 w-5 shrink-0 text-neutral-500 transition-transform duration-200",
+                  openIndex === i && "rotate-180",
+                )}
+              />
             </button>
             {openIndex === i ? (
-              <div className="border-secondary-50 bg-secondary-100 m-4 border-t px-6 py-6">
+              <div className="border-t border-neutral-30 bg-neutral-10 px-6 py-6">
                 <div
-                  className="prose prose-neutral font-open-sans max-w-none text-sm leading-relaxed text-neutral-600"
+                  className="prose prose-neutral max-w-none font-open-sans text-sm leading-relaxed text-neutral-700"
                   dangerouslySetInnerHTML={{ __html: faq.answer }}
                 />
               </div>

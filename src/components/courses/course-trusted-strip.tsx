@@ -1,19 +1,17 @@
-import Image from "next/image";
-
 const BADGES = [
-  { label: "Fully Accredited", icon: "/icons/star.svg" },
-  { label: "Instant Certificate", icon: "/icons/wifi.svg" },
-  { label: "Engaging video lectures", icon: "/icons/medal.svg" },
-  { label: "Money-Back Guarantee", icon: "/icons/money-back.svg" },
+  "Fully Accredited",
+  "Instant Certificate",
+  "Engaging video lectures",
+  "Money-Back Guarantee",
 ];
 
 export function CourseTrustedStrip() {
   return (
-    <div className="border-neutral-30 bg-neutral-10 font-open-sans border-b py-2 text-sm text-neutral-700">
-      <ul className="container flex max-w-324 flex-wrap items-center justify-between gap-x-6 gap-y-1 px-4">
-        {BADGES.map(({ label, icon }) => (
+    <div className="border-b border-neutral-30 bg-neutral-10 py-2 font-open-sans text-sm text-neutral-700">
+      <ul className="container flex max-w-[1296px] flex-wrap items-center justify-center gap-x-6 gap-y-1 px-4">
+        {BADGES.map((label) => (
           <li key={label} className="flex items-center gap-2">
-            <Image src={icon} alt="" aria-hidden="true" width={16} height={16} />
+            <span className="h-1.5 w-1.5 rounded-full bg-primary-500" aria-hidden />
             {label}
           </li>
         ))}

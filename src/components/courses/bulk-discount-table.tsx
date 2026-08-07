@@ -1,5 +1,6 @@
 "use client";
 
+import { Users } from "lucide-react";
 import { useBulkTiers } from "@/lib/hooks/useBulkTiers";
 import { cn } from "@/lib/utils/cn";
 import type { BulkTier } from "@/types/cart-rules";
@@ -24,7 +25,7 @@ export function BulkDiscountTable({
 
   if (isLoading) {
     return (
-      <div className={cn("flex flex-col gap-4", className)}>
+      <div className={cn("space-y-2", className)}>
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="bg-neutral-20 h-10 animate-pulse rounded" />
         ))}
@@ -35,34 +36,33 @@ export function BulkDiscountTable({
   if (!tiers || tiers.length === 0) return null;
 
   return (
-    <div className={cn("mt-4 flex flex-col", className)}>
-      <div className="bg-neutral-40 font-open-sans flex items-center justify-between px-2 py-1.5 text-[14px] font-semibold text-neutral-900">
-        <span className="w-25.25">Quantity</span>
-        <span>Save</span>
-        <div className="w-14.5 text-center leading-tight">
-          <span className="block">Price</span>
-          <span className="block text-[10px] font-normal">(per person)</span>
-        </div>
+    <div className={cn("border-neutral-30 overflow-hidden rounded-xl border", className)}>
+      <div className="bg-primary-50 font-open-sans text-primary-700 grid grid-cols-[1.2fr_1fr_1fr] px-4 py-2.5 text-xs font-semibold tracking-wide uppercase">
+        <span>Quantity</span>
+        <span className="text-right">Price</span>
+        <span className="text-right">Bulk Discount</span>
       </div>
-      <div className="bg-neutral-20 flex flex-col gap-4 px-2.5 py-3">
-        {tiers.map((tier, i) => {
-          const price = unitPrice * (1 - tier.percentage / 100);
-          return (
-            <div key={i} className="flex items-center justify-between">
-              <span className="font-open-sans flex w-25.25 items-center gap-2 text-[14px] font-semibold text-neutral-500">
-                {tierLabel(tier)}
-              </span>
-              <span className="rounded-[20px] bg-neutral-700 px-2 py-0.5 text-[12px] leading-4 font-bold text-white">
-                {tier.percentage}%
-              </span>
-              <span className="font-open-sans w-14.5 text-right text-[14px] font-bold text-neutral-900">
-                {currency}
-                {price.toFixed(2)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      {tiers.map((tier, i) => {
+        const price = unitPrice * (1 - tier.percentage / 100);
+        return (
+          <div
+            key={i}
+            className="border-neutral-30 font-open-sans grid grid-cols-[1.2fr_1fr_1fr] items-center border-t px-4 py-3 text-sm"
+          >
+            <span className="inline-flex items-center gap-1.5 text-neutral-700">
+              <Users className="text-primary-500 h-3.5 w-3.5" />
+              {tierLabel(tier)}
+            </span>
+            <span className="text-right font-bold text-neutral-900">
+              {currency}
+              {price.toFixed(2)}
+            </span>
+            <span className="text-secondary-600 text-right font-semibold">
+              Save {tier.percentage}%
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }

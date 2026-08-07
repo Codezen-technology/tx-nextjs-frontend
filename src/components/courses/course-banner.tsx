@@ -2,14 +2,12 @@ import { SafeImage } from "@/components/ui/safe-image";
 import { isRenderableImageSrc } from "@/lib/utils/image";
 import { publicImageExists } from "@/lib/utils/public-image.server";
 import { cn } from "@/lib/utils/cn";
-import { Star, Wifi } from "lucide-react";
+import { Star, Users, Wifi } from "lucide-react";
 import type { CourseRichData } from "@/types/course";
 
 const TRUST_BADGES = [
   { src: "/images/cpd-logo.png", label: "CPD" },
   { src: "/images/ukrlp-logo.png", label: "UKRLP" },
-  { src: "/images/disability.png", label: "Disability" },
-  { src: "/images/aoht.png", label: "AOHT" },
 ] as const;
 
 const FEATURES_LEFT = [
@@ -28,7 +26,8 @@ const FEATURES_RIGHT = [
 ];
 
 /** Figma node 256:11794 — Rectangle 9 overlay on course banner */
-const BANNER_OVERLAY_GRADIENT = "linear-gradient(88deg, #00204A 0%, #004F65 100.15%)";
+const BANNER_OVERLAY_GRADIENT =
+  "linear-gradient(83.86deg, rgba(0, 32, 74, 0.8) 0%, rgba(0, 79, 101, 0.8) 100.15%)";
 
 interface CourseBannerProps {
   src?: string | null;
@@ -38,6 +37,8 @@ interface CourseBannerProps {
 
 export function CourseBanner({ src, alt, course }: CourseBannerProps) {
   const hasImage = isRenderableImageSrc(src);
+  const primaryAccreditation = course?.accreditations?.[0];
+  const showFeatured = hasImage && !isRenderableImageSrc(primaryAccreditation?.logo);
 
   const updatedLabel = (() => {
     if (!course?.updatedAt) return null;
@@ -53,9 +54,28 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
 
   return (
     <section
-      className={cn("relative w-full overflow-hidden", !course && "h-70 sm:h-95 lg:h-120")}
+      className={cn(
+        "relative w-full overflow-hidden",
+        !course && "h-[280px] sm:h-[380px] lg:h-[480px]",
+      )}
       aria-label="Course banner"
     >
+      {/* Background: featured image */}
+      <div className="absolute inset-0">
+        {hasImage ? (
+          <SafeImage
+            src={src!}
+            alt={alt}
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-neutral-900" aria-hidden />
+        )}
+      </div>
+
       {/* Brand tint — Figma 256:11794 */}
       <div
         className="absolute inset-0"
@@ -65,14 +85,24 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
 
       {/* Course overview — Figma 256:11832 */}
       {course && (
-        <div className="relative z-10 mx-auto max-w-324 px-4 pt-10 pb-20 lg:pt-14 lg:pb-24">
-          <div className="flex flex-col gap-6 lg:max-w-241.5 lg:flex-row lg:gap-6">
+        <div className="relative z-10 mx-auto max-w-[1296px] px-4 pt-10 pb-20 lg:pt-14 lg:pb-24">
+          <div className="flex flex-col gap-6 lg:max-w-[966px] lg:flex-row lg:gap-6">
             {/* Left col: thumbnail + trust — desktop only */}
-            <div className="hidden w-76.5 shrink-0 space-y-4 lg:block">
-              <div className="overflow-hidden border border-white/20 bg-white p-2">
-                {hasImage ? (
-                  <div className="relative aspect-290/188 w-full overflow-hidden bg-neutral-900">
+            <div className="hidden w-[306px] shrink-0 space-y-4 lg:block">
+              <div className="overflow-hidden rounded-lg border border-white/20 bg-white p-2">
+                {showFeatured ? (
+                  <div className="relative aspect-290/188 w-full overflow-hidden rounded-md bg-neutral-900">
                     <SafeImage src={src!} alt="" fill sizes="306px" className="object-cover" />
+                  </div>
+                ) : isRenderableImageSrc(primaryAccreditation?.logo) ? (
+                  <div className="relative flex aspect-290/188 items-center justify-center rounded-md bg-white p-4">
+                    <SafeImage
+                      src={primaryAccreditation!.logo}
+                      alt={primaryAccreditation!.label}
+                      width={160}
+                      height={80}
+                      className="object-contain"
+                    />
                   </div>
                 ) : (
                   <div className="flex aspect-290/188 items-center justify-center rounded-md bg-neutral-800 text-sm text-white/60">
@@ -91,11 +121,11 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                 </p>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 {TRUST_BADGES.map((badge) => (
                   <div
                     key={badge.src}
-                    className="flex h-14 w-17.5 items-center justify-center rounded border border-white/20 bg-white"
+                    className="flex h-[56px] w-[70px] items-center justify-center rounded border border-white/20 bg-white"
                   >
                     {publicImageExists(badge.src) ? (
                       <SafeImage
@@ -112,6 +142,22 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                     )}
                   </div>
                 ))}
+                {course.accreditations?.slice(0, 2).map((acc) =>
+                  isRenderableImageSrc(acc.logo) ? (
+                    <div
+                      key={acc.slug}
+                      className="flex h-[56px] w-[70px] items-center justify-center rounded border border-white/20 bg-white p-1"
+                    >
+                      <SafeImage
+                        src={acc.logo}
+                        alt={acc.label}
+                        width={44}
+                        height={44}
+                        className="object-contain"
+                      />
+                    </div>
+                  ) : null,
+                )}
               </div>
             </div>
 
@@ -121,26 +167,22 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                 {course.title}
               </h1>
 
-              {course.rating || course.studentsCount ? (
+              {course.rating !== undefined && (
                 <div className="font-open-sans mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-base">
-                  {course.rating ? (
-                    <>
-                      <span className="font-bold text-amber-400">{course.rating.toFixed(1)}</span>
-                      <span className="flex gap-0.5" aria-hidden>
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
-                            key={i}
-                            className={cn(
-                              "h-4 w-4",
-                              i < Math.round(course.rating ?? 0)
-                                ? "fill-[#FFC107] text-[#FFC107]"
-                                : "text-white/30",
-                            )}
-                          />
-                        ))}
-                      </span>
-                    </>
-                  ) : null}
+                  <span className="font-bold text-amber-400">{course.rating.toFixed(1)}</span>
+                  <span className="flex gap-0.5" aria-hidden>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={cn(
+                          "h-4 w-4",
+                          i < Math.round(course.rating!)
+                            ? "fill-amber-400 text-amber-400"
+                            : "text-white/30",
+                        )}
+                      />
+                    ))}
+                  </span>
                   {course.ratingCount ? (
                     <span className="text-secondary-100 underline">
                       ({course.ratingCount.toLocaleString()} ratings)
@@ -148,11 +190,12 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                   ) : null}
                   {course.studentsCount ? (
                     <span className="flex items-center gap-1 text-white">
+                      <Users className="h-4 w-4" aria-hidden />
                       {course.studentsCount.toLocaleString()} Students
                     </span>
                   ) : null}
                 </div>
-              ) : null}
+              )}
 
               {/* Features grid — desktop only */}
               <div className="mt-6 hidden lg:grid lg:grid-cols-2 lg:gap-x-8 lg:gap-y-3">

@@ -12,9 +12,6 @@ interface NavItem {
 interface CourseTabNavProps {
   accreditations: CourseAccreditation[];
   curriculum: CourseFlatCurriculumItem[];
-  /** Whether the `#course-content` block (what you'll learn / at a glance) is rendered. */
-  hasCourseContent: boolean;
-  /** Whether the `#sneak-peek` gallery is rendered. */
   hasScreenshots: boolean;
   hasReviews: boolean;
   sections: CourseSections | null;
@@ -24,7 +21,6 @@ interface CourseTabNavProps {
 export function CourseTabNav({
   accreditations,
   curriculum,
-  hasCourseContent,
   hasScreenshots,
   hasReviews,
   sections,
@@ -34,8 +30,7 @@ export function CourseTabNav({
 
   const items: NavItem[] = [
     ...(accreditations.length ? [{ id: "accreditations", label: "Accreditations" }] : []),
-    ...(hasCourseContent ? [{ id: "course-content", label: "Course Content" }] : []),
-    ...(hasScreenshots ? [{ id: "sneak-peek", label: "Sneak Peek" }] : []),
+    ...(hasScreenshots ? [{ id: "course-content", label: "Course Content" }] : []),
     ...(curriculum.length ? [{ id: "curriculum", label: "Course Curriculum" }] : []),
     ...(sections?.who_should_take?.items?.length
       ? [{ id: "suitable-for", label: "Suitable For" }]
@@ -83,18 +78,18 @@ export function CourseTabNav({
   }
 
   return (
-    <div className="bg-primary-50 sticky top-0 z-30 mt-12 px-4 py-4">
-      <nav className="flex flex-wrap gap-10 overflow-x-auto" aria-label="Course sections">
+    <div className="sticky top-0 z-30 -mx-4 mt-12 bg-white px-4 py-4">
+      <nav className="flex flex-wrap gap-2.5 overflow-x-auto" aria-label="Course sections">
         {items.map((item) => (
           <button
             key={item.id}
             type="button"
             onClick={() => scrollTo(item.id)}
             className={cn(
-              "shrink-0 transition-colors",
+              "shrink-0 rounded px-5 py-2 font-open-sans text-sm font-semibold transition-colors",
               active === item.id
-                ? "bg-primary-500 font-suse rounded-lg px-3 py-2 text-base leading-[1.2] font-bold text-white"
-                : "font-open-sans hover:text-primary-500 text-[15px] leading-none font-bold text-neutral-900",
+                ? "bg-primary-600 text-white"
+                : "bg-primary-500 text-white hover:bg-primary-600",
             )}
           >
             {item.label}

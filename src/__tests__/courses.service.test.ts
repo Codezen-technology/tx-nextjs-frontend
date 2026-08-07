@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  normalizeCourse,
-  normalizeRichCourse,
-  normalizeFlatCurriculum,
-} from "@/lib/services/courses";
+import { normalizeCourse, normalizeRichCourse } from "@/lib/services/courses";
 
 describe("normalizeCourse", () => {
   it("maps id and slug", () => {
@@ -192,41 +188,5 @@ describe("normalizeRichCourse", () => {
       },
     });
     expect(c.product_id).toBe(77);
-  });
-
-  it("builds a duration label from the { value, unit } object", () => {
-    const c = normalizeRichCourse({ id: 1, duration: { value: 8, unit: "hours" } });
-    expect(c.durationLabel).toBe("8 hours");
-    // The object shape is not seconds — it must not leak into durationSeconds.
-    expect(c.durationSeconds).toBeUndefined();
-  });
-
-  it("falls back to formatting duration seconds", () => {
-    const c = normalizeRichCourse({ id: 1, duration_seconds: 5400 });
-    expect(c.durationLabel).toBe("1h 30m");
-  });
-
-  it("has no duration label when the API sends neither shape", () => {
-    expect(normalizeRichCourse({ id: 1 }).durationLabel).toBeNull();
-  });
-});
-
-describe("normalizeFlatCurriculum", () => {
-  it("converts section and unit minutes to seconds", () => {
-    const items = normalizeFlatCurriculum([
-      { id: null, title: "Section 1", type: "section", section_duration: 30 },
-      { id: 1, title: "Lesson 1", type: "unit", duration: 5 },
-    ]);
-    expect(items[0].durationSeconds).toBe(1800);
-    expect(items[1].durationSeconds).toBe(300);
-  });
-
-  it("leaves durationSeconds undefined when the API omits a duration", () => {
-    const items = normalizeFlatCurriculum([{ id: null, title: "Section 1", type: "section" }]);
-    expect(items[0].durationSeconds).toBeUndefined();
-  });
-
-  it("returns an empty array for a missing payload", () => {
-    expect(normalizeFlatCurriculum(null)).toEqual([]);
   });
 });

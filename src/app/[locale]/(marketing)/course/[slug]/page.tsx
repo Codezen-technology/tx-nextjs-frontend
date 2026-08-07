@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { serverApi } from "@/lib/api/server";
-import { normalizeRichCourse, normalizeFlatCurriculum } from "@/lib/services/courses";
+import { normalizeRichCourse } from "@/lib/services/courses";
 import { truncate, stripHtml } from "@/lib/utils/format";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { wpPath } from "@/lib/seo/wp-paths";
@@ -157,9 +157,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
   if (courseResult.status === "rejected") notFound();
   const course = normalizeRichCourse(courseResult.value);
   const sections = sectionsResult.status === "fulfilled" ? sectionsResult.value : null;
-  const curriculum = normalizeFlatCurriculum(
-    curriculumResult.status === "fulfilled" ? curriculumResult.value : [],
-  );
+  const curriculum = curriculumResult.status === "fulfilled" ? (curriculumResult.value ?? []) : [];
   const rmSeo = seoResult.status === "fulfilled" ? seoResult.value : null;
 
   const accreditations = course.accreditations ?? [];
@@ -204,7 +202,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
             {/* ── What you'll learn + About ── */}
             {whatYouLearn || sections?.at_a_glance ? (
-              <div id="course-content" className="mt-10 space-y-10">
+              <div className="mt-10 space-y-10">
                 {whatYouLearn ? <CourseWhatYouLearn html={whatYouLearn} /> : null}
                 {sections?.at_a_glance ? (
                   <CourseAbout heading={sections.description_heading} html={sections.at_a_glance} />
@@ -216,7 +214,6 @@ export default async function CourseDetailPage({ params }: PageProps) {
             <CourseTabNav
               accreditations={accreditations}
               curriculum={curriculum}
-              hasCourseContent={Boolean(whatYouLearn || sections?.at_a_glance)}
               hasScreenshots={screenshots.length > 0}
               hasReviews={!!course.ratingCount}
               sections={sections}
@@ -230,10 +227,10 @@ export default async function CourseDetailPage({ params }: PageProps) {
               </section>
             ) : null}
 
-            {/* ── Sneak Peek (screenshots) ── */}
+            {/* ── Course in action (screenshots) ── */}
             {screenshots.length > 0 ? (
-              <section id="sneak-peek" className="mt-16 scroll-mt-28">
-                <CourseScreenshots screenshots={screenshots} caption={sections?.sneak_peek_text} />
+              <section id="course-content" className="mt-16 scroll-mt-28">
+                <CourseScreenshots screenshots={screenshots} />
               </section>
             ) : null}
 
