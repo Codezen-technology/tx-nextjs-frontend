@@ -102,7 +102,7 @@ export default function AllCoursesPage() {
         {subscription?.active_subscription && (
           <Link
             href="/dashboard/subscription"
-            className="text-sm font-semibold text-lms-secondary hover:underline"
+            className="text-lms-secondary text-sm font-semibold hover:underline"
           >
             View Subscription Status ↗
           </Link>

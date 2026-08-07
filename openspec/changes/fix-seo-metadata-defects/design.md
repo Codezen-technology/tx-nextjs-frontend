@@ -15,7 +15,7 @@ Constraints that shape the approach:
 
 **Goals:**
 
-- Make a wrong WP path mapping a *safe degrade* (fallback metadata) rather than *confidently wrong output* (another page's canonical).
+- Make a wrong WP path mapping a _safe degrade_ (fallback metadata) rather than _confidently wrong output_ (another page's canonical).
 - Reconcile canonical, `og:url`, JSON-LD `@id`, and `sitemap.xml` on one URL form, enforced in one function.
 - Make the WP↔Next path mapping table executable — a test, not a comment in `SEO.md`.
 
@@ -47,7 +47,7 @@ if (seo.canonical) {
 
 Placed in `fetchRankMathSeo` rather than in `parseRankMathHead`, because the parser is a pure HTML→object function with no knowledge of what was requested.
 
-*Alternatives considered.* Comparing titles against page data — fuzzy and locale-dependent. Checking `og:url` instead — same information, less reliably present. Passing an expected-title assertion from each call site — pushes the burden onto every page and will be forgotten on the next route added.
+_Alternatives considered._ Comparing titles against page data — fuzzy and locale-dependent. Checking `og:url` instead — same information, less reliably present. Passing an expected-title assertion from each call site — pushes the burden onto every page and will be forgotten on the next route added.
 
 ### D2 — A missing canonical is not a mismatch
 
@@ -57,7 +57,7 @@ But a missing canonical is also the legitimate shape for a `noindex` page: the l
 
 Decision: **accept a canonical-less payload, and rely on D3 to make it moot.** Once the category path mapping is fixed, the 404 head is never requested. The `robots` passthrough stays intact for genuinely noindexed pages.
 
-*Trade-off accepted:* a future wrong path mapping that happens to hit a noindexed WP URL will still slip through the guard. D4's tests are the backstop for that case.
+_Trade-off accepted:_ a future wrong path mapping that happens to hit a noindexed WP URL will still slip through the guard. D4's tests are the backstop for that case.
 
 ### D3 — Fix the path mappings and pin them in a single exported table
 
@@ -79,7 +79,7 @@ export const wpPath = {
 
 Every mapping in the table was verified against production sitemaps and `getHead` probes (see `SEO_AUDIT.md` — Method). Trailing slashes are included because that is what WordPress serves; D1 normalises before comparing, so either form matches, but storing the true form keeps the table honest as documentation.
 
-*Alternative considered:* deriving the WP path from the `link` field WordPress returns per entity. More robust in principle, but it requires the entity fetch to complete before the SEO fetch, serialising two requests that `Promise.all` currently runs in parallel — a real TTFB cost on every page. Rejected.
+_Alternative considered:_ deriving the WP path from the `link` field WordPress returns per entity. More robust in principle, but it requires the entity fetch to complete before the SEO fetch, serialising two requests that `Promise.all` currently runs in parallel — a real TTFB cost on every page. Rejected.
 
 ### D4 — Test the mapping contract, not the network
 
@@ -102,13 +102,13 @@ function canonicalize(url: string): string {
 
 `src/lib/utils/url.ts` keeps its current verbatim-path behaviour: content links must round-trip WordPress URLs unchanged, and rewriting slashes there would silently alter every service-normalised permalink.
 
-*Alternative considered:* setting `trailingSlash: true` in `next.config.mjs` to match WordPress. This makes canonicals correct with no code change, but rewrites every internal `<Link>` target, every sitemap entry, and every existing indexed URL on the frontend — a far larger recrawl event for the same outcome. Rejected.
+_Alternative considered:_ setting `trailingSlash: true` in `next.config.mjs` to match WordPress. This makes canonicals correct with no code change, but rewrites every internal `<Link>` target, every sitemap entry, and every existing indexed URL on the frontend — a far larger recrawl event for the same outcome. Rejected.
 
 ### D6 — Sitemap freshness from data already fetched
 
 The sitemap's three data sources already return modification timestamps: courses expose `date_modified` (Unix seconds — confirmed in the live API response), WP posts expose `modified_gmt`. Taxonomy terms expose none; those and the static routes use a build-stamped constant rather than a per-request `new Date()`.
 
-*Alternative considered:* proxying WordPress's own `course-sitemap*.xml` `<lastmod>` values. Accurate, but adds N sitemap fetches to a request that already makes three API calls, for a signal search engines treat as advisory. Rejected.
+_Alternative considered:_ proxying WordPress's own `course-sitemap*.xml` `<lastmod>` values. Accurate, but adds N sitemap fetches to a request that already makes three API calls, for a signal search engines treat as advisory. Rejected.
 
 ### D7 — Noindex on leaf layouts; disallow in `robots.ts`
 

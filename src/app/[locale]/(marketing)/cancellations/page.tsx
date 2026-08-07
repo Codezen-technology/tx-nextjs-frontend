@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
   const seo = await fetchRankMathSeo(wpPath.page("cancellations"));
   return buildPageMetadata(seo, {
-    title: "Cancellations & Refunds | Training Excellence",
+    title: "Cancellations & Refunds",
     description:
       "Need to cancel or request a refund? Start with quick support for access, billing, or course issues — or submit a refund request when that is the right next step.",
     canonical: `${env.SITE_URL.replace(/\/$/, "")}/cancellations`,

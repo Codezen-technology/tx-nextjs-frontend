@@ -29,7 +29,9 @@ export async function generateMetadata(): Promise<Metadata> {
     });
   } catch (error) {
     return {
-      title: env.SITE_NAME || "Training Excellence — Online Courses",
+      // `absolute` — the homepage title is the brand; the root layout's
+      // `%s | siteName` template would otherwise repeat it.
+      title: { absolute: env.SITE_NAME || "Training Excellence — Online Courses" },
       description:
         "Fully accredited online training courses in health & safety, food hygiene, safeguarding, mental health and more. Trusted by thousands across the UK.",
     };

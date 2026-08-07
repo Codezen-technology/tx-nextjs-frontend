@@ -19,7 +19,7 @@ export async function SiteShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-svh flex-col">
       <ImpersonationBanner />
       <SiteHeader categories={categories} />
-      <main className="flex-1 bg-neutral-10">{children}</main>
+      <main className="bg-neutral-10 flex-1">{children}</main>
       <SiteFooter />
     </div>
   );

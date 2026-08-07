@@ -32,7 +32,7 @@ export function BundleAddToCart({ productId, className }: BundleAddToCartProps) 
       disabled={addToCart.isPending}
       className={
         className ??
-        "inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-500 px-6 py-3.5 font-open-sans text-base font-semibold text-white transition-colors hover:bg-primary-600 disabled:opacity-60"
+        "bg-primary-500 font-open-sans hover:bg-primary-600 inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-base font-semibold text-white transition-colors disabled:opacity-60"
       }
     >
       {addToCart.isPending ? (

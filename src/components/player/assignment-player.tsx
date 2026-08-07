@@ -163,7 +163,7 @@ export function AssignmentPlayer({ courseId, assignmentId, title }: AssignmentPl
                   e.preventDefault();
                   onPick(e.dataTransfer.files);
                 }}
-                className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-gray-600 p-8 text-center text-sm text-gray-400 transition-colors hover:border-player-primary hover:bg-gray-900"
+                className="hover:border-player-primary flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-gray-600 p-8 text-center text-sm text-gray-400 transition-colors hover:bg-gray-900"
               >
                 <Upload className="h-6 w-6" />
                 <span>Drop files or click to upload</span>

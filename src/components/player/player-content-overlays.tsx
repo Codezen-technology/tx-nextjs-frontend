@@ -24,7 +24,7 @@ export const PlayerContentOverlays = memo(function PlayerContentOverlays({
           type="button"
           onClick={() => onNavigate(prev.id)}
           className={cn(
-            "absolute left-4 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity hover:bg-black/80 group-hover:opacity-100",
+            "absolute top-1/2 left-4 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/80",
           )}
           aria-label="Previous unit"
         >
@@ -36,7 +36,7 @@ export const PlayerContentOverlays = memo(function PlayerContentOverlays({
           type="button"
           onClick={() => onNavigate(next.id)}
           className={cn(
-            "absolute right-4 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity hover:bg-black/80 group-hover:opacity-100",
+            "absolute top-1/2 right-4 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/80",
           )}
           aria-label="Next unit"
         >

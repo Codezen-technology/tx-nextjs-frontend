@@ -8,7 +8,7 @@ interface FormUnavailableMessageProps {
 /** Shown when a GF form id is missing or the schema cannot be loaded. */
 export function FormUnavailableMessage({ supportEmail, formLabel }: FormUnavailableMessageProps) {
   return (
-    <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 font-open-sans text-sm text-amber-900">
+    <div className="font-open-sans rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
       The {formLabel} is not configured yet. Please{" "}
       {supportEmail ? (
         <>

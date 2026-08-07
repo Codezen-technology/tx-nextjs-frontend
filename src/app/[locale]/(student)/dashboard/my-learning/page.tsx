@@ -156,19 +156,19 @@ export default function MyLearningPage() {
         <TabsList className="h-auto w-full justify-start gap-0 rounded-none bg-transparent p-0">
           <TabsTrigger
             value="active"
-            className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-lms-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className="data-[state=active]:border-lms-primary rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
           >
             Active Training ({counters.active})
           </TabsTrigger>
           <TabsTrigger
             value="completed"
-            className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-lms-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className="data-[state=active]:border-lms-primary rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
           >
             Completed Training ({counters.completed})
           </TabsTrigger>
           <TabsTrigger
             value="certificates"
-            className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-lms-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className="data-[state=active]:border-lms-primary rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
           >
             Certificates ({counters.certificates})
           </TabsTrigger>
@@ -249,7 +249,7 @@ export default function MyLearningPage() {
             <>
               {/* Column headers */}
               <div className="mt-2 flex w-full min-w-0 items-center gap-4">
-                <span className="min-w-0 max-w-[350px] flex-1 text-2xl font-bold text-[#2e4450]">
+                <span className="max-w-[350px] min-w-0 flex-1 text-2xl font-bold text-[#2e4450]">
                   Course
                 </span>
                 <span className="w-[280px] shrink-0 text-2xl font-bold text-[#2e4450]">
@@ -270,7 +270,7 @@ export default function MyLearningPage() {
             <>
               {/* Column headers */}
               <div className="mt-2 flex w-full min-w-0 items-center gap-4">
-                <span className="min-w-0 max-w-[350px] flex-1 text-2xl font-bold text-[#2e4450]">
+                <span className="max-w-[350px] min-w-0 flex-1 text-2xl font-bold text-[#2e4450]">
                   Course
                 </span>
                 <span className="w-[280px] shrink-0 text-2xl font-bold text-[#2e4450]">
@@ -323,7 +323,7 @@ export default function MyLearningPage() {
                   type="button"
                   onClick={() => handleCertFilterChange(value)}
                   className={[
-                    "flex items-center gap-1.5 rounded-[20px] px-4 py-2 text-[13px] font-semibold leading-none transition",
+                    "flex items-center gap-1.5 rounded-[20px] px-4 py-2 text-[13px] leading-none font-semibold transition",
                     active
                       ? "bg-[#3f4d97] text-white hover:bg-[#0f217d]"
                       : "border border-[#d0d5df] bg-[#f6f6fa] text-[#2e4450] hover:bg-[#eef0f9]",
@@ -333,7 +333,7 @@ export default function MyLearningPage() {
                   {count !== null && (
                     <span
                       className={[
-                        "inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[9px] px-1 text-[11px] font-bold leading-none",
+                        "inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[9px] px-1 text-[11px] leading-none font-bold",
                         active ? "bg-white/25 text-white" : "bg-[#e2e8ee] text-[#2e4450]",
                       ].join(" ")}
                     >

@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: BundlePageProps): Promise<Met
     ]);
     const bundle = normalizeBundleDetail(raw);
     return buildPageMetadata(seo, {
-      title: `${bundle.title} | Training Excellence`,
+      title: bundle.title,
       description:
         bundle.excerpt ||
         `${bundle.title} — ${bundle.includedCoursesCount} accredited courses in one discounted bundle.`,

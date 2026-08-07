@@ -127,7 +127,7 @@ export function CertificateCard({
 
   return (
     <div className="flex items-center justify-between border-b border-[#eaecee] py-6">
-      <p className="w-[260px] shrink-0 text-[18px] font-bold leading-[1.3] text-[#2e4450]">
+      <p className="w-[260px] shrink-0 text-[18px] leading-[1.3] font-bold text-[#2e4450]">
         {certificate.title}
       </p>
 
@@ -173,7 +173,7 @@ export function CertificateCard({
         {menuOpen && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-            <div className="absolute right-0 top-full z-20 mt-1 min-w-[160px] rounded-2xl bg-white py-2 shadow-[0_4px_20px_rgba(0,0,0,0.1)] ring-1 ring-black/5">
+            <div className="absolute top-full right-0 z-20 mt-1 min-w-[160px] rounded-2xl bg-white py-2 shadow-[0_4px_20px_rgba(0,0,0,0.1)] ring-1 ring-black/5">
               {certAvailable && (
                 <>
                   <button

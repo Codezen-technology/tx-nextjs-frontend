@@ -17,7 +17,7 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
   const { q: qParam } = await searchParams;
   const q = qParam?.trim() ?? "";
   return {
-    title: q ? `Search results for "${q}" | Training Excellence` : "Search | Training Excellence",
+    title: q ? `Search results for "${q}"` : "Search",
     robots: { index: false },
   };
 }

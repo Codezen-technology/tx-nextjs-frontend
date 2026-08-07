@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
   const seo = await fetchRankMathSeo(wpPath.page("bundles"));
   return buildPageMetadata(seo, {
-    title: "Course Bundles | Training Excellence",
+    title: "Course Bundles",
     description:
       "Save with our accredited course bundles — multiple online courses grouped together at one discounted price. Instant certificates on completion.",
     canonical: `${env.SITE_URL.replace(/\/$/, "")}/bundles`,

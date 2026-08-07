@@ -11,8 +11,8 @@ function SuccessSteps() {
   return (
     <ol className="mt-4 space-y-4">
       {SUCCESS_STEPS.map((step, i) => (
-        <li key={step} className="flex gap-3 font-open-sans text-sm text-neutral-600">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 font-suse text-xs font-bold text-primary-700">
+        <li key={step} className="font-open-sans flex gap-3 text-sm text-neutral-600">
+          <span className="bg-primary-100 font-suse text-primary-700 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold">
             {i + 1}
           </span>
           {step}
@@ -28,11 +28,11 @@ export function SupportSuccess() {
       <h2 className="font-suse text-2xl font-bold text-neutral-900 md:text-3xl">
         Request received
       </h2>
-      <p className="mt-3 font-open-sans text-sm leading-relaxed text-neutral-600">
+      <p className="font-open-sans mt-3 text-sm leading-relaxed text-neutral-600">
         Your request has been routed for review. We will check the account details and email you
         with the next step.
       </p>
-      <p className="mt-4 font-open-sans text-sm font-semibold text-neutral-800">
+      <p className="font-open-sans mt-4 text-sm font-semibold text-neutral-800">
         Expected response: same working day
       </p>
 
@@ -42,7 +42,7 @@ export function SupportSuccess() {
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <Button asChild className="bg-secondary-500 text-white hover:bg-secondary-600">
+        <Button asChild className="bg-secondary-500 hover:bg-secondary-600 text-white">
           <Link href="/all-courses">Browse all courses</Link>
         </Button>
         <Button asChild variant="outline" className="border-neutral-300 bg-white">
@@ -59,13 +59,13 @@ export function RefundSuccess() {
       <h2 className="font-suse text-2xl font-bold text-neutral-900 md:text-3xl">
         Request received
       </h2>
-      <p className="mt-3 font-open-sans text-sm leading-relaxed text-neutral-600">
+      <p className="font-open-sans mt-3 text-sm leading-relaxed text-neutral-600">
         Your request is with the team. We will review the details and contact you by email with the
         next step.
       </p>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <Button asChild className="bg-secondary-500 text-white hover:bg-secondary-600">
+        <Button asChild className="bg-secondary-500 hover:bg-secondary-600 text-white">
           <Link href="/all-courses">Browse all courses</Link>
         </Button>
         <Button asChild variant="outline" className="border-neutral-300 bg-white">

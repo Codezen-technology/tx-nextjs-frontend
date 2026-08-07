@@ -169,7 +169,7 @@ export function BusinessNav({ expanded, onNavigate }: BusinessNavProps) {
             </button>
           ) : null}
           {(expanded ? openGroups.courses : true) && (
-            <ul className={cn("space-y-1", expanded && "ml-2 mt-1 border-l border-white/20 pl-2")}>
+            <ul className={cn("space-y-1", expanded && "mt-1 ml-2 border-l border-white/20 pl-2")}>
               {COURSE_GROUP.items.map((item) => (
                 <li key={item.href}>
                   <NavItem

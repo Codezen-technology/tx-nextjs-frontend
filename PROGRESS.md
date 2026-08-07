@@ -8,12 +8,12 @@ Tracks delivery against [PROJECT_PLAN.md](./PROJECT_PLAN.md) and [API_REFERENCE.
 
 ## Snapshot
 
-| Field | Value |
-| --- | --- |
-| **Current phase** | Phase 1 — Marketing site V1 |
-| **Last updated** | 2026-05-11 |
+| Field             | Value                                                                                                          |
+| ----------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Current phase** | Phase 1 — Marketing site V1                                                                                    |
+| **Last updated**  | 2026-05-11                                                                                                     |
 | **Hard blockers** | `Settings_Controller` `GET /lms-backend/v1/settings` — without this, site branding falls back to env vars only |
-| **Soft blockers** | `partner_logo` CPT, `testimonial` CPT — these sections render empty on home page until backend ships |
+| **Soft blockers** | `partner_logo` CPT, `testimonial` CPT — these sections render empty on home page until backend ships           |
 
 ---
 
@@ -118,14 +118,14 @@ Blocked on backend tickets for cart, checkout, WC Subscriptions.
 
 These are real problems, not nice-to-haves.
 
-| # | Issue | Impact | Fix |
-| --- | --- | --- | --- |
-| TD-1 | `fetchSettings()` called twice per render (in `generateMetadata` and `RootLayout`) | Extra round-trip to WP on every cold render | Memoize with `React.cache()` in `settings.server.ts` |
-| TD-2 | `serverApi` returns `unknown` everywhere | No type safety on RSC data — casting is silent runtime bomb | Replace `unknown` with proper types as each page is built |
-| TD-3 | `hexToHslChannels()` has no unit test | Colour override silently broken if input format changes | Add tests to `color.test.ts` |
-| TD-4 | `proxyToWP` refreshes token on 401 but doesn't propagate the new cookie to the response in a streaming context | Will fail when streaming RSC added | Add `Set-Cookie` forwarding to refresh path |
-| TD-5 | No request correlation ID in BFF | Impossible to trace a specific user request across Next.js and WP logs | Add `X-Request-Id` header via middleware, pass through `proxyToWP` |
-| TD-6 | Vitest coverage near zero | Regressions invisible | Target 60% coverage on `lib/` utilities and services before Phase 2 launch |
+| #    | Issue                                                                                                          | Impact                                                                 | Fix                                                                        |
+| ---- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| TD-1 | `fetchSettings()` called twice per render (in `generateMetadata` and `RootLayout`)                             | Extra round-trip to WP on every cold render                            | Memoize with `React.cache()` in `settings.server.ts`                       |
+| TD-2 | `serverApi` returns `unknown` everywhere                                                                       | No type safety on RSC data — casting is silent runtime bomb            | Replace `unknown` with proper types as each page is built                  |
+| TD-3 | `hexToHslChannels()` has no unit test                                                                          | Colour override silently broken if input format changes                | Add tests to `color.test.ts`                                               |
+| TD-4 | `proxyToWP` refreshes token on 401 but doesn't propagate the new cookie to the response in a streaming context | Will fail when streaming RSC added                                     | Add `Set-Cookie` forwarding to refresh path                                |
+| TD-5 | No request correlation ID in BFF                                                                               | Impossible to trace a specific user request across Next.js and WP logs | Add `X-Request-Id` header via middleware, pass through `proxyToWP`         |
+| TD-6 | Vitest coverage near zero                                                                                      | Regressions invisible                                                  | Target 60% coverage on `lib/` utilities and services before Phase 2 launch |
 
 ---
 
@@ -162,20 +162,20 @@ These are real problems, not nice-to-haves.
 
 ## Backend tickets (cross-team)
 
-| Ticket | Blocks | Status |
-| --- | --- | --- |
-| `Settings_Controller` — `GET /lms-backend/v1/settings` | Site branding, stats bar, feature flags | [ ] |
-| `partner_logo` CPT + REST | Home page partners section | [ ] |
-| `testimonial` CPT + REST | Home page testimonials section | [ ] |
-| WC Subscriptions wrapper (`/memberships/*`) | Pricing page, membership purchase | [ ] |
-| Cart / checkout / orders endpoints | All of Phase 3 | [ ] |
+| Ticket                                                 | Blocks                                  | Status |
+| ------------------------------------------------------ | --------------------------------------- | ------ |
+| `Settings_Controller` — `GET /lms-backend/v1/settings` | Site branding, stats bar, feature flags | [ ]    |
+| `partner_logo` CPT + REST                              | Home page partners section              | [ ]    |
+| `testimonial` CPT + REST                               | Home page testimonials section          | [ ]    |
+| WC Subscriptions wrapper (`/memberships/*`)            | Pricing page, membership purchase       | [ ]    |
+| Cart / checkout / orders endpoints                     | All of Phase 3                          | [ ]    |
 
 ## Product open questions
 
-| # | Topic | Owner | Status |
-| --- | --- | --- | --- |
-| 6 | Search empty-state copy / CTA | Marketing | Open |
-| 8 | Business plan leads destination (HubSpot / SF / email) | Product/Sales | Open |
+| #   | Topic                                                  | Owner         | Status |
+| --- | ------------------------------------------------------ | ------------- | ------ |
+| 6   | Search empty-state copy / CTA                          | Marketing     | Open   |
+| 8   | Business plan leads destination (HubSpot / SF / email) | Product/Sales | Open   |
 
 ---
 
@@ -195,8 +195,8 @@ See **§15** in [PROJECT_PLAN.md](./PROJECT_PLAN.md). Summary:
 
 Newest first.
 
-| Date | Note |
-| --- | --- |
-| 2026-05-11 | Bug fixes: `hexToHslChannels` utility for correct shadcn CSS var injection (hex → HSL channels); removed duplicate CSS var injection from `SiteSettingsProvider`; removed redundant `url.search` assignment in middleware; `serverApi` now uses `env.LMS_NAMESPACE` instead of hardcoded string. Typecheck: ✅ |
+| Date       | Note                                                                                                                                                                                                                                                                                                                                     |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-05-11 | Bug fixes: `hexToHslChannels` utility for correct shadcn CSS var injection (hex → HSL channels); removed duplicate CSS var injection from `SiteSettingsProvider`; removed redundant `url.search` assignment in middleware; `serverApi` now uses `env.LMS_NAMESPACE` instead of hardcoded string. Typecheck: ✅                           |
 | 2026-05-11 | **Phase 0 complete.** All 15 PRs landed: BFF proxy + all auth/user/quiz/assignment/review routes, httpOnly auth cookies, settings service + SiteSettingsProvider, server.ts RSC fetcher, next-intl `[locale]` routing, sitemap + robots, Sentry, Vitest + Playwright smoke, README. Build: ✅ 22 pages, 0 errors. **Phase 1 unblocked.** |
-| 2026-05-11 | Phase 0 core: `lms-backend/v1` endpoints, axios LMS envelope unwrap, BFF, httpOnly auth cookies, lessons→units. |
+| 2026-05-11 | Phase 0 core: `lms-backend/v1` endpoints, axios LMS envelope unwrap, BFF, httpOnly auth cookies, lessons→units.                                                                                                                                                                                                                          |

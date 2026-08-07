@@ -178,13 +178,13 @@ export function CatalogCourseCard({ course }: { course: StudentCourse }) {
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <h3 className="line-clamp-2 min-h-[2.7em] text-[17px] font-bold leading-snug text-[#2e4450]">
+        <h3 className="line-clamp-2 min-h-[2.7em] text-[17px] leading-snug font-bold text-[#2e4450]">
           {course.name}
         </h3>
 
         {showPrice && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[22px] font-extrabold leading-none text-[#3f4d97]">
+            <span className="text-[22px] leading-none font-extrabold text-[#3f4d97]">
               {formatPrice(course.price!, course.currency!)}
             </span>
             {course.regular_price && course.regular_price > course.price! && (
@@ -193,7 +193,7 @@ export function CatalogCourseCard({ course }: { course: StudentCourse }) {
               </span>
             )}
             {savePct !== null && (
-              <span className="rounded bg-[#fff3e0] px-1.5 py-0.5 text-[11px] font-bold leading-none text-[#e65100]">
+              <span className="rounded bg-[#fff3e0] px-1.5 py-0.5 text-[11px] leading-none font-bold text-[#e65100]">
                 {savePct}% OFF
               </span>
             )}

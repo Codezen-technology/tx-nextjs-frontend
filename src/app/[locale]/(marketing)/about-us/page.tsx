@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
   const seo = await fetchRankMathSeo(wpPath.page("about-us"));
   return buildPageMetadata(seo, {
-    title: "About Us | Training Excellence",
+    title: "About Us",
     description:
       "Training Excellence delivers fully accredited, 100% online compliance training trusted by learners and leading organisations across the UK.",
     canonical: `${env.SITE_URL.replace(/\/$/, "")}/about-us`,

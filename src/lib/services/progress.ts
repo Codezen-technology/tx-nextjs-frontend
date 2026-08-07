@@ -23,7 +23,9 @@ export const progressService = {
     const completed =
       data.completed_units ??
       data.completed_lessons ??
-      (data.completed_unit_ids?.length ?? data.completed_lesson_ids?.length ?? 0);
+      data.completed_unit_ids?.length ??
+      data.completed_lesson_ids?.length ??
+      0;
     const total = data.total_units ?? data.total_lessons ?? 0;
     const percent =
       data.percent ?? data.progress ?? (total > 0 ? Math.round((completed / total) * 100) : 0);

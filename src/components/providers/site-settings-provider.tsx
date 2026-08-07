@@ -26,7 +26,5 @@ interface SiteSettingsProviderProps {
  * so it covers portals and avoids a flash-of-unstyled-content on hydration.
  */
 export function SiteSettingsProvider({ settings, children }: SiteSettingsProviderProps) {
-  return (
-    <SiteSettingsContext.Provider value={settings}>{children}</SiteSettingsContext.Provider>
-  );
+  return <SiteSettingsContext.Provider value={settings}>{children}</SiteSettingsContext.Provider>;
 }

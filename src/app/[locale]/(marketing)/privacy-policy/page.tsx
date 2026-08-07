@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
   const seo = await fetchRankMathSeo(wpPath.page("privacy-policy"));
   return buildPageMetadata(seo, {
-    title: "Privacy Policy | Training Excellence",
+    title: "Privacy Policy",
     description:
       "How Training Excellence collects, uses, and protects your personal information when you use our website and courses.",
     canonical: `${env.SITE_URL.replace(/\/$/, "")}/privacy-policy`,

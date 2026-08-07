@@ -4,16 +4,16 @@ Headless LMS frontend — Next.js 14 App Router + WordPress backend (`lms-backen
 
 ## Tech stack
 
-| Concern | Choice |
-|---|---|
-| Framework | Next.js 14 (App Router) |
-| UI | Tailwind CSS + shadcn/ui components |
-| State | Zustand (auth), TanStack Query (server state) |
-| Forms | React Hook Form + Zod |
-| i18n | next-intl (English only at launch; `en` default locale) |
-| Testing | Vitest + RTL (unit) · Playwright (E2E) |
-| Monitoring | Sentry (`@sentry/nextjs`) |
-| Auth | httpOnly cookies via BFF proxy — tokens never in browser JS |
+| Concern    | Choice                                                      |
+| ---------- | ----------------------------------------------------------- |
+| Framework  | Next.js 14 (App Router)                                     |
+| UI         | Tailwind CSS + shadcn/ui components                         |
+| State      | Zustand (auth), TanStack Query (server state)               |
+| Forms      | React Hook Form + Zod                                       |
+| i18n       | next-intl (English only at launch; `en` default locale)     |
+| Testing    | Vitest + RTL (unit) · Playwright (E2E)                      |
+| Monitoring | Sentry (`@sentry/nextjs`)                                   |
+| Auth       | httpOnly cookies via BFF proxy — tokens never in browser JS |
 
 ---
 
@@ -33,20 +33,20 @@ Requires a running WordPress site with the [`lms-backend-rest-api`](https://gith
 
 See `.env.example` for all variables with comments. Required variables:
 
-| Variable | Description |
-|---|---|
+| Variable                 | Description                                           |
+| ------------------------ | ----------------------------------------------------- |
 | `NEXT_PUBLIC_WP_API_URL` | Base URL of the WordPress install (no trailing slash) |
-| `NEXT_PUBLIC_SITE_URL` | Public URL of this Next.js app |
+| `NEXT_PUBLIC_SITE_URL`   | Public URL of this Next.js app                        |
 
 Optional but important:
 
-| Variable | Description |
-|---|---|
-| `WP_API_URL` | Server-only WP URL (hides internal host from the browser) |
-| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN for client error tracking |
-| `SENTRY_DSN` | Sentry DSN for server/edge error tracking |
-| `WP_REVALIDATE_SECRET` | Shared secret for on-demand ISR via `/api/revalidate` |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe key for Phase 3 commerce |
+| Variable                             | Description                                               |
+| ------------------------------------ | --------------------------------------------------------- |
+| `WP_API_URL`                         | Server-only WP URL (hides internal host from the browser) |
+| `NEXT_PUBLIC_SENTRY_DSN`             | Sentry DSN for client error tracking                      |
+| `SENTRY_DSN`                         | Sentry DSN for server/edge error tracking                 |
+| `WP_REVALIDATE_SECRET`               | Shared secret for on-demand ISR via `/api/revalidate`     |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe key for Phase 3 commerce                           |
 
 ---
 
@@ -80,17 +80,17 @@ All subsequent authenticated requests go through `/api/*` BFF routes. The BFF re
 
 ### Key files
 
-| File | Role |
-|---|---|
-| `src/lib/api/bff.ts` | `proxyToWP()` — server proxy with auto-refresh |
-| `src/app/api/auth/*/route.ts` | Login, register, logout, forgot-password, reset-password |
-| `src/app/api/users/me/*/route.ts` | Profile, enrollments, progress |
-| `src/app/api/courses/[id]/*/route.ts` | Enroll, reviews |
-| `src/app/api/units/[id]/*/route.ts` | Unit content, complete |
-| `src/app/api/quizzes/[id]/*/route.ts` | Quiz questions, start, submit, results |
-| `src/app/api/assignments/[id]/*/route.ts` | Assignment detail, submit, status |
-| `src/middleware.ts` | Auth guard (reads `user_logged_in` cookie only) |
-| `src/lib/api/bff-client.ts` | Client helper for calling `/api/*` with `credentials: include` |
+| File                                      | Role                                                           |
+| ----------------------------------------- | -------------------------------------------------------------- |
+| `src/lib/api/bff.ts`                      | `proxyToWP()` — server proxy with auto-refresh                 |
+| `src/app/api/auth/*/route.ts`             | Login, register, logout, forgot-password, reset-password       |
+| `src/app/api/users/me/*/route.ts`         | Profile, enrollments, progress                                 |
+| `src/app/api/courses/[id]/*/route.ts`     | Enroll, reviews                                                |
+| `src/app/api/units/[id]/*/route.ts`       | Unit content, complete                                         |
+| `src/app/api/quizzes/[id]/*/route.ts`     | Quiz questions, start, submit, results                         |
+| `src/app/api/assignments/[id]/*/route.ts` | Assignment detail, submit, status                              |
+| `src/middleware.ts`                       | Auth guard (reads `user_logged_in` cookie only)                |
+| `src/lib/api/bff-client.ts`               | Client helper for calling `/api/*` with `credentials: include` |
 
 ### What never touches client JavaScript
 
@@ -165,6 +165,7 @@ const hasBlog = useFeatureFlag("blog");
 English-only at launch. Structure supports future locale expansion without URL changes (uses `localePrefix: "as-needed"` so `/courses` stays `/courses`, not `/en/courses`).
 
 To add a locale:
+
 1. Add to `src/i18n/routing.ts` `locales` array
 2. Create `src/i18n/messages/{locale}.json`
 

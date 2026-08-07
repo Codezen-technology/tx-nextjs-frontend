@@ -82,7 +82,7 @@ export function DashboardNav({ expanded, onNavigate }: DashboardNavProps) {
                     expanded && "mr-4",
                   )}
                 />
-                {expanded && <span className="text-sm capitalize text-white">{item.label}</span>}
+                {expanded && <span className="text-sm text-white capitalize">{item.label}</span>}
               </Link>
             </li>
           );

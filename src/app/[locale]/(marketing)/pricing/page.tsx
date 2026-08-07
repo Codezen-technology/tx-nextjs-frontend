@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
   const seo = await fetchRankMathSeo(wpPath.page("pricing"));
   return buildPageMetadata(seo, {
-    title: "Pricing — Training Excellence",
+    title: "Pricing",
     description:
       "Flexible membership plans for unlimited access to hundreds of accredited online courses. Compare plans and start learning today.",
     canonical: `${env.SITE_URL.replace(/\/$/, "")}/pricing`,

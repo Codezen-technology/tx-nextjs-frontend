@@ -8,7 +8,7 @@ import type { GfFieldProps } from "./shared";
  */
 export function CheckboxField({ field, values, onChange }: GfFieldProps) {
   return (
-    <label className="flex items-center gap-2 font-open-sans text-sm text-neutral-700">
+    <label className="font-open-sans flex items-center gap-2 text-sm text-neutral-700">
       <input
         type="checkbox"
         className="h-4 w-4"
