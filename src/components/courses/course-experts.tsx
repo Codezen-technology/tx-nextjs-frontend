@@ -70,7 +70,7 @@ export function CourseExperts({ experts }: CourseExpertsProps) {
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900 sm:text-[38px]">
+        <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-neutral-900">
           Empower and Engage
         </h2>
         <p className="font-open-sans mt-4 text-base leading-normal text-neutral-600">
