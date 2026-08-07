@@ -1,6 +1,4 @@
-import Image from "next/image";
-import Link from "next/link";
-import { ChevronRight, Home } from "lucide-react";
+import { HeroWave, HERO_GRADIENT } from "@/components/courses/hero-wave";
 import type { ApiCategory } from "@/lib/api/server";
 
 interface CategoryHeroProps {
@@ -9,34 +7,12 @@ interface CategoryHeroProps {
 
 export function CategoryHero({ category }: CategoryHeroProps) {
   return (
-    <div className="relative w-full overflow-hidden" style={{ height: 480 }}>
-      {category.image ? (
-        <Image src={category.image} alt={category.name} fill className="object-cover" priority />
-      ) : (
-        <div
-          className="absolute inset-0"
-          style={{ background: "linear-gradient(80.83deg, #00204a 0%, #004f65 100%)" }}
-        />
-      )}
-      <div className="absolute inset-0 bg-black/55" />
-      <div className="absolute right-0 bottom-0 left-0 h-24 bg-linear-to-t from-black/60 to-transparent" />
+    <div className="relative w-full overflow-hidden" style={{ height: 350 }}>
+      <div className="absolute inset-0" style={{ background: HERO_GRADIENT }} />
+      <HeroWave />
 
       <div className="relative z-10 flex h-full flex-col justify-center">
         <div className="mx-auto w-full max-w-[1296px] px-4">
-          {/* Breadcrumb */}
-          <nav className="font-open-sans mb-6 flex items-center gap-1.5 text-sm text-white/70">
-            <Link href="/" className="flex items-center gap-1 hover:text-white">
-              <Home className="h-3.5 w-3.5" />
-              Home
-            </Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/all-courses" className="hover:text-white">
-              Courses
-            </Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <span className="text-white">{category.name}</span>
-          </nav>
-
           <div className="max-w-[775px]">
             <h1 className="font-suse text-[48px] leading-[1.2] font-bold text-white">
               {category.name}

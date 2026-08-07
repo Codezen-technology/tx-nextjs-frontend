@@ -19,11 +19,11 @@ const REASONS = [
 ];
 
 interface CategoryWhyChooseUsProps {
-  image?: string | null;
+  whyChooseUs?: string | null;
   categoryName?: string;
 }
 
-export function CategoryWhyChooseUs({ image, categoryName }: CategoryWhyChooseUsProps) {
+export function CategoryWhyChooseUs({ whyChooseUs, categoryName }: CategoryWhyChooseUsProps) {
   return (
     <div className="bg-white">
       <div className="mx-auto max-w-[1296px] px-4 py-12">
@@ -48,9 +48,9 @@ export function CategoryWhyChooseUs({ image, categoryName }: CategoryWhyChooseUs
 
           {/* Image */}
           <div className="relative hidden shrink-0 overflow-hidden rounded-2xl lg:block lg:h-[312px] lg:w-[526px]">
-            {image ? (
+            {whyChooseUs ? (
               <Image
-                src={image}
+                src={whyChooseUs}
                 alt={categoryName ? `${categoryName} courses` : "Why choose us"}
                 fill
                 className="object-cover"

@@ -1,7 +1,7 @@
 export function CourseAssessment({ html }: { html: string }) {
   return (
     <section id="assessment" className="scroll-mt-28">
-      <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900 sm:text-[38px]">
+      <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-neutral-900">
         Assessment
       </h2>
       <div

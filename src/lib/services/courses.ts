@@ -1,6 +1,7 @@
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import { paginate, decodeEntities } from "@/lib/api/parsers";
+import { formatDuration } from "@/lib/utils/format";
 import type {
   Course,
   CourseCategory,
@@ -12,6 +13,7 @@ import type {
   CourseListFilters,
   CourseSection,
   CourseSections,
+  CourseFlatCurriculumItem,
   CourseReviews,
   CourseRichData,
 } from "@/types/course";
@@ -49,8 +51,8 @@ interface RawCourse {
   is_free?: boolean;
   free?: boolean;
   level?: string;
-  // Real API: seconds number; may be null
-  duration?: number | null;
+  // Real API: seconds number; may be null. Rich detail returns { value, unit } instead.
+  duration?: number | { value: number; unit: string } | null;
   duration_seconds?: number | null;
   total_duration?: number | null;
   lessons_count?: number;
@@ -96,6 +98,10 @@ interface RawCourse {
     sale_ends_at?: string | null;
   } | null;
 }
+
+/** Duration fields are seconds when numeric; anything else (e.g. `{ value, unit }`) is not. */
+const toSeconds = (v: unknown): number | undefined =>
+  typeof v === "number" && Number.isFinite(v) ? v : undefined;
 
 const renderedOrString = (v: unknown): string => {
   if (!v) return "";
@@ -179,8 +185,12 @@ export function normalizeCourse(raw: RawCourse): Course {
       originalPrice !== undefined && originalPrice !== price ? originalPrice : undefined,
     isFree: raw?.is_free ?? raw?.free ?? (price !== undefined ? price === 0 : undefined),
     level: (raw?.level as Course["level"]) ?? undefined,
-    // Real API: duration in seconds (may be null)
-    durationSeconds: raw?.duration_seconds ?? raw?.duration ?? raw?.total_duration ?? undefined,
+    // Real API: duration in seconds (may be null). Rich detail sends `duration` as
+    // { value, unit } — only numeric shapes are seconds, so guard before falling back.
+    durationSeconds:
+      toSeconds(raw?.duration_seconds) ??
+      toSeconds(raw?.duration) ??
+      toSeconds(raw?.total_duration),
     unitsCount: raw?.units_count ?? raw?.lessons_count ?? raw?.total_units ?? raw?.total_lessons,
     lessonsCount: raw?.lessons_count ?? raw?.total_lessons ?? raw?.units_count ?? raw?.total_units,
     modules_count: typeof raw?.modules_count === "number" ? raw.modules_count : undefined,
@@ -209,6 +219,26 @@ export function normalizeCourse(raw: RawCourse): Course {
   };
 }
 
+/**
+ * `/courses/{id}/curriculum` reports section and unit durations in whole minutes,
+ * while the UI formats seconds — convert here so no component re-interprets the unit.
+ */
+export function normalizeFlatCurriculum(
+  items: CourseFlatCurriculumItem[] | null | undefined,
+): CourseFlatCurriculumItem[] {
+  if (!Array.isArray(items)) return [];
+  const minutesToSeconds = (v: number | null | undefined) =>
+    typeof v === "number" && v > 0 ? v * 60 : undefined;
+
+  return items.map((item) => ({
+    ...item,
+    durationSeconds:
+      item.type === "section"
+        ? minutesToSeconds(item.section_duration)
+        : minutesToSeconds(item.duration),
+  }));
+}
+
 /** WooCommerce product ID for cart/checkout — from API root or nested pricing. */
 export function resolveCourseProductId(
   course: Pick<CourseRichData, "product_id" | "pricing">,
@@ -230,6 +260,14 @@ export function normalizeRichCourse(raw: Record<string, unknown>): CourseRichDat
   const duration =
     rawDuration && typeof rawDuration === "object" && "value" in (rawDuration as object)
       ? (rawDuration as { value: number; unit: string })
+      : null;
+
+  // Single display string for the whole app — the API sends either the human-readable
+  // `{ value, unit }` object or a raw seconds number, never both.
+  const durationLabel = duration
+    ? `${duration.value} ${duration.unit}`
+    : base.durationSeconds
+      ? formatDuration(base.durationSeconds)
       : null;
 
   const rawPricing = raw.pricing as Record<string, unknown> | null | undefined;
@@ -257,6 +295,7 @@ export function normalizeRichCourse(raw: Record<string, unknown>): CourseRichDat
     ...base,
     product_id: productId,
     duration,
+    durationLabel,
     pricing,
     accreditations: Array.isArray(raw.accreditations)
       ? (raw.accreditations as CourseAccreditation[])

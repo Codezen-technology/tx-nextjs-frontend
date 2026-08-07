@@ -276,7 +276,7 @@ function CertificateFormInner() {
       </div>
 
       {/* ── Total ───────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between rounded-lg bg-neutral-50 px-4 py-3">
+      <div className="bg-secondary-50 border-secondary-500 flex items-center justify-between rounded-lg border px-4 py-3">
         <span className="font-suse text-base font-semibold text-neutral-900">Total Fee</span>
         <span className="font-suse text-primary-600 text-xl font-bold">
           {money(currency, total)}

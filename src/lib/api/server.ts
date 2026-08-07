@@ -67,8 +67,18 @@ export type ApiTerm = {
   parent: number;
 };
 
-/** format_category() — ApiTerm + image field */
-export type ApiCategory = ApiTerm & { image: string | null };
+/**
+ * format_category() — ApiTerm + image field.
+ *
+ * `why_choose_us` and `faq` are only present on newer plugin builds, so both are
+ * optional; callers must guard rather than assume they are populated.
+ */
+export type ApiCategory = ApiTerm & {
+  image: string | null;
+  /** Image URL rendered in the "Why Choose Us?" block. */
+  why_choose_us?: string | null;
+  faq?: Array<{ question: string; answer: string }> | null;
+};
 
 // ── Course ────────────────────────────────────────────────────────────────────
 

@@ -6,6 +6,7 @@ import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
 import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { CertificateForm } from "@/components/certificate/certificate-form";
+import { HeroWave, HERO_GRADIENT } from "@/components/courses/hero-wave";
 import { certificateService } from "@/lib/services/certificate";
 import type { CertPageContent } from "@/types/certificate";
 
@@ -44,8 +45,9 @@ export default async function CertificatePage() {
 
   return (
     <>
-      {/* ── Hero ──────────────────────────────────────────────────────── */}
-      <section className="bg-neutral-800">
+      {/* ── Hero ── */}
+      <section className="relative w-full overflow-hidden" style={{ background: HERO_GRADIENT }}>
+        <HeroWave />
         <div className="container py-14">
           <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
             <div className="max-w-2xl">
@@ -112,7 +114,7 @@ export default async function CertificatePage() {
         <div className="container">
           <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
             <div className="space-y-8">
-              <div className="rounded-2xl border border-neutral-200 p-6 shadow-xs md:p-8">
+              <div className="border-neutral-20 rounded-lg border p-6">
                 <h2 className="font-suse mb-6 text-2xl font-bold text-neutral-900">
                   {orderHeading}
                 </h2>
