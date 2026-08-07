@@ -19,15 +19,15 @@ const REASONS = [
 ];
 
 interface CategoryWhyChooseUsProps {
-  image?: string | null;
+  whyChooseUs?: string | null;
   categoryName?: string;
 }
 
-export function CategoryWhyChooseUs({ image, categoryName }: CategoryWhyChooseUsProps) {
+export function CategoryWhyChooseUs({ whyChooseUs, categoryName }: CategoryWhyChooseUsProps) {
   return (
     <div className="bg-white">
       <div className="mx-auto max-w-[1296px] px-4 py-12">
-        <h2 className="font-suse text-[32px] font-bold leading-[1.2] text-neutral-900">
+        <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
           Why Choose Us?
         </h2>
         <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-center lg:gap-12">
@@ -36,7 +36,7 @@ export function CategoryWhyChooseUs({ image, categoryName }: CategoryWhyChooseUs
             {REASONS.map((reason) => (
               <div key={reason.title} className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 shrink-0 text-secondary-500" />
+                  <CheckCircle className="text-secondary-500 h-5 w-5 shrink-0" />
                   <span className="font-suse font-semibold text-neutral-900">{reason.title}</span>
                 </div>
                 <p className="font-open-sans text-[14px] leading-[1.6] text-neutral-500">
@@ -48,9 +48,9 @@ export function CategoryWhyChooseUs({ image, categoryName }: CategoryWhyChooseUs
 
           {/* Image */}
           <div className="relative hidden shrink-0 overflow-hidden rounded-2xl lg:block lg:h-[312px] lg:w-[526px]">
-            {image ? (
+            {whyChooseUs ? (
               <Image
-                src={image}
+                src={whyChooseUs}
                 alt={categoryName ? `${categoryName} courses` : "Why choose us"}
                 fill
                 className="object-cover"

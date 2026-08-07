@@ -63,44 +63,47 @@ export function CategoryCourses({
         )}
 
         {totalPages > 1 ? (
-          <nav aria-label="Course pages" className="mt-10 flex items-center justify-center gap-2">
-            {currentPage === 1 ? (
-              <span
-                aria-label="Previous page"
-                aria-disabled="true"
-                className="border-neutral-30 flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-full border text-neutral-500 opacity-40"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </span>
-            ) : (
-              <Link
-                href={pageHref(currentPage - 1)}
-                aria-label="Previous page"
-                className="border-neutral-30 flex h-9 w-9 items-center justify-center rounded-full border text-neutral-500 transition-colors hover:bg-neutral-50"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Link>
-            )}
+          <nav aria-label="Course pages" className="mt-10 flex items-center justify-center gap-4">
+            <span className="font-open-sans text-[14px] text-neutral-500">Total {total} items</span>
+            <div className="border-neutral-30 flex items-center overflow-hidden rounded-lg border bg-white">
+              {currentPage === 1 ? (
+                <span
+                  aria-label="Previous page"
+                  aria-disabled="true"
+                  className="border-neutral-30 flex h-7.75 cursor-not-allowed items-center justify-center border-r px-2.25 py-2 text-neutral-400 opacity-40"
+                >
+                  <ChevronLeft className="text-secondary-500 h-4 w-4" />
+                </span>
+              ) : (
+                <Link
+                  href={pageHref(currentPage - 1)}
+                  aria-label="Previous page"
+                  className="border-neutral-30 hover:bg-secondary-50 flex h-7.75 items-center justify-center border-r px-2.25 py-2 text-neutral-500 transition-colors"
+                >
+                  <ChevronLeft className="text-secondary-500 h-4 w-4" />
+                </Link>
+              )}
 
-            <PageLinks current={currentPage} total={totalPages} pageHref={pageHref} />
+              <PageLinks current={currentPage} total={totalPages} pageHref={pageHref} />
 
-            {currentPage === totalPages ? (
-              <span
-                aria-label="Next page"
-                aria-disabled="true"
-                className="border-neutral-30 flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-full border text-neutral-500 opacity-40"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </span>
-            ) : (
-              <Link
-                href={pageHref(currentPage + 1)}
-                aria-label="Next page"
-                className="border-neutral-30 flex h-9 w-9 items-center justify-center rounded-full border text-neutral-500 transition-colors hover:bg-neutral-50"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Link>
-            )}
+              {currentPage === totalPages ? (
+                <span
+                  aria-label="Next page"
+                  aria-disabled="true"
+                  className="border-neutral-30 flex h-7.75 cursor-not-allowed items-center justify-center border-l px-2.25 py-2 text-neutral-400 opacity-40"
+                >
+                  <ChevronRight className="text-secondary-500 h-4 w-4" />
+                </span>
+              ) : (
+                <Link
+                  href={pageHref(currentPage + 1)}
+                  aria-label="Next page"
+                  className="border-neutral-30 hover:bg-secondary-50 flex h-7.75 items-center justify-center border-l px-2.25 py-2 text-neutral-500 transition-colors"
+                >
+                  <ChevronRight className="text-secondary-500 h-4 w-4" />
+                </Link>
+              )}
+            </div>
           </nav>
         ) : null}
       </div>
@@ -121,9 +124,13 @@ function PageLinks({
 
   return (
     <>
-      {pages.map((p, i) =>
-        p === "..." ? (
-          <span key={`ellipsis-${i}`} className="font-open-sans px-1 text-sm text-neutral-400">
+      {pages.map((p, i) => {
+        const isLast = i === pages.length - 1;
+        return p === "..." ? (
+          <span
+            key={`ellipsis-${i}`}
+            className={`font-open-sans text-secondary-500 border-neutral-30 flex h-7.75 items-center justify-center px-2.25 py-1.25 text-[14px] ${isLast ? "border-l" : "border-r"}`}
+          >
             …
           </span>
         ) : (
@@ -131,22 +138,22 @@ function PageLinks({
             key={p}
             href={pageHref(p as number)}
             aria-current={current === p ? "page" : undefined}
-            className={`font-open-sans flex h-9 w-9 items-center justify-center rounded-full border text-sm transition-colors ${
+            className={`font-open-sans flex h-7.75 items-center justify-center px-2.25 py-1.25 text-[14px] transition-colors ${
               current === p
-                ? "border-secondary-500 bg-secondary-500 text-white"
-                : "border-neutral-30 text-neutral-600 hover:bg-neutral-50"
+                ? "bg-secondary-500 text-white"
+                : "text-secondary-500 border-neutral-30 border-r underline"
             }`}
           >
             {p}
           </Link>
-        ),
-      )}
+        );
+      })}
     </>
   );
 }
 
 function buildPageRange(current: number, total: number): (number | "...")[] {
-  if (total <= 9) return Array.from({ length: total }, (_, i) => i + 1);
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
   const pages: (number | "...")[] = [1];
   if (current > 4) pages.push("...");
   for (let p = Math.max(2, current - 2); p <= Math.min(total - 1, current + 2); p++) {

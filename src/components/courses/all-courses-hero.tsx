@@ -1,9 +1,15 @@
+import { HeroWave, HERO_GRADIENT } from "@/components/courses/hero-wave";
+
 export function AllCoursesHero() {
   return (
     <div
       className="relative w-full"
-      style={{ background: "linear-gradient(80.83deg,#00204a 0%,#004f65 100%)", minHeight: 320 }}
+      style={{
+        background: HERO_GRADIENT,
+        minHeight: 320,
+      }}
     >
+      <HeroWave />
       <div className="mx-auto flex max-w-[1296px] items-center gap-[179px] px-4 py-[112px]">
         {/* The catalogue landing page's H1. Rendered as two lines to match the
             Figma treatment without splitting the heading into two elements. */}

@@ -1,4 +1,5 @@
 import { SafeImage } from "@/components/ui/safe-image";
+import { HeroWave } from "@/components/courses/hero-wave";
 import { isRenderableImageSrc } from "@/lib/utils/image";
 import { publicImageExists } from "@/lib/utils/public-image.server";
 import { cn } from "@/lib/utils/cn";
@@ -185,21 +186,7 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
       )}
 
       {/* Decorative wave + pattern — Figma 256:11795–11797 */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 overflow-hidden opacity-10 sm:h-20">
-        <div className="absolute top-0 left-1/2 flex h-[405.89px] w-[max(100%,1920px)] -translate-x-1/2 items-center justify-center">
-          <div className="shrink-0 -rotate-90">
-            <img
-              src="/images/course-banner-wave.svg"
-              alt=""
-              width={406}
-              height={1920}
-              decoding="async"
-              className="block h-[1920px] w-[405.89px] max-w-none"
-              aria-hidden
-            />
-          </div>
-        </div>
-      </div>
+      <HeroWave />
     </section>
   );
 }
