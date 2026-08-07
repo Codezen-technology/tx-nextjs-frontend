@@ -3,6 +3,7 @@ import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { CertificateForm } from "@/components/certificate/certificate-form";
 import { HeroWave, HERO_GRADIENT } from "@/components/courses/hero-wave";
@@ -22,7 +23,7 @@ const DEFAULT_PROMO_LABEL = "Promotional Banner";
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
-  const seo = await fetchRankMathSeo("/certificate");
+  const seo = await fetchRankMathSeo(wpPath.page("certificate"));
   return buildPageMetadata(seo, {
     title: "Order Your Certificate | Training Excellence",
     description:

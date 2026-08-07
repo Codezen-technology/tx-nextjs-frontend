@@ -102,7 +102,8 @@ describe("SupportRequestWizard", () => {
 
     await user.click(screen.getByRole("button", { name: /wrong course/i }));
 
-    expect(screen.getByText("Tell us where to reply")).toBeInTheDocument();
+    // Step 2 uses the issue's own reply heading, falling back to the generic one.
+    expect(screen.getByText("Let's sort your enrolment")).toBeInTheDocument();
     expect(screen.getByTestId("gravity-form")).toBeInTheDocument();
     expect(mockReplace).toHaveBeenCalledWith("/support-request?issue=wrong_course", {
       scroll: false,

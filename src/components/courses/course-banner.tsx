@@ -3,14 +3,14 @@ import { HeroWave } from "@/components/courses/hero-wave";
 import { isRenderableImageSrc } from "@/lib/utils/image";
 import { publicImageExists } from "@/lib/utils/public-image.server";
 import { cn } from "@/lib/utils/cn";
-import { Star, Users, Wifi } from "lucide-react";
+import { Star, Wifi } from "lucide-react";
 import type { CourseRichData } from "@/types/course";
 
 const TRUST_BADGES = [
   { src: "/images/cpd-logo.png", label: "CPD" },
   { src: "/images/ukrlp-logo.png", label: "UKRLP" },
   { src: "/images/disability.png", label: "Disability" },
-  { src: "/images/aoht.png", label: "Disability" },
+  { src: "/images/aoht.png", label: "AOHT" },
 ] as const;
 
 const FEATURES_LEFT = [
@@ -73,7 +73,7 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
               <div className="overflow-hidden border border-white/20 bg-white p-2">
                 {hasImage ? (
                   <div className="relative aspect-290/188 w-full overflow-hidden bg-neutral-900">
-                    <SafeImage src={src!} alt={alt} fill sizes="306px" className="object-cover" />
+                    <SafeImage src={src!} alt="" fill sizes="306px" className="object-cover" />
                   </div>
                 ) : (
                   <div className="flex aspect-290/188 items-center justify-center rounded-md bg-neutral-800 text-sm text-white/60">
@@ -133,23 +133,22 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                             key={i}
                             className={cn(
                               "h-4 w-4",
-                              i < Math.round(course.rating!)
+                              i < Math.round(course.rating ?? 0)
                                 ? "fill-[#FFC107] text-[#FFC107]"
                                 : "text-white/30",
                             )}
                           />
                         ))}
                       </span>
-                      {course.ratingCount ? (
-                        <span className="text-secondary-100 underline">
-                          ({course.ratingCount.toLocaleString()} ratings)
-                        </span>
-                      ) : null}
                     </>
+                  ) : null}
+                  {course.ratingCount ? (
+                    <span className="text-secondary-100 underline">
+                      ({course.ratingCount.toLocaleString()} ratings)
+                    </span>
                   ) : null}
                   {course.studentsCount ? (
                     <span className="flex items-center gap-1 text-white">
-                      <Users className="h-4 w-4" aria-hidden />
                       {course.studentsCount.toLocaleString()} Students
                     </span>
                   ) : null}

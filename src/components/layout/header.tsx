@@ -431,7 +431,10 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
               Help
             </Link>
             <Link
-              href="/courses"
+              // /courses is the protected student route — an anonymous visitor
+              // (and every crawler) gets bounced to /login. The public catalogue
+              // is /all-courses.
+              href="/all-courses"
               onClick={() => {
                 setMobileOpen(false);
                 closeMegaMenu();

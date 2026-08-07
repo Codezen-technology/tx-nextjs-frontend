@@ -81,7 +81,8 @@ const SOCIAL_LABEL_MAP: Record<string, string> = {
 
 const FALLBACK_NAV_LINKS: FooterNavLink[] = [
   { href: "/about-us", label: "About us" },
-  { href: "/careers", label: "Work for us" },
+  // "/careers" removed — no such WP page, so the catch-all route 404s. Restore
+  // the link when the page exists.
   { href: "/resources", label: "Resources", badge: "New" },
   { href: "/force-for-good", label: "Force for Good" },
   { href: "/reviews", label: "Reviews" },

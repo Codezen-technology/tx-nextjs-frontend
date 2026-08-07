@@ -42,6 +42,12 @@ if (cdnHost && cdnHost !== wpHost) {
 }
 remotePatterns.push({ protocol: "https", hostname: "secure.gravatar.com" });
 remotePatterns.push({ protocol: "https", hostname: "*.wp.com" });
+// WordPress offloads uploads to S3, so media URLs come back on this host rather
+// than NEXT_PUBLIC_WP_API_URL's. Required for any next/image rendering WP media.
+remotePatterns.push({
+  protocol: "https",
+  hostname: "trainingexcellence-media.s3.eu-west-2.amazonaws.com",
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

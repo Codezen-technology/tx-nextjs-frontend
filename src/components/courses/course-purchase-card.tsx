@@ -6,14 +6,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-import { formatDuration } from "@/lib/utils/format";
 import { useAddToCart } from "@/lib/hooks/useCart";
 import { useBulkTiers } from "@/lib/hooks/useBulkTiers";
+import { resolveBulkTier, bulkTierUnitPrice } from "@/lib/utils/bulk-tiers";
 import { resolveCourseProductId } from "@/lib/services/courses";
 import { BulkDiscountTable } from "@/components/courses/bulk-discount-table";
 import type { CourseRichData } from "@/types/course";
 
-function formatCoursePrice(amount: number, currency: string): string {
+export function formatCoursePrice(amount: number, currency: string): string {
   try {
     return new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(amount);
   } catch {
@@ -23,6 +23,14 @@ function formatCoursePrice(amount: number, currency: string): string {
 
 type PurchaseTab = "me" | "teams";
 
+/** Licences per order — matches the WooCommerce line-item cap. */
+const MAX_QUANTITY = 999;
+
+function clampQuantity(value: number): number {
+  if (!Number.isFinite(value)) return 1;
+  return Math.min(MAX_QUANTITY, Math.max(1, Math.floor(value)));
+}
+
 interface CoursePurchaseCardProps {
   course: CourseRichData;
   className?: string;
@@ -31,28 +39,45 @@ interface CoursePurchaseCardProps {
 export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProps) {
   const [tab, setTab] = useState<PurchaseTab>("me");
   const [qty, setQty] = useState(1);
+  const [qtyText, setQtyText] = useState("1");
   const [addError, setAddError] = useState<string | null>(null);
   const router = useRouter();
   const { mutate: addToCartAndGo, isPending: isBuyingNow } = useAddToCart();
   const { pricing } = course;
   const { data: tiers } = useBulkTiers();
 
+  // Indicative only — checkout re-prices server-side (see CART.md, bulk discount is a cart fee).
   const effectiveUnitPrice =
-    tiers?.length && tab === "teams" && pricing
-      ? (() => {
-          const tier = tiers.find((t) => qty >= t.min && (t.max === 0 || qty <= t.max));
-          return tier ? pricing.price * (1 - tier.percentage / 100) : pricing.price;
-        })()
+    tab === "teams" && pricing
+      ? bulkTierUnitPrice(pricing.price, resolveBulkTier(tiers, qty))
       : (pricing?.price ?? 0);
 
-  const durationLabel = course.duration
-    ? `Duration: ${course.duration.value} ${course.duration.unit}`
-    : course.durationSeconds
-      ? `Duration: ${formatDuration(course.durationSeconds)}`
-      : null;
+  const durationLabel = course.durationLabel ? `Duration: ${course.durationLabel}` : null;
 
   const wcProductId = resolveCourseProductId(course);
   const canPurchase = wcProductId != null;
+
+  /** Single rule: the priced quantity is clamped, and more than one licence means "For teams". */
+  const commitQuantity = (value: number) => {
+    const next = clampQuantity(value);
+    setQty(next);
+    if (next > 1) setTab("teams");
+    return next;
+  };
+
+  /** Commit and re-sync the input text — for the steppers and for blur. */
+  const applyQuantity = (value: number) => {
+    setQtyText(String(commitQuantity(value)));
+  };
+
+  const selectTab = (next: PurchaseTab) => {
+    setTab(next);
+    // "For me" is a single licence — otherwise the header total and the cart disagree.
+    if (next === "me") {
+      setQty(1);
+      setQtyText("1");
+    }
+  };
 
   const handleBuyNow = () => {
     if (!wcProductId) {
@@ -61,7 +86,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
     }
     setAddError(null);
     addToCartAndGo(
-      { product_id: wcProductId, quantity: tab === "teams" ? qty : 1 },
+      { product_id: wcProductId, quantity: qty },
       {
         onSuccess: () => {
           router.push("/checkout");
@@ -81,7 +106,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
             <button
               key={t}
               type="button"
-              onClick={() => setTab(t)}
+              onClick={() => selectTab(t)}
               className={cn(
                 "font-open-sans flex-1 cursor-pointer py-2.5 text-base font-medium transition-colors",
                 tab === t
@@ -123,9 +148,10 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
               <button
                 type="button"
                 onClick={() => {
-                  const next = Math.max(1, qty - 1);
+                  const next = clampQuantity(qty - 1);
                   setQty(next);
-                  if (tab === "teams" && next === 1) setTab("me");
+                  setQtyText(String(next));
+                  if (next === 1) setTab("me");
                 }}
                 aria-label="Decrease quantity"
                 disabled={qty <= 1}
@@ -133,19 +159,27 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
               >
                 <Minus className="h-5 w-5" />
               </button>
-              <div className="flex h-10 w-12 items-center justify-center border-x border-neutral-50">
-                <span className="font-open-sans text-[18px] leading-6 font-semibold text-neutral-900">
-                  {qty}
-                </span>
-              </div>
+              <input
+                type="number"
+                min={1}
+                max={MAX_QUANTITY}
+                value={qtyText}
+                onChange={(e) => {
+                  // Free text while typing, but commit every parsable value so the
+                  // displayed total never leads the quantity sent to the cart.
+                  setQtyText(e.target.value);
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val)) commitQuantity(val);
+                }}
+                onBlur={() => applyQuantity(parseInt(qtyText, 10))}
+                className="font-open-sans h-10 w-12 border-x border-neutral-50 bg-white px-1 text-center text-[18px] leading-6 font-semibold text-neutral-900 outline-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
               <button
                 type="button"
-                onClick={() => {
-                  setQty((q) => q + 1);
-                  if (tab === "me") setTab("teams");
-                }}
+                onClick={() => applyQuantity(qty + 1)}
                 aria-label="Increase quantity"
-                className="hover:bg-neutral-10 flex h-10 w-10 items-center justify-center rounded-lg p-1 text-neutral-700 transition-colors"
+                disabled={qty >= MAX_QUANTITY}
+                className="hover:bg-neutral-10 flex h-10 w-10 items-center justify-center rounded-lg p-1 text-neutral-700 transition-colors disabled:opacity-40"
               >
                 <Plus className="h-5 w-5" />
               </button>
@@ -154,7 +188,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
 
           {/* Bulk discount tiers — teams tab only */}
           {tab === "teams" && pricing && (
-            <BulkDiscountTable unitPrice={pricing.price} currency="£" />
+            <BulkDiscountTable unitPrice={pricing.price} currency={pricing.currency} />
           )}
 
           {/* CTA buttons */}
@@ -241,7 +275,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                 >
                   <Image
                     src={src}
-                    alt=""
+                    alt={label}
                     width={24}
                     height={24}
                     className="h-6 w-6 cursor-pointer hover:scale-110"

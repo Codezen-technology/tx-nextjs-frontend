@@ -19,6 +19,14 @@ vi.mock("@/lib/hooks/useAuth", () => ({
     isError: false,
     error: null,
   }),
+  // The form renders SocialAuthButtons, which reads this hook.
+  useSocialLogin: () => ({
+    mutate: vi.fn(),
+    reset: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+  }),
 }));
 
 beforeEach(() => {

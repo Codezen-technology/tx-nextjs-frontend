@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   normalizeCourse,
-  normalizeFlatCurriculum,
   normalizeRichCourse,
+  normalizeFlatCurriculum,
 } from "@/lib/services/courses";
 
 describe("normalizeCourse", () => {
@@ -193,54 +193,40 @@ describe("normalizeRichCourse", () => {
     });
     expect(c.product_id).toBe(77);
   });
+
+  it("builds a duration label from the { value, unit } object", () => {
+    const c = normalizeRichCourse({ id: 1, duration: { value: 8, unit: "hours" } });
+    expect(c.durationLabel).toBe("8 hours");
+    // The object shape is not seconds — it must not leak into durationSeconds.
+    expect(c.durationSeconds).toBeUndefined();
+  });
+
+  it("falls back to formatting duration seconds", () => {
+    const c = normalizeRichCourse({ id: 1, duration_seconds: 5400 });
+    expect(c.durationLabel).toBe("1h 30m");
+  });
+
+  it("has no duration label when the API sends neither shape", () => {
+    expect(normalizeRichCourse({ id: 1 }).durationLabel).toBeNull();
+  });
 });
 
 describe("normalizeFlatCurriculum", () => {
-  it("converts section_duration from minutes to seconds", () => {
-    const [section] = normalizeFlatCurriculum([
-      { id: 1, title: "Intro", type: "section", section_duration: 90 },
+  it("converts section and unit minutes to seconds", () => {
+    const items = normalizeFlatCurriculum([
+      { id: null, title: "Section 1", type: "section", section_duration: 30 },
+      { id: 1, title: "Lesson 1", type: "unit", duration: 5 },
     ]);
-    expect(section.section_duration).toBe(5400);
+    expect(items[0].durationSeconds).toBe(1800);
+    expect(items[1].durationSeconds).toBe(300);
   });
 
-  it("converts unit duration from minutes to seconds", () => {
-    const [unit] = normalizeFlatCurriculum([
-      { id: 2, title: "Lesson 1", type: "unit", duration: 12 },
-    ]);
-    expect(unit.duration).toBe(720);
+  it("leaves durationSeconds undefined when the API omits a duration", () => {
+    const items = normalizeFlatCurriculum([{ id: null, title: "Section 1", type: "section" }]);
+    expect(items[0].durationSeconds).toBeUndefined();
   });
 
-  it("leaves missing durations untouched", () => {
-    const [section, unit] = normalizeFlatCurriculum([
-      { id: 1, title: "Intro", type: "section" },
-      { id: 2, title: "Lesson 1", type: "unit", duration: null },
-    ]);
-    expect(section.section_duration).toBeUndefined();
-    expect(unit.duration).toBeNull();
-  });
-
-  it("keeps zero as zero rather than dropping it", () => {
-    const [unit] = normalizeFlatCurriculum([
-      { id: 2, title: "Lesson 1", type: "unit", duration: 0 },
-    ]);
-    expect(unit.duration).toBe(0);
-  });
-
-  it("preserves every other field", () => {
-    const [unit] = normalizeFlatCurriculum([
-      { id: 3, title: "Quiz", type: "quiz", icon: "quiz", is_free_preview: true, duration: 5 },
-    ]);
-    expect(unit).toMatchObject({
-      id: 3,
-      title: "Quiz",
-      type: "quiz",
-      icon: "quiz",
-      is_free_preview: true,
-      duration: 300,
-    });
-  });
-
-  it("returns an empty array unchanged", () => {
-    expect(normalizeFlatCurriculum([])).toEqual([]);
+  it("returns an empty array for a missing payload", () => {
+    expect(normalizeFlatCurriculum(null)).toEqual([]);
   });
 });

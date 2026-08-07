@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { serverApi } from "@/lib/api/server";
 import { normalizeBundleDetail } from "@/lib/services/bundles";
@@ -28,7 +29,7 @@ export async function generateMetadata({ params }: BundlePageProps): Promise<Met
   try {
     const [raw, seo] = await Promise.all([
       serverApi.bundles.bySlug(slug),
-      fetchRankMathSeo(`/bundles/${slug}`),
+      fetchRankMathSeo(wpPath.bundle(slug)),
     ]);
     const bundle = normalizeBundleDetail(raw);
     return buildPageMetadata(seo, {

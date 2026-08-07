@@ -6,6 +6,7 @@ import { getLocale, setRequestLocale } from "next-intl/server";
 import { serverApi } from "@/lib/api/server";
 import { normalizeProduct } from "@/lib/services/products";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
+import { wpPath } from "@/lib/seo/wp-paths";
 import { truncate, stripHtml } from "@/lib/utils/format";
 import { env } from "@/lib/env";
 import { ProductAddToCart } from "@/components/product/product-add-to-cart";
@@ -15,6 +16,15 @@ interface PageProps {
   params: Promise<{ locale: string; slug: string }>;
 }
 
+export async function generateStaticParams() {
+  try {
+    const rows = await serverApi.products.list({ per_page: 100 });
+    return (rows ?? []).flatMap(({ slug }) => (slug ? [{ slug }] : []));
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   setRequestLocale(await getLocale());
@@ -22,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   try {
     const [rows, seo] = await Promise.all([
       serverApi.products.bySlug(slug),
-      fetchRankMathSeo(`/product/${slug}`),
+      fetchRankMathSeo(wpPath.product(slug)),
     ]);
     const raw = rows?.[0];
     if (!raw) throw new Error("not found");
@@ -74,7 +84,7 @@ export default async function ProductPage({ params }: PageProps) {
 
   const [rowsResult, seoResult] = await Promise.allSettled([
     serverApi.products.bySlug(slug),
-    fetchRankMathSeo(`/product/${slug}`),
+    fetchRankMathSeo(wpPath.product(slug)),
   ]);
 
   const raw = rowsResult.status === "fulfilled" ? rowsResult.value?.[0] : null;
@@ -145,7 +155,7 @@ export default async function ProductPage({ params }: PageProps) {
         {/* Short description */}
         {product.shortDescription && (
           <div
-            className="mt-6 space-y-4 text-neutral-700 [&_a]:text-secondary-600 [&_a]:underline [&_ul]:list-disc [&_ul]:pl-6"
+            className="[&_a]:text-secondary-600 mt-6 space-y-4 text-neutral-700 [&_a]:underline [&_ul]:list-disc [&_ul]:pl-6"
             dangerouslySetInnerHTML={{ __html: product.shortDescription }}
           />
         )}
@@ -164,7 +174,7 @@ export default async function ProductPage({ params }: PageProps) {
           <section className="mt-12 border-t border-neutral-200 pt-8">
             <h2 className="mb-4 text-xl font-semibold text-neutral-900">Description</h2>
             <div
-              className="space-y-4 text-neutral-700 [&_a]:text-secondary-600 [&_a]:underline [&_h2]:mt-6 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:font-semibold [&_ul]:list-disc [&_ul]:pl-6"
+              className="[&_a]:text-secondary-600 space-y-4 text-neutral-700 [&_a]:underline [&_h2]:mt-6 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:font-semibold [&_ul]:list-disc [&_ul]:pl-6"
               dangerouslySetInnerHTML={{ __html: product.description }}
             />
           </section>

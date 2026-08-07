@@ -137,6 +137,8 @@ export interface CourseRichData extends Course {
   course_type?: string;
   /** Human-readable duration from API e.g. { value: 8, unit: "hours" } */
   duration?: { value: number; unit: string } | null;
+  /** Display-ready duration resolved by the service from `duration` or `durationSeconds`. */
+  durationLabel?: string | null;
   /** Parsed Rank Math SEO data — present when WP returns `rank_math_head` field. */
   seo?: CourseSeo;
 }
@@ -169,12 +171,14 @@ export interface CourseFlatCurriculumItem {
   id: number | null;
   title: string;
   type: "section" | "unit" | "quiz";
-  /** Seconds — the API sends minutes; `normalizeFlatCurriculum()` converts. */
+  /** Raw API value, in minutes. Read `durationSeconds` instead. */
   section_duration?: number;
   unit_count?: number;
   icon?: string;
-  /** Seconds — the API sends minutes; `normalizeFlatCurriculum()` converts. */
+  /** Raw API value, in minutes. Read `durationSeconds` instead. */
   duration?: number | null;
+  /** Normalized by `normalizeFlatCurriculum` — seconds, as the formatters expect. */
+  durationSeconds?: number;
   is_free_preview?: boolean;
 }
 
