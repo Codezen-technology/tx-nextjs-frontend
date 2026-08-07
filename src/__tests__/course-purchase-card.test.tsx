@@ -18,6 +18,17 @@ vi.mock("@/lib/hooks/useCart", () => ({
   useAddToCart: () => ({ mutate: mockMutate, isPending: false }),
 }));
 
+// The card and BulkDiscountTable both read this hook; mocking the hook keeps the
+// suite free of a QueryClientProvider, matching how useCart is handled above.
+const BULK_TIERS = [
+  { min: 2, max: 5, percentage: 10 },
+  { min: 6, max: 0, percentage: 20 },
+];
+
+vi.mock("@/lib/hooks/useBulkTiers", () => ({
+  useBulkTiers: () => ({ data: BULK_TIERS, isLoading: false }),
+}));
+
 beforeEach(() => {
   mockPush.mockReset();
   mockMutate.mockClear();
@@ -49,10 +60,11 @@ describe("CoursePurchaseCard", () => {
     expect(screen.getByRole("link", { name: /get in touch/i })).toBeInTheDocument();
   });
 
-  it("renders 'Add to Basket' button on 'For me' tab", () => {
+  it("offers only 'Buy this course' — the Add to Basket path was removed", () => {
     const course = makeRichCourse({ product_id: 42 });
     render(<CoursePurchaseCard course={course} />);
-    expect(screen.getByRole("button", { name: /add to basket/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /add to basket/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /buy this course/i })).toBeInTheDocument();
   });
 
   it("redirects to checkout on buy now click", () => {
@@ -69,9 +81,27 @@ describe("CoursePurchaseCard", () => {
   it("switches to teams tab on click", () => {
     const course = makeRichCourse({ product_id: 42 });
     render(<CoursePurchaseCard course={course} />);
+    // The stepper is shared by both tabs, so assert on the teams-only bulk table.
+    expect(screen.queryByText(/2 - 5 users/i)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /for teams/i }));
-    // Teams tab: quantity stepper appears
-    expect(screen.getByLabelText(/increase quantity/i)).toBeInTheDocument();
+    expect(screen.getByText(/2 - 5 users/i)).toBeInTheDocument();
+    expect(screen.getByText(/6\+ users/i)).toBeInTheDocument();
+  });
+
+  it("moves to the teams tab once quantity climbs above one", () => {
+    const course = makeRichCourse({ product_id: 42 });
+    render(<CoursePurchaseCard course={course} />);
+    fireEvent.click(screen.getByLabelText(/increase quantity/i));
+    expect(screen.getByText(/2 - 5 users/i)).toBeInTheDocument();
+  });
+
+  it("applies the bulk tier discount to the teams total", () => {
+    const course = makeRichCourse({ product_id: 42 });
+    render(<CoursePurchaseCard course={course} />);
+    fireEvent.click(screen.getByRole("button", { name: /for teams/i }));
+    fireEvent.click(screen.getByLabelText(/increase quantity/i));
+    // 2 seats × £99 with the 2–5 tier's 10% off = £178.20
+    expect(screen.getByText(/£178\.20/i)).toBeInTheDocument();
   });
 
   it("shows CPD points when set", () => {
