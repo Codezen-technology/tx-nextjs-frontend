@@ -16,7 +16,7 @@ describe("decodeEntities()", () => {
   it("decodes named and decimal numeric entities from WooCommerce", () => {
     expect(decodeEntities("A &#038; B")).toBe("A & B");
     expect(decodeEntities("Preorder &#8211; 50%")).toBe("Preorder – 50%");
-    expect(decodeEntities('Sorry, coupon &quot;onetime&quot; is not applicable.')).toBe(
+    expect(decodeEntities("Sorry, coupon &quot;onetime&quot; is not applicable.")).toBe(
       'Sorry, coupon "onetime" is not applicable.',
     );
     expect(decodeEntities("maximum spend is &#036;39.99.")).toBe("maximum spend is $39.99.");

@@ -26,13 +26,13 @@ export function LegalPage({
     <>
       <section className="bg-primary-50 py-14 text-center">
         <div className="container">
-          <p className="font-open-sans text-sm font-semibold uppercase tracking-wide text-secondary-500">
+          <p className="font-open-sans text-secondary-500 text-sm font-semibold tracking-wide uppercase">
             {eyebrow}
           </p>
-          <h1 className="mt-2 font-suse text-4xl font-bold text-neutral-900">
+          <h1 className="font-suse mt-2 text-4xl font-bold text-neutral-900">
             {page?.title ?? defaultTitle}
           </h1>
-          <p className="mx-auto mt-3 max-w-2xl font-open-sans text-neutral-500">{defaultIntro}</p>
+          <p className="font-open-sans mx-auto mt-3 max-w-2xl text-neutral-500">{defaultIntro}</p>
         </div>
       </section>
 
@@ -47,14 +47,14 @@ export function LegalPage({
           ) : (
             <p className="font-open-sans text-neutral-500">
               This page is being updated. Please check back soon or{" "}
-              <Link href="/contact-us" className="font-semibold text-secondary-500 underline">
+              <Link href="/contact-us" className="text-secondary-500 font-semibold underline">
                 contact us
               </Link>{" "}
               if you need this information right away.
             </p>
           )}
           {page?.modified && (
-            <p className="mt-10 font-open-sans text-xs text-neutral-400">
+            <p className="font-open-sans mt-10 text-xs text-neutral-400">
               Last updated:{" "}
               {new Date(page.modified).toLocaleDateString("en-GB", {
                 day: "numeric",

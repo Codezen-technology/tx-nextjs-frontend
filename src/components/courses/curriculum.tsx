@@ -30,7 +30,7 @@ export function Curriculum({ courseId, sections, enrolled = false }: CurriculumP
 
   if (!list.length) {
     return (
-      <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+      <p className="text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
         Curriculum is not available for this course yet.
       </p>
     );
@@ -42,7 +42,7 @@ export function Curriculum({ courseId, sections, enrolled = false }: CurriculumP
         <section key={section.id} className="space-y-2">
           <header className="flex items-center justify-between">
             <h3 className="font-semibold">{section.title}</h3>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               {section.units.length} {pluralize(section.units.length, "unit")}
             </span>
           </header>
@@ -54,15 +54,15 @@ export function Curriculum({ courseId, sections, enrolled = false }: CurriculumP
                     {unit.isCompleted ? (
                       <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
                     ) : enrolled || unit.isFreePreview ? (
-                      <PlayCircle className="h-4 w-4 shrink-0 text-primary" />
+                      <PlayCircle className="text-primary h-4 w-4 shrink-0" />
                     ) : (
-                      <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <Lock className="text-muted-foreground h-4 w-4 shrink-0" />
                     )}
                     <span className="truncate">{unit.title}</span>
                   </div>
-                  <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
+                  <div className="text-muted-foreground flex shrink-0 items-center gap-3 text-xs">
                     {unit.isFreePreview && !enrolled ? (
-                      <span className="rounded bg-muted px-1.5 py-0.5">Preview</span>
+                      <span className="bg-muted rounded px-1.5 py-0.5">Preview</span>
                     ) : null}
                     {unit.durationSeconds ? (
                       <span>{formatDuration(unit.durationSeconds)}</span>
@@ -77,7 +77,7 @@ export function Curriculum({ courseId, sections, enrolled = false }: CurriculumP
                   {canOpen ? (
                     <Link
                       href={`/learn/${courseId}/${unit.id}`}
-                      className="block transition-colors hover:bg-accent/50"
+                      className="hover:bg-accent/50 block transition-colors"
                     >
                       {inner}
                     </Link>

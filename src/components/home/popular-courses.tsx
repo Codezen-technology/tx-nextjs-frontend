@@ -34,14 +34,14 @@ export async function PopularCourses({ limit = 8, header }: PopularCoursesProps)
             <h2 className="font-suse text-3xl font-bold text-neutral-900 md:text-[2rem]">
               {header.title}
             </h2>
-            <p className="mt-2 max-w-[760px] font-open-sans text-sm text-neutral-500 md:text-base">
+            <p className="font-open-sans mt-2 max-w-[760px] text-sm text-neutral-500 md:text-base">
               {header.description}
             </p>
           </div>
 
           <Link
             href={header.ctaHref}
-            className="self-justify-start flex items-center gap-1 font-open-sans text-base font-normal text-secondary-500 transition-colors hover:text-secondary-600"
+            className="self-justify-start font-open-sans text-secondary-500 hover:text-secondary-600 flex items-center gap-1 text-base font-normal transition-colors"
           >
             {header.ctaLabel}
             <ChevronRight className="h-4 w-4" />

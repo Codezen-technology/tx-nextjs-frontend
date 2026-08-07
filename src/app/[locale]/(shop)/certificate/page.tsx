@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
   const seo = await fetchRankMathSeo(wpPath.page("certificate"));
   return buildPageMetadata(seo, {
-    title: "Order Your Certificate | Training Excellence",
+    title: "Order Your Certificate",
     description:
       "Order your official CPD-accredited certificate and transcript. Digital and printed copies available — showcase your professional growth.",
     canonical: `${env.SITE_URL.replace(/\/$/, "")}/certificate`,

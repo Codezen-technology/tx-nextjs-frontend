@@ -86,10 +86,10 @@ export function CourseTabNav({
             type="button"
             onClick={() => scrollTo(item.id)}
             className={cn(
-              "shrink-0 rounded px-5 py-2 font-open-sans text-sm font-semibold transition-colors",
+              "font-open-sans shrink-0 rounded px-5 py-2 text-sm font-semibold transition-colors",
               active === item.id
                 ? "bg-primary-600 text-white"
-                : "bg-primary-500 text-white hover:bg-primary-600",
+                : "bg-primary-500 hover:bg-primary-600 text-white",
             )}
           >
             {item.label}

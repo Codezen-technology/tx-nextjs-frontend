@@ -101,7 +101,7 @@ export function AssignCourseModal({
         </DialogHeader>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-300" />
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-300" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -110,13 +110,13 @@ export function AssignCourseModal({
           />
         </div>
 
-        <div className="max-h-64 overflow-y-auto rounded-lg border border-neutral-30">
+        <div className="border-neutral-30 max-h-64 overflow-y-auto rounded-lg border">
           {isLoading ? (
             <p className="p-4 text-sm text-neutral-300">Loading learners…</p>
           ) : !learners.length ? (
             <p className="p-4 text-sm text-neutral-300">No learners found.</p>
           ) : (
-            <ul className="divide-y divide-neutral-20">
+            <ul className="divide-neutral-20 divide-y">
               {learners.map((learner) => {
                 const disabled = !learner.is_available;
                 return (
@@ -126,7 +126,7 @@ export function AssignCourseModal({
                         "flex items-center gap-3 px-4 py-3",
                         disabled
                           ? "cursor-not-allowed opacity-60"
-                          : "cursor-pointer hover:bg-neutral-10",
+                          : "hover:bg-neutral-10 cursor-pointer",
                       )}
                     >
                       <input
@@ -134,7 +134,7 @@ export function AssignCourseModal({
                         checked={selected.has(learner.id)}
                         disabled={disabled}
                         onChange={() => !disabled && toggle(learner.id)}
-                        className="h-4 w-4 rounded border-neutral-40 disabled:cursor-not-allowed"
+                        className="border-neutral-40 h-4 w-4 rounded disabled:cursor-not-allowed"
                       />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-neutral-900">
@@ -145,7 +145,7 @@ export function AssignCourseModal({
                         </span>
                       </span>
                       {disabled ? (
-                        <span className="shrink-0 rounded-full bg-neutral-20 px-2 py-0.5 text-xs font-medium text-neutral-500">
+                        <span className="bg-neutral-20 shrink-0 rounded-full px-2 py-0.5 text-xs font-medium text-neutral-500">
                           {unavailableLabel(learner.assignment_status)}
                         </span>
                       ) : null}

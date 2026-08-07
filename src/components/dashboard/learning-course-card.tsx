@@ -30,14 +30,14 @@ export function LearningCourseCard({ course }: { course: StudentCourse }) {
         {/* Play button — frosted glass circle */}
         <Link
           href={continueUrl}
-          className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#f6f6fa]/80 transition hover:bg-[#f6f6fa]/95"
+          className="absolute top-1/2 left-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#f6f6fa]/80 transition hover:bg-[#f6f6fa]/95"
           aria-label="Continue course"
         >
           <Play className="ml-0.5 h-8 w-8 text-[#3f4d97]" fill="currentColor" />
         </Link>
 
         {/* 3-dot menu — top-right */}
-        <div className="absolute right-3 top-3">
+        <div className="absolute top-3 right-3">
           <button
             type="button"
             aria-label="Course options"
@@ -50,7 +50,7 @@ export function LearningCourseCard({ course }: { course: StudentCourse }) {
           {menuOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-              <div className="absolute right-0 top-full z-20 mt-1 min-w-[160px] rounded-2xl bg-white py-2 shadow-[0_2px_8px_rgba(0,0,0,0.15)] ring-1 ring-black/5">
+              <div className="absolute top-full right-0 z-20 mt-1 min-w-[160px] rounded-2xl bg-white py-2 shadow-[0_2px_8px_rgba(0,0,0,0.15)] ring-1 ring-black/5">
                 <Link
                   href={continueUrl}
                   onClick={() => setMenuOpen(false)}
@@ -77,7 +77,7 @@ export function LearningCourseCard({ course }: { course: StudentCourse }) {
 
       {/* Body */}
       <div className="flex flex-col gap-2 p-4">
-        <h3 className="line-clamp-2 text-[18px] font-bold leading-[1.3] text-[#2e4450]">
+        <h3 className="line-clamp-2 text-[18px] leading-[1.3] font-bold text-[#2e4450]">
           {course.name}
         </h3>
         <p className="text-xs font-semibold text-[#2e323e]">{progress}% Completed</p>

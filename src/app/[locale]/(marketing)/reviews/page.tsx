@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
   const seo = await fetchRankMathSeo(wpPath.page("reviews"));
   return buildPageMetadata(seo, {
-    title: "Course Reviews | Training Excellence",
+    title: "Course Reviews",
     description:
       "What do learners say about our courses? Read genuine reviews from Training Excellence students across the UK.",
     canonical: `${env.SITE_URL.replace(/\/$/, "")}/reviews`,

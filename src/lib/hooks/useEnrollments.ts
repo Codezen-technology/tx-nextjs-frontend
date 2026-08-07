@@ -35,7 +35,10 @@ export function useEnroll() {
         enrolledAt: new Date().toISOString(),
         lastAccessedUnitId: null,
       };
-      qc.setQueryData<Enrollment[]>(queryKeys.enrollments.me, (old) => [optimistic, ...(old ?? [])]);
+      qc.setQueryData<Enrollment[]>(queryKeys.enrollments.me, (old) => [
+        optimistic,
+        ...(old ?? []),
+      ]);
       return { prev };
     },
     onError: (err: ApiError, _vars, ctx) => {

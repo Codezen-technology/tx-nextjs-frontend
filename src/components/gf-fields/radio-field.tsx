@@ -11,7 +11,7 @@ export function RadioField({ field, values, onChange }: GfFieldProps) {
         {field.choices?.map((c) => (
           <label
             key={c.value}
-            className="flex items-center gap-2 font-open-sans text-sm text-neutral-700"
+            className="font-open-sans flex items-center gap-2 text-sm text-neutral-700"
           >
             <input
               type="radio"

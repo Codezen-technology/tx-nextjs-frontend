@@ -24,7 +24,7 @@ export function PlayerSidebarProgress({ course, progress }: PlayerSidebarProgres
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-gray-200">
         <div
-          className="h-full bg-player-success transition-all duration-500"
+          className="bg-player-success h-full transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>

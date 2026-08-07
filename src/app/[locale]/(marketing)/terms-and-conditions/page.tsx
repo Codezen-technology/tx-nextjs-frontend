@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
   const seo = await fetchRankMathSeo(wpPath.page("terms-and-conditions"));
   return buildPageMetadata(seo, {
-    title: "Terms & Conditions | Training Excellence",
+    title: "Terms & Conditions",
     description:
       "The terms of use that apply when you browse Training Excellence, purchase a course, or use our online training platform.",
     canonical: `${env.SITE_URL.replace(/\/$/, "")}/terms-and-conditions`,

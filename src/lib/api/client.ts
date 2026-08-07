@@ -7,7 +7,11 @@ const isBrowser = typeof window !== "undefined";
 function unwrapLmsEnvelope<T>(response: AxiosResponse<T>): AxiosResponse<T> {
   const body = response.data as unknown;
   if (body && typeof body === "object" && "success" in body) {
-    const envelope = body as { success?: boolean; data?: unknown; error?: { code?: string; message?: string } };
+    const envelope = body as {
+      success?: boolean;
+      data?: unknown;
+      error?: { code?: string; message?: string };
+    };
     if (envelope.success === true) {
       response.data = envelope.data as T;
       return response;

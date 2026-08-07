@@ -169,6 +169,59 @@ Hand-written `canonical:` fallbacks must be slashless and match their `sitemap.t
 
 ---
 
+## Open Graph types — Next's set is closed
+
+`Metadata.openGraph.type` accepts twelve values and **throws on anything else**, and a throw during metadata resolution discards the page's entire head — no title, no description, no canonical, no robots.
+
+Rank Math returns `og:type=product` for every WooCommerce product. Passed straight through behind a cast, it blanked the head of every `/product/{slug}` page while the build stayed green and `tsc` stayed quiet.
+
+`buildPageMetadata` narrows the upstream value against `OG_TYPES` and falls back to `"website"`, logging what it rejected. The accepted set:
+
+`article` · `book` · `music.song` · `music.album` · `music.playlist` · `music.radio_station` · `profile` · `website` · `video.tv_show` · `video.other` · `video.movie` · `video.episode`
+
+**Never restore a cast here.** `as "website"` on an upstream string is what moved this failure from build time to request time.
+
+---
+
+## Titles carry the brand once
+
+Rank Math titles already end in the site name, and `src/app/layout.tsx` sets a `title.template` of `%s | {siteName}`. Applied to an already-branded title, that produced `Training Excellence - Get Skilled, Get Certified | Training Excellence`.
+
+`buildPageMetadata` returns `title: { absolute: brandOnce(title, siteName) }` — `absolute` opts out of the template, and `brandOnce` appends the site name only when the title does not already contain it.
+
+Page-level fallback titles must therefore **not** hand-write `| Training Excellence`. A fallback returned outside `buildPageMetadata` (a `catch` block, say) still goes through the root template, so it should be a bare title too.
+
+---
+
+## Sitemap sources page at 100
+
+Every upstream caps one page at 100 items, and two of the three do it silently:
+
+| Source                   | `per_page: 500` behaviour                    |
+| ------------------------ | -------------------------------------------- |
+| `lms-backend/v1/courses` | HTTP 200 with 100 of 238 items               |
+| `wc/store/v1/products`   | HTTP 200 with 100 of 280 items               |
+| `wp/v2/posts`            | HTTP 400 `rest_invalid_param` — empty result |
+
+`sitemap.ts` pages every source through `collectAllPages`, capped at `MAX_PAGES` (50). `fetchBlogPage` clamps its own `perPage` to 1–100 so a caller cannot ask for a 400.
+
+A source resolving to zero entries is logged. Silence is why zero blog posts looked identical to a site without a blog.
+
+---
+
+## Sitemap membership is derived, not listed
+
+A URL enters `sitemap.xml` only if it passes both gates:
+
+1. **Gate A — this app serves it.** `src/lib/seo/app-routes.ts` lists every path with its own route file, flagged `indexable`. Static entries are built from it, and any WordPress slug it claims is excluded from the catch-all enumeration. `seo-app-routes.test.ts` walks `src/app/[locale]/**` and fails when a route file has no entry.
+2. **Gate B — WordPress publishes it at that path.** `isIndexableWpPage(slug)` keeps a slug only when Rank Math answers with a canonical, which the path guard has already matched to the request. That single call rejects 404 heads (`/shop`), noindex pages (`/activity`, `/pwa`) and pages that canonicalise elsewhere (`/home` → the site root).
+
+This replaced a hand-maintained denylist of WordPress slugs, which drifted every time a page was published: `/register`, `/business-dashboard`, `/shop`, `/home`, `/activate`, `/activity` and `/pwa` were all live in the sitemap.
+
+**Soft 404s.** The catch-all route calls `notFound()` when a page has no content, no blocks **and** no Rank Math canonical. All three are needed — Elementor pages report empty content, so emptiness alone would 404 real pages like `/training-teams`.
+
+---
+
 ## Fallback behavior
 
 `fetchRankMathSeo` never throws. It returns `null` when:
@@ -207,16 +260,20 @@ Given Rank Math SEO data, it produces:
 
 ## Key files
 
-| File                                 | Purpose                                                   |
-| ------------------------------------ | --------------------------------------------------------- |
-| `src/lib/seo/server.ts`              | `fetchRankMathSeo` + `buildPageMetadata` + `canonicalize` |
-| `src/lib/seo/wp-paths.ts`            | `wpPath` — the WP↔Next mapping table                      |
-| `src/lib/seo/__fixtures__/`          | Production `getHead` responses used by the tests          |
-| `src/lib/utils/seo.ts`               | `parseRankMathHead` — HTML parser (used internally)       |
-| `src/lib/api/server.ts`              | `serverApi.rankmath.getHead` — raw fetch with ISR cache   |
-| `src/__tests__/seo-wp-paths.test.ts` | Mapping contract — add a case for every new route         |
-| `src/__tests__/seo-rankmath.test.ts` | Guard behaviour against real production heads             |
-| `src/__tests__/sitemap.test.ts`      | Sitemap coverage, exclusions, URL form, `lastmod`         |
+| File                                   | Purpose                                                                 |
+| -------------------------------------- | ----------------------------------------------------------------------- |
+| `src/lib/seo/server.ts`                | `fetchRankMathSeo` + `buildPageMetadata` + `canonicalize` + `brandOnce` |
+| `src/lib/seo/wp-paths.ts`              | `wpPath` — the WP↔Next mapping table                                    |
+| `src/lib/seo/app-routes.ts`            | Every path this app serves, flagged `indexable`                         |
+| `src/lib/seo/wp-pages.ts`              | Catch-all gates — `isCatchAllSlug`, `isIndexableWpPage`, servability    |
+| `src/lib/seo/__fixtures__/`            | Production `getHead` responses used by the tests                        |
+| `src/lib/utils/seo.ts`                 | `parseRankMathHead` — HTML parser (used internally)                     |
+| `src/lib/api/server.ts`                | `serverApi.rankmath.getHead` — raw fetch with ISR cache                 |
+| `src/__tests__/seo-wp-paths.test.ts`   | Mapping contract — add a case for every new route                       |
+| `src/__tests__/seo-app-routes.test.ts` | Registry vs filesystem — fails on a route with no entry                 |
+| `src/__tests__/seo-wp-pages.test.ts`   | Catch-all gates and the soft-404 predicate                              |
+| `src/__tests__/seo-rankmath.test.ts`   | Guard behaviour against real production heads                           |
+| `src/__tests__/sitemap.test.ts`        | Coverage, pagination, membership, URL form, `lastmod`                   |
 
 ---
 
@@ -225,6 +282,9 @@ Given Rank Math SEO data, it produces:
 - [ ] `generateMetadata` calls `fetchRankMathSeo` + `buildPageMetadata`
 - [ ] WP path comes from `wpPath.*` — no inline literal
 - [ ] New route family added to `wpPath` AND to `seo-wp-paths.test.ts`
+- [ ] Route added to `src/lib/seo/app-routes.ts` with an `indexable` flag —
+      indexable static routes also need `changeFrequency` and `priority`
+- [ ] Fallback title is bare — no hand-written `| Training Excellence`
 - [ ] `generateStaticParams` on dynamic `[slug]` pages
 - [ ] Fallback `title`, `description`, `canonical` provided to `buildPageMetadata`
 - [ ] Canonical is slashless and matches the `sitemap.ts` entry byte-for-byte

@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
   const seo = await fetchRankMathSeo(wpPath.page("support-request"));
   return buildPageMetadata(seo, {
-    title: "Get Support | Training Excellence",
+    title: "Get Support",
     description:
       "Choose the issue that matches your situation and we will ask only for the details needed to fix it. Most course access, billing, and technical issues are resolved the same working day.",
     canonical: `${env.SITE_URL.replace(/\/$/, "")}/support-request`,

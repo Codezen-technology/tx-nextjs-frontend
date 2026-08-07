@@ -4,8 +4,6 @@ export function isRenderableImageSrc(src: unknown): src is string {
   const trimmed = src.trim();
   if (!trimmed) return false;
   return (
-    /^https?:\/\//i.test(trimmed) ||
-    trimmed.startsWith("/") ||
-    trimmed.startsWith("data:image/")
+    /^https?:\/\//i.test(trimmed) || trimmed.startsWith("/") || trimmed.startsWith("data:image/")
   );
 }

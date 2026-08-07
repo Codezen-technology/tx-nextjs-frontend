@@ -15,13 +15,13 @@ Three defects undercut it, and all three come from the same root cause: **`fetch
 
 ### Top 5 priority issues
 
-| # | Issue | Impact |
-|---|-------|--------|
-| 1 | Blog posts request the wrong WP path → Rank Math returns the **homepage** head → every blog post gets `canonical = https://site/`, the homepage title, and description `"VK"` | Critical |
-| 2 | Course category pages request `/course-category/{slug}` (WP uses `/course-cat/{slug}`) → Rank Math returns a generic 404 head → all 8 category pages share the title "Training Excellence" and have no meta description | Critical |
-| 3 | Homepage meta description in Rank Math is literally `"VK"` — shipped verbatim to the live frontend | Critical |
-| 4 | Rank Math canonicals carry a trailing slash (`/course/x/`); Next serves `/course/x` and the sitemap lists `/course/x` → every canonical on the site points at a 308-redirecting URL that disagrees with the sitemap | High |
-| 5 | Header/footer link to `/careers`, `/special-offers` (404) and `/courses` (protected → redirects to `/login`) | High |
+| #   | Issue                                                                                                                                                                                                                   | Impact   |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 1   | Blog posts request the wrong WP path → Rank Math returns the **homepage** head → every blog post gets `canonical = https://site/`, the homepage title, and description `"VK"`                                           | Critical |
+| 2   | Course category pages request `/course-category/{slug}` (WP uses `/course-cat/{slug}`) → Rank Math returns a generic 404 head → all 8 category pages share the title "Training Excellence" and have no meta description | Critical |
+| 3   | Homepage meta description in Rank Math is literally `"VK"` — shipped verbatim to the live frontend                                                                                                                      | Critical |
+| 4   | Rank Math canonicals carry a trailing slash (`/course/x/`); Next serves `/course/x` and the sitemap lists `/course/x` → every canonical on the site points at a 308-redirecting URL that disagrees with the sitemap     | High     |
+| 5   | Header/footer link to `/careers`, `/special-offers` (404) and `/courses` (protected → redirects to `/login`)                                                                                                            | High     |
 
 ### Quick wins (< 1 hour each)
 
@@ -60,7 +60,7 @@ A canonical pointing to a different URL is a de-indexing instruction. With more 
 
 ```ts
 // blog/[slug]/page.tsx — both call sites (metadata + page body)
-fetchRankMathSeo(`/blog/${slug}/`)
+fetchRankMathSeo(`/blog/${slug}/`);
 ```
 
 **Priority.** 1 — fix before publishing any new blog content.
@@ -137,13 +137,13 @@ Also apply to the JSON-LD `@id` / `url` patch, which inherits the same slashes.
 
 ### T5 — Broken and protected links in site navigation · High
 
-| Link | Where | What happens |
-|------|-------|--------------|
-| `/careers` | footer nav | WP 404 → catch-all `[slug]` → `notFound()` → 404 |
-| `/special-offers` | nav/profile menu | WP 404 → 404 |
-| `/courses` | header | resolves to `(student)/courses`, a PROTECTED route → `src/proxy.ts` redirects logged-out crawlers to `/login` |
-| `/training-teams` | header | WP 200, renders via catch-all, but absent from `sitemap.ts` |
-| `/force-for-good`, `/resources` | nav | WP 200, render via catch-all, absent from `sitemap.ts` |
+| Link                            | Where            | What happens                                                                                                  |
+| ------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------- |
+| `/careers`                      | footer nav       | WP 404 → catch-all `[slug]` → `notFound()` → 404                                                              |
+| `/special-offers`               | nav/profile menu | WP 404 → 404                                                                                                  |
+| `/courses`                      | header           | resolves to `(student)/courses`, a PROTECTED route → `src/proxy.ts` redirects logged-out crawlers to `/login` |
+| `/training-teams`               | header           | WP 200, renders via catch-all, but absent from `sitemap.ts`                                                   |
+| `/force-for-good`, `/resources` | nav              | WP 200, render via catch-all, absent from `sitemap.ts`                                                        |
 
 **Evidence.** `curl -o /dev/null -w %{http_code}` against each WP path; route existence checked against `src/app/[locale]/`.
 

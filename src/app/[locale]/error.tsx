@@ -20,7 +20,7 @@ export default function GlobalError({
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-4 p-6 text-center">
       <h1 className="text-3xl font-semibold tracking-tight">Something went wrong</h1>
-      <p className="max-w-md text-muted-foreground">
+      <p className="text-muted-foreground max-w-md">
         An unexpected error occurred. You can try again or head back to the home page.
       </p>
       <div className="flex gap-3">

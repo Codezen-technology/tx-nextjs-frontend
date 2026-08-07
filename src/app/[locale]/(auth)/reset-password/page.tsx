@@ -87,7 +87,7 @@ function ResetPasswordForm() {
               {...register("password")}
             />
             {errors.password ? (
-              <p className="text-sm text-destructive">{errors.password.message}</p>
+              <p className="text-destructive text-sm">{errors.password.message}</p>
             ) : null}
           </div>
 
@@ -100,7 +100,7 @@ function ResetPasswordForm() {
               {...register("confirmPassword")}
             />
             {errors.confirmPassword ? (
-              <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+              <p className="text-destructive text-sm">{errors.confirmPassword.message}</p>
             ) : null}
           </div>
 
@@ -118,7 +118,7 @@ function ResetPasswordFallback() {
   return (
     <Card>
       <CardContent className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
       </CardContent>
     </Card>
   );

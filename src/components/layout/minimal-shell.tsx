@@ -8,7 +8,7 @@ export function MinimalShell({ children }: { children: React.ReactNode }) {
       <MinimalHeader />
       {/* Trust badges */}
       <CourseTrustedStrip />
-      <main className="flex-1 bg-neutral-10">{children}</main>
+      <main className="bg-neutral-10 flex-1">{children}</main>
     </div>
   );
 }

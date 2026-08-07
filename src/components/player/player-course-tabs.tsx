@@ -87,7 +87,7 @@ export function PlayerCourseTabs({
             key={index}
             type="button"
             className={cn(
-              "whitespace-nowrap bg-inherit px-6 py-3 text-sm font-medium transition-colors",
+              "bg-inherit px-6 py-3 text-sm font-medium whitespace-nowrap transition-colors",
               activeTab === index
                 ? "border-b-2 border-blue-500 text-blue-600"
                 : "text-gray-500 hover:border-gray-300 hover:text-gray-700",

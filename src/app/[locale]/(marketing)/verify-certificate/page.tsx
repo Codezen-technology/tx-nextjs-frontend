@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
   const seo = await fetchRankMathSeo(wpPath.page("verify-certificate"));
   return buildPageMetadata(seo, {
-    title: "Verify Certificate | Training Excellence",
+    title: "Verify Certificate",
     description:
       "Quickly and easily check the validity of your Training Excellence course certificate with our Course Certificate Validator tool.",
     canonical: `${env.SITE_URL.replace(/\/$/, "")}/verify-certificate`,

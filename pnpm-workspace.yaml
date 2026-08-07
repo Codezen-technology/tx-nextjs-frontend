@@ -1,8 +1,8 @@
 allowBuilds:
-  '@firebase/util': true
-  '@parcel/watcher': true
-  '@sentry/cli': true
-  '@swc/core': true
+  "@firebase/util": true
+  "@parcel/watcher": true
+  "@sentry/cli": true
+  "@swc/core": true
   msw: false
   protobufjs: true
   sharp: true

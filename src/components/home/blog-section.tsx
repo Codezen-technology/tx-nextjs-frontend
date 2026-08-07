@@ -23,13 +23,13 @@ export async function BlogSection() {
         <div className="mb-8 flex items-end justify-between">
           <div>
             <h2 className="font-suse text-3xl font-bold text-neutral-900">Latest from Our Blog</h2>
-            <p className="mt-1 font-open-sans text-neutral-500">
+            <p className="font-open-sans mt-1 text-neutral-500">
               Tips, guides and industry updates to help you stay ahead.
             </p>
           </div>
           <Link
             href="/blog"
-            className="flex items-center gap-1 font-open-sans text-sm font-semibold text-secondary-500 hover:text-secondary-600"
+            className="font-open-sans text-secondary-500 hover:text-secondary-600 flex items-center gap-1 text-sm font-semibold"
           >
             View all posts <ChevronRight className="h-4 w-4" />
           </Link>

@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     });
   } catch {
     return {
-      title: "Product | Training Excellence",
+      title: "Product",
       alternates: { canonical: `${siteUrl}/product/${slug}` },
     };
   }

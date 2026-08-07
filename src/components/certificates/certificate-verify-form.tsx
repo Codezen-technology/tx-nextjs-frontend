@@ -75,7 +75,7 @@ export function CertificateVerifyForm({ initialCode }: { initialCode?: string })
       didAutoVerify.current = true;
       void verify(initialCode);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [initialCode]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -102,7 +102,7 @@ export function CertificateVerifyForm({ initialCode }: { initialCode?: string })
           <Button
             type="submit"
             disabled={status === "checking"}
-            className="w-full bg-secondary-500 text-white hover:bg-secondary-600"
+            className="bg-secondary-500 hover:bg-secondary-600 w-full text-white"
             size="lg"
           >
             {status === "checking" && <Loader2 className="animate-spin" />}

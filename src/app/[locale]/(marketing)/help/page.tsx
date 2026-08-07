@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
   const seo = await fetchRankMathSeo(wpPath.page("help"));
   return buildPageMetadata(seo, {
-    title: "Help & FAQs | Training Excellence",
+    title: "Help & FAQs",
     description:
       "Answers to the most common questions about Training Excellence courses, certificates, accreditation and corporate training.",
     canonical: `${env.SITE_URL.replace(/\/$/, "")}/help`,

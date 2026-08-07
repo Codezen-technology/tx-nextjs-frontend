@@ -48,8 +48,7 @@ export function paginate<T>(
   return {
     items,
     total: total ?? (Number.isFinite(headerTotal) ? headerTotal : items.length),
-    totalPages:
-      totalPages ?? (Number.isFinite(headerTotalPages) ? headerTotalPages : 1),
+    totalPages: totalPages ?? (Number.isFinite(headerTotalPages) ? headerTotalPages : 1),
     page,
     perPage,
   };

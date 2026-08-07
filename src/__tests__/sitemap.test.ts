@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import { server } from "./mocks/server";
 import sitemap from "@/app/sitemap";
@@ -6,6 +6,26 @@ import sitemap from "@/app/sitemap";
 const WP = "http://localhost/wp-json";
 const LMS = `${WP}/lms-backend/v1`;
 const SITE = "http://localhost:3000";
+
+/**
+ * WordPress pages, as production actually reports them.
+ *
+ * `canonical: null` is how Rank Math answers for a page WordPress does not
+ * publish at that path — a 404 head (`shop`) or a noindex page (`activity`,
+ * `pwa`). `home` answers with the site root, which the path guard rejects.
+ * Every one of these reached the live sitemap under the old denylist.
+ */
+const WP_PAGES: Record<string, string | null> = {
+  "training-teams": "/training-teams/",
+  "force-for-good": "/force-for-good/",
+  "about-us": "/about-us/",
+  shop: null,
+  activity: null,
+  activate: null,
+  pwa: null,
+  home: "/",
+  register: "/register/",
+};
 
 /** Routes that must never appear — protected, transactional, or noindex. */
 const EXCLUDED = [
@@ -52,12 +72,12 @@ function mockSources() {
       HttpResponse.json({
         success: true,
         data: {
-          items: [
-            { id: 1, slug: "training-teams", title: "Training Teams", template: null },
-            { id: 2, slug: "force-for-good", title: "Force for Good", template: null },
-            // Has its own route + static entry — must not be emitted twice.
-            { id: 3, slug: "about-us", title: "About Us", template: null },
-          ],
+          items: Object.keys(WP_PAGES).map((slug, i) => ({
+            id: i + 1,
+            slug,
+            title: slug,
+            template: null,
+          })),
         },
       }),
     ),
@@ -82,10 +102,29 @@ function mockSources() {
     http.get(`${WP}/wp/v2/categories`, () =>
       HttpResponse.json([{ id: 3, slug: "health-social-care", name: "Health", count: 1 }]),
     ),
+    // Gate B: WordPress declares a page indexable by answering with a canonical
+    // for that exact path.
+    http.get(`${WP}/rankmath/v1/getHead`, ({ request }) => {
+      const asked = new URL(request.url).searchParams.get("url") ?? "";
+      const slug = new URL(asked).pathname.replace(/^\/|\/$/g, "");
+      const canonical = WP_PAGES[slug];
+      const head = canonical
+        ? `<title>${slug}</title><link rel="canonical" href="http://localhost${canonical}" />`
+        : `<title>Page Not Found - Training Excellence</title><meta name="robots" content="follow, noindex"/>`;
+      return HttpResponse.json({ success: true, head });
+    }),
   );
 }
 
-beforeEach(() => mockSources());
+let warn: ReturnType<typeof vi.spyOn>;
+
+beforeEach(() => {
+  mockSources();
+  // The sitemap logs empty and truncated families; keep the suite readable.
+  warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+});
+
+afterEach(() => warn.mockRestore());
 
 describe("sitemap — coverage", () => {
   it("includes every public route family", async () => {
@@ -186,6 +225,176 @@ describe("sitemap — lastModified", () => {
     const second = entries.find((e) => e.url.endsWith("/course/food-hygiene"));
 
     expect(first?.lastModified).not.toEqual(second?.lastModified);
+  });
+});
+
+describe("sitemap — paginated sources", () => {
+  /** Serves `total` items 100 at a time, the way every upstream here behaves. */
+  function paginated(total: number, slug: (i: number) => string) {
+    return ({ request }: { request: Request }) => {
+      const params = new URL(request.url).searchParams;
+      const page = Number(params.get("page") ?? 1);
+      const perPage = Number(params.get("per_page") ?? 10);
+      // WordPress rejects an over-large page rather than clamping to it.
+      if (perPage > 100) {
+        return HttpResponse.json({ code: "rest_invalid_param" }, { status: 400 });
+      }
+      const start = (page - 1) * perPage;
+      const items = Array.from(
+        { length: Math.max(0, Math.min(perPage, total - start)) },
+        (_, i) => ({
+          id: start + i + 1,
+          slug: slug(start + i + 1),
+        }),
+      );
+      return { items, total, perPage, page };
+    };
+  }
+
+  it("enumerates all 238 courses, not just the first page of 100", async () => {
+    const source = paginated(238, (i) => `course-${i}`);
+    server.use(
+      http.get(`${LMS}/courses`, (info) => {
+        const result = source(info);
+        if (result instanceof HttpResponse) return result;
+        return HttpResponse.json({
+          success: true,
+          data: { items: result.items, total: result.total },
+        });
+      }),
+    );
+
+    const urls = (await sitemap()).map((e) => e.url);
+    const courseUrls = urls.filter((u) => u.includes("/course/"));
+
+    expect(courseUrls).toHaveLength(238);
+    expect(courseUrls).toContain(`${SITE}/course/course-1`);
+    expect(courseUrls).toContain(`${SITE}/course/course-238`);
+  });
+
+  it("enumerates all 280 products", async () => {
+    const source = paginated(280, (i) => `product-${i}`);
+    server.use(
+      http.get(`${WP}/wc/store/v1/products`, (info) => {
+        const result = source(info);
+        if (result instanceof HttpResponse) return result;
+        return HttpResponse.json(result.items);
+      }),
+    );
+
+    const urls = (await sitemap()).map((e) => e.url);
+
+    expect(urls.filter((u) => u.includes("/product/"))).toHaveLength(280);
+  });
+
+  it("enumerates every blog post across pages", async () => {
+    const source = paginated(150, (i) => `post-${i}`);
+    server.use(
+      http.get(`${WP}/wp/v2/posts`, (info) => {
+        const result = source(info);
+        if (result instanceof HttpResponse) return result;
+        return HttpResponse.json(
+          result.items.map((p) => ({
+            ...p,
+            title: { rendered: "Post" },
+            excerpt: { rendered: "" },
+            date: "2026-01-01T00:00:00",
+          })),
+          {
+            headers: {
+              "X-WP-Total": "150",
+              "X-WP-TotalPages": String(Math.ceil(150 / result.perPage)),
+            },
+          },
+        );
+      }),
+    );
+
+    const urls = (await sitemap()).map((e) => e.url);
+    const postUrls = urls.filter((u) => u.includes("/blog/") && !u.includes("/blog/category/"));
+
+    expect(postUrls).toHaveLength(150);
+  });
+
+  it("never asks an upstream for more than 100 items in one page", async () => {
+    // per_page=500 is HTTP 400 on wp/v2/posts — which is how every blog URL
+    // vanished from the live sitemap while the document still looked healthy.
+    const requested: number[] = [];
+    server.use(
+      http.get(`${WP}/wp/v2/posts`, ({ request }) => {
+        const perPage = Number(new URL(request.url).searchParams.get("per_page") ?? 0);
+        requested.push(perPage);
+        if (perPage > 100)
+          return HttpResponse.json({ code: "rest_invalid_param" }, { status: 400 });
+        return HttpResponse.json([], { headers: { "X-WP-Total": "0", "X-WP-TotalPages": "0" } });
+      }),
+    );
+
+    await sitemap();
+
+    expect(requested.length).toBeGreaterThan(0);
+    expect(Math.max(...requested)).toBeLessThanOrEqual(100);
+  });
+
+  it("keeps the pages it already collected when a later page fails", async () => {
+    server.use(
+      http.get(`${LMS}/courses`, ({ request }) => {
+        const page = Number(new URL(request.url).searchParams.get("page") ?? 1);
+        if (page > 1) return HttpResponse.error();
+        return HttpResponse.json({
+          success: true,
+          data: {
+            items: Array.from({ length: 100 }, (_, i) => ({ id: i + 1, slug: `course-${i + 1}` })),
+            total: 238,
+          },
+        });
+      }),
+    );
+
+    const urls = (await sitemap()).map((e) => e.url);
+
+    expect(urls.filter((u) => u.includes("/course/"))).toHaveLength(100);
+    expect(urls).toContain(SITE);
+  });
+
+  it("logs a family that resolves to nothing", async () => {
+    server.use(
+      http.get(`${WP}/wp/v2/posts`, () =>
+        HttpResponse.json([], { headers: { "X-WP-Total": "0", "X-WP-TotalPages": "0" } }),
+      ),
+    );
+
+    await sitemap();
+
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("blog posts"));
+  });
+});
+
+describe("sitemap — membership", () => {
+  it("keeps WordPress pages that self-canonicalise", async () => {
+    const urls = (await sitemap()).map((e) => e.url);
+
+    expect(urls).toContain(`${SITE}/training-teams`);
+    expect(urls).toContain(`${SITE}/force-for-good`);
+  });
+
+  it.each([
+    ["shop", "a soft 404 — WordPress serves a 404 head for it"],
+    ["activity", "noindex on WordPress, no canonical"],
+    ["activate", "noindex on WordPress, no canonical"],
+    ["pwa", "noindex on WordPress, no canonical"],
+    ["home", "canonicalises to the site root — duplicate of /"],
+    ["register", "an auth route this app serves as noindex"],
+  ])("drops /%s (%s)", async (slug) => {
+    const urls = (await sitemap()).map((e) => e.url);
+
+    expect(urls).not.toContain(`${SITE}/${slug}`);
+  });
+
+  it("drops a WordPress page whose slug this app already routes", async () => {
+    const urls = (await sitemap()).map((e) => e.url);
+
+    expect(urls.filter((u) => u === `${SITE}/about-us`)).toHaveLength(1);
   });
 });
 
