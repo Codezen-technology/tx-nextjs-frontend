@@ -20,7 +20,7 @@ export function TrustedOrgs({ data }: TrustedOrgsProps) {
       <div data-grid-surface="trusted-orgs" className="grid-inset-start flex items-center gap-8">
         <div className="flex w-[446px] shrink-0 flex-col gap-4">
           <div className="bg-secondary-500 h-0.5 w-24" />
-          <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-neutral-900">
+          <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
             {data?.header?.title || "Trusted by Over 1000+ UK organisations"}
           </h2>
         </div>

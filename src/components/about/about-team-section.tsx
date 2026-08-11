@@ -21,7 +21,7 @@ export function AboutTeamSection({ data }: { data: AboutTeam }) {
         <div className="flex flex-col gap-10">
           <div className="flex flex-col gap-5">
             <p className="font-open-sans text-primary-500 text-base font-bold">{data.eyebrow}</p>
-            <h2 className="font-suse text-3xl font-medium text-neutral-900 sm:text-[40px]">
+            <h2 className="font-suse text-3xl font-bold text-neutral-900 sm:text-[40px]">
               {data.heading}
             </h2>
             <p className="font-open-sans text-lg font-light text-neutral-500 sm:text-xl">

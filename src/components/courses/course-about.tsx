@@ -6,7 +6,7 @@ interface CourseAboutProps {
 export function CourseAbout({ heading, html }: CourseAboutProps) {
   return (
     <section>
-      <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-neutral-900">
+      <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
         {heading ?? "About course"}
       </h2>
       <div

@@ -78,7 +78,7 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
 
   return (
     <div className="space-y-3">
-      <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-neutral-900">
+      <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
         Course Curriculum
       </h2>
       <div className="flex flex-wrap items-center justify-between gap-3">

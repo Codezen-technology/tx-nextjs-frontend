@@ -22,7 +22,7 @@ export function CourseFaq({ heading, items }: CourseFaqProps) {
 
   return (
     <div className="space-y-8">
-      <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-neutral-900">
+      <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
         {heading ?? "Frequently Asked Questions"}
       </h2>
       <div className="border-secondary-50 bg-secondary-50 overflow-hidden rounded-lg border">

@@ -7,7 +7,7 @@ export function CourseWhatYouLearn({ html }: CourseWhatYouLearnProps) {
 
   return (
     <section>
-      <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-neutral-900">
+      <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
         What you&apos;ll learn
       </h2>
       <div

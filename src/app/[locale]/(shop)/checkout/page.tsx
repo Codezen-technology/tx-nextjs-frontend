@@ -101,15 +101,13 @@ export default function CheckoutPage() {
 
           {/* Billing details */}
           <div className="rounded-lg bg-white p-8 shadow-xs">
-            <h2 className="font-suse mb-6 text-2xl font-medium text-neutral-900">
-              Billing Details
-            </h2>
+            <h2 className="font-suse mb-6 text-2xl font-bold text-neutral-900">Billing Details</h2>
             <BillingForm ref={billingRef} defaultValues={billingDefaults} />
           </div>
 
           {/* Order summary */}
           <div className="rounded-lg bg-white p-8 shadow-xs">
-            <h2 className="font-suse mb-6 text-2xl font-medium text-neutral-900">Order Summary</h2>
+            <h2 className="font-suse mb-6 text-2xl font-bold text-neutral-900">Order Summary</h2>
             <CheckoutOrderSummary />
           </div>
 
@@ -118,7 +116,7 @@ export default function CheckoutPage() {
 
           {/* Payment */}
           <div className="rounded-lg bg-[rgba(245,241,233,0.5)] p-8">
-            <h2 className="font-suse mb-6 text-2xl font-medium text-[#1a171b]">Payment method</h2>
+            <h2 className="font-suse mb-6 text-2xl font-bold text-[#1a171b]">Payment method</h2>
             {/* Always mount Elements (accepts stripe={null} while unconfigured/loading) so
                 free (£0) orders can complete even when Stripe isn't set up. The selector
                 shows a config warning + disables submit for paid orders when stripe is null. */}
