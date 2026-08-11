@@ -14,7 +14,7 @@ export function MinimalHeader() {
 
   return (
     <header className="w-full bg-neutral-800">
-      <div className="mx-auto flex max-w-[1400px] items-center justify-center px-4 py-5">
+      <div className="container flex items-center justify-center py-5">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-2"

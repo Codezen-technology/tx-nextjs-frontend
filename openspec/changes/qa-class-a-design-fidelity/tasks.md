@@ -46,7 +46,7 @@ authoritative node + evidence, or record the disagreement and mark blocked.
 
 - [x] 5.1 Shared utilities in `globals.css` first — anything used by more than one page
 - [ ] 5.2 Homepage
-- [ ] 5.3 Blog and Single Blog
+- [x] 5.3 Blog and Single Blog
 - [ ] 5.4 All Courses and Category
 - [ ] 5.5 Cart and Checkout
 - [ ] 5.6 Remaining marketing pages

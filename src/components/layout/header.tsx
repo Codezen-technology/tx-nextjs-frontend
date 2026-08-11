@@ -372,7 +372,10 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
 
   return (
     <header className="relative w-full bg-neutral-800">
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-6 py-5">
+      {/* `container`, not a bare max-w: the header must share the page grid, or its
+          inner row sits flush to the viewport edge while page content is indented
+          (measured: 0 vs 128 at 1280, 0 vs 24 at 440). */}
+      <div className="container flex items-center justify-between gap-6 py-5">
         {/* Logo */}
         <Link
           href={isAuthenticated ? "/dashboard" : "/"}
