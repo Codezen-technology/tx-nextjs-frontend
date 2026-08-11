@@ -102,8 +102,7 @@ docs/qa/QA_BY_PAGE.md
 
   # QA Report — By Page
   ├─ How to use              — QA path vs dev path, when each runs
-  ├─ Environment             — deployed vs local; WP host is
-  │                            https://trainingexcellence.org.uk (progress §8)
+  ├─ Environment             — the two hosts and which is which (§4.1)
   ├─ Viewports               — 1920 / 1280 / 440 ↔ playwright project names
   ├─ Legend                  — status + coverage vocabulary (§5)
   ├─ Page index              — 17 rows, readiness + owner (§6)
@@ -117,6 +116,25 @@ docs/qa/QA_BY_PAGE.md
   ├─ Appendix A — Blocked ledger        — 7 design items + remaining Figma pairs
   └─ Appendix B — Test backlog roll-up  — every GAP, in ship order
 ```
+
+### 4.1 Environment block
+
+The doc's Environment section states both hosts outright, because the names
+invite exactly the wrong reading:
+
+| Host                                        | What it is                                                      | Used for                                                         |
+| ------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `https://backend.trainingexcellence.org.uk` | **The deployed headless frontend** — this Next.js app           | QA triage and re-test. Where every issue in the report was filed |
+| `https://trainingexcellence.org.uk`         | **WordPress** — the CMS and REST API, also the live legacy site | Behaviour/data reference; the `/wp-json/*` origin                |
+| `https://tx-local-site.test`                | Local WordPress, prod-like media (plan §3.2)                    | Local verification while fixing                                  |
+
+Despite the name, `backend.` serves no `/wp-json/*` — every such path there
+404s. Plan §3.1 conflated the two and ran its checks against the wrong host;
+progress §8 recorded the correction. The Environment block exists so a QA person
+opening a page tests the right origin without needing that history.
+
+**Every manual sweep and issue row is verified on `backend.trainingexcellence.org.uk`**
+unless the row says otherwise, matching where QA filed it (plan §D2).
 
 ## 5. Vocabulary
 
