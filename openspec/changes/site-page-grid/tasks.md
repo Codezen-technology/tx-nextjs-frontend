@@ -26,7 +26,7 @@ Value stays 1400 throughout this section. Behaviour-preserving.
   above `2xl` (1536) — so it was out at every width. The mega menu carried its
   own `max-w-[1400px] px-4 lg:px-0`.
 
-- [ ] 1.9 Commit. This ships regardless of how the width decision lands
+- [x] 1.9 Commit. This ships regardless of how the width decision lands — `46ed958`
 
 ## 2. Grid check, green against current values (design D4)
 
@@ -56,9 +56,52 @@ Value stays 1400 throughout this section. Behaviour-preserving.
 
 ## 3. The decision
 
-- [ ] 3.1 Present the evidence for a decision: design 1296, code 1368, live WordPress 1366/1300/1216/1200, and the provenance of 1400 (a scaffolding commit, not a design ruling)
-- [ ] 3.2 Render a real page at 1920 at both widths and compare — the decision should be made against a rendered page, not a number
-- [ ] 3.3 Record the outcome and its rationale, including the case where the outcome is "keep the current width" (design D5)
+- [x] 3.1 Present the evidence for a decision: design 1296, code 1368, live WordPress 1366/1300/1216/1200, and the provenance of 1400 (a scaffolding commit, not a design ruling)
+
+  **Provenance, traced.** `1400` did not enter as a grid decision at all. It
+  first appears on 2026-05-11 in `b1ec0de` ("feat: add pricing, reviews, trusted
+  organizations, and why choose us sections") as a component-level
+  `max-w-[1400px]` on two elements — the header row and the mega menu row. It
+  only reached the `container` utility two months later, on 2026-07-08, in
+  `4656360` ("feat: update documentation and enhance Tailwind CSS integration").
+  So the number was promoted from a component to the page grid without ever
+  being chosen as one. Nothing cites a design node for it.
+
+  Correction to the proposal's arithmetic: the status quo content column is
+  **1336**, not 1368. `padding-inline: 2rem` applies to both sides, so
+  1400 − 64. Side padding at 1920 is 292. The gap to the design is therefore
+  40px of content and 20px of padding, which is what `design.md` states.
+
+- [x] 3.2 Render a real page at 1920 at both widths and compare — the decision should be made against a rendered page, not a number
+
+  Rendered `/`, `/blog` and `/courses` at 1920 under both candidates. Shots in
+  `.context/grid-shots/*--statusquo-1400.png` and `*--design-1296.png`.
+
+  | Measured at 1920        | status quo | design   | Figma target                                     |
+  | ----------------------- | ---------- | -------- | ------------------------------------------------ |
+  | token `--page-grid-max` | 1400px     | 1360px   | —                                                |
+  | content column          | 1336       | **1296** | 1296 (`6013:89909`, `4900:75788`, `6015:127141`) |
+  | side padding            | 292        | **312**  | 312                                              |
+  | blog card               | 316        | **306**  | 306 (`4900:75842`)                               |
+  | cards per row           | 4          | 4        | 4                                                |
+  | card gutter             | 24         | 24       | 24                                               |
+
+  Two things this settles that a number alone would not:
+  1. **The token is 1360, not 1296.** `--page-grid-max` is the outer width, so
+     the design's 1296 column needs 1296 + 2×32 of cap padding. Setting it to
+     1296 gives a 1232 column — a trap, and one the mutation test walked into.
+  2. **The card target and the column target are only consistent at 1296.** At
+     the design width the blog card measures 306×4 with a 24 gutter, hitting
+     `4900:75842` exactly with no tolerance. At 1400 it is 316 — 10px over its
+     own measured target. The card figure was measured independently of the
+     column figure, so this is corroboration, not circularity.
+
+  Visually the reflow is smaller than the blast-radius warning implies: the
+  homepage hero is not container-bound and does not move at all. What moves is
+  the header row, the nav, the card grids and the section headings, each by
+  20px inward per side.
+
+- [ ] 3.3 Record the outcome and its rationale, including the case where the outcome is "keep the current width" (design D5) — **BLOCKED: needs a human decision** (design D1)
 
 ## 4. Apply the decision — BLOCKED until §3 (design D1)
 
