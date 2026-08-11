@@ -28,6 +28,47 @@ const resourcesLinks = [
   { href: "/about-us", label: "About Us" },
 ];
 
+/**
+ * Hover intent for the desktop nav.
+ *
+ * QA: the dropdowns opened on click; the design opens them on hover. Hover
+ * alone is not enough on its own — a pointer crossing the trigger on its way
+ * elsewhere should not flash the panel, and click/keyboard must still work for
+ * touch and screen readers. So: open immediately on enter, close on a short
+ * delay after leave.
+ *
+ * The delay is forgiveness for a pointer travelling diagonally along the panel
+ * edge — it is NOT what bridges the gap between a trigger and its panel. That
+ * gap is closed in CSS (see the `after:` bridge on the "Our courses" trigger),
+ * so hover intent survives a slow crossing no matter what this value is.
+ */
+const HOVER_CLOSE_DELAY_MS = 150;
+
+function useHoverIntent(setOpen: (open: boolean) => void) {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancel = useCallback(() => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+      timer.current = null;
+    }
+  }, []);
+
+  useEffect(() => cancel, [cancel]);
+
+  const onMouseEnter = useCallback(() => {
+    cancel();
+    setOpen(true);
+  }, [cancel, setOpen]);
+
+  const onMouseLeave = useCallback(() => {
+    cancel();
+    timer.current = setTimeout(() => setOpen(false), HOVER_CLOSE_DELAY_MS);
+  }, [cancel, setOpen]);
+
+  return { onMouseEnter, onMouseLeave };
+}
+
 function NavDropdown({
   label,
   links,
@@ -37,6 +78,7 @@ function NavDropdown({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const hover = useHoverIntent(setOpen);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -47,17 +89,32 @@ function NavDropdown({
   }, []);
 
   return (
-    <div ref={ref} className="relative">
+    <div
+      ref={ref}
+      className="relative"
+      onMouseEnter={hover.onMouseEnter}
+      onMouseLeave={hover.onMouseLeave}
+      onFocus={() => setOpen(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
+      }}
+    >
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(!open)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") setOpen(false);
+        }}
         aria-expanded={open}
+        aria-haspopup="menu"
         className="font-open-sans text-neutral-30 hover:text-primary-300 flex items-center gap-1 text-[14px] leading-[1.2] font-medium transition-colors"
       >
         {label}
         <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
       </button>
       {open && (
-        <div className="absolute top-full left-0 z-50 mt-1 min-w-[180px] rounded-sm border border-neutral-600 bg-neutral-800 py-1 shadow-lg">
+        // Flush against the trigger (no mt gap) so the pointer never crosses
+        // dead space on its way into the panel and closes it.
+        <div className="absolute top-full left-0 z-50 min-w-[180px] rounded-sm border border-neutral-600 bg-neutral-800 py-1 shadow-lg">
           {links.map((link) => (
             <Link
               key={link.href}
@@ -274,11 +331,42 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
   const settings = useSiteSettings();
   const { isAuthenticated, hasHydrated } = useAuth();
   const closeMegaMenu = useCallback(() => setMegaMenuOpen(false), []);
+  const megaHover = useHoverIntent(setMegaMenuOpen);
+  const megaTriggerRef = useRef<HTMLButtonElement>(null);
+  const megaPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMegaMenuOpen(false);
     setMobileOpen(false);
   }, [pathname]);
+
+  // The mega menu is dismissed the same way every other popover in this header
+  // is: a document listener that tests containment. It deliberately does NOT
+  // use a full-screen backdrop element — one would sit over the header and the
+  // page, so `mouseleave` on the panel would never fire (the pointer would
+  // always be inside the panel's subtree) and the first click anywhere would be
+  // swallowed instead of reaching its target.
+  useEffect(() => {
+    if (!megaMenuOpen) return;
+
+    function isInside(target: Node | null) {
+      if (!target) return false;
+      return !!megaTriggerRef.current?.contains(target) || !!megaPanelRef.current?.contains(target);
+    }
+    function handleMouseDown(e: MouseEvent) {
+      if (!isInside(e.target as Node | null)) setMegaMenuOpen(false);
+    }
+    function handleKeyDown(e: globalThis.KeyboardEvent) {
+      if (e.key === "Escape") setMegaMenuOpen(false);
+    }
+
+    document.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [megaMenuOpen]);
 
   const logoUrl = settings.logo_url ?? settings.logo_dark_url;
 
@@ -297,7 +385,10 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
               alt="Training Excellence"
               width={160}
               height={64}
-              className="h-14 w-auto object-contain"
+              // min-w keeps the slot reserved: the logo URL comes from site
+              // settings, and a failed load would otherwise leave a
+              // zero-width element and shift the whole nav row.
+              className="h-14 w-auto min-w-14 object-contain"
               priority
             />
           ) : (
@@ -338,12 +429,21 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
 
           {/* Row 2: main nav */}
           <div className="flex items-center gap-5">
-            {/* Our courses — opens mega menu */}
+            {/* Our courses — opens mega menu on hover (click/keyboard still work) */}
             <button
-              onClick={() => setMegaMenuOpen((v) => !v)}
+              ref={megaTriggerRef}
+              onMouseEnter={megaHover.onMouseEnter}
+              onMouseLeave={megaHover.onMouseLeave}
+              onClick={() => setMegaMenuOpen(!megaMenuOpen)}
               aria-expanded={megaMenuOpen}
               aria-haspopup="dialog"
-              className="font-open-sans text-neutral-30 hover:text-primary-300 flex items-center gap-1 text-[14px] font-medium transition-colors"
+              aria-controls="mega-menu"
+              // The panel is `absolute top-full` on the <header>, whose `py-5`
+              // leaves a ~26px dead strip between the trigger's bottom edge and
+              // the panel's top edge. The transparent `after:` bridge spans that
+              // strip so the pointer never leaves the trigger on its way in —
+              // keep its height in step with the header's vertical padding.
+              className="font-open-sans text-neutral-30 hover:text-primary-300 relative flex items-center gap-1 text-[14px] font-medium transition-colors after:absolute after:top-full after:left-0 after:h-7 after:w-full after:content-['']"
             >
               Our courses
               <ChevronDown
@@ -406,8 +506,16 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
         </button>
       </div>
 
-      {/* Mega menu */}
-      {megaMenuOpen && <MegaMenu onClose={closeMegaMenu} categories={categories} />}
+      {/* Mega menu — same hover intent as the trigger, so moving the pointer
+          from "Our courses" into the panel keeps it open. */}
+      {megaMenuOpen && (
+        <MegaMenu
+          ref={megaPanelRef}
+          categories={categories}
+          onMouseEnter={megaHover.onMouseEnter}
+          onMouseLeave={megaHover.onMouseLeave}
+        />
+      )}
 
       {/* Mobile nav */}
       {mobileOpen && (
