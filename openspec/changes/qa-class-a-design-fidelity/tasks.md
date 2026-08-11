@@ -54,11 +54,11 @@ authoritative node + evidence, or record the disagreement and mark blocked.
 
 ## 6. Fidelity check (design D3, D4)
 
-- [ ] 6.1 Add an E2E spec that reads the target table and asserts computed values, one case per row
-- [ ] 6.2 Failure messages must name page, property, breakpoint, expected and observed — a bare "expected 80 got 64" is not actionable across 27 items
-- [ ] 6.3 Run under all three viewport projects
-- [ ] 6.4 Mutation-test it: change one applied value and confirm the check fails with the right message, then revert
-- [ ] 6.5 Confirm the check passes when an _uncovered_ property on the same page changes, so it has not become de-facto visual regression
+- [x] 6.1 Add an E2E spec that reads the target table and asserts computed values, one case per row
+- [x] 6.2 Failure messages must name page, property, breakpoint, expected and observed — a bare "expected 80 got 64" is not actionable across 27 items
+- [x] 6.3 Run under all three viewport projects
+- [x] 6.4 Mutation-test it: change one applied value and confirm the check fails with the right message, then revert
+- [x] 6.5 Confirm the check passes when an _uncovered_ property on the same page changes, so it has not become de-facto visual regression
 
 ## 7. Close-out
 
