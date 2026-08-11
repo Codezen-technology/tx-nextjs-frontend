@@ -3,14 +3,37 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+  Side padding is a ramp, measured off the Blog responsive frames
+  (`4118:68465` — 1920 `4900:75788`, 1280 `4099:78249`, 440 `4115:68390`):
+
+    1920 -> 312px padding, 1296px content
+    1280 -> 128px padding, 1024px content
+     440 ->  24px padding,  392px content
+
+  It is deliberately not linear, so it cannot be one value. Before this, every
+  width below 1400 got 16px — 8x too little at 1280, which is the QA report's
+  "laptop side padding 128px" defect.
+
+  `max-width` stays at 1400px. The design's content column is 1296, but that is
+  a separate, recorded decision (see .context/figma/node-resolution.md) and is
+  inactive below 1400 anyway, so the ramp lands without touching it.
+*/
 @utility container {
   margin-inline: auto;
-  padding-inline: 1rem;
+  padding-inline: 1.5rem; /* 24px — the 440 target */
   @media (width >= --theme(--breakpoint-sm)) {
     max-width: none;
   }
+  @media (width >= --theme(--breakpoint-lg)) {
+    padding-inline: 4rem; /* 64px — midpoint of the ramp between 440 and 1280 */
+  }
+  @media (width >= 1280px) {
+    padding-inline: 8rem; /* 128px — measured at 1280 */
+  }
   @media (width >= 1400px) {
     max-width: 1400px;
+    padding-inline: 2rem;
   }
 }
 
