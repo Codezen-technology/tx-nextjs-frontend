@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import type { HomePricingPlan } from "@/types/home";
 import { cn } from "@/lib/utils/cn";
+import { planLineTotal, scaleDisplayPrice } from "@/lib/utils/price";
 import { PricingCta } from "./pricing-cta";
 
 interface QuantitySelectorProps {
@@ -12,6 +13,12 @@ interface QuantitySelectorProps {
 
 export function QuantitySelector({ plan }: QuantitySelectorProps) {
   const [qty, setQty] = useState(1);
+
+  // The stepper sends `qty` to the cart, so the price shown next to it has to be
+  // the line total, not the unit price. Production returns a formatted string
+  // (`"£29"`) with `product` null, so both shapes are handled.
+  const displayPrice = planLineTotal(plan.price, plan.product?.price, plan.product?.currency, qty);
+  const displayOriginalPrice = scaleDisplayPrice(plan.originalPrice, qty);
 
   const ctaClassName = cn(
     "font-open-sans flex h-10 items-center justify-center rounded-full text-sm font-medium transition-transform hover:scale-105 cursor-pointer",
@@ -26,13 +33,13 @@ export function QuantitySelector({ plan }: QuantitySelectorProps) {
       : undefined;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" data-testid="plan-pricing">
       {/* Price & Quantity */}
       <div className="flex flex-row justify-between gap-2">
         <div className="flex items-baseline gap-2">
-          {plan.originalPrice && (
+          {displayOriginalPrice && (
             <span className="text-xl font-bold text-[#dc3545] line-through">
-              {plan.originalPrice}
+              {displayOriginalPrice}
             </span>
           )}
           <span
@@ -41,7 +48,9 @@ export function QuantitySelector({ plan }: QuantitySelectorProps) {
               plan.variant === "navy" ? "text-white" : "text-neutral-900",
             )}
           >
-            <span className="text-2xl">{plan.price}</span>
+            <span className="text-2xl" data-testid="plan-price">
+              {displayPrice}
+            </span>
             {plan.priceUnit && <span className="text-base">{plan.priceUnit}</span>}
           </span>
         </div>

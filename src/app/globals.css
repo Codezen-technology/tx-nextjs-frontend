@@ -152,7 +152,12 @@
 
 @utility prose-wp {
   & :where(h1, h2, h3, h4) {
-    @apply font-semibold tracking-tight;
+    /* scroll-mt clears the sticky header when a heading is reached via a
+       Table-of-Contents anchor or a shared `#id` URL. */
+    @apply scroll-mt-24 font-semibold tracking-tight;
+  }
+  & :where(h1, h2, h3, h4):focus {
+    @apply outline-none;
   }
   & :where(h1) {
     @apply mt-8 mb-4 text-3xl;
@@ -164,7 +169,9 @@
     @apply mt-4 mb-2 text-xl;
   }
   & :where(p) {
-    @apply mb-4 leading-relaxed;
+    /* Figma body copy is 150% (`leading-normal`); `leading-relaxed` (162.5%)
+       was the source of the Privacy Policy / Single Course line-height defect. */
+    @apply mb-4 leading-normal;
   }
   & :where(ul) {
     @apply mb-4 list-none space-y-2 pl-0;

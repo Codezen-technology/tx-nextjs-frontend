@@ -89,7 +89,9 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
       { product_id: wcProductId, quantity: qty },
       {
         onSuccess: () => {
-          router.push("/checkout");
+          // Land on the cart, not checkout: the buyer needs to see the line they
+          // just added (and any bulk discount applied to it) before paying.
+          router.push("/cart");
         },
         onError: (err) => {
           setAddError((err as Error).message ?? "Could not process purchase.");

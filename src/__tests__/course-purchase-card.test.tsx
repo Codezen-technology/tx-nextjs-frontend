@@ -60,7 +60,7 @@ describe("CoursePurchaseCard", () => {
     expect(screen.getByRole("link", { name: /get in touch/i })).toBeInTheDocument();
   });
 
-  it("redirects to checkout on buy now click", () => {
+  it("redirects to the cart on buy now click", () => {
     const course = makeRichCourse({ product_id: 42 });
     render(<CoursePurchaseCard course={course} />);
     fireEvent.click(screen.getByRole("button", { name: /buy this course/i }));
@@ -68,7 +68,7 @@ describe("CoursePurchaseCard", () => {
       expect.objectContaining({ product_id: 42, quantity: 1 }),
       expect.any(Object),
     );
-    expect(mockPush).toHaveBeenCalledWith("/checkout");
+    expect(mockPush).toHaveBeenCalledWith("/cart");
   });
 
   it("buys the quantity shown in the stepper", () => {

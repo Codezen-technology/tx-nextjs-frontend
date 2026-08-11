@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { formatDate, formatDuration, stripHtml, truncate, pluralize } from "@/lib/utils/format";
+import {
+  formatDate,
+  formatCardDate,
+  formatDuration,
+  stripHtml,
+  truncate,
+  pluralize,
+} from "@/lib/utils/format";
 
 describe("truncate", () => {
   it("returns text unchanged when within limit", () => {
@@ -109,5 +116,23 @@ describe("pluralize", () => {
   it("uses provided plural form when given", () => {
     expect(pluralize(2, "quiz", "quizzes")).toBe("quizzes");
     expect(pluralize(1, "quiz", "quizzes")).toBe("quiz");
+  });
+});
+
+describe("formatCardDate", () => {
+  it("uses the short month form so card meta lines do not overflow at 440", () => {
+    expect(formatCardDate("2026-09-03T10:00:00")).toBe("3 Sep 2026");
+    expect(formatCardDate("2026-01-15T10:00:00")).toBe("15 Jan 2026");
+  });
+
+  it("never emits a full month name", () => {
+    const months = Array.from({ length: 12 }, (_, m) => formatCardDate(new Date(2026, m, 10, 12)));
+    expect(months.some((s) => /January|February|September|December/.test(s))).toBe(false);
+    expect(months.every((s) => /^\d{1,2} [A-Z][a-z]{2} 2026$/.test(s))).toBe(true);
+  });
+
+  it("returns the raw string for an unparsable date rather than 'Invalid Date'", () => {
+    expect(formatCardDate("not-a-date")).toBe("not-a-date");
+    expect(formatCardDate(null)).toBe("");
   });
 });
