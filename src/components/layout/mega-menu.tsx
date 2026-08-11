@@ -123,7 +123,10 @@ export function MegaMenu({ categories, onMouseEnter, onMouseLeave, ref }: MegaMe
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-4 py-14 md:flex-row lg:px-0">
+      {/* `container`, not its own max-width: the menu hangs off the header, so
+          its columns have to start where the header's nav does. Its own copy of
+          the width put it 32px out at 1920 and 128px out at 1280. */}
+      <div className="container flex flex-col gap-6 py-14 md:flex-row">
         {/* Left: Business Training promo */}
         <div
           className="flex w-75 shrink-0 flex-col items-start justify-between rounded-2xl p-6"

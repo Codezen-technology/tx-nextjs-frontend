@@ -15,26 +15,79 @@
   width below 1400 got 16px — 8x too little at 1280, which is the QA report's
   "laptop side padding 128px" defect.
 
-  `max-width` stays at 1400px. The design's content column is 1296, but that is
-  a separate, recorded decision (see .context/figma/node-resolution.md) and is
-  inactive below 1400 anyway, so the ramp lands without touching it.
+  The max content width is `--page-grid-max`, defined in `@theme` below. The
+  design's content column is 1296, but that is a separate, recorded decision
+  (see .context/figma/node-resolution.md) and is inactive below the cap anyway,
+  so the ramp lands without touching it.
+
+  Both utilities below read the same tokens. Nothing else may restate them: five
+  independent copies of `1400px` is how the header, the mega menu and the
+  trusted-orgs bleed drifted apart from the page column in the first place.
 */
 @utility container {
   margin-inline: auto;
-  padding-inline: 1.5rem; /* 24px — the 440 target */
+  padding-inline: var(--page-grid-pad);
   @media (width >= --theme(--breakpoint-sm)) {
     max-width: none;
   }
   @media (width >= --theme(--breakpoint-lg)) {
-    padding-inline: 4rem; /* 64px — midpoint of the ramp between 440 and 1280 */
+    padding-inline: var(--page-grid-pad-lg);
   }
   @media (width >= 1280px) {
-    padding-inline: 8rem; /* 128px — measured at 1280 */
+    padding-inline: var(--page-grid-pad-xl);
   }
-  @media (width >= 1400px) {
-    max-width: 1400px;
-    padding-inline: 2rem;
+  @media (width >= --theme(--page-grid-max)) {
+    max-width: var(--page-grid-max);
+    padding-inline: var(--page-grid-pad-max);
   }
+}
+
+/*
+  Aligns a full-bleed surface's start edge to the page content column, for a
+  surface that deliberately runs off the opposite edge and so cannot be a
+  `container` itself.
+
+  The ramp is the container's, step for step, so a change to the grid moves both.
+  The cap branch resolves `100%` against the full-width ancestor rather than
+  `100vw` on purpose — `100vw` includes the scrollbar, which `container`'s
+  centring does not, and the two would disagree by half a scrollbar.
+*/
+@utility grid-inset-start {
+  padding-inline-start: var(--page-grid-pad);
+  @media (width >= --theme(--breakpoint-lg)) {
+    padding-inline-start: var(--page-grid-pad-lg);
+  }
+  @media (width >= 1280px) {
+    padding-inline-start: var(--page-grid-pad-xl);
+  }
+  @media (width >= --theme(--page-grid-max)) {
+    padding-inline-start: calc((100% - var(--page-grid-max)) / 2 + var(--page-grid-pad-max));
+  }
+}
+
+/*
+  The page grid. One definition; `container`, `grid-inset-start` and every
+  surface that has to line up with the content column read it from here.
+
+  `--page-grid-max` is the container's outer width, padding included, so the
+  content column at the widest step is `--page-grid-max` minus twice
+  `--page-grid-pad-max`. The padding steps are a measured ramp, not a formula —
+  see the comment above the container utility for their Figma sources.
+
+  `static` so the tokens are emitted whether or not a utility happens to
+  reference them: they are read from component-level arbitrary values too, and a
+  pruned token fails silently as an invalid `var()` rather than loudly.
+
+  The value 1400 is the status quo, not a design ruling: the design measures a
+  1296 content column. That gap is deliberately open — see the `site-page-grid`
+  change and .context/figma/node-resolution.md.
+*/
+@theme static {
+  --page-grid-max: 1400px;
+  --page-grid-pad: 1.5rem; /* 24px — the 440 target */
+  --page-grid-pad-lg: 4rem; /* 64px — midpoint of the ramp between 440 and 1280 */
+  --page-grid-pad-xl: 8rem; /* 128px — measured at 1280 */
+  --page-grid-pad-max: 2rem; /* 32px — at and above the cap */
 }
 
 @theme {
