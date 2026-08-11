@@ -25,7 +25,7 @@ authoritative node + evidence, or record the disagreement and mark blocked.
 - [~] 3.3 **Measured, needs a second look** — frame shows 32 px between category sections and 40 px after trending; the report says 40. Mobile section spacing (440) — measured value, not the report's "40px", if they differ
 - [x] 3.4 Laptop side padding (1280) — measured **128 px**, applied, verified exact in-browser
 - [ ] 3.5 Dropdown right padding — Checkout, Priority Support
-- [ ] 3.6 Section header weight and casing — record both the weight and whether Title Case is what the frame actually shows
+- [~] 3.6 Section header weight and casing — weight confirmed 700 (font-bold), applied across all font-suse section h2s; Title Case aspect not yet measured from Figma frames
 - [ ] 3.7 Card title hover colour — record the resting and hover token
 - [ ] 3.8 Related-course section title sizing
 - [ ] 3.9 Cart card content parity — enumerate the specific properties that differ, rather than carrying "parity with Figma" forward as one unmeasurable item
@@ -63,6 +63,6 @@ authoritative node + evidence, or record the disagreement and mark blocked.
 ## 7. Close-out
 
 - [ ] 7.1 Update `QA_REPORT_PROGRESS.md` — Class A counts, and move any Class E item that measurement resolved
-- [ ] 7.2 Update `.context/qa-tracker.md` with per-item status and the measurement as evidence
+- [ ] 7.2 Update `docs/qa/QA_BY_PAGE.md` with per-item status and the measurement as evidence (`.context/qa-tracker.md` was removed)
 - [ ] 7.3 Full gate: `pnpm typecheck && pnpm lint && pnpm test` plus E2E, compared against the known pre-existing baseline
 - [ ] 7.4 Write the PR description, stating which items measurement resolved, which stayed blocked, and what specifically is still needed for each

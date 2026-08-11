@@ -112,20 +112,20 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 
 #### Issue table
 
-| QA-ID      | Quote                                                         | BP        | Class | Status         | Auto                         | Manual                                                                                                                                |
-| ---------- | ------------------------------------------------------------- | --------- | ----- | -------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| QA-HOME-B1 | "quantity increases, amount does not"                         | all       | B     | FIXED          | `e2e/qa-round-1.spec.ts:37`  | —                                                                                                                                     |
-| QA-HOME-B4 | "dropdown opens on click, should open on hover"               | 1920/1280 | B     | FIXED          | `e2e/qa-round-1.spec.ts:288` | —                                                                                                                                     |
-| QA-HOME-B5 | "certificate and transcript not rendering"                    | all       | B     | FIXED          | `e2e/qa-round-1.spec.ts:143` | —                                                                                                                                     |
-| QA-HOME-C1 | "certificate image collapsed / missing"                       | all       | C     | FIXED          | `e2e/qa-round-1.spec.ts:143` | —                                                                                                                                     |
-| QA-HOME-C2 | "transcript image collapsed / missing"                        | all       | C     | FIXED          | `e2e/qa-round-1.spec.ts:143` | —                                                                                                                                     |
-| QA-HOME-C3 | "team collaboration photos not visible"                       | all       | C     | CONTENT-GAP    | N/A                          | Prod WP returns `/images/team/collaboration-{1,2,3}.jpg`, all 404. Upload assets or correct CMS paths. Component degrades gracefully. |
-| QA-HOME-A1 | "hero top/bottom spacing — not 80–100px"                      | 1920      | A     | STILL-BROKEN   | MANUAL-VISUAL                | Compare hero padding against Figma `6013:89909` (pending Figma pair resolution §2.1). Owner: `qa-class-a-design-fidelity §5.2`        |
-| QA-HOME-A2 | "mobile section spacing not 40px"                             | 440       | A     | STILL-BROKEN   | MANUAL-VISUAL                | Measure section gap at 440 against Figma 440 frame. Owner: `qa-class-a-design-fidelity §5.2`                                          |
-| QA-HOME-A3 | "section header weight and Title Case"                        | all       | A     | STILL-BROKEN   | GAP                          | Assert computed `font-weight` and text content casing for section headings. Owner: `qa-class-a-design-fidelity §5.2`                  |
-| QA-HOME-A4 | "card title colour changes on hover"                          | all       | A     | STILL-BROKEN   | GAP                          | Assert card title colour at rest vs hover state. Owner: `qa-class-a-design-fidelity §5.2`                                             |
-| QA-HOME-E1 | "search button — shape and color needs to be fixed"           | all       | E     | BLOCKED-DESIGN | N/A                          | No target given. Waiting for design to specify shape and colour token.                                                                |
-| QA-HOME-E2 | "section took too much space… more standard and middle align" | all       | E     | BLOCKED-DESIGN | N/A                          | No pixel target given. Waiting for design to specify spacing target.                                                                  |
+| QA-ID      | Quote                                                         | BP        | Class | Status         | Auto                         | Manual                                                                                                                                                           |
+| ---------- | ------------------------------------------------------------- | --------- | ----- | -------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| QA-HOME-B1 | "quantity increases, amount does not"                         | all       | B     | FIXED          | `e2e/qa-round-1.spec.ts:37`  | —                                                                                                                                                                |
+| QA-HOME-B4 | "dropdown opens on click, should open on hover"               | 1920/1280 | B     | FIXED          | `e2e/qa-round-1.spec.ts:288` | —                                                                                                                                                                |
+| QA-HOME-B5 | "certificate and transcript not rendering"                    | all       | B     | FIXED          | `e2e/qa-round-1.spec.ts:143` | —                                                                                                                                                                |
+| QA-HOME-C1 | "certificate image collapsed / missing"                       | all       | C     | FIXED          | `e2e/qa-round-1.spec.ts:143` | —                                                                                                                                                                |
+| QA-HOME-C2 | "transcript image collapsed / missing"                        | all       | C     | FIXED          | `e2e/qa-round-1.spec.ts:143` | —                                                                                                                                                                |
+| QA-HOME-C3 | "team collaboration photos not visible"                       | all       | C     | CONTENT-GAP    | N/A                          | Prod WP returns `/images/team/collaboration-{1,2,3}.jpg`, all 404. Upload assets or correct CMS paths. Component degrades gracefully.                            |
+| QA-HOME-A1 | "hero top/bottom spacing — not 80–100px"                      | 1920      | A     | STILL-BROKEN   | MANUAL-VISUAL                | Compare hero padding against Figma `6013:89909` (pending Figma pair resolution §2.1). Owner: `qa-class-a-design-fidelity §5.2`                                   |
+| QA-HOME-A2 | "mobile section spacing not 40px"                             | 440       | A     | STILL-BROKEN   | MANUAL-VISUAL                | Measure section gap at 440 against Figma 440 frame. Owner: `qa-class-a-design-fidelity §5.2`                                                                     |
+| QA-HOME-A3 | "section header weight and Title Case"                        | all       | A     | PARTIAL-FIX    | GAP                          | Weight fixed: `font-bold` applied to trusted-orgs h2 (commit `1c92a4e`). Title Case aspect not yet measured from Figma. Owner: `qa-class-a-design-fidelity §5.2` |
+| QA-HOME-A4 | "card title colour changes on hover"                          | all       | A     | STILL-BROKEN   | GAP                          | Assert card title colour at rest vs hover state. Owner: `qa-class-a-design-fidelity §5.2`                                                                        |
+| QA-HOME-E1 | "search button — shape and color needs to be fixed"           | all       | E     | BLOCKED-DESIGN | N/A                          | No target given. Waiting for design to specify shape and colour token.                                                                                           |
+| QA-HOME-E2 | "section took too much space… more standard and middle align" | all       | E     | BLOCKED-DESIGN | N/A                          | No pixel target given. Waiting for design to specify spacing target.                                                                                             |
 
 #### Tests to write
 
@@ -251,13 +251,13 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 
 #### Issue table
 
-| QA-ID     | Quote                                  | BP   | Class | Status         | Auto          | Manual                                                                                         |
-| --------- | -------------------------------------- | ---- | ----- | -------------- | ------------- | ---------------------------------------------------------------------------------------------- |
-| QA-CAT-C1 | "Why Choose Us images not visible"     | 1280 | C     | CANT-REPRODUCE | N/A           | 14 imgs, 0 broken, 0 collapsed @1280.                                                          |
-| QA-CAT-C2 | "Why Choose Us images not visible"     | 440  | C     | CANT-REPRODUCE | N/A           | Same result @440. One issue, not two.                                                          |
-| QA-CAT-A1 | "laptop side padding not 128px"        | 1280 | A     | STILL-BROKEN   | GAP           | Assert container padding = 128px @1280. Owner: `qa-class-a-design-fidelity §5.4`               |
-| QA-CAT-A2 | "hero top/bottom spacing"              | 1920 | A     | STILL-BROKEN   | MANUAL-VISUAL | Compare against Figma (pending pair resolution §2.5). Owner: `qa-class-a-design-fidelity §5.4` |
-| QA-CAT-A3 | "section header weight and Title Case" | all  | A     | STILL-BROKEN   | GAP           | Assert section heading font-weight and casing. Owner: `qa-class-a-design-fidelity §5.4`        |
+| QA-ID     | Quote                                  | BP   | Class | Status         | Auto          | Manual                                                                                                                                                         |
+| --------- | -------------------------------------- | ---- | ----- | -------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| QA-CAT-C1 | "Why Choose Us images not visible"     | 1280 | C     | CANT-REPRODUCE | N/A           | 14 imgs, 0 broken, 0 collapsed @1280.                                                                                                                          |
+| QA-CAT-C2 | "Why Choose Us images not visible"     | 440  | C     | CANT-REPRODUCE | N/A           | Same result @440. One issue, not two.                                                                                                                          |
+| QA-CAT-A1 | "laptop side padding not 128px"        | 1280 | A     | STILL-BROKEN   | GAP           | Assert container padding = 128px @1280. Owner: `qa-class-a-design-fidelity §5.4`                                                                               |
+| QA-CAT-A2 | "hero top/bottom spacing"              | 1920 | A     | STILL-BROKEN   | MANUAL-VISUAL | Compare against Figma (pending pair resolution §2.5). Owner: `qa-class-a-design-fidelity §5.4`                                                                 |
+| QA-CAT-A3 | "section header weight and Title Case" | all  | A     | PARTIAL-FIX    | GAP           | Weight fixed: `font-bold` applied to course-faq h2 (commit `1c92a4e`). Title Case aspect not yet measured from Figma. Owner: `qa-class-a-design-fidelity §5.4` |
 
 #### Tests to write
 
@@ -402,11 +402,11 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 
 #### Issue table
 
-| QA-ID       | Quote                                                | BP  | Class | Status       | Auto | Manual                                                                                              |
-| ----------- | ---------------------------------------------------- | --- | ----- | ------------ | ---- | --------------------------------------------------------------------------------------------------- |
-| QA-CHECK-A1 | "dropdown right padding not 16px"                    | all | A     | STILL-BROKEN | GAP  | Assert computed right padding on dropdown elements = 16px. Owner: `qa-class-a-design-fidelity §5.5` |
-| QA-CHECK-A2 | "section header weight and Title Case"               | all | A     | STILL-BROKEN | GAP  | Assert heading font-weight and casing. Owner: `qa-class-a-design-fidelity §5.5`                     |
-| QA-CHECK-D1 | "checkout section present in Figma, absent in build" | all | D     | STILL-BROKEN | N/A  | Out of round 1. Own OpenSpec change needed.                                                         |
+| QA-ID       | Quote                                                | BP  | Class | Status       | Auto | Manual                                                                                                                                                                          |
+| ----------- | ---------------------------------------------------- | --- | ----- | ------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| QA-CHECK-A1 | "dropdown right padding not 16px"                    | all | A     | STILL-BROKEN | GAP  | Assert computed right padding on dropdown elements = 16px. Owner: `qa-class-a-design-fidelity §5.5`                                                                             |
+| QA-CHECK-A2 | "section header weight and Title Case"               | all | A     | PARTIAL-FIX  | GAP  | Weight fixed: `font-bold` applied to all three checkout section h2s (commit `1c92a4e`). Title Case aspect not yet measured from Figma. Owner: `qa-class-a-design-fidelity §5.5` |
+| QA-CHECK-D1 | "checkout section present in Figma, absent in build" | all | D     | STILL-BROKEN | N/A  | Out of round 1. Own OpenSpec change needed.                                                                                                                                     |
 
 #### Tests to write
 
