@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import { HomeIcon } from "./home-icon";
 import type { HomeTeamSection } from "@/types/home";
 
@@ -62,10 +63,12 @@ export function TransformTeam({ data }: TransformTeamProps) {
             <div className="flex shrink-0 items-center gap-6">
               {/* Explicit dimensions reserve the space so the section does not
                   shift as these load. Decorative team photography — the section
-                  heading and bullets carry the meaning. */}
+                  heading and bullets carry the meaning. FallbackImage because
+                  production's paths (`/images/team/collaboration-*.jpg`) are not
+                  in `public/` and 404 — an absent photo beats an empty box. */}
               <div className="flex h-auto w-76.5 flex-col gap-6">
                 {images.slice(0, 2).map((src) => (
-                  <Image
+                  <FallbackImage
                     key={src}
                     src={src}
                     alt=""
@@ -76,16 +79,14 @@ export function TransformTeam({ data }: TransformTeamProps) {
                   />
                 ))}
               </div>
-              {images[2] && (
-                <Image
-                  src={images[2]}
-                  alt=""
-                  aria-hidden
-                  width={306}
-                  height={424}
-                  className="h-auto w-76.5 object-cover"
-                />
-              )}
+              <FallbackImage
+                src={images[2]}
+                alt=""
+                aria-hidden
+                width={306}
+                height={424}
+                className="h-auto w-76.5 object-cover"
+              />
             </div>
           )}
         </div>

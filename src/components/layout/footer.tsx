@@ -209,7 +209,7 @@ export async function SiteFooter() {
                   alt="Training Excellence"
                   width={190}
                   height={80}
-                  className="h-16 w-auto object-contain"
+                  className="h-16 w-auto min-w-16 object-contain"
                 />
               ) : (
                 <span className="font-suse text-xl leading-tight font-bold text-white">

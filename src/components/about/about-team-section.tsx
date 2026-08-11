@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AboutImagePlaceholder } from "./about-image-placeholder";
@@ -47,17 +47,14 @@ export function AboutTeamSection({ data }: { data: AboutTeam }) {
                 className="absolute overflow-hidden rounded-2xl"
                 style={{ left: slot.left, top: slot.top, width: slot.width, height: slot.height }}
               >
-                {src ? (
-                  <Image
-                    src={src}
-                    alt=""
-                    fill
-                    className="object-cover"
-                    sizes="(min-width: 1024px) 25vw, 40vw"
-                  />
-                ) : (
-                  <AboutImagePlaceholder label="" className="h-full w-full" />
-                )}
+                <FallbackImage
+                  src={src}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="(min-width: 1024px) 25vw, 40vw"
+                  fallback={<AboutImagePlaceholder label="" className="h-full w-full" />}
+                />
               </div>
             );
           })}

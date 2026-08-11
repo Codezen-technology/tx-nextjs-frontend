@@ -174,7 +174,7 @@ function Block({ block }: { block: PageBlock }) {
                   alt={logo.alt}
                   width={120}
                   height={60}
-                  className="h-12 w-auto object-contain opacity-80"
+                  className="h-12 w-auto min-w-12 object-contain opacity-80"
                 />
               ))}
             </div>

@@ -26,7 +26,7 @@ export function MinimalHeader() {
               alt="Training Excellence"
               width={160}
               height={80}
-              className="h-20 w-auto object-contain"
+              className="h-20 w-auto min-w-20 object-contain"
               priority
             />
           ) : (

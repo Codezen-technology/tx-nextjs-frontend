@@ -29,7 +29,7 @@ export function TrustedOrgs({ data }: TrustedOrgsProps) {
                 key={i}
                 src={sponsor.src}
                 alt={sponsor.alt}
-                className="h-14 w-auto shrink-0 object-contain"
+                className="h-14 w-auto min-w-14 shrink-0 object-contain"
               />
             ))}
           </div>
