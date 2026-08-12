@@ -2,7 +2,7 @@
 
 **Source report:** [QA Report (Google Doc)](https://docs.google.com/document/d/1jEH8XZCVGtwbOOix-Y2Uk--3FdFks4jOLwNPf3cAl0M/edit)
 **Spec:** `docs/superpowers/specs/2026-08-11-qa-report-by-page-design.md`
-**Last updated:** 2026-08-11
+**Last updated:** 2026-08-12
 **Supersedes:** `.context/qa-tracker.md` (deleted)
 
 ---
@@ -12,6 +12,8 @@
 **QA path:** pick a page, run its manual sweep at 1920 / 1280 / 440, then re-test each `STILL-BROKEN` row. Rows with a real `Auto` reference are already guarded by a test — focus your time on `GAP` and `MANUAL-VISUAL` rows. Sign off by ticking the sweep checkboxes and updating row statuses.
 
 **Dev path:** read the page index below. `RED` pages have shippable work; the `Owner change` column names the OpenSpec change and task that closes each one. Open rows with `BLOCKED-DESIGN` or `N/A` cannot be worked — decisions pending.
+
+**Which page next, and how?** → [`QA_EXECUTION.md`](./QA_EXECUTION.md). This file owns **status**; that one owns **order and method**. A status flips here and nowhere else.
 
 ---
 
@@ -43,14 +45,15 @@ Run all three: `npx playwright test --project=chromium --project=desktop-1920 --
 
 ### Status
 
-| Value            | Meaning                                         |
-| ---------------- | ----------------------------------------------- |
-| `STILL-BROKEN`   | Reproduced on `backend.`, not yet fixed         |
-| `FIXED`          | Verified fixed; `Auto` holds the test reference |
-| `CANT-REPRODUCE` | Could not reproduce at the stated breakpoint    |
-| `BLOCKED-DESIGN` | Awaiting a human decision; code untouched       |
-| `CONTENT-GAP`    | CMS content missing; fix is outside this repo   |
-| `RECLASSIFIED`   | Class changed during triage (see row note)      |
+| Value            | Meaning                                                                                                           |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `STILL-BROKEN`   | Reproduced on `backend.`, not yet fixed                                                                           |
+| `PARTIAL-FIX`    | One aspect of the row shipped, another has not. **Counts as open** — the Manual column names what still owes work |
+| `FIXED`          | Verified fixed; `Auto` holds the test reference                                                                   |
+| `CANT-REPRODUCE` | Could not reproduce at the stated breakpoint                                                                      |
+| `BLOCKED-DESIGN` | Awaiting a human decision; code untouched                                                                         |
+| `CONTENT-GAP`    | CMS content missing; fix is outside this repo                                                                     |
+| `RECLASSIFIED`   | Class changed during triage (see row note)                                                                        |
 
 ### Coverage (`Auto` column)
 
@@ -76,18 +79,18 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 | About Us           | `/about-us`           | GREEN | 0    | 0       | —                                    |
 | Blog               | `/blog`               | RED   | 3    | 0       | `qa-class-a-design-fidelity §5.3`    |
 | Single Blog        | `/blog/[slug]`        | GREEN | 0    | 0       | —                                    |
-| Contact            | `/contact-us`         | RED   | 1    | 0       | `qa-class-a-design-fidelity §5.6`    |
+| Contact            | `/contact-us`         | RED   | 1    | 0       | `qa-class-a-design-fidelity §5.7`    |
 | Course Category    | `/course-cat/[slug]`  | RED   | 3    | 0       | `qa-class-a-design-fidelity §5.4`    |
-| All Courses        | `/all-courses`        | RED   | 3    | 0       | `qa-class-a-design-fidelity §5.4`    |
+| All Courses        | `/all-courses`        | RED   | 3    | 0       | `qa-class-a-design-fidelity §5.5`    |
 | Single Course      | `/course/[slug]`      | AMBER | 0    | 1       | —                                    |
 | Privacy Policy     | `/privacy-policy`     | GREEN | 0    | 0       | —                                    |
 | FAQ / Help         | `/help`               | AMBER | 0    | 1       | —                                    |
 | Cart               | `/cart`               | AMBER | 0    | 1       | —                                    |
-| Checkout           | `/checkout`           | RED   | 3    | 0       | `qa-class-a-design-fidelity §5.5`    |
+| Checkout           | `/checkout`           | RED   | 3    | 0       | `qa-class-a-design-fidelity §5.6`    |
 | Pricing            | `/pricing`            | RED   | 1    | 2       | —                                    |
 | Verify Certificate | `/verify-certificate` | GREEN | 0    | 0       | —                                    |
-| Cancellations      | `/cancellations`      | RED   | 1    | 0       | `qa-class-a-design-fidelity §5.6`    |
-| Priority Support   | `/support-request`    | RED   | 1    | 0       | `qa-class-a-design-fidelity §5.5`    |
+| Cancellations      | `/cancellations`      | RED   | 1    | 0       | `qa-class-a-design-fidelity §5.7`    |
+| Priority Support   | `/support-request`    | RED   | 1    | 0       | `qa-class-a-design-fidelity §5.6`    |
 | Team Training      | **does not exist**    | RED   | 0    | 0       | Class D — own OpenSpec change needed |
 
 ---
@@ -99,8 +102,8 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 ### Homepage
 
 **Route:** `/`
-**Figma:** `OPEN 4571:10560 (1920×7150) vs 6013:89909 (1920×7055)` — resolution task: `qa-class-a-design-fidelity §2.1`
-**Notes:** Largest section (~21 issues). Divergent Figma pair unresolved — Class A pixel targets gated on §2.1. Two Class E items blocked on design input.
+**Figma:** `RESOLVED 6013:89909` — the canvas node is uniform where the pair differs; evidence in `.context/figma/node-resolution.md`
+**Notes:** Largest section (~21 issues). Figma pair resolved by measurement; targets derived. Two Class E items blocked on design input.
 
 #### Manual sweep
 
@@ -120,7 +123,7 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 | QA-HOME-C1 | "certificate image collapsed / missing"                       | all       | C     | FIXED          | `e2e/qa-round-1.spec.ts:143` | —                                                                                                                                                                |
 | QA-HOME-C2 | "transcript image collapsed / missing"                        | all       | C     | FIXED          | `e2e/qa-round-1.spec.ts:143` | —                                                                                                                                                                |
 | QA-HOME-C3 | "team collaboration photos not visible"                       | all       | C     | CONTENT-GAP    | N/A                          | Prod WP returns `/images/team/collaboration-{1,2,3}.jpg`, all 404. Upload assets or correct CMS paths. Component degrades gracefully.                            |
-| QA-HOME-A1 | "hero top/bottom spacing — not 80–100px"                      | 1920      | A     | STILL-BROKEN   | MANUAL-VISUAL                | Compare hero padding against Figma `6013:89909` (pending Figma pair resolution §2.1). Owner: `qa-class-a-design-fidelity §5.2`                                   |
+| QA-HOME-A1 | "hero top/bottom spacing — not 80–100px"                      | 1920      | A     | STILL-BROKEN   | MANUAL-VISUAL                | Compare hero padding against Figma `6013:89909` — measured **80px**, not the report's "80–100". Owner: `qa-class-a-design-fidelity §5.2`                         |
 | QA-HOME-A2 | "mobile section spacing not 40px"                             | 440       | A     | STILL-BROKEN   | MANUAL-VISUAL                | Measure section gap at 440 against Figma 440 frame. Owner: `qa-class-a-design-fidelity §5.2`                                                                     |
 | QA-HOME-A3 | "section header weight and Title Case"                        | all       | A     | PARTIAL-FIX    | GAP                          | Weight fixed: `font-bold` applied to trusted-orgs h2 (commit `1c92a4e`). Title Case aspect not yet measured from Figma. Owner: `qa-class-a-design-fidelity §5.2` |
 | QA-HOME-A4 | "card title colour changes on hover"                          | all       | A     | STILL-BROKEN   | GAP                          | Assert card title colour at rest vs hover state. Owner: `qa-class-a-design-fidelity §5.2`                                                                        |
@@ -137,8 +140,8 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 ### About Us
 
 **Route:** `/about-us`
-**Figma:** `OPEN 6239:102399 vs 6015:129608` — resolution task: `qa-class-a-design-fidelity §2.6`
-**Notes:** Class C images are content gaps (CMS returns `null`). Page renders placeholder SVGs gracefully. No shippable code work remains; all rows are closed or content-gap.
+**Figma:** `RESOLVED 6239:102399` — a section holding Desktop 1920 + Laptop 1280 + Mobile 441; the rival is the Desktop frame alone
+**Notes:** Class C images are content gaps (CMS returns `null`). Page renders placeholder SVGs gracefully. No QA row is open, but ⚠️ the frame shows 40px section headings are SUSE **Medium (500)** while commit `1c92a4e` set three of them to `font-bold` — open decision, `QA_EXECUTION.md` slice 7.
 
 #### Manual sweep
 
@@ -160,8 +163,8 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 ### Blog
 
 **Route:** `/blog`
-**Figma:** `OPEN 4900:75788 vs 6015:127034` — resolution task: `qa-class-a-design-fidelity §2.2`
-**Notes:** QA-BLOG-C1 (blog hero image) reclassified to Class D — `blog-hero.tsx` renders a CSS gradient with no `<img>`. Class A spacing items gated on Figma pair resolution.
+**Figma:** `RESOLVED — either; the two frames are geometrically identical`
+**Notes:** QA-BLOG-C1 (blog hero image) reclassified to Class D — `blog-hero.tsx` renders a CSS gradient with no `<img>`. Figma pair resolved: the two frames are identical.
 
 #### Manual sweep
 
@@ -178,7 +181,7 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 | QA-BLOG-B6 | "month names overflow on card"         | 440  | B     | FIXED        | `e2e/qa-round-1.spec.ts:401` | —                                                                                                                                              |
 | QA-BLOG-A1 | "80px between final CTA and footer"    | all  | A     | FIXED        | N/A                          | Verified: `pb-20` wrapper around `BlogTeamCta`.                                                                                                |
 | QA-BLOG-C1 | "blog hero image missing"              | all  | C     | RECLASSIFIED | N/A                          | Reclassified → Class D. `blog-hero.tsx` renders CSS radial-gradient; no `<img>`. Matches Class D item "Blog hero gradient and bottom pattern". |
-| QA-BLOG-A2 | "hero top/bottom spacing"              | 1920 | A     | STILL-BROKEN | MANUAL-VISUAL                | Compare hero padding against Figma (pending pair resolution §2.2). Owner: `qa-class-a-design-fidelity §5.3`                                    |
+| QA-BLOG-A2 | "hero top/bottom spacing"              | 1920 | A     | STILL-BROKEN | MANUAL-VISUAL                | Compare hero padding against Figma — hero band y=172 h=320. Owner: `qa-class-a-design-fidelity §5.3`                                           |
 | QA-BLOG-A3 | "laptop side padding not 128px"        | 1280 | A     | STILL-BROKEN | GAP                          | Assert container padding at 1280 → `e2e/design-fidelity.spec.ts`. Owner: `qa-class-a-design-fidelity §5.3`                                     |
 | QA-BLOG-A4 | "section header weight and Title Case" | all  | A     | STILL-BROKEN | GAP                          | Assert section heading font-weight and casing. Owner: `qa-class-a-design-fidelity §5.3`                                                        |
 
@@ -192,7 +195,7 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 ### Single Blog
 
 **Route:** `/blog/[slug]`
-**Figma:** `OPEN 4040:11134 vs 6015:127141` — resolution task: `qa-class-a-design-fidelity §2.3`
+**Figma:** `RESOLVED 6015:127141` — canvas measured; rival sampled out against five held invariants
 **Notes:** All filed issues resolved. Hero image `CANT-REPRODUCE` (renders correctly at all widths). ToC anchor fix shipped with QA-BLOGS-B3.
 
 #### Manual sweep
@@ -229,17 +232,17 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 
 #### Issue table
 
-| QA-ID         | Quote                                         | BP   | Class | Status       | Auto          | Manual                                                                                                  |
-| ------------- | --------------------------------------------- | ---- | ----- | ------------ | ------------- | ------------------------------------------------------------------------------------------------------- |
-| QA-CONTACT-A1 | "hero top/bottom spacing not matching design" | 1920 | A     | STILL-BROKEN | MANUAL-VISUAL | No Figma ref. Compare against live WP site at same breakpoint. Owner: `qa-class-a-design-fidelity §5.6` |
+| QA-ID         | Quote                                         | BP   | Class | Status       | Auto          | Manual                                                                                                                                   |
+| ------------- | --------------------------------------------- | ---- | ----- | ------------ | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| QA-CONTACT-A1 | "hero top/bottom spacing not matching design" | 1920 | A     | STILL-BROKEN | MANUAL-VISUAL | No Figma ref. Compare against live WP site at same breakpoint and record the URL as the source. Owner: `qa-class-a-design-fidelity §5.7` |
 
 ---
 
 ### Course Category
 
 **Route:** `/course-cat/[slug]`
-**Figma:** `OPEN 3294:42427 vs 6015:108699` — resolution task: `qa-class-a-design-fidelity §2.5`
-**Notes:** "Why Choose Us" image issues `CANT-REPRODUCE` at both widths. Class A spacing gated on Figma pair. Class D: FAQ section under courses not in round 1.
+**Figma:** `RESOLVED — either; the two frames are geometrically identical`
+**Notes:** "Why Choose Us" image issues `CANT-REPRODUCE` at both widths. Figma pair resolved: identical frames. Class D: FAQ section under courses not in round 1.
 
 #### Manual sweep
 
@@ -256,7 +259,7 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 | QA-CAT-C1 | "Why Choose Us images not visible"     | 1280 | C     | CANT-REPRODUCE | N/A           | 14 imgs, 0 broken, 0 collapsed @1280.                                                                                                                          |
 | QA-CAT-C2 | "Why Choose Us images not visible"     | 440  | C     | CANT-REPRODUCE | N/A           | Same result @440. One issue, not two.                                                                                                                          |
 | QA-CAT-A1 | "laptop side padding not 128px"        | 1280 | A     | STILL-BROKEN   | GAP           | Assert container padding = 128px @1280. Owner: `qa-class-a-design-fidelity §5.4`                                                                               |
-| QA-CAT-A2 | "hero top/bottom spacing"              | 1920 | A     | STILL-BROKEN   | MANUAL-VISUAL | Compare against Figma (pending pair resolution §2.5). Owner: `qa-class-a-design-fidelity §5.4`                                                                 |
+| QA-CAT-A2 | "hero top/bottom spacing"              | 1920 | A     | STILL-BROKEN   | MANUAL-VISUAL | Compare against Figma — Category hero band is **480** tall, not All Courses' 320. Owner: `qa-class-a-design-fidelity §5.4`                                     |
 | QA-CAT-A3 | "section header weight and Title Case" | all  | A     | PARTIAL-FIX    | GAP           | Weight fixed: `font-bold` applied to course-faq h2 (commit `1c92a4e`). Title Case aspect not yet measured from Figma. Owner: `qa-class-a-design-fidelity §5.4` |
 
 #### Tests to write
@@ -269,7 +272,7 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 ### All Courses
 
 **Route:** `/all-courses`
-**Figma:** `OPEN 3306:50109 vs 6015:96163 (v2)` — resolution task: `qa-class-a-design-fidelity §2.4`
+**Figma:** `RESOLVED — either; the two frames are geometrically identical`. "v2" is a naming artefact, not a revision
 **Notes:** Filter checkboxes already correct on `main`. Class D: All Courses mobile "huge responsive issues" — out of round 1, needs sizing.
 
 #### Manual sweep
@@ -285,8 +288,8 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 | QA-ID         | Quote                                                        | BP   | Class | Status       | Auto          | Manual                                                                                  |
 | ------------- | ------------------------------------------------------------ | ---- | ----- | ------------ | ------------- | --------------------------------------------------------------------------------------- |
 | QA-COURSES-A1 | "unselected checkbox white + border, selected Secondary 500" | all  | A     | FIXED        | N/A           | `course-category-filter.tsx:47` already correct on `main`.                              |
-| QA-COURSES-A2 | "hero top/bottom spacing"                                    | 1920 | A     | STILL-BROKEN | MANUAL-VISUAL | Pending Figma pair resolution §2.4. Owner: `qa-class-a-design-fidelity §5.4`            |
-| QA-COURSES-A3 | "section header weight and Title Case"                       | all  | A     | STILL-BROKEN | GAP           | Assert section heading font-weight and casing. Owner: `qa-class-a-design-fidelity §5.4` |
+| QA-COURSES-A2 | "hero top/bottom spacing"                                    | 1920 | A     | STILL-BROKEN | MANUAL-VISUAL | Compare against Figma — hero band **320**. Owner: `qa-class-a-design-fidelity §5.5`     |
+| QA-COURSES-A3 | "section header weight and Title Case"                       | all  | A     | STILL-BROKEN | GAP           | Assert section heading font-weight and casing. Owner: `qa-class-a-design-fidelity §5.5` |
 | QA-COURSES-D1 | "huge mobile responsive issues… needs to be done properly"   | 440  | D     | STILL-BROKEN | N/A           | Out of round 1. Unbounded — needs sizing in its own OpenSpec change.                    |
 
 #### Tests to write
@@ -402,11 +405,11 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 
 #### Issue table
 
-| QA-ID       | Quote                                                | BP  | Class | Status       | Auto | Manual                                                                                                                                                                          |
-| ----------- | ---------------------------------------------------- | --- | ----- | ------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| QA-CHECK-A1 | "dropdown right padding not 16px"                    | all | A     | STILL-BROKEN | GAP  | Assert computed right padding on dropdown elements = 16px. Owner: `qa-class-a-design-fidelity §5.5`                                                                             |
-| QA-CHECK-A2 | "section header weight and Title Case"               | all | A     | PARTIAL-FIX  | GAP  | Weight fixed: `font-bold` applied to all three checkout section h2s (commit `1c92a4e`). Title Case aspect not yet measured from Figma. Owner: `qa-class-a-design-fidelity §5.5` |
-| QA-CHECK-D1 | "checkout section present in Figma, absent in build" | all | D     | STILL-BROKEN | N/A  | Out of round 1. Own OpenSpec change needed.                                                                                                                                     |
+| QA-ID       | Quote                                                | BP  | Class | Status       | Auto | Manual                                                                                                                                                                                                                     |
+| ----------- | ---------------------------------------------------- | --- | ----- | ------------ | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| QA-CHECK-A1 | "dropdown right padding not 16px"                    | all | A     | STILL-BROKEN | GAP  | Assert computed right padding on dropdown elements = 16px. Currently `pr-10` (40px); the chevron at `right-3` must move too or the text overlaps. Owner: `qa-class-a-design-fidelity §5.6`                                 |
+| QA-CHECK-A2 | "section header weight and Title Case"               | all | A     | PARTIAL-FIX  | GAP  | Weight fixed: `font-bold` applied to all three checkout section h2s (commit `1c92a4e`). These are `text-2xl` (24px), a size with no measured Figma token — verify before closing. Owner: `qa-class-a-design-fidelity §5.6` |
+| QA-CHECK-D1 | "checkout section present in Figma, absent in build" | all | D     | STILL-BROKEN | N/A  | Out of round 1. Own OpenSpec change needed.                                                                                                                                                                                |
 
 #### Tests to write
 
@@ -477,9 +480,9 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 
 #### Issue table
 
-| QA-ID        | Quote                                         | BP   | Class | Status       | Auto          | Manual                                                                                     |
-| ------------ | --------------------------------------------- | ---- | ----- | ------------ | ------------- | ------------------------------------------------------------------------------------------ |
-| QA-CANCEL-A1 | "hero top/bottom spacing not matching design" | 1920 | A     | STILL-BROKEN | MANUAL-VISUAL | No valid Figma ref. Compare against live WP site. Owner: `qa-class-a-design-fidelity §5.6` |
+| QA-ID        | Quote                                         | BP   | Class | Status       | Auto          | Manual                                                                                                                      |
+| ------------ | --------------------------------------------- | ---- | ----- | ------------ | ------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| QA-CANCEL-A1 | "hero top/bottom spacing not matching design" | 1920 | A     | STILL-BROKEN | MANUAL-VISUAL | No valid Figma ref. Compare against live WP site and record the URL as the source. Owner: `qa-class-a-design-fidelity §5.7` |
 
 ---
 
@@ -499,9 +502,9 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 
 #### Issue table
 
-| QA-ID         | Quote                             | BP  | Class | Status       | Auto | Manual                                                                                                                                 |
-| ------------- | --------------------------------- | --- | ----- | ------------ | ---- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| QA-SUPPORT-A1 | "dropdown right padding not 16px" | all | A     | STILL-BROKEN | GAP  | Assert computed right padding on dropdown = 16px. No Figma ref; measure against live WP site. Owner: `qa-class-a-design-fidelity §5.5` |
+| QA-ID         | Quote                             | BP  | Class | Status       | Auto | Manual                                                                                                                                                          |
+| ------------- | --------------------------------- | --- | ----- | ------------ | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| QA-SUPPORT-A1 | "dropdown right padding not 16px" | all | A     | STILL-BROKEN | GAP  | Assert computed right padding on dropdown = 16px. No Figma ref; measure against live WP site. Closes with QA-CHECK-A1. Owner: `qa-class-a-design-fidelity §5.6` |
 
 #### Tests to write
 
@@ -535,18 +538,36 @@ _No issue rows. No manual sweep. Page section records absence only._
 
 Code untouched for all seven. Nothing guessed.
 
-### Divergent Figma node pairs — unresolved
+### Divergent Figma node pairs — all six RESOLVED
 
-| Page        | Doc node                 | Canvas "Pages" node      | Resolution task                   |
-| ----------- | ------------------------ | ------------------------ | --------------------------------- |
-| Homepage    | `4571:10560` (1920×7150) | `6013:89909` (1920×7055) | `qa-class-a-design-fidelity §2.1` |
-| Blog        | `4900:75788`             | `6015:127034`            | `qa-class-a-design-fidelity §2.2` |
-| Blog single | `4040:11134`             | `6015:127141`            | `qa-class-a-design-fidelity §2.3` |
-| All Courses | `3306:50109`             | `6015:96163 (v2)`        | `qa-class-a-design-fidelity §2.4` |
-| Category    | `3294:42427`             | `6015:108699`            | `qa-class-a-design-fidelity §2.5` |
-| About Us    | `6239:102399`            | `6015:129608`            | `qa-class-a-design-fidelity §2.6` |
+Resolved by measurement, not by a team decision. Evidence per pair in
+`.context/figma/node-resolution.md`; derived targets in `.context/figma/targets.md`.
 
-No valid design reference at all: Cancellations, Privacy Policy, Priority Support (plan §2.4).
+| Page        | Doc node                 | Canvas "Pages" node      | Verdict                                                                                      |
+| ----------- | ------------------------ | ------------------------ | -------------------------------------------------------------------------------------------- |
+| Homepage    | `4571:10560` (1920×7150) | `6013:89909` (1920×7055) | **`6013:89909`** — uniform where they differ                                                 |
+| Blog        | `4900:75788`             | `6015:127034`            | **Either** — geometrically identical                                                         |
+| Blog single | `4040:11134`             | `6015:127141`            | **`6015:127141`** — canvas measured, rival sampled out                                       |
+| All Courses | `3306:50109`             | `6015:96163 (v2)`        | **Either** — identical; "v2" is a naming artefact                                            |
+| Category    | `3294:42427`             | `6015:108699`            | **Either** — geometrically identical                                                         |
+| About Us    | `6239:102399`            | `6015:129608`            | **`6239:102399`** — a section holding all three widths; the rival is the Desktop frame alone |
+
+The grid invariants — 1296 content, 312 side padding, 80 rhythm, 24 gutter, 306 card —
+now hold across eight independently measured nodes. **No Class A row is gated on a
+Figma decision.**
+
+### No valid design reference
+
+Cancellations, Privacy Policy and Priority Support (plan §2.4). These do not stay
+blocked: per `QA_EXECUTION.md`, they take targets from the **live WP site** measured at
+the same breakpoint, with the URL recorded as the source exactly as a node would be.
+
+### Open design contradiction
+
+The About Us frame shows 40px section headings are SUSE **Medium (500)** — the file
+carries both `Heading/Medium/H2` (500) and `Heading/Bold/H2` (700) and picks by size.
+Commit `1c92a4e` set three 40px headings to `font-bold`. Decide at `QA_EXECUTION.md`
+slice 7: revert to match the frame, or record a ruling that supersedes it.
 
 ---
 

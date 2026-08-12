@@ -205,8 +205,12 @@ export function runChecks() {
     const indexEntry = indexMap[page.name];
     if (!indexEntry) continue;
 
-    // Open = STILL-BROKEN (shippable work); Blocked = BLOCKED-DESIGN
-    const shippableOpenRows = page.issueRows.filter((r) => r.status === "STILL-BROKEN");
+    // Open = shippable work remains; Blocked = BLOCKED-DESIGN.
+    // PARTIAL-FIX counts as open: one aspect of the row shipped and another did
+    // not, so the row still owes work. Counting it as closed would let a page
+    // read GREEN while a measured target is still unapplied.
+    const OPEN_STATUSES = new Set(["STILL-BROKEN", "PARTIAL-FIX"]);
+    const shippableOpenRows = page.issueRows.filter((r) => OPEN_STATUSES.has(r.status));
     const blockedRows = page.issueRows.filter((r) => r.status === "BLOCKED-DESIGN");
 
     if (shippableOpenRows.length !== indexEntry.open) {
