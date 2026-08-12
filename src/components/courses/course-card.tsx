@@ -100,7 +100,9 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
 
         {/* Title */}
         <Link href={`/course/${course.slug}`}>
-          <h3 className="font-suse group-hover:text-secondary-500 line-clamp-2 h-14 text-xl leading-snug font-bold text-neutral-900 transition-colors">
+          {/* No hover colour shift — QA asks for the title to stay put. The card
+              still signals interactivity through its own hover treatment. */}
+          <h3 className="font-suse line-clamp-2 h-14 text-xl leading-snug font-bold text-neutral-900">
             {course.title}
           </h3>
         </Link>

@@ -41,7 +41,10 @@ export async function HeroSection({ headline }: HeroSectionProps) {
       className="bg-primary-50 relative overflow-x-clip bg-cover bg-center"
       style={{ backgroundImage: `url(${overlayImage})` }}
     >
-      <div className="mx-auto flex max-w-none flex-col items-start gap-12 px-4 py-15 lg:max-w-350 lg:items-center lg:py-42.5 xl:flex-row xl:px-0">
+      {/* lg:py-[133px] is measured, not chosen: Figma's hero band (`6056:20231`)
+          is 844 tall around a 577-tall visual column, leaving a 133/134 inset.
+          The QA report's "80–100px" matches neither the frame nor the build. */}
+      <div className="mx-auto flex max-w-none flex-col items-start gap-12 px-4 py-15 lg:max-w-350 lg:items-center lg:py-[133px] xl:flex-row xl:px-0">
         <div className="flex w-full min-w-0 flex-col gap-6 lg:max-w-159">
           <div className="flex flex-col gap-4">
             <h1 className="font-suse text-[40px] leading-[1.2] font-bold text-neutral-900 md:text-[48px] lg:text-[56px]">

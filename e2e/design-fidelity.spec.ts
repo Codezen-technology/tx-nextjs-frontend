@@ -146,3 +146,101 @@ test.describe("Class A — the build matches the measured design", () => {
     ).toBe(m.sidePadding);
   });
 });
+
+/**
+ * Homepage — `QA_EXECUTION.md` slice 1. Authoritative node `6013:89909`.
+ *
+ * Hero band: the frame's Hero Section (`6056:20231`) is 844 tall and holds two
+ * columns — text `6056:20234` at y=160 h=500, visual `6056:20265` at y=133
+ * h=577. The band is sized by the taller one, so the vertical inset is
+ * 133 top / 134 bottom. The QA report's "80–100px" matches neither the frame nor
+ * the build; per `design-token-fidelity` the measurement wins.
+ */
+const HOME_HERO_PAD_1920 = 133;
+
+test.describe("Class A — Homepage", () => {
+  test("hero vertical padding matches the measured band", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 1920, "Hero inset is only measured on the 1920 frame.");
+
+    await page.goto("/");
+    const pad = await page.evaluate(() => {
+      const h1 = document.querySelector("h1");
+      let sec: Element | null = h1;
+      while (sec && sec.tagName !== "SECTION" && sec.parentElement) sec = sec.parentElement;
+      const inner = sec?.querySelector(":scope > div") ?? null;
+      if (!inner) return null;
+      const s = getComputedStyle(inner);
+      return { top: parseFloat(s.paddingTop), bottom: parseFloat(s.paddingBottom) };
+    });
+
+    expect(pad, "could not locate the hero content wrapper").not.toBeNull();
+    const tol = 4;
+    expect(
+      Math.abs(pad!.top - HOME_HERO_PAD_1920),
+      `hero padding-top @1920: got ${pad!.top}, design ${HOME_HERO_PAD_1920} (node 6056:20231, band 844) +/-${tol}`,
+    ).toBeLessThanOrEqual(tol);
+    expect(
+      Math.abs(pad!.bottom - HOME_HERO_PAD_1920),
+      `hero padding-bottom @1920: got ${pad!.bottom}, design ${HOME_HERO_PAD_1920} (node 6056:20231, band 844) +/-${tol}`,
+    ).toBeLessThanOrEqual(tol);
+  });
+
+  /**
+   * The QA report asks for the card title colour to be *stable* on hover. No
+   * static Figma frame can express a hover state, so the report is the source
+   * here — recorded as such rather than pretending a node was measured.
+   */
+  test("course card title colour is stable on hover", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    await page.goto("/");
+    // `:visible` matters — the carousel keeps off-screen duplicate slides in the
+    // DOM, and the first match is one of them.
+    const card = page
+      .locator('a[href^="/course/"]:visible')
+      .filter({ has: page.locator("h3") })
+      .first();
+    await card.waitFor({ state: "visible", timeout: 15_000 });
+    await card.scrollIntoViewIfNeeded();
+
+    const title = card.locator("h3").first();
+    const rest = await title.evaluate((el) => getComputedStyle(el).color);
+    await card.hover();
+    await page.waitForTimeout(250); // outlast `transition-colors`
+    const hovered = await title.evaluate((el) => getComputedStyle(el).color);
+
+    expect(
+      hovered,
+      `card title colour @${vw}: ${rest} at rest, ${hovered} on hover — the report asks for it to stay put`,
+    ).toBe(rest);
+  });
+
+  /**
+   * Weight only. Casing is deliberately not asserted: the frame itself mixes
+   * cases ("Explore courses by category" `6013:89983` is sentence case,
+   * "Trusted by Over 1000+ UK organisations" `6013:89966` is mixed), so there is
+   * no Title Case rule in the design to assert against.
+   *
+   * 700 is the `Heading/Bold/H2` token. The footer is excluded: its heading is
+   * `Heading/Medium/H2` (500) per node `89:3918`, and is correct as-is.
+   */
+  test("section headings use the bold H2 token", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    await page.goto("/");
+    const weights = await page.evaluate(() =>
+      [...(document.querySelector("main") ?? document.body).querySelectorAll("h2")].map((h) => ({
+        text: (h.textContent || "").trim().slice(0, 48),
+        weight: getComputedStyle(h).fontWeight,
+      })),
+    );
+
+    expect(weights.length, "no <h2> found on the homepage").toBeGreaterThan(0);
+    const wrong = weights.filter((w) => w.weight !== "700");
+    expect(
+      wrong,
+      `@${vw} these section headings are not weight 700 (Heading/Bold/H2): ${wrong
+        .map((w) => `"${w.text}"=${w.weight}`)
+        .join(", ")}`,
+    ).toEqual([]);
+  });
+});

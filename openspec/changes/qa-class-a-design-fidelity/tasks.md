@@ -55,7 +55,8 @@ row in `QA_BY_PAGE.md`, gate and commit.
 Slices 5.2–5.8 are independent; the order is by value, not dependency.
 
 - [x] 5.1 Shared utilities in `globals.css` — anything used by more than one page
-- [ ] 5.2 **Homepage** (4 rows) — `A1` hero spacing @1920 (measured **80**) · `A2` mobile section spacing @440 (see 3.4) · `A3` heading casing (weight done) · `A4` card title hover colour
+- [~] 5.2 **Homepage** — 3 of 4 rows closed. `A1` **FIXED**: frame band is 844 around a 577 column → 133/134 inset, not the report's "80–100"; `lg:py-42.5` → `lg:py-[133px]` · `A3` **FIXED**: weight 700 asserted; casing is not a defect — the frame mixes cases, so there is no Title Case rule · `A4` **FIXED**: dropped `group-hover:text-secondary-500` · `A2` **still open** — target derived (**40px** gap at 440) but not applied: 4 of 7 section components are shared with pages that have no measured 440 frame, so it needs the site-wide ramp below, not a homepage edit
+- [ ] 5.2a **Vertical rhythm ramp** (blocks `A2`, and `E2` if design ever answers) — sections are flush and each contributes its own padding, so the inter-section gap is the sum of two. Measured gaps: **80 @1920, 56 @1280, 40 @440**. Build ships 112–144 at 440. Halving a gap into two paddings is an inference, not a measurement — decide the model before applying, and measure `/pricing`, `/cancellations`, `/support-request` rather than generalising the homepage value onto them
 - [ ] 5.3 **Blog** (3 rows) — `A2` hero spacing @1920 · `A3` 128px @1280 (already applied — expect verify-and-close) · `A4` heading casing (headings already bold)
 - [ ] 5.4 **Course Category** (3 rows) — `A1` 128px @1280 · `A2` hero spacing @1920 (hero band is **480**, not All Courses' 320 — do not share the target) · `A3` heading casing
 - [ ] 5.5 **All Courses** (2 rows) — `A2` hero spacing @1920 (hero band **320**) · `A3` heading casing. Measure headings alongside 5.4
