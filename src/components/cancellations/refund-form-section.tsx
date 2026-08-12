@@ -44,7 +44,7 @@ export function RefundFormSection({
   }
 
   return (
-    <section id="refund-form" className="scroll-mt-28 bg-neutral-50/50 py-16">
+    <section id="refund-form" className="py-section scroll-mt-28 bg-neutral-50/50 lg:py-16">
       <div className="container max-w-5xl">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div>

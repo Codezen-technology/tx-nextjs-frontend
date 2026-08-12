@@ -13,7 +13,7 @@ export function TrustedOrgs({ data }: TrustedOrgsProps) {
   const track = [...sponsors, ...sponsors];
 
   return (
-    <section className="bg-secondary-50 overflow-hidden py-12">
+    <section className="bg-secondary-50 py-section overflow-hidden lg:py-12">
       {/* Bleeds off the right edge by design — the logo track scrolls out of the
           viewport — so it cannot be a `container`. `grid-inset-start` gives it
           the container's start edge without its max-width or its right padding. */}

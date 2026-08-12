@@ -244,3 +244,99 @@ test.describe("Class A — Homepage", () => {
     ).toEqual([]);
   });
 });
+
+/**
+ * QA-HOME-A2 — mobile section rhythm.
+ *
+ * Measured on the only 440 frame that stacks top-level sections, blog mobile
+ * `4115:68390`. Three independent gaps between adjacent section frames, all 40:
+ *
+ *   Trending band  0 → 721      next section at 761   → 40
+ *   category list  761 → 9489   next section at 9529  → 40
+ *   CTA block      9529 → 9790  footer at 9830        → 40
+ *
+ * Corroborated by the report ("mobile section spacing not 40px") and by the
+ * About Us mobile frame inside `6239:102399`, whose sections carry 40 of their
+ * own vertical padding. The 32 in `targets.md` is the gap between sibling card
+ * blocks *inside* one section (`4115:10365` → `4115:10854`, 1460 − 1428), not
+ * between sections — that ambiguity is what this test settles.
+ *
+ * The build stacks sections with no gap, so the design's 40 is expressed as
+ * `--section-rhythm-mobile / 2` of vertical padding on each side of every
+ * boundary. Rhythm is therefore measured as the total whitespace across a
+ * boundary: padding-bottom(A) + the box gap + padding-top(B).
+ *
+ * Heroes are excluded. A hero is a band sized by its content, not a rhythm
+ * participant — the frame gives it its own inset (QA-HOME-A1, 133 at 1920).
+ */
+const SECTION_RHYTHM_440 = 40;
+
+/**
+ * The pages the shared sections land on. `/support-request` is deliberately
+ * absent: it stacks a hero and one reviews section, so every boundary it has is
+ * a hero boundary and there is nothing here to measure. It still receives the
+ * token through `reviews-section`.
+ */
+const RHYTHM_ROUTES = [
+  "/", // trusted-orgs, categories+courses, reviews, pricing, why, team, cpd
+  "/pricing", // shares trusted-orgs, categories, reviews, pricing-section
+  "/cancellations", // shares reviews-section
+];
+
+test.describe("Class A — mobile section rhythm", () => {
+  for (const route of RHYTHM_ROUTES) {
+    test(`${route} stacks its sections on the measured mobile rhythm`, async ({
+      page,
+      viewport,
+    }) => {
+      const vw = viewport?.width ?? 0;
+      test.skip(vw !== 440, "The section rhythm is only measured on the 440 frame.");
+
+      await page.goto(route);
+      const boundaries = await page.evaluate(() => {
+        const sections = [
+          ...(document.querySelector("main") ?? document.body).querySelectorAll(":scope > section"),
+        ].filter((s) => s.getBoundingClientRect().height > 0);
+
+        // A hero owns its own vertical inset and is not part of the rhythm.
+        const isHero = (el: Element) => el.querySelector("h1") !== null;
+
+        const out: { after: string; before: string; rhythm: number }[] = [];
+        for (let i = 0; i + 1 < sections.length; i++) {
+          const a = sections[i];
+          const b = sections[i + 1];
+          if (isHero(a) || isHero(b)) continue;
+          const ra = a.getBoundingClientRect();
+          const rb = b.getBoundingClientRect();
+          const label = (el: Element) =>
+            (el.querySelector("h2")?.textContent || el.className || el.tagName)
+              .trim()
+              .slice(0, 40) || "(unnamed)";
+          out.push({
+            after: label(a),
+            before: label(b),
+            rhythm: Math.round(
+              parseFloat(getComputedStyle(a).paddingBottom) +
+                (rb.top - ra.bottom) +
+                parseFloat(getComputedStyle(b).paddingTop),
+            ),
+          });
+        }
+        return out;
+      });
+
+      expect(boundaries.length, `${route}: found no section boundary to measure`).toBeGreaterThan(
+        0,
+      );
+
+      const tol = 4;
+      const wrong = boundaries.filter((x) => Math.abs(x.rhythm - SECTION_RHYTHM_440) > tol);
+      expect(
+        wrong,
+        `${route} section rhythm @${vw}: design ${SECTION_RHYTHM_440} +/-${tol} (blog mobile 4115:68390). Off: ${wrong
+          .map((x) => `"${x.after}" → "${x.before}" = ${x.rhythm}`)
+          .join("; ")}`,
+      ).toEqual([]);
+    });
+  }
+});

@@ -32,7 +32,7 @@ export function Accreditations({ items = DEFAULT_ITEMS }: AccreditationsProps) {
   if (!items.length) return null;
 
   return (
-    <section className="bg-white py-16">
+    <section className="py-section bg-white lg:py-16">
       <div className="container mx-auto">
         <h2 className="font-suse mb-8 text-[2rem] font-bold text-neutral-900">Accreditations</h2>
 

@@ -209,12 +209,12 @@ the derived targets in `.context/figma/targets.md`. Closes owner-change tasks 2.
 
 **Route** `/` · **Node** `6013:89909` · **Open** 4
 
-| Row          | What                               | Notes                                                                                                                                                             |
-| ------------ | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `QA-HOME-A1` | Hero top/bottom spacing @1920      | Measured **80**, not the report's "80–100". Entangled with the deferred `max-width` decision — apply padding only                                                 |
-| `QA-HOME-A2` | Mobile section spacing @440        | Frame shows **32** between category sections and **40** after trending. The report says 40. Two values exist; confirm which section the row means before applying |
-| `QA-HOME-A3` | Section header weight + Title Case | Weight applied (`1c92a4e`). **Casing still unmeasured** — read it off the frame, do not assume Title Case                                                         |
-| `QA-HOME-A4` | Card title colour on hover         | Record both the resting and the hover token                                                                                                                       |
+| Row          | What                               | Notes                                                                                                                                                                     |
+| ------------ | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `QA-HOME-A1` | Hero top/bottom spacing @1920      | Measured **80**, not the report's "80–100". Entangled with the deferred `max-width` decision — apply padding only                                                         |
+| `QA-HOME-A2` | Mobile section spacing @440        | **Settled at 40.** The 32 is intra-section card-block pitch, not rhythm — see `targets.md`. Closed by `--spacing-section` across all four pages that share these sections |
+| `QA-HOME-A3` | Section header weight + Title Case | Weight applied (`1c92a4e`). **Casing still unmeasured** — read it off the frame, do not assume Title Case                                                                 |
+| `QA-HOME-A4` | Card title colour on hover         | Record both the resting and the hover token                                                                                                                               |
 
 ---
 

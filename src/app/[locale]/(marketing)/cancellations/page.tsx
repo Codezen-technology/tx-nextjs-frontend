@@ -83,7 +83,7 @@ export default async function CancellationsPage() {
         showViewAllLink={false}
       />
 
-      <section className="py-16">
+      <section className="py-section lg:py-16">
         <div className="container max-w-3xl">
           <h2 className="font-suse text-2xl font-bold text-neutral-900 md:text-3xl">
             Start with what happened
@@ -108,7 +108,7 @@ export default async function CancellationsPage() {
 
       <Suspense
         fallback={
-          <section id="refund-form" className="scroll-mt-28 bg-neutral-50/50 py-16">
+          <section id="refund-form" className="py-section scroll-mt-28 bg-neutral-50/50 lg:py-16">
             <div className="container max-w-5xl">
               <div className="h-48 animate-pulse rounded-xl bg-neutral-100" />
             </div>

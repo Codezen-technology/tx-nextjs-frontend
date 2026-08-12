@@ -25,7 +25,7 @@ export function CpdCertificate({ data }: CpdCertificateProps) {
   const images = data.images?.length ? data.images : CERTIFICATE_FALLBACKS;
 
   return (
-    <section className="py-16 lg:py-20">
+    <section className="py-section lg:py-20">
       <div className="container flex flex-row items-center justify-between gap-10 lg:grid-cols-2">
         <div className="flex max-w-none flex-col gap-4 md:max-w-104">
           <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">

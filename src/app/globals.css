@@ -90,6 +90,28 @@
   --page-grid-pad-max: 2rem; /* 32px — at and above the cap */
 }
 
+/*
+  The vertical counterpart of the page grid: one value for the whitespace
+  between two stacked top-level sections below `lg`.
+
+  The design puts 40 between adjacent section frames at 440 — blog mobile
+  `4115:68390`, three independent gaps (721→761, 9489→9529, 9790→9830). The
+  build stacks sections with no gap between their boxes, so each side of a
+  boundary owns half: `py-section` is 20, and a boundary reads 40.
+
+  Sized as a `--spacing-*` entry rather than a bespoke utility so it composes as
+  an ordinary `py-section`, and a `lg:py-*` on the same element still wins above
+  the breakpoint — each section keeps the desktop padding it already shipped.
+  Desktop is deliberately untouched here: the 1920 rhythm is 80 and the 1280 is
+  56, but no open QA row asks for them and changing them is a separate slice.
+
+  Not applied to heroes. A hero band is sized by its own content and carries its
+  own inset (QA-HOME-A1 measured 133 at 1920), so it is not a rhythm participant.
+*/
+@theme static {
+  --spacing-section: 1.25rem; /* 20px — half of the measured 40px mobile rhythm */
+}
+
 @theme {
   --font-suse: var(--font-suse), sans-serif;
   --font-open-sans: var(--font-open-sans), sans-serif;

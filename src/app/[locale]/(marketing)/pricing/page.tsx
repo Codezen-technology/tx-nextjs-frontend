@@ -50,14 +50,14 @@ export default async function PricingPage() {
 
       <PricingComparison plans={pricing?.pricing?.plans} />
 
-      <section className="bg-white py-16 lg:py-20">
+      <section className="py-section bg-white lg:py-20">
         <div className="container mx-auto">
           <CategoriesGrid categories={categoriesRes?.items} />
         </div>
       </section>
 
       {pricing?.faq?.length ? (
-        <section className="bg-white py-20">
+        <section className="py-section bg-white lg:py-20">
           <div className="container mx-auto max-w-4xl">
             <CourseFaq items={pricing.faq} />
           </div>

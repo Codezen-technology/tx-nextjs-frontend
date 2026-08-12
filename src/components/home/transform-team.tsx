@@ -15,7 +15,7 @@ export function TransformTeam({ data }: TransformTeamProps) {
 
   return (
     <section
-      className="relative overflow-hidden py-14 lg:py-16"
+      className="py-section relative overflow-hidden lg:py-16"
       style={{ background: "linear-gradient(113.58deg, #00204a 0%, #004f65 100%)" }}
     >
       {/* Purely decorative backdrop — empty alt keeps it out of the a11y tree. */}
