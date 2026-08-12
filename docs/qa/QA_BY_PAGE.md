@@ -90,7 +90,7 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 | Checkout           | `/checkout`           | RED   | 1    | 0       | Class D only — `QA-CHECK-D1`         |
 | Pricing            | `/pricing`            | RED   | 1    | 2       | —                                    |
 | Verify Certificate | `/verify-certificate` | GREEN | 0    | 0       | —                                    |
-| Cancellations      | `/cancellations`      | RED   | 1    | 0       | `qa-class-a-design-fidelity §5.7`    |
+| Cancellations      | `/cancellations`      | RED   | 1    | 1       | `qa-class-a-design-fidelity §5.7`    |
 | Priority Support   | `/support-request`    | GREEN | 0    | 0       | —                                    |
 | Team Training      | **does not exist**    | RED   | 0    | 0       | Class D — own OpenSpec change needed |
 
@@ -253,9 +253,10 @@ _Empty — both entries closed by slice 2._
 
 #### Issue table
 
-| QA-ID         | Quote                                         | BP   | Class | Status       | Auto          | Manual                                                                                                                                   |
-| ------------- | --------------------------------------------- | ---- | ----- | ------------ | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| QA-CONTACT-A1 | "hero top/bottom spacing not matching design" | 1920 | A     | STILL-BROKEN | MANUAL-VISUAL | No Figma ref. Compare against live WP site at same breakpoint and record the URL as the source. Owner: `qa-class-a-design-fidelity §5.7` |
+| QA-ID         | Quote                                                | BP   | Class | Status       | Auto          | Manual                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------- | ---------------------------------------------------- | ---- | ----- | ------------ | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| QA-CONTACT-A1 | "hero top/bottom spacing not matching design"        | 1920 | A     | RECLASSIFIED | N/A           | **Does not trace to the report.** The source doc's Contact section files exactly one issue — "The section colors are not according to the design" — and marks laptop and mobile "Working Fine". No hero-spacing item exists for this page at any breakpoint. Replaced by `QA-CONTACT-A2`, which is what the report actually says. Its "No Figma ref" was also wrong: the report links `3277:44993`, a valid Contact frame. |
+| QA-CONTACT-A2 | "the section colors are not according to the design" | 1920 | A     | STILL-BROKEN | MANUAL-VISUAL | The page's real filed issue, previously untracked. Frame `3277:44993` binds `primary-50` #E6F8FE, `primary-100` #B0EAFA, `primary-500` #00BBF0, `secondary-500` #9E6F21, `N30` #EBEDF1; the build paints its one section white. Needs a section-by-section comparison against the frame — a colour-matching judgement, so `MANUAL-VISUAL`.                                                                                 |
 
 ---
 
@@ -499,9 +500,15 @@ _Empty — closed by slice 5._
 
 #### Issue table
 
-| QA-ID        | Quote                                         | BP   | Class | Status       | Auto          | Manual                                                                                                                      |
-| ------------ | --------------------------------------------- | ---- | ----- | ------------ | ------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| QA-CANCEL-A1 | "hero top/bottom spacing not matching design" | 1920 | A     | STILL-BROKEN | MANUAL-VISUAL | No valid Figma ref. Compare against live WP site and record the URL as the source. Owner: `qa-class-a-design-fidelity §5.7` |
+| QA-ID        | Quote                                                       | BP   | Class | Status         | Auto | Manual                                                                                                                                                                                                                                                                                                                                                              |
+| ------------ | ----------------------------------------------------------- | ---- | ----- | -------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| QA-CANCEL-A1 | "hero top/bottom spacing not matching design"               | 1920 | A     | RECLASSIFIED   | N/A  | **Does not trace to the report.** The source doc's Cancellations section files button-label contrast and icon colour, and marks laptop and mobile "Working Fine". No hero-spacing item exists. Replaced by `QA-CANCEL-A2` and `QA-CANCEL-E1`.                                                                                                                       |
+| QA-CANCEL-A2 | "the Button text label is not visible at all"               | all  | A     | STILL-BROKEN   | GAP  | The page's real filed issue, previously untracked. Measured: white on `secondary-500` #9E6F21 = **4.42:1**, just under WCAG AA's 4.5 for normal text. Report assigns it to **Dev** and names the fix ("fix the colour contrast"), so AA is the target. Not applied here: `bg-secondary-500` buttons are site-wide, so the fix is a token decision, not a page edit. |
+| QA-CANCEL-E1 | "the icons background and the icons color do not stand out" | all  | E     | BLOCKED-DESIGN | N/A  | Measured **1.49:1** — `rgb(225,210,186)` on white. Report assigns this one to **Dev & Design** and names no replacement token, so it blocks the same way `QA-HOME-E1` does.                                                                                                                                                                                         |
+
+#### Tests to write
+
+- `QA-CANCEL-A2` — assert button label contrast against its background meets WCAG AA (4.5:1) → `e2e/design-fidelity.spec.ts`
 
 ---
 
@@ -526,6 +533,8 @@ _Empty — closed by slice 5._
 | QA-SUPPORT-A1 | "dropdown right padding not 16px" | all | A     | FIXED  | `e2e/design-fidelity.spec.ts > dropdowns keep 16px on the right` | **Fixed**, and this is the page the assertion runs against. The live-WP fallback was attempted and had nothing to measure — WP renders no equivalent dropdown — so the source of record is the report's own explicit 16px. Was 12 (`px-3`, native arrow flush). Closes with `QA-CHECK-A1`: one component, two pages. |
 
 #### Tests to write
+
+_Empty — closed by slice 5._
 
 _Empty — closed by slice 5._
 
