@@ -107,7 +107,7 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 
 `A5`–`A7`, `C4` and `E3` came from a re-read of the source report on 2026-08-12: the page had been triaged to 12 rows while the report lists ~19 homepage items, so five had no QA-ID and the page index read `Open 0` while they were still broken. `C4` is the one worth remembering — it only reproduces **logged in**, and every sweep to date ran logged out. That sweep has since been run; see the checklist above.
 
-**Off-report observation, no QA-ID:** at 440 the document scrolls 32px wider than the viewport (`scrollWidth` 472 vs 440), in **both** auth states, so it is neither auth-related nor caused by anything filed here. The widest node is the trusted-orgs marquee, but that sits under `overflow-hidden`, so the leak is more likely a sibling — it needs one more pass to pin down. The report never filed it and the sweep's "no layout break" line never caught it. Raised rather than filed, because every ID in this table traces to a report item.
+**The 440 horizontal overflow is `QA-HOME-A6`, not a separate defect.** The page scrolls 32px wider than the viewport (`scrollWidth` 472 vs 440) in both auth states. Exactly one node overflows without an `overflow-hidden` ancestor to absorb it: the second CPD image. The CPD row is `flex flex-row justify-between gap-10` at every width, so at 440 it hands the text column 200 and the image box **152** — while that box needs `p-10` 80 + 72 + `gap-6` 24 + 72 = **248**. The second image starts at 400 and ends at **472**, 32 past the viewport, and nothing clips it. One `flex-col` below `lg` closes the overflow and A6's 200px-wide text together.
 
 #### Manual sweep
 
@@ -153,7 +153,7 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 #### Tests to write
 
 - `QA-HOME-A5` — assert the computed font-family of a price's `£` contains Inter → `e2e/design-fidelity.spec.ts`
-- `QA-HOME-A6` — assert the CPD heading and body span the content column at 440 → `e2e/design-fidelity.spec.ts`
+- `QA-HOME-A6` — assert the CPD heading and body span the content column at 440, **and** that `document.scrollWidth` equals the viewport → `e2e/design-fidelity.spec.ts`
 - `QA-HOME-A7` — assert the categories CTA sits below the grid at 440 → `e2e/design-fidelity.spec.ts`
 
 ---
