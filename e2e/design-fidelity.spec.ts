@@ -431,6 +431,101 @@ test.describe("Class A — Course Category", () => {
 });
 
 /**
+ * All Courses — `QA_EXECUTION.md` slice 4. Node `3306:50109` (either of the pair;
+ * "v2" is a naming artefact, not a revision).
+ *
+ * Hero band `3306:50115` is 320 tall around a 96-tall content block at y=112, so
+ * the inset is 112 (320 − 208). The build already ships exactly that, so the hero
+ * assertion is a guard rather than a fix — recorded as verify-and-close.
+ *
+ * Four pages, four insets: 133 homepage, 85 blog, 106 category, 112 here. Sharing
+ * any one of them across pages would have been wrong every time.
+ */
+const COURSES_HERO_INSET_1920 = 112;
+
+test.describe("Class A — All Courses", () => {
+  test("all-courses hero inset matches the measured band", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 1920, "The all-courses hero inset is only measured on the 1920 frame.");
+
+    await page.goto("/all-courses");
+    const pad = await page.evaluate(() => {
+      const h1 = document.querySelector("h1");
+      const band = h1?.parentElement;
+      if (!band) return null;
+      const s = getComputedStyle(band);
+      return { top: parseFloat(s.paddingTop), bottom: parseFloat(s.paddingBottom) };
+    });
+
+    expect(pad, "could not locate the all-courses hero band").not.toBeNull();
+    const tol = 4;
+    for (const edge of ["top", "bottom"] as const) {
+      expect(
+        Math.abs(pad![edge] - COURSES_HERO_INSET_1920),
+        `all-courses hero padding-${edge} @${vw}: got ${pad![edge]}, design ${COURSES_HERO_INSET_1920} (node 3306:50115, band 320 around content ending at 208) +/-${tol}`,
+      ).toBeLessThanOrEqual(tol);
+    }
+  });
+
+  /**
+   * Not a filed QA row. `page-grid` already requires that no component restate
+   * the grid as a literal, and this page restated it three times — hero, client
+   * and loading skeleton all carried `mx-auto max-w-[1296px] px-4`, which put
+   * content at 16 while the header sat at 128. The report marks All Courses
+   * laptop "Working Fine", so QA missed here what it caught on Blog and Category.
+   */
+  test("all-courses content sits on the page grid at 1280", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 1280, "The 128px laptop step is a 1280 target.");
+
+    await page.goto("/all-courses");
+    const edges = await page.evaluate(() => {
+      const edge = (el: Element | null) =>
+        el
+          ? Math.round(
+              el.getBoundingClientRect().left + parseFloat(getComputedStyle(el).paddingLeft),
+            )
+          : null;
+      return {
+        header: edge(document.querySelector("header .container")),
+        hero: edge(document.querySelector("h1")?.closest(".container") ?? null),
+      };
+    });
+
+    expect(
+      edges.hero,
+      `all-courses hero content edge @${vw}: got ${edges.hero}, design 128 (page-grid; header sits at ${edges.header}). A component that restates the grid as a literal drifts from it — see the page-grid spec.`,
+    ).toBe(128);
+  });
+
+  /**
+   * Weight only, measured here rather than inherited. The frame reuses the same
+   * section-title component as Blog and Category, whose text is "Explore courses
+   * by category" in sentence case, while this page's own headings are category
+   * names straight from WordPress — asserting their case would test CMS content.
+   */
+  test("all-courses section headings use the bold H2 token", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    await page.goto("/all-courses");
+    const weights = await page.evaluate(() =>
+      [...(document.querySelector("main") ?? document.body).querySelectorAll("h2")].map((h) => ({
+        text: (h.textContent || "").trim().slice(0, 48),
+        weight: getComputedStyle(h).fontWeight,
+      })),
+    );
+
+    expect(weights.length, "no <h2> found on /all-courses").toBeGreaterThan(0);
+    const wrong = weights.filter((w) => w.weight !== "700");
+    expect(
+      wrong,
+      `@${vw} these all-courses headings are not weight 700 (Heading/Bold/H2): ${wrong
+        .map((w) => `"${w.text}"=${w.weight}`)
+        .join(", ")}`,
+    ).toEqual([]);
+  });
+});
+
+/**
  * QA-HOME-A2 — mobile section rhythm.
  *
  * Measured on the only 440 frame that stacks top-level sections, blog mobile

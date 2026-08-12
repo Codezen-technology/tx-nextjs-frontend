@@ -82,7 +82,7 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 | Single Blog        | `/blog/[slug]`        | GREEN | 0    | 0       | —                                    |
 | Contact            | `/contact-us`         | RED   | 1    | 0       | `qa-class-a-design-fidelity §5.7`    |
 | Course Category    | `/course-cat/[slug]`  | GREEN | 0    | 0       | —                                    |
-| All Courses        | `/all-courses`        | RED   | 3    | 0       | `qa-class-a-design-fidelity §5.5`    |
+| All Courses        | `/all-courses`        | RED   | 1    | 0       | Class D only — `QA-COURSES-D1`       |
 | Single Course      | `/course/[slug]`      | AMBER | 0    | 1       | —                                    |
 | Privacy Policy     | `/privacy-policy`     | GREEN | 0    | 0       | —                                    |
 | FAQ / Help         | `/help`               | AMBER | 0    | 1       | —                                    |
@@ -305,16 +305,16 @@ _Empty — both entries closed by slice 3._
 
 #### Issue table
 
-| QA-ID         | Quote                                                        | BP   | Class | Status       | Auto          | Manual                                                                                  |
-| ------------- | ------------------------------------------------------------ | ---- | ----- | ------------ | ------------- | --------------------------------------------------------------------------------------- |
-| QA-COURSES-A1 | "unselected checkbox white + border, selected Secondary 500" | all  | A     | FIXED        | N/A           | `course-category-filter.tsx:47` already correct on `main`.                              |
-| QA-COURSES-A2 | "hero top/bottom spacing"                                    | 1920 | A     | STILL-BROKEN | MANUAL-VISUAL | Compare against Figma — hero band **320**. Owner: `qa-class-a-design-fidelity §5.5`     |
-| QA-COURSES-A3 | "section header weight and Title Case"                       | all  | A     | STILL-BROKEN | GAP           | Assert section heading font-weight and casing. Owner: `qa-class-a-design-fidelity §5.5` |
-| QA-COURSES-D1 | "huge mobile responsive issues… needs to be done properly"   | 440  | D     | STILL-BROKEN | N/A           | Out of round 1. Unbounded — needs sizing in its own OpenSpec change.                    |
+| QA-ID         | Quote                                                        | BP   | Class | Status       | Auto                                                                               | Manual                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------- | ------------------------------------------------------------ | ---- | ----- | ------------ | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| QA-COURSES-A1 | "unselected checkbox white + border, selected Secondary 500" | all  | A     | FIXED        | N/A                                                                                | `course-category-filter.tsx:47` already correct on `main`.                                                                                                                                                                                                                                                                                                                                |
+| QA-COURSES-A2 | "hero top/bottom spacing"                                    | 1920 | A     | FIXED        | `e2e/design-fidelity.spec.ts > all-courses hero inset matches the measured band`   | **Verify-and-close, no code.** Band `3306:50115` is 320 around content ending at 208 → inset **112**, and the build already shipped `py-[112px]`. Now guarded. Note Blog's band is also 320 but its inset is 85 — the band is sized by its content, so the two do not share a value.                                                                                                      |
+| QA-COURSES-A3 | "section header weight and Title Case"                       | all  | A     | FIXED        | `e2e/design-fidelity.spec.ts > all-courses section headings use the bold H2 token` | **Weight verified, casing not a defect.** All 17 `main` h2 are already 700, now asserted. Casing: this page's headings are WordPress category names, so asserting their case would test CMS content; the frame reuses the same section-title component as Blog and Category, which reads "Explore courses by category" in sentence case. Fourth page to reach this verdict independently. |
+| QA-COURSES-D1 | "huge mobile responsive issues… needs to be done properly"   | 440  | D     | STILL-BROKEN | N/A                                                                                | Out of round 1. Unbounded — needs sizing in its own OpenSpec change.                                                                                                                                                                                                                                                                                                                      |
 
 #### Tests to write
 
-- `QA-COURSES-A3` — assert section heading font-weight and Title Case → `e2e/design-fidelity.spec.ts`
+_Empty — closed by slice 4._
 
 ---
 
@@ -600,7 +600,6 @@ All `GAP` rows across all pages, in ship order (RED pages by descending open cou
 | QA-HOME-A5    | Homepage         | Price `£` renders in Inter                 | `e2e/design-fidelity.spec.ts` |
 | QA-HOME-A6    | Homepage         | CPD heading and body span the column @440  | `e2e/design-fidelity.spec.ts` |
 | QA-HOME-A7    | Homepage         | Categories CTA sits below the grid @440    | `e2e/design-fidelity.spec.ts` |
-| QA-COURSES-A3 | All Courses      | Section heading font-weight and Title Case | `e2e/design-fidelity.spec.ts` |
 | QA-CHECK-A1   | Checkout         | Dropdown right padding = 16px              | `e2e/design-fidelity.spec.ts` |
 | QA-CHECK-A2   | Checkout         | Section heading font-weight and Title Case | `e2e/design-fidelity.spec.ts` |
 | QA-SUPPORT-A1 | Priority Support | Dropdown right padding = 16px              | `e2e/design-fidelity.spec.ts` |
