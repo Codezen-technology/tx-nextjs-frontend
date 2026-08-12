@@ -29,7 +29,7 @@ Targets that more than one page depends on. Page-specific measurement moved into
 - [x] 3.2 Grid invariants — content **1296**, side padding **312 / 128 / 24**, gutter **24**, card **306**, section rhythm **80**. Hold across eight independently measured nodes
 - [x] 3.3 Laptop side padding (1280) — measured **128 px**, applied, verified exact in-browser. Independently confirmed a second time by the About Us laptop frame
 - [~] 3.4 Section rhythm at 440 — frame shows **32** between category sections and **40** after trending; the report says 40. Two values exist; the owning page slice picks which one its row means
-- [x] 3.5 Section heading weight — **per token, not per role.** The frame carries `Heading/Medium/H2` (32/500) _and_ `Heading/Bold/H2` (32/700) and picks by size: 48→700, 40→**500**, 32→700. Recorded in `targets.md`; ⚠️ contradicts commit `1c92a4e` for three 40px About Us headings — decision belongs to §5.7
+- [x] 3.5 Section heading weight — **per token, not per role.** The frame carries `Heading/Medium/H2` (32/500) _and_ `Heading/Bold/H2` (32/700) and picks by size: 48→700, 40→**500**, 32→700. Recorded in `targets.md`; ⚠️ contradicts commit `1c92a4e` for three 40px About Us headings — decision belongs to §5.8
 - [ ] 3.6 Section heading **casing** — read Title Case off the frames. Weight is measured, casing is not
 - [ ] 3.7 Card title hover colour — record the resting and hover token
 - [ ] 3.8 Cart card content parity — enumerate the specific properties that differ, rather than carrying "parity with Figma" forward as one unmeasurable item
