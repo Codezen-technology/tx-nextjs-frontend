@@ -246,6 +246,82 @@ test.describe("Class A — Homepage", () => {
 });
 
 /**
+ * Blog — `QA_EXECUTION.md` slice 2. Node `6015:127034` (either of the pair; the
+ * two frames are geometrically identical, see `node-resolution.md`).
+ *
+ * Hero band `4900:75793` is 320 tall and holds a 150-tall text block at y=85,
+ * so the inset is 85 top and 85 bottom (320 − 235). Measured as the inset rather
+ * than the band height, because the band is sized by its content — the same
+ * reasoning as `QA-HOME-A1`, which landed on 133 rather than the report's round
+ * number. The wave pattern at the band's foot is decorative and does not set it.
+ *
+ * The 1280 frame measures 64, which the build does not ship either. That width
+ * is signed off as "Working Fine" in the report, so it is recorded in
+ * `targets.md` and deliberately left alone — this row is scoped to 1920.
+ */
+const BLOG_HERO_PAD_1920 = 85;
+
+test.describe("Class A — Blog", () => {
+  test("hero vertical inset matches the measured band", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 1920, "The blog hero inset is only measured on the 1920 frame.");
+
+    await page.goto("/blog");
+    // The padding sits on the section itself here, not on an inner wrapper as it
+    // does on the homepage — the blog hero's first child is its gradient overlay.
+    const pad = await page.evaluate(() => {
+      const h1 = document.querySelector("h1");
+      let sec: Element | null = h1;
+      while (sec && sec.tagName !== "SECTION" && sec.parentElement) sec = sec.parentElement;
+      if (!sec) return null;
+      const s = getComputedStyle(sec);
+      return { top: parseFloat(s.paddingTop), bottom: parseFloat(s.paddingBottom) };
+    });
+
+    expect(pad, "could not locate the blog hero section").not.toBeNull();
+    const tol = 4;
+    for (const edge of ["top", "bottom"] as const) {
+      expect(
+        Math.abs(pad![edge] - BLOG_HERO_PAD_1920),
+        `blog hero padding-${edge} @${vw}: got ${pad![edge]}, design ${BLOG_HERO_PAD_1920} (node 4900:75793, band 320 around content ending at 235) +/-${tol}`,
+      ).toBeLessThanOrEqual(tol);
+    }
+  });
+
+  /**
+   * Weight only, and for the same reason as the homepage: the Blog frame mixes
+   * cases too. "Trending Topics" (`4900:75816`) is Title Case, while the section
+   * title component the frame reuses carries "Explore courses by category" in
+   * sentence case. Measured on Blog rather than inherited from `QA-HOME-A3` —
+   * generalising a value across pages is what produced the About Us heading
+   * contradiction in `1c92a4e`.
+   *
+   * Casing is also the wrong thing to assert here: several `/blog` headings are
+   * CMS strings (category names, post titles). Asserting their case would test
+   * WordPress content, not the design.
+   */
+  test("section headings use the bold H2 token", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    await page.goto("/blog");
+    const weights = await page.evaluate(() =>
+      [...(document.querySelector("main") ?? document.body).querySelectorAll("h2")].map((h) => ({
+        text: (h.textContent || "").trim().slice(0, 48),
+        weight: getComputedStyle(h).fontWeight,
+      })),
+    );
+
+    expect(weights.length, "no <h2> found on /blog").toBeGreaterThan(0);
+    const wrong = weights.filter((w) => w.weight !== "700");
+    expect(
+      wrong,
+      `@${vw} these /blog headings are not weight 700 (Heading/Bold/H2): ${wrong
+        .map((w) => `"${w.text}"=${w.weight}`)
+        .join(", ")}`,
+    ).toEqual([]);
+  });
+});
+
+/**
  * QA-HOME-A2 — mobile section rhythm.
  *
  * Measured on the only 440 frame that stacks top-level sections, blog mobile
