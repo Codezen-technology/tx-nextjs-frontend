@@ -135,11 +135,24 @@ export function runChecks() {
       const ref = refMatch[1].trim();
       if (["GAP", "MANUAL-VISUAL", "N/A"].includes(ref)) continue;
 
-      // Could be "e2e/qa-round-1.spec.ts:37" or "price.test.ts"
-      const colonIdx = ref.lastIndexOf(":");
-      const hasLine = colonIdx > 0 && /^\d+$/.test(ref.slice(colonIdx + 1));
-      const filePart = hasLine ? ref.slice(0, colonIdx) : ref;
-      const lineNum = hasLine ? parseInt(ref.slice(colonIdx + 1), 10) : null;
+      // Three forms, in order of preference:
+      //   "e2e/design-fidelity.spec.ts > hero vertical inset..."  — anchored by test name
+      //   "e2e/qa-round-1.spec.ts:37"                             — anchored by line
+      //   "price.test.ts"                                          — file only
+      //
+      // Name anchoring exists because line anchoring drifts. Every slice that
+      // adds a test above an existing one invalidates every ref below it — that
+      // happened four times in one afternoon, and one stale ref was committed
+      // before the checker caught it. A test's name survives insertions.
+      const nameIdx = ref.indexOf(">");
+      const hasName = nameIdx > 0;
+      const testName = hasName ? ref.slice(nameIdx + 1).trim() : null;
+      const refPath = hasName ? ref.slice(0, nameIdx).trim() : ref;
+
+      const colonIdx = refPath.lastIndexOf(":");
+      const hasLine = !hasName && colonIdx > 0 && /^\d+$/.test(refPath.slice(colonIdx + 1));
+      const filePart = hasLine ? refPath.slice(0, colonIdx) : refPath;
+      const lineNum = hasLine ? parseInt(refPath.slice(colonIdx + 1), 10) : null;
 
       // Resolve relative to repo root or src/__tests__ or e2e
       const candidates = [
@@ -157,12 +170,24 @@ export function runChecks() {
         continue;
       }
 
-      if (lineNum !== null) {
+      if (testName !== null) {
+        const source = readFileSync(resolvedPath, "utf8");
+        // The declaring line, not any occurrence — a name that only appears in a
+        // comment or an expect message would otherwise pass.
+        const declared = source
+          .split("\n")
+          .some((l) => /\b(test|it)\(/.test(l) && l.includes(testName));
+        if (!declared) {
+          failures.push(
+            `[${page.name}] ${qaId}: Auto ref "${ref}" — no test( or it( in ${filePart} declares "${testName}". Renamed or deleted?`,
+          );
+        }
+      } else if (lineNum !== null) {
         const fileLines = readFileSync(resolvedPath, "utf8").split("\n");
         const targetLine = fileLines[lineNum - 1] ?? "";
         if (!/test\(|it\(/.test(targetLine)) {
           failures.push(
-            `[${page.name}] ${qaId}: Auto ref "${ref}" — line ${lineNum} does not contain test( or it(. Found: "${targetLine.trim()}"`,
+            `[${page.name}] ${qaId}: Auto ref "${ref}" — line ${lineNum} does not contain test( or it(. Found: "${targetLine.trim()}". Line refs drift when tests are inserted above them; prefer "${filePart} > <test name>"`,
           );
         }
       }
