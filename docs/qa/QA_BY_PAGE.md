@@ -105,7 +105,9 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 **Figma:** `RESOLVED 6013:89909` — the canvas node is uniform where the pair differs; evidence in `.context/figma/node-resolution.md`
 **Notes:** Largest section (~21 issues). Figma pair resolved by measurement; targets derived. Three Class E items blocked on design input.
 
-`A5`–`A7`, `C4` and `E3` came from a re-read of the source report on 2026-08-12: the page had been triaged to 12 rows while the report lists ~19 homepage items, so five had no QA-ID and the page index read `Open 0` while they were still broken. `C4` is the one worth remembering — it only reproduces **logged in**, and every sweep to date ran logged out. The auth-only surfaces (basket count, profile menu, dashboard links) have still not been swept at any breakpoint.
+`A5`–`A7`, `C4` and `E3` came from a re-read of the source report on 2026-08-12: the page had been triaged to 12 rows while the report lists ~19 homepage items, so five had no QA-ID and the page index read `Open 0` while they were still broken. `C4` is the one worth remembering — it only reproduces **logged in**, and every sweep to date ran logged out. That sweep has since been run; see the checklist above.
+
+**Off-report observation, no QA-ID:** at 440 the document scrolls 32px wider than the viewport (`scrollWidth` 472 vs 440), in **both** auth states, so it is neither auth-related nor caused by anything filed here. The widest node is the trusted-orgs marquee, but that sits under `overflow-hidden`, so the leak is more likely a sibling — it needs one more pass to pin down. The report never filed it and the sweep's "no layout break" line never caught it. Raised rather than filed, because every ID in this table traces to a report item.
 
 #### Manual sweep
 
@@ -114,6 +116,17 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 - [ ] No collapsed (0×0) or broken image boxes
 - [ ] Header + footer render, nav interactive
 - [ ] Pricing plans render; quantity stepper updates the line total; certificate section renders images
+
+**Logged in** — run 2026-08-12, the first time this page was swept in an authenticated state. `QA-HOME-C4` is what the omission cost.
+
+- [x] 1920 — profile trigger renders; avatar root and fallback both 24px, initials centred
+- [x] 1920 — dropdown opens at 256 wide, inside the viewport, identity avatar 40/40
+- [x] 1920 — 9 menu items; "Go to Business Dashboard" correctly hidden for a non-business user
+- [x] 440 — burger nav lists the auth links (My Dashboard, Certificates, Purchase History, Edit Profile); no "Log in"
+- [ ] 440 — mobile Basket link shows no item count; the 1920 header shows `Basket (n)`. Deliberate or an omission?
+- [ ] Real session — user data, basket count and the dashboard routes behind the menu
+
+> **How this was run, and what it does not cover.** The header's auth signal is client-side (`lms-auth` in localStorage plus the `user_logged_in` cookie), so the state was seeded directly rather than by logging in — no credentials exist in the repo and `.env.test.local` is absent. That exercises the **rendering** of every auth-only surface, which is where `C4` lived. It does not exercise anything server-authenticated: `/api/users/me` 401s under a seeded session, so the real user's name, avatar URL, basket count and protected routes are still unverified. The last two boxes need `TEST_USER_EMAIL` / `TEST_USER_PASSWORD`.
 
 #### Issue table
 
