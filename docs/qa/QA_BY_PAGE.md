@@ -87,11 +87,11 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 | Privacy Policy     | `/privacy-policy`     | GREEN | 0    | 0       | —                                    |
 | FAQ / Help         | `/help`               | AMBER | 0    | 1       | —                                    |
 | Cart               | `/cart`               | AMBER | 0    | 1       | —                                    |
-| Checkout           | `/checkout`           | RED   | 3    | 0       | `qa-class-a-design-fidelity §5.6`    |
+| Checkout           | `/checkout`           | RED   | 1    | 0       | Class D only — `QA-CHECK-D1`         |
 | Pricing            | `/pricing`            | RED   | 1    | 2       | —                                    |
 | Verify Certificate | `/verify-certificate` | GREEN | 0    | 0       | —                                    |
 | Cancellations      | `/cancellations`      | RED   | 1    | 0       | `qa-class-a-design-fidelity §5.7`    |
-| Priority Support   | `/support-request`    | RED   | 1    | 0       | `qa-class-a-design-fidelity §5.6`    |
+| Priority Support   | `/support-request`    | GREEN | 0    | 0       | —                                    |
 | Team Training      | **does not exist**    | RED   | 0    | 0       | Class D — own OpenSpec change needed |
 
 ---
@@ -425,16 +425,15 @@ _Empty — closed by slice 4._
 
 #### Issue table
 
-| QA-ID       | Quote                                                | BP  | Class | Status       | Auto | Manual                                                                                                                                                                                                                     |
-| ----------- | ---------------------------------------------------- | --- | ----- | ------------ | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| QA-CHECK-A1 | "dropdown right padding not 16px"                    | all | A     | STILL-BROKEN | GAP  | Assert computed right padding on dropdown elements = 16px. Currently `pr-10` (40px); the chevron at `right-3` must move too or the text overlaps. Owner: `qa-class-a-design-fidelity §5.6`                                 |
-| QA-CHECK-A2 | "section header weight and Title Case"               | all | A     | PARTIAL-FIX  | GAP  | Weight fixed: `font-bold` applied to all three checkout section h2s (commit `1c92a4e`). These are `text-2xl` (24px), a size with no measured Figma token — verify before closing. Owner: `qa-class-a-design-fidelity §5.6` |
-| QA-CHECK-D1 | "checkout section present in Figma, absent in build" | all | D     | STILL-BROKEN | N/A  | Out of round 1. Own OpenSpec change needed.                                                                                                                                                                                |
+| QA-ID       | Quote                                                | BP  | Class | Status       | Auto                                                             | Manual                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------- | ---------------------------------------------------- | --- | ----- | ------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| QA-CHECK-A1 | "dropdown right padding not 16px"                    | all | A     | FIXED        | `e2e/design-fidelity.spec.ts > dropdowns keep 16px on the right` | **Fixed** in the component Checkout shares with Priority Support (`forms/gravity-form.tsx`), which sat at **12** — `px-3` with a flush native arrow, which is what "almost no padding" describes. Now 16. The other dropdown implementation (`gf-fields/select-field.tsx`) had its chevron at `right-3`, also 12, now `right-4`. Asserted on `/support-request`: `/checkout` redirects to `/cart` when empty, and seeding a cart inside a fidelity spec would make it a checkout test.                                                                                                                                                                                   |
+| QA-CHECK-A2 | "section header weight and Title Case"               | all | A     | FIXED        | MANUAL-VISUAL                                                    | **Weight verified, casing not a defect.** All three h2 are 700 (`checkout/page.tsx:104,110,119`, commit `1c92a4e`). Frame `6239:134592` mixes case itself — `6239:134602` "Billing Details" and `6239:134619` "Order Summery" are Title, `6239:134664` "Payment method" is sentence — and the build mirrors that exactly. **Finding, not applied:** the frame's headings measure h=38 (32px), the build ships `text-2xl` (24px). Size is not what this row names, and the report's Checkout section files no heading issue at all, so this row looks generalised in during triage — see `targets.md`. `MANUAL-VISUAL` because the page cannot be reached without a cart. |
+| QA-CHECK-D1 | "checkout section present in Figma, absent in build" | all | D     | STILL-BROKEN | N/A                                                              | Out of round 1. Own OpenSpec change needed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 #### Tests to write
 
-- `QA-CHECK-A1` — assert dropdown right padding = 16px → `e2e/design-fidelity.spec.ts`
-- `QA-CHECK-A2` — assert heading font-weight and Title Case → `e2e/design-fidelity.spec.ts`
+_Empty — closed by slice 5._
 
 ---
 
@@ -522,13 +521,13 @@ _Empty — closed by slice 4._
 
 #### Issue table
 
-| QA-ID         | Quote                             | BP  | Class | Status       | Auto | Manual                                                                                                                                                          |
-| ------------- | --------------------------------- | --- | ----- | ------------ | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| QA-SUPPORT-A1 | "dropdown right padding not 16px" | all | A     | STILL-BROKEN | GAP  | Assert computed right padding on dropdown = 16px. No Figma ref; measure against live WP site. Closes with QA-CHECK-A1. Owner: `qa-class-a-design-fidelity §5.6` |
+| QA-ID         | Quote                             | BP  | Class | Status | Auto                                                             | Manual                                                                                                                                                                                                                                                                                                               |
+| ------------- | --------------------------------- | --- | ----- | ------ | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| QA-SUPPORT-A1 | "dropdown right padding not 16px" | all | A     | FIXED  | `e2e/design-fidelity.spec.ts > dropdowns keep 16px on the right` | **Fixed**, and this is the page the assertion runs against. The live-WP fallback was attempted and had nothing to measure — WP renders no equivalent dropdown — so the source of record is the report's own explicit 16px. Was 12 (`px-3`, native arrow flush). Closes with `QA-CHECK-A1`: one component, two pages. |
 
 #### Tests to write
 
-- `QA-SUPPORT-A1` — assert dropdown right padding = 16px → `e2e/design-fidelity.spec.ts`
+_Empty — closed by slice 5._
 
 ---
 
@@ -595,11 +594,8 @@ slice 7: revert to match the frame, or record a ruling that supersedes it.
 
 All `GAP` rows across all pages, in ship order (RED pages by descending open count).
 
-| QA-ID         | Page             | What to assert                             | Spec file                     |
-| ------------- | ---------------- | ------------------------------------------ | ----------------------------- |
-| QA-HOME-A5    | Homepage         | Price `£` renders in Inter                 | `e2e/design-fidelity.spec.ts` |
-| QA-HOME-A6    | Homepage         | CPD heading and body span the column @440  | `e2e/design-fidelity.spec.ts` |
-| QA-HOME-A7    | Homepage         | Categories CTA sits below the grid @440    | `e2e/design-fidelity.spec.ts` |
-| QA-CHECK-A1   | Checkout         | Dropdown right padding = 16px              | `e2e/design-fidelity.spec.ts` |
-| QA-CHECK-A2   | Checkout         | Section heading font-weight and Title Case | `e2e/design-fidelity.spec.ts` |
-| QA-SUPPORT-A1 | Priority Support | Dropdown right padding = 16px              | `e2e/design-fidelity.spec.ts` |
+| QA-ID      | Page     | What to assert                            | Spec file                     |
+| ---------- | -------- | ----------------------------------------- | ----------------------------- |
+| QA-HOME-A5 | Homepage | Price `£` renders in Inter                | `e2e/design-fidelity.spec.ts` |
+| QA-HOME-A6 | Homepage | CPD heading and body span the column @440 | `e2e/design-fidelity.spec.ts` |
+| QA-HOME-A7 | Homepage | Categories CTA sits below the grid @440   | `e2e/design-fidelity.spec.ts` |

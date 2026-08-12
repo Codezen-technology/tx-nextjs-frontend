@@ -769,7 +769,9 @@ function FieldControl({
           id={id}
           defaultValue=""
           className={cn(
-            "flex h-11 w-full rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-hidden",
+            // `pr-4` is the report's 16px right inset (QA-CHECK-A1 /
+            // QA-SUPPORT-A1). The left stays at 12 — only the right was filed.
+            "flex h-11 w-full rounded-md border px-3 py-2 pr-4 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-hidden",
             fieldClass,
           )}
           {...register(field.name, { required })}

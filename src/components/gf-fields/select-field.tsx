@@ -21,7 +21,9 @@ export function SelectField({ field, values, onChange }: GfFieldProps) {
             </option>
           ))}
         </select>
-        <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+        {/* `right-4` is the report's 16px right inset. `pr-10` on the select
+            keeps the text clear of the icon: 16 inset + 16 icon + 8 gap. */}
+        <ChevronDown className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-neutral-500" />
       </div>
     </FieldShell>
   );

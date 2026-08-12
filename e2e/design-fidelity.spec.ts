@@ -526,6 +526,70 @@ test.describe("Class A — All Courses", () => {
 });
 
 /**
+ * Checkout + Priority Support — `QA_EXECUTION.md` slice 5. `QA-CHECK-A1` and
+ * `QA-SUPPORT-A1` are the same defect in one shared component.
+ *
+ * Neither page has a Figma reference, so the runbook's fallback applies: measure
+ * the live WP page. That was attempted and came up empty — `trainingexcellence.org.uk`
+ * renders no equivalent dropdown to measure. The source of record is therefore the
+ * report itself, which states a number rather than a range: **16px on the right**.
+ *
+ * Both dropdown implementations sit at 12 today, which is what "almost no padding"
+ * describes:
+ *
+ *   `forms/gravity-form.tsx`  native select, `px-3` → padding-right 12
+ *   `gf-fields/select-field.tsx`  `appearance-none` + chevron at `right-3` → 12
+ *
+ * So the target is the dropdown's right-hand inset, whatever occupies it: the
+ * chevron's gap from the edge where one is drawn, the text padding otherwise.
+ *
+ * Asserted on `/support-request`, which renders the shared Gravity Form select
+ * without a cart. `/checkout` uses the same component but redirects to `/cart`
+ * when empty, and seeding a cart inside a design-fidelity spec would make it a
+ * checkout test. `QA-CHECK-A1` closes on the shared component, recorded as such.
+ */
+const DROPDOWN_RIGHT_INSET = 16;
+
+test.describe("Class A — dropdown right inset", () => {
+  test("dropdowns keep 16px on the right", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    await page.goto("/support-request?issue=access");
+    // The wizard's form arrives behind Suspense; without this the page has no
+    // dropdown yet and the check passes vacuously.
+    await page.locator("select").first().waitFor({ state: "attached", timeout: 15_000 });
+
+    const found = await page.evaluate(() => {
+      return [...document.querySelectorAll("select")]
+        .filter((s) => s.getBoundingClientRect().width > 0)
+        .map((s) => {
+          const r = s.getBoundingClientRect();
+          const cs = getComputedStyle(s);
+          // A custom chevron owns the right inset when one is drawn; otherwise
+          // the padding does.
+          const icon = s.parentElement?.querySelector("svg");
+          const ir = icon?.getBoundingClientRect();
+          return {
+            label: (s.previousElementSibling?.textContent || s.name || "select")
+              .trim()
+              .slice(0, 30),
+            inset: ir ? Math.round(r.right - ir.right) : Math.round(parseFloat(cs.paddingRight)),
+            via: ir ? "chevron" : "padding-right",
+          };
+        });
+    });
+
+    expect(found.length, "no visible dropdown on /support-request").toBeGreaterThan(0);
+    const wrong = found.filter((f) => Math.abs(f.inset - DROPDOWN_RIGHT_INSET) > 1);
+    expect(
+      wrong,
+      `@${vw} these dropdowns are not ${DROPDOWN_RIGHT_INSET}px in from the right (report: "add some padding (16px) on the right side of the dropdown"): ${wrong
+        .map((f) => `"${f.label}" = ${f.inset} via ${f.via}`)
+        .join(", ")}`,
+    ).toEqual([]);
+  });
+});
+
+/**
  * QA-HOME-A2 — mobile section rhythm.
  *
  * Measured on the only 440 frame that stacks top-level sections, blog mobile
