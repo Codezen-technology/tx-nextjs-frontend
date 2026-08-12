@@ -75,7 +75,7 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 
 | Page               | Route                 | Ready | Open | Blocked | Owner change                         |
 | ------------------ | --------------------- | ----- | ---- | ------- | ------------------------------------ |
-| Homepage           | `/`                   | AMBER | 0    | 2       | —                                    |
+| Homepage           | `/`                   | RED   | 3    | 3       | unowned — needs a slice              |
 | About Us           | `/about-us`           | GREEN | 0    | 0       | —                                    |
 | Blog               | `/blog`               | RED   | 3    | 0       | `qa-class-a-design-fidelity §5.3`    |
 | Single Blog        | `/blog/[slug]`        | GREEN | 0    | 0       | —                                    |
@@ -103,7 +103,9 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 
 **Route:** `/`
 **Figma:** `RESOLVED 6013:89909` — the canvas node is uniform where the pair differs; evidence in `.context/figma/node-resolution.md`
-**Notes:** Largest section (~21 issues). Figma pair resolved by measurement; targets derived. Two Class E items blocked on design input.
+**Notes:** Largest section (~21 issues). Figma pair resolved by measurement; targets derived. Three Class E items blocked on design input.
+
+`A5`–`A7`, `C4` and `E3` came from a re-read of the source report on 2026-08-12: the page had been triaged to 12 rows while the report lists ~19 homepage items, so five had no QA-ID and the page index read `Open 0` while they were still broken. `C4` is the one worth remembering — it only reproduces **logged in**, and every sweep to date ran logged out. The auth-only surfaces (basket count, profile menu, dashboard links) have still not been swept at any breakpoint.
 
 #### Manual sweep
 
@@ -128,8 +130,18 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 | QA-HOME-A2 | "mobile section spacing not 40px"                             | 440       | A     | FIXED          | `e2e/design-fidelity.spec.ts:288` | **40px**, measured on blog mobile `4115:68390` — three independent section gaps (721→761, 9489→9529, 9790→9830). The 32 in `targets.md` is the gap between card blocks _inside_ a section, not between sections. Build shipped 112–144. Now one token, `--spacing-section` (20px = half the rhythm), on every top-level section of `/`, `/pricing`, `/cancellations` and `/support-request`; each keeps its own `lg:` desktop padding. Heroes excluded — a hero owns its own inset (QA-HOME-A1). |
 | QA-HOME-A3 | "section header weight and Title Case"                        | all       | A     | FIXED          | `e2e/design-fidelity.spec.ts:227` | Weight: every `main` h2 is 700 (`Heading/Bold/H2`). Casing: **not a defect** — the frame itself mixes cases (`6013:89983` "Explore courses by category" is sentence case), so there is no Title Case rule to assert against. Footer h2 stays 500 per `89:3918`.                                                                                                                                                                                                                                  |
 | QA-HOME-A4 | "card title colour changes on hover"                          | all       | A     | FIXED          | `e2e/design-fidelity.spec.ts:194` | `group-hover:text-secondary-500` shifted #00204a → #9e6f21 on hover; removed. No static frame can express a hover state, so the report is the recorded source.                                                                                                                                                                                                                                                                                                                                   |
+| QA-HOME-A5 | "the pound symbol… doesn't feel like a pound symbol"          | all       | A     | STILL-BROKEN   | GAP                               | Report gives a concrete target: the `£` renders in **Inter**. Prices compute `Open Sans` today. Inter is not among the app's loaded families (`--font-suse`, `--font-open-sans`), so the face has to be added before a class can point at it. The other half of this report item — quantity not updating the amount — is `QA-HOME-B1`, already `FIXED`.                                                                                                                                          |
+| QA-HOME-A6 | "the header and the body text doesn't cover the full width"   | 440       | A     | STILL-BROKEN   | GAP                               | The CPD section is `flex flex-row` at every width (`cpd-certificate.tsx:29`), so at 440 the section measures 440 while its h2 and p measure **200**. The images half of this report item is resolved — both render at 440, though squeezed to 72px by the same row.                                                                                                                                                                                                                              |
+| QA-HOME-A7 | "the CTA should be on the bottom of the section"              | 440       | A     | STILL-BROKEN   | GAP                               | "View all courses" sits in the heading row at every width (`categories-grid.tsx:57`); the report wants it below the grid on mobile. Desktop placement is not in question.                                                                                                                                                                                                                                                                                                                        |
 | QA-HOME-E1 | "search button — shape and color needs to be fixed"           | all       | E     | BLOCKED-DESIGN | N/A                               | No target given. Waiting for design to specify shape and colour token.                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | QA-HOME-E2 | "section took too much space… more standard and middle align" | all       | E     | BLOCKED-DESIGN | N/A                               | No pixel target given. Waiting for design to specify spacing target.                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| QA-HOME-E3 | "the icon color is not visible"                               | all       | E     | BLOCKED-DESIGN | N/A                               | Why Choose Us icons are `#00BBF0` on `bg-primary-100` #b0eafa — roughly 1.6:1 (`why-choose-grid.tsx:37`). The report assigns this to **Dev & Design** and names no replacement token, the same shape as `E1`. Measure the frame's icon token or get a design ruling and it becomes Class A.                                                                                                                                                                                                      |
+
+#### Tests to write
+
+- `QA-HOME-A5` — assert the computed font-family of a price's `£` contains Inter → `e2e/design-fidelity.spec.ts`
+- `QA-HOME-A6` — assert the CPD heading and body span the content column at 440 → `e2e/design-fidelity.spec.ts`
+- `QA-HOME-A7` — assert the categories CTA sits below the grid at 440 → `e2e/design-fidelity.spec.ts`
 
 ---
 
@@ -573,6 +585,9 @@ All `GAP` rows across all pages, in ship order (RED pages by descending open cou
 
 | QA-ID         | Page             | What to assert                             | Spec file                     |
 | ------------- | ---------------- | ------------------------------------------ | ----------------------------- |
+| QA-HOME-A5    | Homepage         | Price `£` renders in Inter                 | `e2e/design-fidelity.spec.ts` |
+| QA-HOME-A6    | Homepage         | CPD heading and body span the column @440  | `e2e/design-fidelity.spec.ts` |
+| QA-HOME-A7    | Homepage         | Categories CTA sits below the grid @440    | `e2e/design-fidelity.spec.ts` |
 | QA-BLOG-A3    | Blog             | Container side padding = 128px at 1280     | `e2e/design-fidelity.spec.ts` |
 | QA-BLOG-A4    | Blog             | Section heading font-weight and Title Case | `e2e/design-fidelity.spec.ts` |
 | QA-CAT-A1     | Course Category  | Container side padding = 128px at 1280     | `e2e/design-fidelity.spec.ts` |
