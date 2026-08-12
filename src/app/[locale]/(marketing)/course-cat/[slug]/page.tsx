@@ -189,7 +189,7 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
 
       {/* FAQ */}
       {categoryFaq.length > 0 && (
-        <div className="mx-auto max-w-[1296px] px-4 py-12">
+        <div className="container py-12">
           <CourseFaq
             heading={`Frequently Asked Questions About ${category.name} Training`}
             items={categoryFaq}

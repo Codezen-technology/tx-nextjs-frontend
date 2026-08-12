@@ -322,6 +322,115 @@ test.describe("Class A — Blog", () => {
 });
 
 /**
+ * Course Category — `QA_EXECUTION.md` slice 3. Node `3294:42427` (either of the
+ * pair; the frames are identical).
+ *
+ * Hero band `3294:42433` is 480 tall around a 268-tall content block at y=106,
+ * so the inset is 106 (480 − 374). The band height is content-driven — 268 + 2×106
+ * — which is why the inset is the target and the height is not.
+ *
+ * The route is the one the QA report itself links to. A category slug has to
+ * exist for the page to render; if this one is ever retired, replace it rather
+ * than deleting the assertions.
+ */
+const CATEGORY_ROUTE = "/course-cat/animal-care-training";
+const CATEGORY_HERO_INSET_1920 = 106;
+
+test.describe("Class A — Course Category", () => {
+  test("page content sits on the page grid at 1280", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 1280, "The 128px laptop padding is a 1280 target.");
+
+    await page.goto(CATEGORY_ROUTE);
+    const edges = await page.evaluate(() => {
+      const edge = (el: Element | null) =>
+        el
+          ? Math.round(
+              el.getBoundingClientRect().left + parseFloat(getComputedStyle(el).paddingLeft),
+            )
+          : null;
+      // Anchor on the page column itself. Walking up by `max-width` would not
+      // find it — `container` sets `max-width: none` until the 1400 cap, so the
+      // walk sails past it to the page wrapper.
+      const h2 = document.querySelector("main h2");
+      return {
+        header: edge(document.querySelector("header .container")),
+        content: edge(h2?.closest(".container") ?? null),
+        hero: Math.round(document.querySelector("h1")!.getBoundingClientRect().left),
+      };
+    });
+
+    // The header already reads the page grid. Anything that has to line up with
+    // the content column reads the same definition — that is what `page-grid`
+    // exists to guarantee, and 128 is the measured 1280 step.
+    expect(
+      edges.content,
+      `category content edge @${vw}: got ${edges.content}, design 128 (page-grid --page-grid-pad-xl; header sits at ${edges.header})`,
+    ).toBe(128);
+    expect(
+      edges.hero,
+      `category hero content edge @${vw}: got ${edges.hero}, design 128 — the hero must share the page column, not roll its own`,
+    ).toBe(128);
+  });
+
+  test("hero vertical inset matches the measured band", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 1920, "The category hero inset is only measured on the 1920 frame.");
+
+    await page.goto(CATEGORY_ROUTE);
+    const inset = await page.evaluate(() => {
+      const h1 = document.querySelector("h1");
+      if (!h1) return null;
+      // The band is the nearest ancestor that paints the hero background.
+      let band: HTMLElement | null = h1.parentElement as HTMLElement | null;
+      while (band && !band.className.includes("overflow-hidden") && band.parentElement) {
+        band = band.parentElement as HTMLElement;
+      }
+      if (!band) return null;
+      const s = getComputedStyle(band);
+      return { top: parseFloat(s.paddingTop), bottom: parseFloat(s.paddingBottom) };
+    });
+
+    expect(inset, "could not locate the category hero band").not.toBeNull();
+    const tol = 4;
+    for (const edge of ["top", "bottom"] as const) {
+      expect(
+        Math.abs(inset![edge] - CATEGORY_HERO_INSET_1920),
+        `category hero padding-${edge} @${vw}: got ${inset![edge]}, design ${CATEGORY_HERO_INSET_1920} (node 3294:42433, band 480 around content ending at 374) +/-${tol}. A fixed-height band shrinks this as the title wraps; the inset is the invariant.`,
+      ).toBeLessThanOrEqual(tol);
+    }
+  });
+
+  /**
+   * Weight only. The Category frame mixes cases exactly as Blog and the homepage
+   * do — `3294:42501` "Why Choose Us?" and `3294:42444` "Frequently Asked
+   * Questions…" are Title Case, while the section-title component the frame
+   * reuses carries "Explore courses by category" in sentence case. Measured here
+   * rather than inherited, per the runbook's rule against generalising a value
+   * across pages.
+   */
+  test("section headings use the bold H2 token", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    await page.goto(CATEGORY_ROUTE);
+    const weights = await page.evaluate(() =>
+      [...(document.querySelector("main") ?? document.body).querySelectorAll("h2")].map((h) => ({
+        text: (h.textContent || "").trim().slice(0, 48),
+        weight: getComputedStyle(h).fontWeight,
+      })),
+    );
+
+    expect(weights.length, "no <h2> found on the category page").toBeGreaterThan(0);
+    const wrong = weights.filter((w) => w.weight !== "700");
+    expect(
+      wrong,
+      `@${vw} these category headings are not weight 700 (Heading/Bold/H2): ${wrong
+        .map((w) => `"${w.text}"=${w.weight}`)
+        .join(", ")}`,
+    ).toEqual([]);
+  });
+});
+
+/**
  * QA-HOME-A2 — mobile section rhythm.
  *
  * Measured on the only 440 frame that stacks top-level sections, blog mobile

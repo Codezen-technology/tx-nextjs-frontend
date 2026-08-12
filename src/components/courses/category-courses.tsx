@@ -29,7 +29,7 @@ export function CategoryCourses({
 
   return (
     <div className="bg-white">
-      <div className="mx-auto max-w-[1296px] px-4 py-12">
+      <div className="container py-12">
         {/* Section header */}
         <div className="mb-8">
           <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
