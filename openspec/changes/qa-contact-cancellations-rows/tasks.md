@@ -46,5 +46,5 @@
 
 ## 7. Ship
 
-- [ ] 7.1 One commit: `fix(qa-contact-cancel): close the report's last two Class A rows`.
-- [ ] 7.2 In the body: state that the brand token was deliberately not moved, name option A as the outstanding design ask, and list anything task 2.5 filed as a new row.
+- [x] 7.1 One commit: `fix(qa-contact-cancel): close the report's last two Class A rows` — landed as `8a9b220`.
+- [x] 7.2 In the body: state that the brand token was deliberately not moved, name option A as the outstanding design ask, and list anything task 2.5 filed as a new row. Task 2.5 filed nothing — every failure was the same defect, and the one exception was fixed in the pass rather than deferred.
