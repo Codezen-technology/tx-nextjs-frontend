@@ -1,8 +1,9 @@
 import { Search } from "lucide-react";
+import { HeroWave } from "../courses/hero-wave";
 
 export function BlogHero() {
   return (
-    <section className="relative overflow-hidden bg-neutral-900 py-14 md:py-20">
+    <section className="relative overflow-hidden bg-neutral-900 py-14 md:py-28">
       <div
         className="pointer-events-none absolute inset-0 opacity-10"
         style={{
@@ -10,6 +11,7 @@ export function BlogHero() {
           backgroundSize: "32px 32px",
         }}
       />
+      <HeroWave />
       <div className="relative container">
         <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
           <div className="max-w-xl">

@@ -114,7 +114,7 @@ export default async function BlogPage() {
           </div>
         </section>
       ) : (
-        <section className="py-16">
+        <section className="py-12 md:py-16">
           <div className="container">
             <EmptyState
               title="No posts yet"
