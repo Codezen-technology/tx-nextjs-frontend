@@ -148,28 +148,37 @@ rather than `Open`. This outcome is explicitly allowed and must not be worked ar
 Finding 2 of the runbook is a record of what generalising an unmeasured typographic value
 already cost this project once.
 
-**Resolved by task 1.4 — the second branch, and no code changes.** The frame binds the
-price (`6089:107486`) to `Heading/Bold/H2` = **SUSE Bold 32**, and the build already
-computes `SUSE, "SUSE Fallback"` at both 1920 and 440. Inter appears in `6013:89909` only
-as `Text xs/Medium` (12px), bound to nothing in the pricing card. So:
+**Resolved by task 1.4, then corrected.** The frame binds the price (`6089:107486`) to
+`Heading/Bold/H2` = **SUSE**, and the build already computes `SUSE, "SUSE Fallback"` at
+1920 and 440. Inter appears in `6013:89909` only as `Text xs/Medium` (12px), bound to
+nothing in the pricing card. On that basis `A5` was closed by verification with an
+assertion pinning the family.
 
-- No font is loaded. Group 5's `layout.tsx` / `globals.css` edits do not happen.
-- The row closes **by verification**, with an assertion that pins the family so it cannot
-  drift — the same shape as `QA-BLOG-A3`/`A4` in commit `42c5ab3`.
-- Both the report's "Inter" and the row's "prices compute Open Sans" are recorded as
-  not corroborated, in `targets.md` and in the row's own Manual note.
+**That close was wrong, and is withdrawn.** The token was never what the row complained
+about. `A5` says the _pound symbol_ doesn't read as a pound symbol — a claim about glyph
+shape, which a token binding cannot answer. Rendering the frame's own `£29` beside SUSE
+Bold at matched size settles it: the **digits are pixel-identical** — so Figma is
+rendering SUSE, at the same resolution — while the **`£` is not**. The frame's is a narrow
+upright glyph with a thin crossbar; SUSE's is wide and boxy with a crossbar heavy enough
+to read as a strikethrough. Advance widths at 32px/700 (`£`: SUSE 19.2, Open Sans 18.3,
+Inter 20.4; `£29`: SUSE 57.6 vs the frame node's 57) are too close to separate on width
+and are decisive on shape.
 
-The frame's price is 32px against the build's 24px. That is a real delta, but it is not
-what `A5` filed, it has no QA-ID, and inventing one mid-slice is how a slice stops being
-one commit. It is recorded in `targets.md` and raised for triage instead.
+So the design shows one pound sign and the build shows another. Consequences:
 
-### D4 — Assertions go in `design-fidelity.spec.ts` with the others
+- `A5` is **`BLOCKED-DESIGN`**, Class E. Which face the symbol takes is a ruling: the
+  report says Inter, the token says SUSE, the frame's render matches neither cleanly.
+- **No assertion ships for it.** The one written under the old conclusion asserted a
+  single family across the `£` and the digits — the opposite of what the fix may require —
+  so it is removed, along with the `homepage-sections` requirement it was derived from.
+- No font is loaded and no class re-pointed. Group 5 does not run.
 
-All three land in `e2e/design-fidelity.spec.ts`, each written failing first, each failure
-message naming page / property / breakpoint / expected / observed. The scroll-width
-assertion is Homepage-scoped for now even though it is a page-agnostic invariant —
-generalising it to every page is a separate change with its own baseline of failures to
-triage, and folding that into this slice would make the slice unshippable.
+The lesson is narrower than "measurement beats prose" and worth stating: **a token
+binding is not a rendering.** For a row about how a glyph looks, the evidence has to be
+the glyph.
+
+The frame's price is 32px against the build's 24px. Still a real delta, still not what
+`A5` filed, still no QA-ID — recorded in `targets.md` and raised for triage.
 
 ## Risks / Trade-offs
 

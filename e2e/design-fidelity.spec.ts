@@ -431,67 +431,6 @@ test.describe("Class A — Homepage", () => {
       ).toBe(true);
     }
   });
-
-  /**
-   * `QA-HOME-A5` — "the pound symbol… doesn't feel like a pound symbol".
-   *
-   * The frame binds the price (`6089:107486`) to `Heading/Bold/H2` — SUSE — and
-   * the build already computes SUSE. The report's "Inter" is not corroborated by
-   * the frame, and the row's own note ("prices compute Open Sans") is not
-   * corroborated by the build; both are recorded in `targets.md`.
-   *
-   * So this closes by verification, and what it pins is the thing that would
-   * actually produce the reported symptom: the `£` resolving to a different face
-   * from the digits beside it. That happens when the family is unloaded and the
-   * glyph falls through to a system font, so the loaded-faces check is the
-   * substance of the assertion, not decoration.
-   */
-  test("prices render in one loaded family, symbol and digits alike", async ({
-    page,
-    viewport,
-  }) => {
-    const vw = viewport?.width ?? 0;
-    const PRICE_FAMILY = "SUSE"; // Heading/Bold/H2 on 6089:107486
-
-    await page.goto("/");
-    const m = await page.evaluate(async () => {
-      await document.fonts.ready;
-      const prices = [...document.querySelectorAll('[data-testid="plan-price"]')];
-      return {
-        prices: prices.map((e) => ({
-          text: (e.textContent || "").trim(),
-          family: getComputedStyle(e).fontFamily,
-        })),
-        loaded: [...new Set([...document.fonts].map((f) => f.family))],
-      };
-    });
-
-    expect(m.prices.length, "no [data-testid=plan-price] on the homepage").toBeGreaterThan(0);
-
-    const wrong = m.prices.filter(
-      (p) => !p.family.split(",")[0].replace(/"/g, "").includes(PRICE_FAMILY),
-    );
-    expect(
-      wrong,
-      `homepage price font-family @${vw}: design ${PRICE_FAMILY} (Heading/Bold/H2, 6089:107486). Off: ${wrong
-        .map((p) => `"${p.text}"=${p.family}`)
-        .join(", ")}`,
-    ).toEqual([]);
-
-    // A family the document never loaded is the failure mode that splits the £
-    // from its digits — the first-choice family has to actually be there.
-    expect(
-      m.loaded.includes(PRICE_FAMILY),
-      `homepage price font @${vw}: design ${PRICE_FAMILY} loaded as a webfont, observed loaded families [${m.loaded.join(", ")}]`,
-    ).toBe(true);
-
-    // Every price on the card agrees: struck-through original, amount, unit.
-    const families = new Set(m.prices.map((p) => p.family));
-    expect(
-      families.size,
-      `homepage prices @${vw}: design one family across all prices, observed ${[...families].join(" / ")}`,
-    ).toBe(1);
-  });
 });
 
 /**

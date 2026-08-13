@@ -12,7 +12,7 @@
 - [x] 2.1 Add the `A6` targets to the `TARGETS` map in `e2e/design-fidelity.spec.ts` with a 440 tolerance and a comment citing `QA_BY_PAGE.md:111` as the source.
 - [x] 2.2 Write the `A6` assertions: at 440 the CPD `h2` and `p` each span the content column, **and** `document.documentElement.scrollWidth` equals 440. Failure message names page / property / breakpoint / expected / observed.
 - [x] 2.3 Write the `A7` assertion: at 440 the CTA's top edge is below the grid's bottom edge; at 1920 the CTA is in the heading row.
-- [x] 2.4 Write the `A5` assertion against the family recorded in 1.4: the computed family of `plan-price` matches, and the `£` and the digits resolve to the same family.
+- [x] 2.4 Write the `A5` assertion against the family recorded in 1.4: the computed family of `plan-price` matches, and the `£` and the digits resolve to the same family. **Written, then removed** — see group 5; it asserted the opposite of what the fix may need.
 - [x] 2.5 Run the three and **watch each fail** with an actionable message. A test written after the fix proves nothing — do not proceed past a test that passes here.
 
 ## 3. Fix QA-HOME-A6
@@ -29,9 +29,12 @@
 
 ## 5. Fix QA-HOME-A5
 
-_Not run._ Task 1.4 resolved `A5` to SUSE — a family the app already loads and the price
-already uses — so there is no font to add and no class to re-point. The row closed by
-verification in task 2.4 instead. Left unticked deliberately: these edits did not happen.
+_Not run, and correctly so._ Task 1.4 resolved the _token_ to SUSE, which the price already
+uses — so no font to add and no class to re-point. `A5` was briefly closed on that basis;
+that close was withdrawn. Comparing the frame's rendered `£` with SUSE's shows the digits
+identical and the symbol not, so the design and the build display different pound signs —
+which is what the row filed. Which face the `£` takes is a design ruling, so `A5` is now
+Class E `BLOCKED-DESIGN`, its assertion is removed, and these edits stay undone.
 
 - [ ] 5.1 If the recorded family is not already loaded: add it via `next/font/google` in `src/app/layout.tsx` with `display: "swap"`, expose its `--font-*` variable on `<body>`, and add the matching entry to `src/app/globals.css` beside `--font-suse` / `--font-open-sans`.
 - [ ] 5.2 Point the price spans at the recorded family — `quantity-selector.tsx` (`plan-price`, its original-price sibling and unit suffix) and `pricing-comparison.tsx:65`.

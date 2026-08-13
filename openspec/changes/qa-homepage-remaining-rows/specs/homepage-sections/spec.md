@@ -45,17 +45,3 @@ the category grid at mobile widths, and beside the section heading at `md` and a
 - **WHEN** the homepage is rendered at a 1920px viewport
 - **THEN** the CTA renders in the heading row, vertically aligned with the section
   heading, unchanged from the current desktop layout
-
-### Requirement: Prices render in one recorded typeface
-
-Every price string on the homepage — the plan price, its struck-through original and its
-unit suffix — SHALL compute to a single font family, and that family SHALL be one the
-application loads. The currency symbol SHALL NOT fall back to a different family from the
-digits beside it.
-
-#### Scenario: Measuring a plan price
-
-- **WHEN** the computed `font-family` of a rendered plan price is read at any covered
-  breakpoint
-- **THEN** it resolves to the recorded family, and the same family applies to the `£`
-  glyph and the digits alike

@@ -17,18 +17,21 @@ overflow at 440: the page scrolls wider than the viewport on every phone.
 - **`QA-HOME-A7`** — "View all courses" sits in the categories heading row at every width
   (`categories-grid.tsx:57`). Move it below the grid at 440; desktop placement is
   unchanged and is not in question.
-- **`QA-HOME-A5`** — the report's target is that a price's `£` renders in **Inter**. Inter
-  is not among the app's loaded families (`--font-suse`, `--font-open-sans` in
-  `layout.tsx`), so the face has to be loaded before any class can point at it. The row's
-  recorded observation ("prices compute Open Sans") disagrees with the code, which sets
-  `font-suse` on `plan-price` — the observed family is re-measured before anything is
-  applied, per the measurement-beats-prose rule.
-- Three Playwright assertions added to `e2e/design-fidelity.spec.ts`, each **written
-  failing first**, each naming page / property / breakpoint / expected / observed.
-- `docs/qa/QA_BY_PAGE.md`: three rows flipped to `FIXED` with their test references, the
-  three "Tests to write" lines deleted, Appendix B's rows removed, and the page index
-  updated to `Open 0` with `Ready` re-assessed. `scripts/qa-doc-check.mjs` enforces all
-  but `Ready`.
+- **`QA-HOME-A5`** — **outcome: `BLOCKED-DESIGN`, no code changed.** The report's target
+  is that a price's `£` renders in **Inter**. The frame binds the price to
+  `Heading/Bold/H2` = SUSE, which the build already computes, so the token agrees. But
+  rendering the frame's `£29` beside SUSE Bold shows the digits pixel-identical and the
+  `£` visibly not — the frame's is narrow with a thin crossbar, SUSE's is boxy with a
+  crossbar heavy enough to read as a strikethrough. The design and the build show
+  different pound signs, which is the reported symptom. Which face the symbol takes is a
+  design ruling and is not guessed here. Evidence in `.context/figma/targets.md`.
+- Three Playwright assertions added to `e2e/design-fidelity.spec.ts` for `A6` and `A7`,
+  each **written failing first**, each naming page / property / breakpoint / expected /
+  observed. `A5` gets none — a blocked row gets no assertion.
+- `docs/qa/QA_BY_PAGE.md`: `A6` and `A7` flipped to `FIXED` with their test references and
+  their backlog lines deleted; `A5` reclassified Class E `BLOCKED-DESIGN` with its
+  evidence, keeping one backlog line pending the ruling. Page index goes
+  `RED / Open 3 / Blocked 3` → `AMBER / Open 0 / Blocked 4`.
 
 No Class E row is touched — `E1`, `E2` and `E3` stay `BLOCKED-DESIGN` with the code
 untouched.
@@ -43,20 +46,21 @@ None.
 
 - `homepage-sections`: adds requirements for the two sections' **mobile** layout — the CPD
   Certificate section stacks below `lg` and the page never scrolls wider than the
-  viewport; the categories CTA sits below the grid at mobile widths — plus a requirement
-  fixing the typeface a price is rendered in. Today the spec describes only section
-  presence and order, so none of this is currently asserted at spec level.
+  viewport; the categories CTA sits below the grid at mobile widths. Today the spec
+  describes only section presence and order, so none of this is currently asserted at
+  spec level. **No price-typeface requirement** — an earlier draft carried one, and it
+  was withdrawn once the evidence showed the `£` may legitimately need a different face
+  from the digits beside it.
 
 ## Impact
 
 - `src/components/home/cpd-certificate.tsx` — responsive direction on the section row
 - `src/components/home/categories-grid.tsx` — CTA placement at mobile
-- `src/app/layout.tsx` — an additional `next/font/google` family, if `A5` is confirmed
-- `src/app/globals.css` — the corresponding `--font-*` variable, if `A5` is confirmed
-- `e2e/design-fidelity.spec.ts` — three new assertions and their `TARGETS` entries
+- `e2e/design-fidelity.spec.ts` — three new assertions
+- No font is added. `src/app/layout.tsx` and `src/app/globals.css` are untouched: `A5`
+  resolved to a design question, not a missing face
 - `docs/qa/QA_BY_PAGE.md` — three status flips, page index arithmetic, Appendix B
 - `.context/figma/targets.md` — any value measured while deriving the above
 
-Risk: adding a third webfont costs a network request and a layout-shift surface on every
-page, for one glyph on one page. The design decision (load Inter vs. re-point the price at
-an already-loaded family) is settled in `design.md` before `A5` is implemented.
+Risk retired: no third webfont is added, because `A5` did not resolve to a missing face.
+The open risk is now that `A5` sits blocked until design rules which face the `£` takes.
