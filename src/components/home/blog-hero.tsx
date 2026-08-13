@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import { HeroWave } from "../courses/hero-wave";
 
 /**
  * `2xl` carries the measured 1920 inset: band `4900:75793` is 320 tall around
@@ -16,6 +17,7 @@ export function BlogHero() {
           backgroundSize: "32px 32px",
         }}
       />
+      <HeroWave />
       <div className="relative container">
         <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
           <div className="max-w-xl">
