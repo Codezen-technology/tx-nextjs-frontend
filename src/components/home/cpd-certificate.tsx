@@ -26,8 +26,13 @@ export function CpdCertificate({ data }: CpdCertificateProps) {
 
   return (
     <section className="py-section lg:py-20">
-      <div className="container flex flex-row items-center justify-between gap-10 lg:grid-cols-2">
-        <div className="flex max-w-none flex-col gap-4 md:max-w-104">
+      {/* Stacks below `lg`: the row needs the text column plus a 664-wide image
+          box, which only both fit from the 1920 content column down to roughly
+          1120. Measured per breakpoint in `.context/figma/targets.md`
+          (QA-HOME-A6). The `max-w-104` cap belongs to the side-by-side layout,
+          so it lifts at the same breakpoint. */}
+      <div className="container flex flex-col items-center justify-between gap-10 lg:flex-row">
+        <div className="flex max-w-none flex-col gap-4 lg:max-w-104">
           <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
             {data.title}
           </h2>
@@ -62,7 +67,14 @@ export function CpdCertificate({ data }: CpdCertificateProps) {
               // w-70 (280px), not w-auto: `width: auto` resolves against the
               // image's intrinsic size, so a source that fails to decode
               // collapses the box to 0x0 and the section renders empty.
-              className="h-auto w-70 max-w-full rounded-lg object-cover"
+              //
+              // min-w-0 so w-70 is a starting width, not a floor. A flex item's
+              // default `min-width: auto` refuses to shrink past its content, so
+              // the pair kept their 280 while the grey box narrowed with the
+              // content column — that escape is the other half of QA-HOME-A6.
+              // At 1920 the box's 584 of content still divides to exactly 280
+              // each, so this changes nothing there.
+              className="h-auto w-70 max-w-full min-w-0 rounded-lg object-cover"
             />
             <FallbackImage
               src={images[1]}
@@ -70,7 +82,7 @@ export function CpdCertificate({ data }: CpdCertificateProps) {
               alt={`${data.title} — sample transcript`}
               width={280}
               height={396}
-              className="h-auto w-70 max-w-full rounded-lg object-cover"
+              className="h-auto w-70 max-w-full min-w-0 rounded-lg object-cover"
             />
           </div>
         )}

@@ -47,21 +47,24 @@ export async function CategoriesGrid({ categories: provided }: CategoriesGridPro
   const displayed = categories.slice(0, 12);
 
   return (
-    <div className="container">
-      <div className="mb-6 flex flex-col items-end justify-between md:flex-row md:items-center">
-        <h3 className="font-suse text-[32px] leading-normal font-bold text-neutral-900">
-          Explore courses by category
-        </h3>
-        <Link
-          href="/all-courses"
-          className="font-open-sans text-secondary-500 hover:text-secondary-600 flex items-end gap-1 text-base font-normal transition-colors md:items-center"
-        >
-          View all courses
-          <ChevronRight className="h-4 w-4" />
-        </Link>
-      </div>
+    // One grid, three children. The CTA keeps its place in the DOM — heading,
+    // CTA, grid — and only moves visually, dropping below the grid at mobile via
+    // `order-last` (QA-HOME-A7). Rendering it twice behind `hidden`/`md:block`
+    // would give it two accessible names; moving it in the DOM instead would put
+    // desktop focus order behind all twelve category links.
+    <div className="container grid grid-cols-1 md:grid-cols-[1fr_auto] md:items-center">
+      <h3 className="font-suse mb-6 text-[32px] leading-normal font-bold text-neutral-900">
+        Explore courses by category
+      </h3>
+      <Link
+        href="/all-courses"
+        className="font-open-sans text-secondary-500 hover:text-secondary-600 order-last mt-6 flex items-end gap-1 justify-self-end text-base font-normal transition-colors md:order-none md:mt-0 md:mb-6 md:items-center"
+      >
+        View all courses
+        <ChevronRight className="h-4 w-4" />
+      </Link>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 md:col-span-2 md:grid-cols-3 lg:grid-cols-6">
         {displayed.map((cat) => {
           const icon = resolveIcon(cat);
           return (

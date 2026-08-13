@@ -158,6 +158,46 @@ test.describe("Class A — the build matches the measured design", () => {
  */
 const HOME_HERO_PAD_1920 = 133;
 
+/**
+ * Scroll the page end to end, then wait for its images to decode.
+ *
+ * Both halves matter. Images below the fold are lazy, so an unscrolled page
+ * never requests them and a wait on `img.complete` hangs forever rather than
+ * failing. And the CPD row's overflow only exists once its images have decoded —
+ * before that the section reserves its declared box and measures clean, which is
+ * how every earlier sweep missed `QA-HOME-A6`.
+ *
+ * The per-image wait is capped: a decode that never resolves (a 404 with no
+ * error event, an offline CDN) must not turn an assertion into a timeout.
+ */
+async function settleImages(page: Page, capMs = 4000): Promise<void> {
+  await page.evaluate(async (cap) => {
+    const step = window.innerHeight;
+    for (let y = 0; y < document.body.scrollHeight; y += step) {
+      window.scrollTo(0, y);
+      await new Promise((r) => setTimeout(r, 60));
+    }
+    window.scrollTo(0, 0);
+
+    const deadline = new Promise((r) => setTimeout(r, cap));
+    await Promise.race([
+      Promise.all(
+        [...document.querySelectorAll("img")].map((img) =>
+          img.complete
+            ? null
+            : new Promise((r) => {
+                img.addEventListener("load", r, { once: true });
+                img.addEventListener("error", r, { once: true });
+              }),
+        ),
+      ),
+      deadline,
+    ]);
+    // One frame for the decoded intrinsic sizes to land in layout.
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  }, capMs);
+}
+
 test.describe("Class A — Homepage", () => {
   test("hero vertical padding matches the measured band", async ({ page, viewport }) => {
     const vw = viewport?.width ?? 0;
@@ -242,6 +282,215 @@ test.describe("Class A — Homepage", () => {
         .map((w) => `"${w.text}"=${w.weight}`)
         .join(", ")}`,
     ).toEqual([]);
+  });
+
+  /**
+   * `QA-HOME-A6` — "the header and the body text doesn't cover the full width".
+   *
+   * The CPD section had no mobile direction, so at 440 its text column took 200
+   * of the 392 content column. The same row let its two `w-70` (280px) images
+   * outgrow their shrinking grey box, which is what pushed the page 32px wider
+   * than the viewport. Both faults are measured per breakpoint in `targets.md`.
+   *
+   * The images must have decoded before either can be observed — the section
+   * measures clean until then, which is how earlier sweeps missed the overflow.
+   */
+  test("the CPD section spans the content column at mobile", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 440, "QA-HOME-A6 is filed at 440.");
+
+    await page.goto("/");
+    await settleImages(page);
+    const m = await page.evaluate(() => {
+      const h2 = [...document.querySelectorAll("main h2")].find((h) =>
+        /certificate|transcript/i.test(h.textContent || ""),
+      );
+      if (!h2) return null;
+      const section = h2.closest("section");
+      if (!section) return null;
+
+      const container = h2.closest(".container");
+      const cs = container && getComputedStyle(container);
+      const p = section.querySelector("p");
+      return {
+        content:
+          container && cs
+            ? Math.round(
+                container.getBoundingClientRect().width -
+                  parseFloat(cs.paddingLeft) -
+                  parseFloat(cs.paddingRight),
+              )
+            : null,
+        heading: Math.round(h2.getBoundingClientRect().width),
+        body: p ? Math.round(p.getBoundingClientRect().width) : null,
+      };
+    });
+
+    expect(m, "no CPD certificate section found on the homepage").not.toBeNull();
+    const { content, heading, body } = m!;
+    const tol = 2;
+
+    expect(
+      Math.abs(heading - content!) <= tol,
+      `homepage CPD heading width @${vw}: design ${content} (the content column) +/-${tol}, observed ${heading}`,
+    ).toBe(true);
+    expect(
+      Math.abs(body! - content!) <= tol,
+      `homepage CPD body width @${vw}: design ${content} (the content column) +/-${tol}, observed ${body}`,
+    ).toBe(true);
+  });
+
+  /**
+   * The other half of `QA-HOME-A6`. Page-level rather than section-level on
+   * purpose: the CPD images overflowed with no `overflow-hidden` ancestor to
+   * absorb them, so the symptom the report describes is the whole page
+   * scrolling. Asserting the section alone would pass under an `overflow-hidden`
+   * that hid the fault instead of fixing it.
+   */
+  test("the homepage never scrolls wider than the viewport", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+
+    await page.goto("/");
+    await settleImages(page);
+    const m = await page.evaluate(() => {
+      const viewportWidth = document.documentElement.clientWidth;
+      // Name the offender: an element past the right edge with no clipping
+      // ancestor. Without this the failure is a bare number on a 27-section page.
+      const offenders: string[] = [];
+      document.querySelectorAll("*").forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 || r.right <= viewportWidth + 1) return;
+        for (let p = el.parentElement; p; p = p.parentElement) {
+          const o = getComputedStyle(p).overflowX;
+          if (o === "hidden" || o === "clip" || o === "auto" || o === "scroll") return;
+        }
+        offenders.push(
+          `<${el.tagName.toLowerCase()} class="${String(el.className).slice(0, 60)}"> right=${Math.round(r.right)}`,
+        );
+      });
+
+      return {
+        viewportWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        offenders: offenders.slice(0, 5),
+      };
+    });
+
+    expect(
+      m.scrollWidth,
+      `homepage document scrollWidth @${vw}: design ${m.viewportWidth} (the viewport), observed ${m.scrollWidth}. Unclipped past the right edge: ${
+        m.offenders.join(" | ") || "(none found — check for a clipped-but-oversized ancestor)"
+      }`,
+    ).toBe(m.viewportWidth);
+  });
+
+  /**
+   * `QA-HOME-A7` — "the CTA should be on the bottom of the section". The report
+   * is scoped to mobile; the desktop placement beside the heading is correct and
+   * is asserted here so the fix cannot quietly move it at every width.
+   */
+  test("the categories CTA sits below the grid at mobile", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+
+    await page.goto("/");
+    const m = await page.evaluate(() => {
+      const cta = [...document.querySelectorAll("a")].find((a) =>
+        /view all courses/i.test(a.textContent || ""),
+      );
+      if (!cta) return null;
+      const section = cta.closest("section") ?? document.body;
+      const grid = [...section.querySelectorAll("div")].find(
+        (d) =>
+          getComputedStyle(d).display === "grid" &&
+          d.children.length >= 4 &&
+          [...d.children].every((k) => k.matches('a[href^="/course-cat/"]')),
+      );
+      const heading = section.querySelector("h3");
+      if (!grid || !heading) return null;
+
+      const box = (el: Element) => {
+        const r = el.getBoundingClientRect();
+        return { top: Math.round(r.top), bottom: Math.round(r.bottom) };
+      };
+      return { cta: box(cta), grid: box(grid), heading: box(heading), count: 1 };
+    });
+
+    expect(m, "no categories CTA / grid pair found on the homepage").not.toBeNull();
+    const { cta, grid, heading } = m!;
+
+    if (vw <= 767) {
+      expect(
+        cta.top >= grid.bottom,
+        `homepage categories CTA position @${vw}: design below the grid (top >= ${grid.bottom}), observed top ${cta.top}`,
+      ).toBe(true);
+    } else {
+      // Same row as the heading: their vertical spans overlap.
+      expect(
+        cta.top < heading.bottom && cta.bottom > heading.top,
+        `homepage categories CTA position @${vw}: design in the heading row (${heading.top}–${heading.bottom}), observed ${cta.top}–${cta.bottom}`,
+      ).toBe(true);
+    }
+  });
+
+  /**
+   * `QA-HOME-A5` — "the pound symbol… doesn't feel like a pound symbol".
+   *
+   * The frame binds the price (`6089:107486`) to `Heading/Bold/H2` — SUSE — and
+   * the build already computes SUSE. The report's "Inter" is not corroborated by
+   * the frame, and the row's own note ("prices compute Open Sans") is not
+   * corroborated by the build; both are recorded in `targets.md`.
+   *
+   * So this closes by verification, and what it pins is the thing that would
+   * actually produce the reported symptom: the `£` resolving to a different face
+   * from the digits beside it. That happens when the family is unloaded and the
+   * glyph falls through to a system font, so the loaded-faces check is the
+   * substance of the assertion, not decoration.
+   */
+  test("prices render in one loaded family, symbol and digits alike", async ({
+    page,
+    viewport,
+  }) => {
+    const vw = viewport?.width ?? 0;
+    const PRICE_FAMILY = "SUSE"; // Heading/Bold/H2 on 6089:107486
+
+    await page.goto("/");
+    const m = await page.evaluate(async () => {
+      await document.fonts.ready;
+      const prices = [...document.querySelectorAll('[data-testid="plan-price"]')];
+      return {
+        prices: prices.map((e) => ({
+          text: (e.textContent || "").trim(),
+          family: getComputedStyle(e).fontFamily,
+        })),
+        loaded: [...new Set([...document.fonts].map((f) => f.family))],
+      };
+    });
+
+    expect(m.prices.length, "no [data-testid=plan-price] on the homepage").toBeGreaterThan(0);
+
+    const wrong = m.prices.filter(
+      (p) => !p.family.split(",")[0].replace(/"/g, "").includes(PRICE_FAMILY),
+    );
+    expect(
+      wrong,
+      `homepage price font-family @${vw}: design ${PRICE_FAMILY} (Heading/Bold/H2, 6089:107486). Off: ${wrong
+        .map((p) => `"${p.text}"=${p.family}`)
+        .join(", ")}`,
+    ).toEqual([]);
+
+    // A family the document never loaded is the failure mode that splits the £
+    // from its digits — the first-choice family has to actually be there.
+    expect(
+      m.loaded.includes(PRICE_FAMILY),
+      `homepage price font @${vw}: design ${PRICE_FAMILY} loaded as a webfont, observed loaded families [${m.loaded.join(", ")}]`,
+    ).toBe(true);
+
+    // Every price on the card agrees: struck-through original, amount, unit.
+    const families = new Set(m.prices.map((p) => p.family));
+    expect(
+      families.size,
+      `homepage prices @${vw}: design one family across all prices, observed ${[...families].join(" / ")}`,
+    ).toBe(1);
   });
 });
 
