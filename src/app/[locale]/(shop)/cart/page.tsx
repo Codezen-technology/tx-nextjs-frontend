@@ -59,7 +59,7 @@ export default function CartPage() {
             <p className="mb-6 text-neutral-500">Browse our courses and add something you love.</p>
             <Link
               href={browseCoursesHref}
-              className="bg-secondary-500 rounded px-6 py-3 text-sm font-medium text-white hover:bg-[#7d5819]"
+              className="bg-secondary-600 rounded px-6 py-3 text-sm font-medium text-white hover:bg-[#7d5819]"
             >
               Browse Courses
             </Link>

@@ -140,7 +140,7 @@ function PageLinks({
             aria-current={current === p ? "page" : undefined}
             className={`font-open-sans flex h-7.75 items-center justify-center px-2.25 py-1.25 text-[14px] transition-colors ${
               current === p
-                ? "bg-secondary-500 text-white"
+                ? "bg-secondary-600 text-white"
                 : "text-secondary-500 border-neutral-30 border-r underline"
             }`}
           >

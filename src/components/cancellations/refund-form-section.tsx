@@ -83,7 +83,7 @@ export function RefundFormSection({
                     <Button
                       type="button"
                       onClick={revealForm}
-                      className="bg-secondary-500 hover:bg-secondary-600 text-white"
+                      className="bg-secondary-600 hover:bg-secondary-700 text-white"
                     >
                       Check refund options
                     </Button>

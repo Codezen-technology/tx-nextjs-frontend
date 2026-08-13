@@ -18,7 +18,7 @@ export function BlogTeamCta() {
 
         <Link
           href="/contact-us"
-          className="bg-secondary-500 font-open-sans inline-flex w-50 items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition-opacity hover:opacity-90"
+          className="bg-secondary-600 font-open-sans inline-flex w-50 items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition-opacity hover:opacity-90"
         >
           Request A Quote
         </Link>

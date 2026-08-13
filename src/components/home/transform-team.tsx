@@ -94,7 +94,7 @@ export function TransformTeam({ data }: TransformTeamProps) {
         {data.cta?.href && (
           <Link
             href={data.cta.href}
-            className="bg-secondary-500 hover:bg-secondary-600 font-open-sans inline-flex w-50 cursor-pointer items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition-opacity hover:opacity-90"
+            className="bg-secondary-600 hover:bg-secondary-700 font-open-sans inline-flex w-50 cursor-pointer items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition-opacity hover:opacity-90"
           >
             {data.cta.label}
           </Link>

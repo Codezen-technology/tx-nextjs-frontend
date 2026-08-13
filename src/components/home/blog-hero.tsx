@@ -42,7 +42,7 @@ export function BlogHero() {
             />
             <button
               type="submit"
-              className="bg-secondary-500 font-open-sans hover:bg-secondary-600 flex items-center gap-2 px-5 py-3 text-sm font-semibold text-white transition-colors"
+              className="bg-secondary-600 font-open-sans hover:bg-secondary-700 flex items-center gap-2 px-5 py-3 text-sm font-semibold text-white transition-colors"
             >
               <Search className="h-4 w-4" />
               Search

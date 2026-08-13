@@ -55,7 +55,7 @@ export function CouponInput() {
             onClick={handleApply}
             disabled={isApplying || !code.trim()}
             className={cn(
-              "border-secondary-500 bg-secondary-500 h-12 rounded-r border px-[13px] py-[7px] text-base text-white transition-colors",
+              "border-secondary-500 bg-secondary-600 h-12 rounded-r border px-[13px] py-[7px] text-base text-white transition-colors",
               "hover:border-[#7d5819] hover:bg-[#7d5819] disabled:cursor-not-allowed disabled:opacity-50",
             )}
           >

@@ -176,7 +176,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
         {/* CTA */}
         <Link
           href={`/course/${course.slug}`}
-          className="bg-secondary-500 group-hover:bg-primary-600 flex h-10 w-full items-center justify-center rounded-full text-sm text-white transition-colors"
+          className="bg-secondary-600 group-hover:bg-primary-600 flex h-10 w-full items-center justify-center rounded-full text-sm text-white transition-colors"
         >
           View Course
         </Link>

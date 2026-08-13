@@ -96,7 +96,7 @@ export async function HeroSection({ headline }: HeroSectionProps) {
               />
               <button
                 type="submit"
-                className="bg-secondary-500 font-open-sans shrink-0 rounded-[2px] px-6.25 py-4 text-base leading-normal font-normal text-white transition-opacity hover:opacity-90"
+                className="bg-secondary-600 font-open-sans shrink-0 rounded-[2px] px-6.25 py-4 text-base leading-normal font-normal text-white transition-opacity hover:opacity-90"
               >
                 Search Courses
               </button>

@@ -66,7 +66,7 @@ export default async function CancellationsPage() {
               <Button asChild variant="outline" className="border-neutral-300 bg-white">
                 <Link href="/support-request">{content.cancellations.cta.supportLabel}</Link>
               </Button>
-              <Button asChild className="bg-secondary-500 hover:bg-secondary-600 text-white">
+              <Button asChild className="bg-secondary-600 hover:bg-secondary-700 text-white">
                 <Link href="/cancellations?refund=1#refund-form">
                   {content.cancellations.cta.refundLabel}
                 </Link>

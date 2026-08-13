@@ -62,7 +62,10 @@ export default async function ContactPage() {
       </section>
 
       {/* ── Contact cards ─────────────────────────────────────────────── */}
-      <section className="pb-6">
+      {/* White, not the page tint: frame 3277:44993 runs #FFFFFF down to y=828,
+          where the form band starts. `main` carries bg-neutral-10, so this
+          section has to say so (QA-CONTACT-A2). */}
+      <section className="bg-neutral-0 pb-6">
         <div className="container">
           <div className="mx-auto grid max-w-4xl gap-10 sm:grid-cols-3">
             {content.cards.map((card, i) => (
@@ -100,7 +103,7 @@ export default async function ContactPage() {
 function ContactInfoCard({ card }: { card: ContactCard }) {
   return (
     <div className="flex flex-col items-center text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#e6f7fe]">
+      <div className="bg-primary-50 flex h-12 w-12 items-center justify-center rounded-full">
         <CardIcon icon={card.icon} />
       </div>
       <h3 className="font-suse mt-4 text-base font-bold text-neutral-900">{card.title}</h3>

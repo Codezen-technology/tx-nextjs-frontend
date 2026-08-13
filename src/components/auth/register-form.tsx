@@ -115,7 +115,7 @@ export function RegisterForm() {
           <button
             type="submit"
             disabled={reg.isPending}
-            className="border-secondary-500 bg-secondary-500 font-open-sans flex h-10 w-full items-center justify-center gap-2 rounded border text-base text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            className="border-secondary-500 bg-secondary-600 font-open-sans flex h-10 w-full items-center justify-center gap-2 rounded border text-base text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {reg.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             Register

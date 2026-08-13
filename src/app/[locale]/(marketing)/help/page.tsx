@@ -94,7 +94,7 @@ export default function HelpPage() {
           <p className="font-open-sans mx-auto mt-3 max-w-xl text-neutral-500">
             Have questions? We&apos;re here to help.
           </p>
-          <Button asChild className="bg-secondary-500 hover:bg-secondary-600 mt-6 text-white">
+          <Button asChild className="bg-secondary-600 hover:bg-secondary-700 mt-6 text-white">
             <Link href="/contact-us">Get started</Link>
           </Button>
         </div>
@@ -131,7 +131,7 @@ export default function HelpPage() {
             <p className="font-open-sans mt-2 text-sm text-neutral-500">
               Can&apos;t find the answer you&apos;re looking for? Please chat to our friendly team.
             </p>
-            <Button asChild className="bg-secondary-500 hover:bg-secondary-600 mt-6 text-white">
+            <Button asChild className="bg-secondary-600 hover:bg-secondary-700 mt-6 text-white">
               <Link href="/contact-us">Get in touch</Link>
             </Button>
           </div>

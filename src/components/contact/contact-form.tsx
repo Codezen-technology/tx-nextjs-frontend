@@ -184,7 +184,7 @@ export function ContactForm() {
       <Button
         type="submit"
         disabled={status === "sending"}
-        className="bg-secondary-500 hover:bg-secondary-600 w-full text-white"
+        className="bg-secondary-600 hover:bg-secondary-700 w-full text-white"
         size="lg"
       >
         {status === "sending" && <Loader2 className="animate-spin" />}

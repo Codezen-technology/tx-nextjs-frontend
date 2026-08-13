@@ -444,7 +444,7 @@ export function GravityForm({
             disabled={isSubmitting}
             className={cn(
               "w-full sm:w-auto",
-              isCancellations && "bg-secondary-500 hover:bg-secondary-600 text-white",
+              isCancellations && "bg-secondary-600 hover:bg-secondary-700 text-white",
             )}
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

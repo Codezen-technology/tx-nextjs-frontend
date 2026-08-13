@@ -193,7 +193,7 @@ export function MegaMenu({ categories, onMouseEnter, onMouseLeave, ref }: MegaMe
             </div>
             <Link
               href="/all-courses"
-              className="bg-secondary-500 font-open-sans hover:bg-secondary-600 ml-6 flex shrink-0 items-center justify-center rounded-full px-6 py-4 text-base font-semibold text-white shadow-xs transition-colors"
+              className="bg-secondary-600 font-open-sans hover:bg-secondary-700 ml-6 flex shrink-0 items-center justify-center rounded-full px-6 py-4 text-base font-semibold text-white shadow-xs transition-colors"
             >
               See All Courses
             </Link>

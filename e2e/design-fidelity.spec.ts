@@ -872,3 +872,232 @@ test.describe("Class A — mobile section rhythm", () => {
     });
   }
 });
+
+/**
+ * `QA-CANCEL-A2` — "the Button text label is not visible at all".
+ *
+ * White on `secondary-500` #9E6F21 is 4.421:1, against WCAG AA's 4.5 for normal
+ * text. A 0.08 shortfall, invisible to the eye and fatal to the criterion, on a
+ * token that `bg-secondary-500 text-white` puts on 39 surfaces across 35 files.
+ *
+ * The ratio is computed from the colours as *rendered*, never from a class name.
+ * A class-name assertion would keep passing if the token behind it were later
+ * redefined to something failing, which is precisely the regression this guards.
+ * It also survives design taking the rejected option of moving `secondary-500`
+ * itself — nothing about the requirement would change, so nothing about the test
+ * should.
+ *
+ * Scope is *filled* controls: an interactive element painting its own
+ * non-transparent, non-white background. That is the operational reading of "a
+ * label on a brand-colour fill", and it is decided by computed style rather than
+ * by which utility produced it.
+ */
+const AA_NORMAL_TEXT = 4.5;
+
+const CONTRAST_ROUTES = [
+  "/",
+  "/blog",
+  "/all-courses",
+  "/contact-us",
+  "/cancellations",
+  "/support-request?issue=access",
+];
+
+interface FilledControl {
+  page: string;
+  text: string;
+  fg: string;
+  bg: string;
+  ratio: number;
+}
+
+async function filledControlsFailingAA(page: Page, floor: number): Promise<FilledControl[]> {
+  return page.evaluate((min) => {
+    const rgb = (s: string): [number, number, number, number] | null => {
+      const m = s.match(/rgba?\(([^)]+)\)/);
+      if (!m) return null;
+      const p = m[1].split(/[,/]/).map((v) => parseFloat(v.trim()));
+      return [p[0], p[1], p[2], p[3] === undefined ? 1 : p[3]];
+    };
+    const lum = ([r, g, b]: number[]) => {
+      const f = (c: number) => {
+        const v = c / 255;
+        return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      };
+      return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+    };
+    const ratio = (a: number[], b: number[]) => {
+      const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+      return (hi + 0.05) / (lo + 0.05);
+    };
+    const hex = ([r, g, b]: number[]) =>
+      "#" +
+      [r, g, b]
+        .map((v) => Math.round(v).toString(16).padStart(2, "0"))
+        .join("")
+        .toUpperCase();
+
+    const out: FilledControl[] = [];
+    const controls = document.querySelectorAll(
+      'button, a, [role="button"], input[type="submit"], input[type="button"]',
+    );
+
+    controls.forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) return;
+      if (!(el.textContent || "").trim()) return;
+
+      const cs = getComputedStyle(el);
+      const bg = rgb(cs.backgroundColor);
+      // A filled control paints its own background. An unfilled one inherits the
+      // page and is out of scope — its contrast is a body-text question.
+      if (!bg || bg[3] === 0) return;
+      // White and near-white fills are the page surface showing through a
+      // decorative wrapper, not a brand fill.
+      if (bg[0] > 245 && bg[1] > 245 && bg[2] > 245) return;
+
+      const fg = rgb(cs.color);
+      if (!fg) return;
+
+      const got = ratio(fg, bg);
+      if (got >= min) return;
+      out.push({
+        page: location.pathname,
+        text: (el.textContent || "").trim().slice(0, 40),
+        fg: hex(fg),
+        bg: hex(bg),
+        ratio: Math.round(got * 1000) / 1000,
+      });
+    });
+    return out;
+  }, floor);
+}
+
+test.describe("Class A — interactive contrast", () => {
+  for (const route of CONTRAST_ROUTES) {
+    test(`${route} filled controls meet AA contrast`, async ({ page, viewport }) => {
+      const vw = viewport?.width ?? 0;
+
+      const response = await page.goto(route);
+      await page.waitForLoadState("domcontentloaded");
+
+      // A page that failed to render has no controls, and "no controls" would
+      // otherwise read as "every control passes". This check was observed
+      // reporting a clean pass on two routes while they were serving 500s, so
+      // the render is asserted before its contents are.
+      expect(
+        response?.status(),
+        `${route} did not render — cannot judge its contrast`,
+      ).toBeLessThan(400);
+      const controlCount = await page.locator("main button, main a").count();
+      expect(
+        controlCount,
+        `${route} rendered no controls — the check would pass vacuously`,
+      ).toBeGreaterThan(0);
+
+      const failing = await filledControlsFailingAA(page, AA_NORMAL_TEXT);
+
+      // Group by colour pair, not by element. A page with 90 cards yields 90
+      // identical failures, and a 90-item list is not something anyone reads —
+      // what a person needs is the pair, the ratio, and one example label.
+      const byPair = new Map<string, { count: number; example: string; ratio: number }>();
+      for (const f of failing) {
+        const key = `${f.fg} on ${f.bg}`;
+        const seen = byPair.get(key);
+        if (seen) seen.count += 1;
+        else byPair.set(key, { count: 1, example: f.text, ratio: f.ratio });
+      }
+      const summary = [...byPair.entries()]
+        .map(([pair, v]) => `${pair} = ${v.ratio} (×${v.count}, e.g. "${v.example}")`)
+        .join(" | ");
+
+      expect(
+        summary,
+        `${route} @${vw}: filled control labels must reach WCAG AA ${AA_NORMAL_TEXT}:1. Below it: ${summary}`,
+      ).toBe("");
+    });
+  }
+});
+
+/**
+ * `QA-CONTACT-A2` — "the section colors are not according to the design".
+ *
+ * Reclassified `MANUAL-VISUAL` → `GAP`: frame `3277:44993` binds named tokens to
+ * the page's bands, and comparing a named token to a computed fill is a
+ * measurement, not the colour-matching judgement the row assumed.
+ *
+ * The frame is one hard edge at y=828 — white above (`neutral-0`), `#FAFBFB`
+ * below (`neutral-10`) — placed exactly where the `Contact sections` frame
+ * begins. Derivation and the full band table are in `.context/figma/targets.md`.
+ *
+ * 1920 only. The node is named "Contact US - Desktop" and has no 1280 or 440
+ * sibling, so the other widths are recorded as unmeasured rather than assumed to
+ * ramp from this one.
+ */
+const CONTACT_FILLS_1920 = [
+  { heading: /get in touch with us/i, fill: "#FFFFFF", token: "neutral-0" },
+  { heading: null, fill: "#FFFFFF", token: "neutral-0" }, // contact cards
+  { heading: /get in touch/i, fill: "#FAFBFB", token: "neutral-10" }, // heading + form
+];
+
+const CONTACT_ICON_CIRCLE = { fill: "#E6F8FE", token: "primary-50" };
+
+test.describe("Class A — Contact", () => {
+  test("section fills match the measured frame", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 1920, "3277:44993 is a Desktop-only frame; 1280 and 440 are unmeasured.");
+
+    await page.goto("/contact-us");
+    // The page's content is fetched, so the sections do not exist at navigation.
+    // Without this the check reports "no sections found" and reads as a broken
+    // test rather than a fill mismatch.
+    await page.locator("main > section").first().waitFor({ state: "attached" });
+    const m = await page.evaluate(() => {
+      const hex = (s: string) => {
+        const p = (s.match(/rgba?\(([^)]+)\)/)?.[1] || "").split(/[,/]/).map((v) => parseFloat(v));
+        if (p.length < 3 || Number.isNaN(p[0])) return null;
+        return (
+          "#" +
+          p
+            .slice(0, 3)
+            .map((v) => Math.round(v).toString(16).padStart(2, "0"))
+            .join("")
+        ).toUpperCase();
+      };
+      const effective = (el: Element) => {
+        for (let q: Element | null = el; q; q = q.parentElement) {
+          const bg = getComputedStyle(q).backgroundColor;
+          if (bg && !/rgba\([^)]*,\s*0\)/.test(bg) && bg !== "transparent") return hex(bg);
+        }
+        return null;
+      };
+      const sections = [
+        ...(document.querySelector("main") ?? document.body).querySelectorAll(":scope > section"),
+      ];
+      const circle = document.querySelector(".rounded-full");
+      return {
+        sections: sections.map((s) => ({
+          heading: (s.querySelector("h1,h2")?.textContent || "").trim(),
+          fill: effective(s),
+        })),
+        circle: circle ? hex(getComputedStyle(circle).backgroundColor) : null,
+      };
+    });
+
+    expect(m.sections.length, "no sections found on /contact-us").toBe(CONTACT_FILLS_1920.length);
+
+    CONTACT_FILLS_1920.forEach((want, i) => {
+      const got = m.sections[i];
+      const label = want.heading ? `"${got.heading}"` : "the contact-cards section";
+      expect(
+        got.fill,
+        `/contact-us section ${i} ${label} fill @${vw}: design ${want.fill} (${want.token}, 3277:44993), observed ${got.fill}`,
+      ).toBe(want.fill);
+    });
+
+    expect(
+      m.circle,
+      `/contact-us card icon circle fill @${vw}: design ${CONTACT_ICON_CIRCLE.fill} (${CONTACT_ICON_CIRCLE.token}, 3277:44993), observed ${m.circle}`,
+    ).toBe(CONTACT_ICON_CIRCLE.fill);
+  });
+});

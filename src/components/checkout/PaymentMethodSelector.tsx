@@ -252,7 +252,7 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
         type="button"
         onClick={handleSubmit}
         disabled={isSubmitting || cartLoading || (!isFreeOrder && !stripe)}
-        className="bg-secondary-500 w-full rounded px-6 py-4 text-base font-medium text-white transition-colors hover:bg-[#7d5819] disabled:cursor-not-allowed disabled:opacity-60"
+        className="bg-secondary-600 w-full rounded px-6 py-4 text-base font-medium text-white transition-colors hover:bg-[#7d5819] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? "Processing…" : isFreeOrder ? "Complete Order" : "Proceed to Checkout"}
       </button>

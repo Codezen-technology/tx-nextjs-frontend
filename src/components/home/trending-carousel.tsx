@@ -55,7 +55,7 @@ function TrendingPostCard({ post, category }: { post: BlogPost; category?: WPCat
         {excerpt && (
           <p className="font-open-sans line-clamp-3 text-base text-neutral-500">{excerpt}</p>
         )}
-        <span className="bg-secondary-500 font-open-sans inline-flex w-fit items-center justify-center rounded-full px-6 py-4 text-base text-white">
+        <span className="bg-secondary-600 font-open-sans inline-flex w-fit items-center justify-center rounded-full px-6 py-4 text-base text-white">
           Read this article
         </span>
       </div>

@@ -189,7 +189,7 @@ export async function SiteFooter() {
             </Link>
             <Link
               href="/all-courses"
-              className="border-secondary-500 bg-secondary-500 font-open-sans hover:bg-secondary-600 rounded border px-6 py-4 text-[16px] leading-normal text-white transition-colors"
+              className="border-secondary-500 bg-secondary-600 font-open-sans hover:bg-secondary-700 rounded border px-6 py-4 text-[16px] leading-normal text-white transition-colors"
             >
               Get Started
             </Link>

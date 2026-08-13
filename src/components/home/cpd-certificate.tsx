@@ -45,7 +45,7 @@ export function CpdCertificate({ data }: CpdCertificateProps) {
             <div>
               <Link
                 href={data.cta.href}
-                className="bg-secondary-500 hover:bg-primary-600 font-open-sans mt-4 inline-flex w-50 cursor-pointer items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition-colors transition-opacity hover:opacity-90"
+                className="bg-secondary-600 hover:bg-primary-600 font-open-sans mt-4 inline-flex w-50 cursor-pointer items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition-colors transition-opacity hover:opacity-90"
               >
                 {data.cta.label}
               </Link>

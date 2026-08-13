@@ -200,14 +200,14 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                 type="button"
                 onClick={handleBuyNow}
                 disabled={isBuyingNow}
-                className="bg-secondary-500 font-open-sans hover:bg-secondary-600 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                className="bg-secondary-600 font-open-sans hover:bg-secondary-700 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isBuyingNow ? "Adding…" : "Buy this course"}
               </button>
             ) : (
               <Link
                 href="/contact-us"
-                className="bg-secondary-500 font-open-sans hover:bg-secondary-600 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors"
+                className="bg-secondary-600 font-open-sans hover:bg-secondary-700 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors"
               >
                 Get in Touch
               </Link>

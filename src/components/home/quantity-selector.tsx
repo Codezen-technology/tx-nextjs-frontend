@@ -23,7 +23,7 @@ export function QuantitySelector({ plan }: QuantitySelectorProps) {
   const ctaClassName = cn(
     "font-open-sans flex h-10 items-center justify-center rounded-full text-sm font-medium transition-transform hover:scale-105 cursor-pointer",
     plan.variant === "default" && "border-secondary-500 text-secondary-500 border bg-transparent",
-    plan.variant === "beige" && "bg-secondary-500 text-white",
+    plan.variant === "beige" && "bg-secondary-600 text-white",
     plan.variant === "navy" && "border-primary-500 border text-base font-bold text-neutral-900",
   );
 
