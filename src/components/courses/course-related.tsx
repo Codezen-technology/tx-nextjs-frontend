@@ -13,7 +13,9 @@ export function CourseRelated({ courseId }: CourseRelatedProps) {
   if (isLoading) {
     return (
       <section className="space-y-4">
-        <h2 className="text-xl font-medium text-neutral-900">Related Courses</h2>
+        <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
+          Related Courses
+        </h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <CourseCardSkeleton key={i} />
@@ -27,7 +29,10 @@ export function CourseRelated({ courseId }: CourseRelatedProps) {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-[32px] font-bold text-neutral-900">Related Courses</h2>
+      {/* Same token as every other section heading on the page — QA-COURSE-A6. */}
+      <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
+        Related Courses
+      </h2>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {data.items.map((course) => (
           <CourseCard key={course.id} course={course} />

@@ -83,7 +83,7 @@ Ship order = `RED` pages by descending open count. `BLOCKED-DESIGN` rows exclude
 | Contact            | `/contact-us`         | GREEN | 0    | 0       | `qa-contact-cancellations-rows`      |
 | Course Category    | `/course-cat/[slug]`  | GREEN | 0    | 0       | —                                    |
 | All Courses        | `/all-courses`        | RED   | 1    | 0       | Class D only — `QA-COURSES-D1`       |
-| Single Course      | `/course/[slug]`      | AMBER | 0    | 1       | —                                    |
+| Single Course      | `/course/[slug]`      | GREEN | 0    | 0       | `fix-single-course-page-qa`          |
 | Privacy Policy     | `/privacy-policy`     | GREEN | 0    | 0       | —                                    |
 | FAQ / Help         | `/help`               | AMBER | 0    | 1       | —                                    |
 | Cart               | `/cart`               | AMBER | 0    | 1       | —                                    |
@@ -325,7 +325,13 @@ _Empty — closed by slice 4._
 
 **Route:** `/course/[slug]`
 **Figma:** `NONE` — no divergent pair noted; source doc links not verified.
-**Notes:** Buy CTA fix shipped. Body line-height fix shipped. Mobile "Rating" issue `BLOCKED-DESIGN` (Solution(Dev) blank in source doc).
+**Notes:** Buy CTA fix shipped. Body line-height fix shipped. Owner change: `fix-single-course-page-qa`.
+
+**Re-read of the source report on 2026-08-14 found this page under-triaged.** The report's Single Course section lists 12 items; the table held 4. Eight rows (`A2`–`A8`, `B3`) had no QA-ID, so the page index read `Open 0` while they were still broken — the same undercount that `qa-homepage-remaining-rows` corrected for the homepage.
+
+`QA-COURSE-E1` was also mis-filed. Its `Solution(Dev)` is **not** blank: the report reads "The rating should match the course card ratings". It is re-classified to `QA-COURSE-B3` and leaves the blocked ledger. Both surfaces read the same normalized `rating` / `ratingCount` (`courses.ts:199–201`), so the mismatch is presentation, not missing data.
+
+Two report items close without code: the hero background image (`C2` — the banner paints a gradient, there is no background image to remove) and the short hero body text (`A9` — the banner renders no body paragraph at all, so the fix is CMS-side).
 
 #### Manual sweep
 
@@ -337,12 +343,26 @@ _Empty — closed by slice 4._
 
 #### Issue table
 
-| QA-ID        | Quote                                         | BP  | Class | Status         | Auto                         | Manual                                                                                                                            |
-| ------------ | --------------------------------------------- | --- | ----- | -------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| QA-COURSE-B2 | "buy CTA goes to checkout, should go to cart" | all | B     | FIXED          | `e2e/qa-round-1.spec.ts:187` | —                                                                                                                                 |
-| QA-COURSE-A1 | "body copy line-height should be 150%"        | all | A     | FIXED          | N/A                          | `prose-wp p` leading-relaxed 162.5% → leading-normal 150% in `globals.css`.                                                       |
-| QA-COURSE-C1 | "single course images not visible"            | 440 | C     | CANT-REPRODUCE | N/A                          | 14 zero-box imgs @440 all inside `hidden … lg:block` / `lg:flex` — legitimate hidden desktop copies. Visible mobile card 408×392. |
-| QA-COURSE-E1 | "mobile Rating not showing"                   | 440 | E     | BLOCKED-DESIGN | N/A                          | `Solution(Dev):` blank in source doc. Waiting for design specification.                                                           |
+| QA-ID        | Quote                                                                                                 | BP  | Class | Status            | Auto                                                                                                     | Manual                                                                                                                                                                                                                                                                                                 |
+| ------------ | ----------------------------------------------------------------------------------------------------- | --- | ----- | ----------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| QA-COURSE-B2 | "buy CTA goes to checkout, should go to cart"                                                         | all | B     | FIXED             | `e2e/qa-round-1.spec.ts:187`                                                                             | —                                                                                                                                                                                                                                                                                                      |
+| QA-COURSE-A1 | "body copy line-height should be 150%"                                                                | all | A     | FIXED             | N/A                                                                                                      | `prose-wp p` leading-relaxed 162.5% → leading-normal 150% in `globals.css`.                                                                                                                                                                                                                            |
+| QA-COURSE-C1 | "single course images not visible"                                                                    | 440 | C     | CANT-REPRODUCE    | N/A                                                                                                      | 14 zero-box imgs @440 all inside `hidden … lg:block` / `lg:flex` — legitimate hidden desktop copies. Visible mobile card 408×392.                                                                                                                                                                      |
+| QA-COURSE-E1 | "mobile Rating not showing"                                                                           | 440 | E     | RECLASSIFIED → B3 | N/A                                                                                                      | Filed `BLOCKED-DESIGN` on a stale reading of the source doc. The report's `Solution(Dev)` reads "The rating should match the course card ratings" — populated, not blank. Continues as `QA-COURSE-B3`.                                                                                                 |
+| QA-COURSE-A2 | "there is no need for breadcrumbs — remove the breadcrumbs"                                           | all | A     | FIXED             | `e2e/course-detail.spec.ts > QA-COURSE-A2: no breadcrumb bar renders, BreadcrumbList JSON-LD survives`   | Removed from `course/[slug]/page.tsx`; component deleted. The `BreadcrumbList` JSON-LD is untouched and asserted alongside.                                                                                                                                                                            |
+| QA-COURSE-A3 | "the hours are unnecessary — remove the hours from the course curriculum"                             | all | A     | FIXED             | `e2e/course-detail.spec.ts > QA-COURSE-A3: the curriculum lists lectures without durations`              | All three duration renders removed from `course-flat-curriculum.tsx`. `durationSeconds` stays on the payload — the player and the purchase card still read it.                                                                                                                                         |
+| QA-COURSE-A4 | "there is no hover on the FAQ plus/minus icon"                                                        | all | A     | FIXED             | `e2e/course-detail.spec.ts > QA-COURSE-A4: the FAQ toggle responds to hover`                             | Toggle now `hover:bg-secondary-100` with the icon on `group-hover:text-secondary-600`.                                                                                                                                                                                                                 |
+| QA-COURSE-A5 | "there is no hover on the for me and for teams options"                                               | all | A     | FIXED             | `e2e/course-detail.spec.ts > QA-COURSE-A5: both purchase tabs respond to hover in both states`           | Both states answer the pointer: active `hover:bg-secondary-100`, inactive `hover:bg-neutral-10`. The active tab previously had no hover rule at all.                                                                                                                                                   |
+| QA-COURSE-A6 | "the related course section title is too short in size"                                               | all | A     | FIXED             | `e2e/course-detail.spec.ts > QA-COURSE-A6: Related Courses uses the page's section-heading token`        | Loaded and loading headings both `font-suse text-[32px] leading-[1.2] font-bold`. Measured before: `ui-sans-serif` at 48px line-height against the peers' SUSE at 38.4.                                                                                                                                |
+| QA-COURSE-A7 | "the arrow icons are almost invisible"                                                                | all | A     | FIXED             | `e2e/course-detail.spec.ts > QA-COURSE-A7: the prose list marker clears the 3:1 non-text contrast floor` | Measured: chevron 6.70:1, unit icon 6.36:1, **list marker 2.94:1** — only the marker failed the 3:1 non-text floor. `prose-wp` marker opacity 0.6 → 0.75 (4.14:1). Ratios in `.context/figma/targets.md`.                                                                                              |
+| QA-COURSE-A8 | "the body texts are broken (bullet point) — lines need to be completed before going to the next line" | 440 | A     | CANT-REPRODUCE    | N/A                                                                                                      | Measured at 440 on two courses: 46 line boxes, **zero** early breaks and zero mid-word breaks; computed `word-break: normal`, `overflow-wrap: normal`, `hyphens: manual`. The one line with slack breaks before an 11-character word that does not fit. Numbers in `.context/figma/targets.md`.        |
+| QA-COURSE-B3 | "rating doesn't match with the course card"                                                           | 440 | B     | FIXED             | `e2e/course-detail.spec.ts > QA-COURSE-B3: no rating renders unless the course carries one`              | Root cause was the **card**, not the header: `course-card.tsx` fell back to `course.id % 2 === 0 ? "4.7" : "4.9"` when a course had no rating, so every card showed an invented score while the detail page correctly showed none. Fallback removed — a rating renders only when the data carries one. |
+| QA-COURSE-C2 | "there is a background image on the hero section — remove it"                                         | all | C     | CANT-REPRODUCE    | N/A                                                                                                      | No background image exists. `course-banner.tsx:56–65` paints `BANNER_OVERLAY_GRADIENT` plus `HeroWave`; the featured image renders only as the 306px sidebar thumbnail (`:74–83`).                                                                                                                     |
+| QA-COURSE-A9 | "the body text's length is shorter than the other body texts"                                         | all | A     | CONTENT-GAP       | N/A                                                                                                      | The banner renders title, rating and two feature lists — no body paragraph exists to lengthen. Fix is CMS-side, outside this repo.                                                                                                                                                                     |
+
+#### Tests to write
+
+_Empty — all eight rows closed by `fix-single-course-page-qa`; `A8` closed `CANT-REPRODUCE` with measurements rather than a test._
 
 ---
 
@@ -556,19 +576,23 @@ _No issue rows. No manual sweep. Page section records absence only._
 
 ### Class E — awaiting design / product decision
 
-| #   | QA-ID        | Issue                                          | What's needed                                                                                                                       |
-| --- | ------------ | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | QA-HOME-E1   | Homepage search button shape/colour            | Design to specify shape and colour token                                                                                            |
-| 2   | QA-HOME-E2   | Homepage section spacing "took too much space" | Design to specify pixel target                                                                                                      |
-| 3   | QA-PRICE-E1  | Pricing — same bg colours                      | Design to specify which sections swap                                                                                               |
-| 4   | QA-PRICE-E2  | Pricing — "remove this section"                | Product/business decision; not design                                                                                               |
-| 5   | QA-CART-E1   | Cart mobile — doc offers two options           | Product/design to pick one                                                                                                          |
-| 6   | QA-HELP-E1   | FAQ/Help hero differs from Figma               | `Solution(Dev):` blank in source doc                                                                                                |
-| 7   | QA-COURSE-E1 | Single Course mobile "Rating"                  | `Solution(Dev):` blank in source doc                                                                                                |
-| 8   | QA-HOME-A5   | Homepage price `£` glyph                       | Design to rule which face the symbol takes — report says Inter, the frame's token says SUSE, the frame's own render matches neither |
-| 9   | QA-HOME-E3   | Homepage "Why Choose Us" icon colour           | Design to specify a replacement token, or measure the frame's icon token                                                            |
+| #   | QA-ID       | Issue                                          | What's needed                                                                                                                       |
+| --- | ----------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | QA-HOME-E1  | Homepage search button shape/colour            | Design to specify shape and colour token                                                                                            |
+| 2   | QA-HOME-E2  | Homepage section spacing "took too much space" | Design to specify pixel target                                                                                                      |
+| 3   | QA-PRICE-E1 | Pricing — same bg colours                      | Design to specify which sections swap                                                                                               |
+| 4   | QA-PRICE-E2 | Pricing — "remove this section"                | Product/business decision; not design                                                                                               |
+| 5   | QA-CART-E1  | Cart mobile — doc offers two options           | Product/design to pick one                                                                                                          |
+| 6   | QA-HELP-E1  | FAQ/Help hero differs from Figma               | `Solution(Dev):` blank in source doc                                                                                                |
+| 7   | QA-HOME-A5  | Homepage price `£` glyph                       | Design to rule which face the symbol takes — report says Inter, the frame's token says SUSE, the frame's own render matches neither |
+| 8   | QA-HOME-E3  | Homepage "Why Choose Us" icon colour           | Design to specify a replacement token, or measure the frame's icon token                                                            |
 
-Code untouched for all nine. Nothing guessed.
+Code untouched for all eight. Nothing guessed.
+
+`QA-COURSE-E1` **left this ledger on 2026-08-14.** It was filed on the reading that its
+`Solution(Dev)` was blank; the source doc in fact reads "The rating should match the
+course card ratings". It continues as `QA-COURSE-B3`, a shippable Class B row. Nothing
+about it ever needed a design decision.
 
 `QA-HOME-A5` joined this ledger after the Homepage remainder slice: the frame's rendered
 `£` and SUSE's differ while their digits are identical, so the design and the build show
@@ -616,9 +640,11 @@ All `GAP` rows across all pages, in ship order (RED pages by descending open cou
 | QA-ID | Page | What to assert | Spec file |
 | ----- | ---- | -------------- | --------- |
 
-**Empty.** Every `GAP` row in the report now has a test. This is the third of the
-three "Done" conditions in `QA_EXECUTION.md`; the other two are the open Class A
-rows being `FIXED` with evidence, and no `RED` page holding a non-blocked open row.
+**Empty.** The Single Course re-read on 2026-08-14 added eight `GAP` rows and
+`fix-single-course-page-qa` closed all eight in the same pass — seven with tests in
+`e2e/course-detail.spec.ts`, one (`QA-COURSE-A8`) `CANT-REPRODUCE` with measurements.
 
-A row returning to `GAP` — a new QA pass, or a blocked row unblocking — adds a line
-here. An empty table is a state, not the end of the document.
+A row returning to `GAP` — a new QA pass, or a blocked row unblocking — adds a line here.
+An empty table is one of the three "Done" conditions in `QA_EXECUTION.md`; the other two
+are the open Class A rows being `FIXED` with evidence, and no `RED` page holding a
+non-blocked open row.

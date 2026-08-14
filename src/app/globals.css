@@ -286,7 +286,10 @@
     height: 6px;
     border-radius: 9999px;
     background-color: currentColor;
-    opacity: 0.6;
+    /* 0.6 measured 2.94:1 against white — below the 3:1 WCAG floor for non-text
+       graphics (QA-COURSE-A7). 0.75 measures 4.14:1 and still reads lighter than
+       the body text it belongs to. */
+    opacity: 0.75;
   }
   & :where(ol) {
     @apply mb-4 list-inside list-decimal;

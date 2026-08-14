@@ -31,16 +31,16 @@ export function CourseFaq({ heading, items }: CourseFaqProps) {
             <button
               type="button"
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
-              className="flex w-full items-center justify-between gap-4 px-6 py-6 text-left"
+              className="hover:bg-secondary-100 group flex w-full cursor-pointer items-center justify-between gap-4 px-6 py-6 text-left transition-colors"
               aria-expanded={openIndex === i}
             >
               <span className="font-open-sans text-base font-medium text-neutral-900">
                 {faq.question}
               </span>
               {openIndex === i ? (
-                <Minus className="text-secondary-500 h-5 w-5 shrink-0" />
+                <Minus className="text-secondary-500 group-hover:text-secondary-600 h-5 w-5 shrink-0 transition-colors" />
               ) : (
-                <Plus className="text-secondary-500 h-5 w-5 shrink-0" />
+                <Plus className="text-secondary-500 group-hover:text-secondary-600 h-5 w-5 shrink-0 transition-colors" />
               )}
             </button>
             {openIndex === i ? (

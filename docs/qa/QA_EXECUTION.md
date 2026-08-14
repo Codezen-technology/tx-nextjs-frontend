@@ -345,9 +345,20 @@ npx playwright test e2e/design-fidelity.spec.ts \
    the spec still passes. Proves it has not drifted into de-facto visual regression.
 3. **Checker** — delete a `GAP` row's "Tests to write" line and confirm `pnpm test`
    fails naming the page and QA-ID. Proves assertions 1–4 are live.
-4. **Baseline** — five pre-existing E2E failures are known and unrelated: `smoke:9`,
-   `auth-flow:15`, `auth-flow:22`, `cancellations:11`, `cancellations:28`. Compare
-   against that, not against zero.
+4. **Baseline** — **seven** pre-existing E2E failures are known and unrelated: `smoke:9`,
+   `auth-flow:15`, `auth-flow:22`, `cancellations:11`, `cancellations:28`, plus
+   `course-detail.spec.ts > has a canonical link pointing to the frontend domain` and
+   `course-detail.spec.ts > injects valid JSON-LD structured data`. Compare against that,
+   not against zero.
+
+   > The two `course-detail` rows joined the list on 2026-08-14. They were invisible
+   > until then because both `test.skip` when no course slug resolves, and the suite had
+   > been run without `NEXT_PUBLIC_WP_API_URL` in the environment — so they skipped
+   > rather than failed. Both wait on a `<script>` / `<link>` becoming _visible_, which a
+   > head or JSON-LD tag never is. Confirmed pre-existing by running them on a clean
+   > tree. Load `.env.local` before an E2E run (`set -a; . ./.env.local; set +a`) or the
+   > run silently under-reports.
+
 5. **Page index arithmetic** — every `Open` count matches the rows beneath it (checker
    assertion 4), **and** every `Ready` value reflects them (not machine-checked).
 

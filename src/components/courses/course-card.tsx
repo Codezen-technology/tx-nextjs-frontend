@@ -72,6 +72,10 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
         {/* Rating + bookmark */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 text-sm text-neutral-400">
+            {/* A rating is a claim about other buyers' opinions — it is rendered only
+                when the course actually carries one (QA-COURSE-B3). This branch used to
+                fall back to "4.7"/"4.9" by course ID, which put an invented score on
+                every card while the course page correctly showed none. */}
             {course.rating ? (
               <>
                 <span>{course.rating.toFixed(1)}</span>
@@ -82,12 +86,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
                   </span>
                 ) : null}
               </>
-            ) : (
-              <div className="flex flex-row items-center gap-1 text-neutral-400">
-                <span className="text-sm">{course.id % 2 === 0 ? "4.7" : "4.9"}</span>
-                <Star className="h-4 w-4 fill-amber-300 stroke-amber-300" />
-              </div>
-            )}
+            ) : null}
           </div>
           {/* <button
             type="button"
