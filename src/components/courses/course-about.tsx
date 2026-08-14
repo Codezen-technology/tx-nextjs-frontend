@@ -10,7 +10,7 @@ export function CourseAbout({ heading, html }: CourseAboutProps) {
         {heading ?? "About course"}
       </h2>
       <div
-        className="prose prose-neutral font-open-sans prose-p:my-0 mt-6 max-w-none text-base leading-normal text-neutral-500"
+        className="prose prose-neutral font-open-sans prose-p:my-0 mt-6 max-w-none text-base leading-7 text-neutral-500"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </section>
