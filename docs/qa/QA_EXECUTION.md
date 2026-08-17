@@ -1,7 +1,7 @@
 # QA Report — Page-by-Page Execution Runbook
 
 **Companion to:** [`QA_BY_PAGE.md`](./QA_BY_PAGE.md) · **Owner change:** `openspec/changes/qa-class-a-design-fidelity`
-**Last updated:** 2026-08-12
+**Last updated:** 2026-08-14
 
 ---
 
@@ -23,11 +23,16 @@ a verdict. If you find yourself updating a status here, you are in the wrong fil
 
 ### Why a runbook was needed
 
-The remaining work is small and page-shaped — **15 open Class A rows across 8 pages**;
-everything else is `FIXED`, `CONTENT-GAP`, `CANT-REPRODUCE`, `BLOCKED-DESIGN` or Class D.
-But the owner change's `tasks.md` was ordered by _phase_ (measure everything → derive
-everything → apply everything), which means no page is ever finished and no single
-commit closes one. This file re-cuts the same work into 8 page slices, one commit each.
+The owner change's `tasks.md` was ordered by _phase_ (measure everything → derive
+everything → apply everything), which means no page is ever finished and no single commit
+closes one. This file re-cuts the same work into page slices, one commit each.
+
+> **Updated 2026-08-14.** This file used to open with "15 open Class A rows across 8
+> pages". That count is dead. The `qa-report-triage-reconciliation` pass checked
+> `QA_BY_PAGE.md` against the source report item by item and found **38 unfiled rows**;
+> the index went from 3 open to **35 open across 12 pages**, with 11 blocked. The eight
+> slices below are all landed — the order that matters now is the reconciled one, further
+> down.
 
 ---
 
@@ -95,6 +100,34 @@ with pages that share a single fix kept adjacent.**
 | 7   | **About Us**                           | —                                  | Resolve the 40px heading-weight contradiction from finding 2     |
 | 8   | **Close-out**                          | —                                  | Re-issue the Class E ledger, file Class D proposals, final gate  |
 
+**All eight landed.** Slices 0–4 and 6 shipped between 2026-08-12 and 2026-08-13; slice 5
+(Checkout + Priority Support) shipped with the dropdown fix; slice 7 (About Us) settled the
+heading-weight contradiction. Single Course was worked separately as
+`fix-single-course-page-qa`. What follows replaces this table, not supplements it.
+
+### The reconciled order — 2026-08-14
+
+Descending open count, blocked rows excluded. Every row cites a report item, so a slice can
+be scoped by reading the page's section and nothing else.
+
+| #   | Page             | Open | What it is                                                                                         |
+| --- | ---------------- | ---- | -------------------------------------------------------------------------------------------------- |
+| 1   | Single Blog      | 7    | Category name, two image removals, body/H2 type scale, FAQ vs design, 1280 padding, mobile ToC (D) |
+| 2   | Pricing          | 6    | Hero vs design, header size, a button removal, 440 spacing and alignment                           |
+| 3   | Homepage         | 6    | Nav and footer link removals, the Pricing nav item, a section button hover, footer copy            |
+| 4   | Checkout         | 4    | Card-scheme logos, PayPal "coming soon", trust lines, the missing section (D)                      |
+| 5   | All Courses      | 3    | CTA copy duplication, hero pattern (D), mobile responsive (D)                                      |
+| 6   | Course Category  | 2    | Hero background colour, 440 spacing                                                                |
+| 7   | Blog             | 2    | Card button hover, hero gradient + pattern (D)                                                     |
+| 8   | About Us         | 1    | Breadcrumb removal — the same one-line fix shipped as `QA-COURSE-A2`                               |
+| 9   | Privacy Policy   | 1    | Email and phone visibility                                                                         |
+| 10  | FAQ / Help       | 1    | FAQ section vs design                                                                              |
+| 11  | Cart             | 1    | Card content parity with the frame                                                                 |
+| 12  | Priority Support | 1    | Additional Details textarea height                                                                 |
+
+Four of these are Class D — net-new builds that need sizing before they are worked, not a
+page slice. The rest are ordinary slices under the recipe below.
+
 Slices 1–7 are **independent** once slice 0 lands. The sequence is by value, not by
 dependency — they can be worked in any order, or in parallel by different people.
 
@@ -109,6 +142,11 @@ The same eight steps for every slice.
 Open the page's section in `QA_BY_PAGE.md`. Work **only** rows whose status is
 `STILL-BROKEN` or `PARTIAL-FIX`. Do not re-verify closed rows — that is what the page's
 manual sweep is for, and it runs separately.
+
+Then check the page against [`QA_REPORT_ITEMS.md`](./QA_REPORT_ITEMS.md): every item for
+that page must have a row. `pnpm test` enforces this, but read it anyway — a row whose
+`Ref` is `NONE` may be someone else's item generalised onto your page, and working it
+means fixing something the report never asked for. That happened on five pages.
 
 ### 2. Measure
 
@@ -364,9 +402,11 @@ npx playwright test e2e/design-fidelity.spec.ts \
 
 ### Done
 
-- The 15 open Class A rows are `FIXED` with evidence
+- Every open row is `FIXED` with evidence — **35 as of the 2026-08-14 reconciliation**, not
+  the 15 this file used to claim
 - No `RED` page in the index has a non-blocked open row
-- Appendix B's test backlog is empty
+- Appendix B's test backlog is empty — **16 tests owed** as of the reconciliation
+- Every item in `QA_REPORT_ITEMS.md` is cited by a row, and `pnpm test` proves it
 
 ---
 

@@ -8,6 +8,13 @@
  *   3. Every GAP row appears in that page's "Tests to write" section,
  *      and every "Tests to write" entry has a matching GAP row.
  *   4. Page-index Open and Blocked counts match actual row counts.
+ *   5. Every row's Ref resolves to an item in docs/qa/QA_REPORT_ITEMS.md, or is NONE.
+ *   6. Every item in that inventory is cited by at least one row.
+ *
+ * 5 and 6 exist because the report is a Google Doc this script cannot read. Three
+ * times a page read `Open 0` while items sat untriaged — Homepage lost 5 rows,
+ * Single Course lost 8. Assertion 6 is the one that catches that; assertion 5
+ * catches its mirror image, a row invented by generalising another page's item.
  */
 
 import { readFileSync, existsSync } from "fs";
@@ -17,6 +24,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, "..");
 const DOC_PATH = join(REPO_ROOT, "docs/qa/QA_BY_PAGE.md");
+const ITEMS_PATH = join(REPO_ROOT, "docs/qa/QA_REPORT_ITEMS.md");
 
 export function runChecks() {
   if (!existsSync(DOC_PATH)) {
@@ -108,10 +116,12 @@ export function runChecks() {
         .filter(Boolean);
       if (cells.length >= 6 && cells[0].match(/^QA-[A-Z]+-\w+/)) {
         const qaId = cells[0];
-        const autoCell = cells[5] ?? "";
+        // Columns: QA-ID | Ref | Quote | BP | Class | Status | Auto | Manual
+        const refCell = cells[1] ?? "";
+        const autoCell = cells[6] ?? "";
         // strip reclassification suffix e.g. "RECLASSIFIED → D" → "RECLASSIFIED"
-        const status = (cells[4] ?? "").split("→")[0].trim();
-        currentPage.issueRows.push({ qaId, autoCell, status });
+        const status = (cells[5] ?? "").split("→")[0].trim();
+        currentPage.issueRows.push({ qaId, refCell, autoCell, status });
         if (/\bGAP\b/.test(autoCell)) {
           currentPage.gapIds.push(qaId);
         }
@@ -250,6 +260,52 @@ export function runChecks() {
       failures.push(
         `[${page.name}] page-index Blocked count: expected ${indexEntry.blocked}, found ${blockedRows.length}` +
           (ids ? ` (blocked rows: ${ids})` : ""),
+      );
+    }
+  }
+
+  // ── Assertions 5 and 6: provenance, both directions ───────────────────────
+  if (!existsSync(ITEMS_PATH)) {
+    failures.push(
+      `docs/qa/QA_REPORT_ITEMS.md not found — every row's Ref is unverifiable without it`,
+    );
+    return failures;
+  }
+
+  const itemsRaw = readFileSync(ITEMS_PATH, "utf8");
+  // Item IDs are declared in the inventory's own tables as `R-PAGE-BP-NN`.
+  const inventory = new Set(
+    itemsRaw.match(/`(R-[A-Z]+-(?:1920|1280|440)-\d+)`/g)?.map((m) => m.slice(1, -1)) ?? [],
+  );
+  const cited = new Set();
+
+  for (const page of pages) {
+    for (const { qaId, refCell } of page.issueRows) {
+      const refs = refCell.match(/R-[A-Z]+-(?:1920|1280|440)-\d+/g) ?? [];
+      const isNone = /\bNONE\b/.test(refCell);
+
+      if (!refs.length && !isNone) {
+        failures.push(
+          `[${page.name}] ${qaId}: Ref column is empty — every row cites a QA_REPORT_ITEMS.md item, or NONE with the reason in Manual`,
+        );
+        continue;
+      }
+      for (const ref of refs) {
+        if (!inventory.has(ref)) {
+          failures.push(
+            `[${page.name}] ${qaId}: Ref "${ref}" is not in docs/qa/QA_REPORT_ITEMS.md. Renamed, or a typo?`,
+          );
+        } else {
+          cited.add(ref);
+        }
+      }
+    }
+  }
+
+  for (const item of inventory) {
+    if (!cited.has(item)) {
+      failures.push(
+        `${item}: report item is cited by no row in QA_BY_PAGE.md. File it — with the status the code supports, not the one the report claims. An untriaged item is how a page reads "Open 0" while it is broken.`,
       );
     }
   }
