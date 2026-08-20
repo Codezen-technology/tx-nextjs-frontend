@@ -27,7 +27,7 @@
 
 - [x] 4.1 Re-run `e2e/blog-single.spec.ts` at `chromium`, `desktop-1920`, `mobile-440`
 - [x] 4.2 Mutation-check the `A6` assertion: revert the heading size, confirm the failure names family/size/weight, restore
-- [x] 4.3 Full `--project=chromium` run — **at `--workers=2`**. The default parallelism reported twelve failures, six of which passed alone and again at two workers: the dev server cannot compile routes fast enough for four workers. Recorded in `QA_EXECUTION.md`
+- [x] 4.3 Full `--project=chromium` run. **First diagnosis was wrong**: twelve failures blamed on parallelism, but a clean run at `--workers=2` reported the same twelve. Restarting `pnpm dev` fixed all six of the non-baseline ones — the server was serving stale CSS after a session of hot reloads. `QA_EXECUTION.md` corrected
 - [x] 4.4 `pnpm typecheck && pnpm lint && pnpm test`
 
 ## 5. Flip statuses and commit

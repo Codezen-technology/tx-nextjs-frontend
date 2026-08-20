@@ -394,11 +394,22 @@ npx playwright test e2e/design-fidelity.spec.ts \
    > the environment, so they skipped rather than failed. Both wait on a `<script>` /
    > `<link>` becoming _visible_, which a head or JSON-LD tag never is.
    >
-   > **Run the suite at `--workers=2`.** Playwright defaults to one worker per core
-   > pair, and against `pnpm dev` that outruns the compiler: a full-parallel run on
-   > 2026-08-20 reported twelve failures, six of which passed on their own and again at
-   > two workers. Contention flake is indistinguishable from a regression in the summary
-   > line, and chasing it costs more than the slower run.
+   > **Restart the dev server before a full run, and use `--workers=2`.** On 2026-08-20 a
+   > full run reported twelve failures — the six above plus six more, including three
+   > "section headings use the bold H2 token" on three different pages, the homepage
+   > overflow check, a card-hover check and `unknown slug returns 404`. All six passed
+   > individually. Lowering the worker count did **not** fix it; **restarting `pnpm dev`
+   > did**, and they passed at two workers afterwards.
+   >
+   > The cause is server state, not parallelism: a dev server that has hot-reloaded
+   > through a session of CSS edits serves stale styles. The same thing bit the
+   > `QA-COURSE-A7` marker fix earlier the same day — the browser kept reporting the old
+   > `opacity: 0.6` until the server was restarted, which cost an hour of chasing a fix
+   > that was already correct on disk.
+   >
+   > So: `pkill -f "next dev"`, start it fresh, then run. A stale-CSS failure looks
+   > exactly like a regression in the summary line, and it lies in the direction that
+   > wastes the most time — it says your correct change is broken.
 
    > **Load `.env.local` before an E2E run** (`set -a; . ./.env.local; set +a`) or the run
    > silently under-reports by skipping every test that needs a course.
