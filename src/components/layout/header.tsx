@@ -22,11 +22,11 @@ import { MiniCart } from "@/components/cart/MiniCart";
 import { ProfileMenu, ProfileNavLinks } from "./profile-menu";
 import type { CourseCategory } from "@/types/course";
 
-const resourcesLinks = [
-  { href: "/blog", label: "Blog" },
-  { href: "/help", label: "Help Centre" },
-  { href: "/about-us", label: "About Us" },
-];
+// QA-HOME-A12 (R-HOME-1920-18): Help Centre and About Us came out — both already
+// sit in the utility row above, so the dropdown was listing them twice. That
+// leaves one entry; whether a one-item dropdown should become a plain link is a
+// design call recorded on the QA row, not one to make here.
+const resourcesLinks = [{ href: "/blog", label: "Blog" }];
 
 /**
  * Hover intent for the desktop nav.
@@ -463,17 +463,20 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
             >
               Training teams
             </Link>
-            <NavDropdown label="Resources" links={resourcesLinks} />
+            {/* Pricing joins the commercial row next to Training teams — QA-HOME-A13. */}
             <Link
-              href="/contact-us"
+              href="/pricing"
               className={cn(
                 "font-open-sans text-neutral-30 hover:text-primary-300 text-[14px] font-medium transition-colors",
-                pathname === "/contact-us" && "text-primary-400",
+                pathname === "/pricing" && "text-primary-400",
               )}
-              aria-current={pathname === "/contact-us" ? "page" : undefined}
+              aria-current={pathname === "/pricing" ? "page" : undefined}
             >
-              Contact us
+              Pricing
             </Link>
+            <NavDropdown label="Resources" links={resourcesLinks} />
+            {/* No Contact us here — QA-HOME-A11. The footer keeps the link and
+                /contact-us keeps its route. */}
 
             {/* Vertical divider */}
             <div className="h-8 w-px bg-neutral-600" aria-hidden="true" />
@@ -561,19 +564,22 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
             >
               Training teams
             </Link>
+            {/* Same membership as the desktop row — QA-HOME-A11 / A13. Two
+                surfaces, one navigation: a link removed from one and left in the
+                other is still on the site. */}
+            <Link
+              href="/pricing"
+              onClick={() => setMobileOpen(false)}
+              className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
+            >
+              Pricing
+            </Link>
             <Link
               href="/blog"
               onClick={() => setMobileOpen(false)}
               className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
             >
               Resources
-            </Link>
-            <Link
-              href="/contact-us"
-              onClick={() => setMobileOpen(false)}
-              className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
-            >
-              Contact us
             </Link>
             <div className="my-2 border-t border-neutral-600" />
             <Link

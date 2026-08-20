@@ -81,10 +81,6 @@ const SOCIAL_LABEL_MAP: Record<string, string> = {
 
 const FALLBACK_NAV_LINKS: FooterNavLink[] = [
   { href: "/about-us", label: "About us" },
-  // "/careers" removed — no such WP page, so the catch-all route 404s. Restore
-  // the link when the page exists.
-  { href: "/resources", label: "Resources", badge: "New" },
-  { href: "/force-for-good", label: "Force for Good" },
   { href: "/reviews", label: "Reviews" },
   { href: "/help", label: "Help and FAQs" },
   { href: "/contact-us", label: "Contact us" },
@@ -106,24 +102,57 @@ function remapNavHref(href: string): string {
 
 type NavCol = { header?: string; links: FooterNavLink[] };
 
-function buildNavColumns(nav: FooterData["nav"] | undefined): NavCol[] {
+/**
+ * Footer links the business asked to drop — QA-HOME-A9 (`R-HOME-1920-15`).
+ *
+ * These live in the **WordPress** menu, not in this file: prod's
+ * `/lms-backend/v1/footer` still serves all three, so editing the fallback below
+ * would have closed the QA row while changing nothing on the site. Filtering here
+ * is a guard, and the durable fix is deleting the three items from the WP footer
+ * menu — do that, and this list can go.
+ *
+ * Matched on destination, not label: renaming "Work for us" to "Careers" in the
+ * CMS must not bring it back.
+ */
+const REMOVED_FOOTER_PATHS = new Set(["/force-for-good", "/careers", "/resources"]);
+
+function keepLink(link: FooterNavLink): boolean {
+  const href = remapNavHref(link.href);
+  // `toFrontendPath` only strips an origin it recognises, so a menu served from
+  // any other host arrives here absolute. Compare pathnames, or the filter leaks
+  // the moment the backend origin changes.
+  let path = href;
+  try {
+    if (/^https?:\/\//.test(href)) path = new URL(href).pathname;
+  } catch {
+    // Not a URL — fall through and match the raw value.
+  }
+  return !REMOVED_FOOTER_PATHS.has(path.replace(/\/$/, ""));
+}
+
+/** Exported for `footer-nav.test.ts` — the CMS shape is what needs guarding, not the fallback. */
+export function buildNavColumns(nav: FooterData["nav"] | undefined): NavCol[] {
   if (!nav) {
+    const links = FALLBACK_NAV_LINKS.filter(keepLink);
+    const mid = Math.ceil(links.length / 2);
     return [
-      { header: "About", links: FALLBACK_NAV_LINKS.slice(0, 5) },
-      { header: "Support", links: FALLBACK_NAV_LINKS.slice(5) },
+      { header: "About", links: links.slice(0, mid) },
+      { header: "Support", links: links.slice(mid) },
     ];
   }
   if (Array.isArray(nav)) {
-    const items = (nav as WpNavItem[]).map((item) => ({
-      label: item.title,
-      href: toFrontendPath(item.url),
-    }));
+    const items = (nav as WpNavItem[])
+      .map((item) => ({
+        label: item.title,
+        href: toFrontendPath(item.url),
+      }))
+      .filter(keepLink);
     const mid = Math.ceil(items.length / 2);
     return [{ links: items.slice(0, mid) }, { links: items.slice(mid) }];
   }
   return [
-    { header: "About", links: nav.about ?? [] },
-    { header: "Support", links: nav.support ?? [] },
+    { header: "About", links: (nav.about ?? []).filter(keepLink) },
+    { header: "Support", links: (nav.support ?? []).filter(keepLink) },
   ];
 }
 
