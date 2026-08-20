@@ -274,6 +274,9 @@ test.describe("QA-COURSE-* — single course page fidelity", () => {
 
   test("QA-COURSE-B3: no rating renders unless the course carries one", async ({ page }) => {
     test.skip(!courseSlug, "No courses available on WP backend");
+    // Two navigations plus a WP round trip — it outruns the default budget when
+    // the whole suite is compiling pages in parallel.
+    test.slow();
 
     const readRating = async (path: string, scope: string) => {
       await page.goto(path);

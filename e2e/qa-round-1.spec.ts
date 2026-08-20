@@ -291,7 +291,10 @@ test.describe("QA-HOME-* — navbar opens on hover", () => {
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
 
     await hoverUntilOpen(page, trigger);
-    await expect(page.getByRole("link", { name: "Help Centre" })).toBeVisible();
+    // Blog is the dropdown's remaining entry — Help Centre and About Us came out
+    // with QA-HOME-A12 because both already sit in the utility row. This test is
+    // about the hover contract, so it asserts the panel's content, whatever it is.
+    await expect(page.getByRole("link", { name: "Blog" }).first()).toBeVisible();
   });
 
   test("the mega menu opens on hover and survives the pointer moving into it", async ({ page }) => {

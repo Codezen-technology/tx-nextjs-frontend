@@ -383,19 +383,19 @@ npx playwright test e2e/design-fidelity.spec.ts \
    the spec still passes. Proves it has not drifted into de-facto visual regression.
 3. **Checker** — delete a `GAP` row's "Tests to write" line and confirm `pnpm test`
    fails naming the page and QA-ID. Proves assertions 1–4 are live.
-4. **Baseline** — **seven** pre-existing E2E failures are known and unrelated: `smoke:9`,
-   `auth-flow:15`, `auth-flow:22`, `cancellations:11`, `cancellations:28`, plus
-   `course-detail.spec.ts > has a canonical link pointing to the frontend domain` and
-   `course-detail.spec.ts > injects valid JSON-LD structured data`. Compare against that,
+4. **Baseline** — **six** pre-existing E2E failures at `--project=chromium`, all unrelated
+   to any open QA row: `smoke:9`, `auth-flow:15`, `cancellations:11`, `cancellations:28`,
+   and the two `course-detail` head-tag tests (canonical, JSON-LD). Compare against that,
    not against zero.
 
-   > The two `course-detail` rows joined the list on 2026-08-14. They were invisible
-   > until then because both `test.skip` when no course slug resolves, and the suite had
-   > been run without `NEXT_PUBLIC_WP_API_URL` in the environment — so they skipped
-   > rather than failed. Both wait on a `<script>` / `<link>` becoming _visible_, which a
-   > head or JSON-LD tag never is. Confirmed pre-existing by running them on a clean
-   > tree. Load `.env.local` before an E2E run (`set -a; . ./.env.local; set +a`) or the
-   > run silently under-reports.
+   > Revised twice. `auth-flow:22` was on this list and now passes — it was flaky, not
+   > broken. The two `course-detail` rows joined on 2026-08-14: both `test.skip` when no
+   > course slug resolves, and the suite had been run without `NEXT_PUBLIC_WP_API_URL` in
+   > the environment, so they skipped rather than failed. Both wait on a `<script>` /
+   > `<link>` becoming _visible_, which a head or JSON-LD tag never is.
+   >
+   > **Load `.env.local` before an E2E run** (`set -a; . ./.env.local; set +a`) or the run
+   > silently under-reports by skipping every test that needs a course.
 
 5. **Page index arithmetic** — every `Open` count matches the rows beneath it (checker
    assertion 4), **and** every `Ready` value reflects them (not machine-checked).
