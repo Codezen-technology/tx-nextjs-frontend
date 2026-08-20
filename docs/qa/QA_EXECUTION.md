@@ -394,6 +394,12 @@ npx playwright test e2e/design-fidelity.spec.ts \
    > the environment, so they skipped rather than failed. Both wait on a `<script>` /
    > `<link>` becoming _visible_, which a head or JSON-LD tag never is.
    >
+   > **Run the suite at `--workers=2`.** Playwright defaults to one worker per core
+   > pair, and against `pnpm dev` that outruns the compiler: a full-parallel run on
+   > 2026-08-20 reported twelve failures, six of which passed on their own and again at
+   > two workers. Contention flake is indistinguishable from a regression in the summary
+   > line, and chasing it costs more than the slower run.
+
    > **Load `.env.local` before an E2E run** (`set -a; . ./.env.local; set +a`) or the run
    > silently under-reports by skipping every test that needs a course.
 

@@ -248,6 +248,34 @@
   text-wrap: balance;
 }
 
+/**
+ * Blog-article heading token — QA-BLOGS-A6.
+ *
+ * The single-post frame (`6015:127141`) binds `Heading/Bold/H5` for in-article
+ * headings: SUSE Bold 20px, 1.2 line-height, Neutral/N900. The QA report asked
+ * for 32px bold and the build shipped Open Sans 24/600 — three different values
+ * for one property, settled by the frame per `design-token-fidelity`. The
+ * report's number is recorded on the row for a design ruling.
+ *
+ * Scoped as a modifier because `prose-wp` also types the privacy policy, course
+ * descriptions and bundle copy, none of which were measured against this frame.
+ */
+@utility prose-wp-article {
+  /* Not `:where()` — `prose-wp` types its headings through `:where()`, which
+     contributes no specificity, so a second zero-specificity rule would be
+     decided by source order. A plain descendant selector wins outright. */
+  & h1,
+  & h2,
+  & h3,
+  & h4 {
+    font-family: var(--font-suse);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--color-neutral-900);
+  }
+}
+
 @utility prose-wp {
   & :where(h1, h2, h3, h4) {
     /* scroll-mt clears the sticky header when a heading is reached via a
