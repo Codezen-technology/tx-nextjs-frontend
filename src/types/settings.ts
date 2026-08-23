@@ -33,7 +33,23 @@ export interface WpNavItem {
   classes: string[];
   description: string | null;
   menu_order: number;
-  items: WpNavItem[];
+  /**
+   * Present on top-level nodes only — `Footer_Controller::build_nav_tree()`
+   * attaches `items` when it assembles sections, while `format_nav_item()`
+   * (used for children) omits the key entirely.
+   */
+  items?: WpNavItem[];
+}
+
+/**
+ * Accreditation badge shown in the footer. `src` is already resolved to an
+ * absolute URL by the backend (`Media_Path`), so it may live on the WP origin
+ * or on the S3 media host — both are in `next.config.mjs` `remotePatterns`. A
+ * badge served from any other host must have that host added there first.
+ */
+export interface FooterBadge {
+  src: string;
+  alt?: string | null;
 }
 
 export interface FooterData {
@@ -50,6 +66,12 @@ export interface FooterData {
     email?: string | null;
     phone?: string | null;
     address?: string | null;
+    /** Brand blurb rendered beside the logo — `wp_option lms_footer_description`. */
+    description?: string | null;
+  };
+  /** `wp_option lms_footer_badges`; absent on older backends. */
+  compliance?: {
+    badges: FooterBadge[];
   };
 }
 
