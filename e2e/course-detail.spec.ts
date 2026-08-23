@@ -88,6 +88,27 @@ async function hoverAndRead(
   return locator.evaluate((el, prop) => getComputedStyle(el)[prop as "backgroundColor"], property);
 }
 
+/**
+ * Read a colour once it has stopped moving.
+ *
+ * `transition-colors` runs for 150ms, so a value read immediately after the
+ * pointer leaves is still mid-transition — and a "resting" colour captured that
+ * way can be the hover colour, which makes the next hover look like no change at
+ * all. That is exactly how QA-COURSE-A5 failed one run in three: it reported
+ * `expected a change from rgb(225, 210, 186)`, which is secondary-100 — the
+ * hover colour it had just moved away from.
+ */
+async function settled(read: () => Promise<string>): Promise<string> {
+  let prev = await read();
+  for (let i = 0; i < 20; i++) {
+    await new Promise((r) => setTimeout(r, 60));
+    const next = await read();
+    if (next === prev) return next;
+    prev = next;
+  }
+  return prev;
+}
+
 test.describe("QA-COURSE-* — single course page fidelity", () => {
   test("QA-COURSE-A2: no breadcrumb bar renders, BreadcrumbList JSON-LD survives", async ({
     page,
@@ -152,7 +173,9 @@ test.describe("QA-COURSE-* — single course page fidelity", () => {
     if ((await faq.count()) === 0) test.skip(true, "Course has no FAQ section.");
 
     const toggle = faq.locator("button[aria-expanded]").first();
-    const resting = await toggle.evaluate((el) => getComputedStyle(el).backgroundColor);
+    const resting = await settled(() =>
+      toggle.evaluate((el) => getComputedStyle(el).backgroundColor),
+    );
     await expect
       .poll(() => hoverAndRead(toggle), {
         message: `single course @all: FAQ toggle background on hover — expected a change from ${resting}`,
@@ -180,7 +203,7 @@ test.describe("QA-COURSE-* — single course page fidelity", () => {
 
       // Inactive (or currently-selected) state as it sits
       await page.mouse.move(0, 0);
-      const resting = await restingBg(name);
+      const resting = await settled(() => restingBg(name));
       await expect
         .poll(() => hoverAndRead(tabFor(name)), {
           message: `single course @all: "${name.source}" tab hover — expected a change from ${resting}`,
@@ -190,7 +213,7 @@ test.describe("QA-COURSE-* — single course page fidelity", () => {
       // Now select it and hover again — the active tab must answer the pointer too
       await tab.click();
       await page.mouse.move(0, 0);
-      const restingActive = await restingBg(name);
+      const restingActive = await settled(() => restingBg(name));
       await expect
         .poll(() => hoverAndRead(tabFor(name)), {
           message: `single course @all: "${name.source}" tab active hover — expected a change from ${restingActive}`,

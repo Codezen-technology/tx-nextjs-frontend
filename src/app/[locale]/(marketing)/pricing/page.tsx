@@ -50,10 +50,11 @@ export default async function PricingPage() {
 
       <PricingComparison plans={pricing?.pricing?.plans} />
 
+      {/* No container here — `CategoriesGrid` opens with one, and wrapping it in a
+          second inset this section a whole page-pad further than every other
+          section on the page: 48 against 24 at 440. QA-PRICE-A5. */}
       <section className="py-section bg-white lg:py-20">
-        <div className="container mx-auto">
-          <CategoriesGrid categories={categoriesRes?.items} />
-        </div>
+        <CategoriesGrid categories={categoriesRes?.items} />
       </section>
 
       {pricing?.faq?.length ? (

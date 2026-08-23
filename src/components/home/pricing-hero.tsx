@@ -33,12 +33,17 @@ export function PricingHero({
         </ol>
       </nav>
 
+      {/* Inset measured at 112/112 on the frame's hero band (6239:135726 — band
+          320, title at y=112 h=96). The inset is the target, not the height: the
+          band grows with a wrapping title instead of eating its own padding.
+          QA-PRICE-A1. The frame's wave and pattern are Class D, filed alongside
+          QA-BLOG-D2 and QA-COURSES-D2. */}
       <section className="bg-secondary-50 relative overflow-hidden">
         <div
           className="pointer-events-none absolute inset-0 bg-[url('/images/plus-shape.png')] bg-contain bg-right bg-no-repeat opacity-40"
           aria-hidden="true"
         />
-        <div className="relative container mx-auto flex flex-col gap-6 py-16 md:flex-row md:items-center md:justify-between md:gap-12">
+        <div className="relative container mx-auto flex flex-col gap-6 py-16 md:flex-row md:items-center md:justify-between md:gap-12 lg:py-[112px]">
           <h1 className="font-suse shrink-0 text-[2.5rem] leading-[1.2] font-bold text-neutral-900">
             {title}
           </h1>
