@@ -2,7 +2,7 @@
 
 A script and Vitest wrapper that asserts structural invariants of `docs/qa/QA_BY_PAGE.md` against the codebase on every test run, so that `file:line` test references cannot rot silently and the GAP/backlog/count invariants cannot drift.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Checker runs on every test suite
 
