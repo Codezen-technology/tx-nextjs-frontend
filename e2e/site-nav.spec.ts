@@ -15,10 +15,33 @@ import { test, expect } from "@playwright/test";
 const headerLink = (page: import("@playwright/test").Page, href: string) =>
   page.locator(`header a[href="${href}"]`).locator("visible=true");
 
+/**
+ * Open the mobile drawer, tolerating a click that lands before hydration.
+ *
+ * The toggle renders server-side, so it is clickable long before React attaches
+ * its handler — a click in that window is swallowed and the drawer never opens.
+ * That produced an `#mobile-nav` "element(s) not found" failure in three
+ * consecutive full runs, each of which passed when the spec was re-run alone,
+ * which is exactly what a hydration race looks like from the summary line.
+ *
+ * Retried rather than slept on: a fixed wait is either too short on a cold dev
+ * server or wasted on a warm one.
+ */
 async function openMobileDrawer(page: import("@playwright/test").Page) {
   const toggle = page.getByRole("button", { name: /open menu/i });
-  await toggle.click();
-  await expect(page.locator("#mobile-nav")).toBeVisible();
+  const drawer = page.locator("#mobile-nav");
+  await toggle.waitFor();
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await toggle.click();
+    try {
+      await drawer.waitFor({ state: "visible", timeout: 2000 });
+      return;
+    } catch {
+      // Swallowed pre-hydration click — try again.
+    }
+  }
+  await expect(drawer, "the mobile drawer did not open after three clicks").toBeVisible();
 }
 
 test.describe("QA-HOME-* — header and footer link membership", () => {

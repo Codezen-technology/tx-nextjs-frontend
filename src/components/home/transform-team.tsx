@@ -18,17 +18,22 @@ export function TransformTeam({ data }: TransformTeamProps) {
       className="py-section relative overflow-hidden lg:py-16"
       style={{ background: "linear-gradient(113.58deg, #00204a 0%, #004f65 100%)" }}
     >
-      {/* Purely decorative backdrop — empty alt keeps it out of the a11y tree. */}
+      {/* Purely decorative backdrop — empty alt keeps it out of the a11y tree, and
+          `pointer-events-none` keeps it out of hit-testing. Without it this
+          positioned, full-bleed layer paints over the static content below and
+          takes every pointer event: the CTA could not be hovered *or clicked*
+          (QA-HOME-A8). Same shape as `category-hero` and `all-courses-hero`,
+          which pair a decorative layer with a `relative z-10` content wrapper. */}
       <Image
         src="https://trainingexcellence-media.s3.eu-west-2.amazonaws.com/wp-content/uploads/2026/07/16092625/transfrom-team-bg-shape.png"
         alt=""
         aria-hidden
         fill
         sizes="100vw"
-        className="absolute inset-0 object-cover"
+        className="pointer-events-none absolute inset-0 object-cover"
       />
 
-      <div className="container flex flex-col items-center justify-between gap-10">
+      <div className="relative z-10 container flex flex-col items-center justify-between gap-10">
         <div className="flex max-w-2xl flex-col items-center gap-4 text-center">
           <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-white">{data.title}</h2>
           {data.description && (
@@ -94,7 +99,7 @@ export function TransformTeam({ data }: TransformTeamProps) {
         {data.cta?.href && (
           <Link
             href={data.cta.href}
-            className="bg-secondary-600 hover:bg-secondary-700 font-open-sans inline-flex w-50 cursor-pointer items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition-opacity hover:opacity-90"
+            className="bg-secondary-600 hover:bg-secondary-700 font-open-sans inline-flex w-50 cursor-pointer items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition hover:opacity-90"
           >
             {data.cta.label}
           </Link>

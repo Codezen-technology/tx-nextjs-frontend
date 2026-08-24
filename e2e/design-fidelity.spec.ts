@@ -431,6 +431,154 @@ test.describe("Class A — Homepage", () => {
       ).toBe(true);
     }
   });
+
+  /**
+   * QA-HOME-A8 — report item R-HOME-1920-11, "the button has no hover effect".
+   *
+   * The button is "Request a Quote" in the Transform Your Team section, and its
+   * hover classes were always present and correct. They never fired: the
+   * section's decorative `<Image fill>` backdrop is positioned with
+   * `pointer-events: auto`, so it painted over the whole band and took every
+   * pointer event. `elementFromPoint` at the button's centre returned the image.
+   *
+   * Hit-tested rather than screenshotted on purpose — the button renders
+   * correctly, so a visual check passes while the control is dead. The defect
+   * lives in the hit-testing layer, so that is the layer this reads.
+   */
+  test("the team-section CTA is reachable by the pointer", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    await page.goto("/");
+    await settleImages(page);
+
+    const hit = await page.evaluate(() => {
+      const section = [...document.querySelectorAll("section")].find((s) =>
+        /113\.58/.test(s.getAttribute("style") || ""),
+      );
+      if (!section) return { found: false as const };
+      const link = section.querySelector("a");
+      if (!link) return { found: true as const, hasLink: false };
+      link.scrollIntoView({ block: "center" });
+      const r = link.getBoundingClientRect();
+      const el = document.elementFromPoint(
+        Math.round(r.left + r.width / 2),
+        Math.round(r.top + r.height / 2),
+      );
+      return {
+        found: true as const,
+        hasLink: true,
+        label: (link.textContent || "").trim(),
+        reaches: el === link || link.contains(el),
+        blockedBy: el
+          ? `${el.tagName.toLowerCase()}.${String(el.className).split(" ").slice(0, 3).join(".")}`
+          : "nothing",
+      };
+    });
+
+    expect(hit.found, "the Transform Your Team section was not found on /").toBe(true);
+    expect(hit.hasLink, "the Transform Your Team section has no CTA link").toBe(true);
+    expect(
+      hit.reaches,
+      `@${vw} the pointer does not reach the "${hit.label}" CTA — the element at its centre is ${hit.blockedBy}. A decorative layer covering the band takes the pointer, so the button cannot be hovered or clicked.`,
+    ).toBe(true);
+  });
+
+  /**
+   * The affordance the row actually asks for, once the pointer can get there.
+   * Read through a settle loop: a colour sampled mid-transition can be the hover
+   * value, which makes the next hover look like no change — the failure mode
+   * QA-COURSE-A5 hit one run in three.
+   */
+  test("the team-section CTA changes on hover", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    await page.goto("/");
+    await settleImages(page);
+
+    // Tailwind emits `hover:` variants behind `@media (hover: hover)`, and the
+    // 440 project emulates touch, where that query is false. The styles are
+    // correctly not applied there — asserting a hover effect on a device that
+    // reports it has no hover would be asserting a bug.
+    const canHover = await page.evaluate(() => matchMedia("(hover: hover)").matches);
+    test.skip(
+      !canHover,
+      "This viewport reports (hover: hover) = false — hover styles do not apply.",
+    );
+
+    const cta = page.locator("section a", { hasText: /request a quote/i }).first();
+    await cta.scrollIntoViewIfNeeded();
+
+    const read = async () => cta.evaluate((el) => getComputedStyle(el).backgroundColor);
+    const settle = async () => {
+      let prev = await read();
+      for (let i = 0; i < 20; i++) {
+        await page.waitForTimeout(60);
+        const next = await read();
+        if (next === prev) return next;
+        prev = next;
+      }
+      return prev;
+    };
+
+    const resting = await settle();
+    await cta.hover();
+    const hovered = await settle();
+
+    expect(
+      hovered,
+      `@${vw} the team-section CTA does not change on hover — resting and hovered both read ${resting}`,
+    ).not.toBe(resting);
+  });
+
+  /**
+   * The hover alters two properties; both have to be transitioned or one snaps
+   * while the other animates. The build shipped `transition-opacity` against a
+   * `hover:bg-*`, so the colour landed instantly.
+   */
+  test("the team-section CTA transitions every property its hover changes", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("load");
+
+    const cta = page.locator("section a", { hasText: /request a quote/i }).first();
+    await cta.waitFor();
+
+    // Read the class list and the computed property from the *same* locator, in
+    // one evaluate. Reading them separately let the two disagree: an earlier
+    // version resolved the element twice and intermittently reported
+    // `transition-property: none` while the polled value was correct.
+    const read = () =>
+      cta.evaluate((el) => ({
+        property: getComputedStyle(el).transitionProperty,
+        classes: el.className,
+      }));
+
+    // A computed style read before the dev server's stylesheet lands reports
+    // `none`, which is indistinguishable from a button that genuinely has no
+    // transition. Bounded, so a real absence still fails rather than hanging.
+    await expect
+      .poll(async () => (await read()).property, {
+        timeout: 5000,
+        message:
+          "the team-section CTA still reports transition-property: none after the stylesheet loaded",
+      })
+      .not.toBe("none");
+
+    const t = await read();
+    const changesColour = /hover:bg-/.test(t.classes);
+    const changesOpacity = /hover:opacity-/.test(t.classes);
+    const covers = (prop: string) => t.property === "all" || t.property.includes(prop);
+
+    if (changesColour) {
+      expect(
+        covers("background-color"),
+        `the CTA changes its background on hover but transitions only "${t.property}" — the colour lands instantly`,
+      ).toBe(true);
+    }
+    if (changesOpacity) {
+      expect(
+        covers("opacity"),
+        `the CTA changes its opacity on hover but transitions only "${t.property}"`,
+      ).toBe(true);
+    }
+  });
 });
 
 /**
