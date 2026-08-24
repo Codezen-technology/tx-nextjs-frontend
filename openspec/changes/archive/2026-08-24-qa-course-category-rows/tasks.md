@@ -45,4 +45,4 @@
 - [x] 6.3 `pnpm test` — green including the doc checker's 6 assertions
 - [x] 6.4 Restart `pnpm dev`, warm the touched routes, then full `pnpm test:e2e`; compare against the corrected baseline (4 specs × 3 projects) and re-run any extras before believing them
 - [x] 6.5 `openspec validate qa-course-category-rows --strict`
-- [ ] 6.6 Commit
+- [x] 6.6 Commit
