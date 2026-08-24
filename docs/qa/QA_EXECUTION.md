@@ -414,6 +414,19 @@ npx playwright test e2e/design-fidelity.spec.ts \
    > **Load `.env.local` before an E2E run** (`set -a; . ./.env.local; set +a`) or the run
    > silently under-reports by skipping every test that needs a course.
 
+   > **The "six" is a per-project number; `pnpm test:e2e` runs three.** On 2026-08-24 a
+   > full run reported **16 failed / 94 skipped / 169 passed** and a warm re-run settled at
+   > **12** — `smoke:9`, `auth-flow:15`, `cancellations:11` and `cancellations:28`, each
+   > across `chromium`, `desktop-1920` and `mobile-440`. That is the same baseline, counted
+   > three times. Compare a full run against **4 specs × 3 projects**, not against six.
+   >
+   > **A wiped `.next` adds cold-compile failures that are not regressions.** The four
+   > extras in that run — three "section headings use the bold H2 token" (All Courses and
+   > Course Category) and `QA-HOME-A13`, which failed on `#mobile-nav` "element(s) not
+   > found" — all passed on a warm re-run with no code change. First hit on a route races
+   > the dev server's compile. Either warm the routes first or re-run the failures before
+   > believing them; a cold-compile failure reads exactly like the stale-CSS one above.
+
 5. **Page index arithmetic** — every `Open` count matches the rows beneath it (checker
    assertion 4), **and** every `Ready` value reflects them (not machine-checked).
 

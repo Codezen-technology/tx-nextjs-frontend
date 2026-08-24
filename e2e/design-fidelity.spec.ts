@@ -711,6 +711,41 @@ test.describe("Class A — All Courses", () => {
         .join(", ")}`,
     ).toEqual([]);
   });
+
+  /**
+   * QA-COURSES-A4 — report item R-COURSES-1920-03, "in the CTA, there are
+   * courses written multiple times".
+   *
+   * 18 of the 20 category names WordPress serves already end in "Courses", so a
+   * CTA that appends the word to the raw name says it twice. The frame
+   * (3306:50171) reads "View all care certificate courses" — the word once.
+   *
+   * The unit test over `categoryCtaLabel` is the guard; this proves the helper
+   * is wired into both CTA surfaces on the real page.
+   */
+  test("all-courses category CTAs say 'courses' exactly once", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    await page.goto("/all-courses");
+    await page
+      .locator("main a", { hasText: /^View all/i })
+      .first()
+      .waitFor();
+
+    const labels = await page.evaluate(() =>
+      [...(document.querySelector("main") ?? document.body).querySelectorAll("a")]
+        .map((a) => (a.textContent || "").replace(/\s+/g, " ").trim())
+        .filter((t) => /^view all/i.test(t)),
+    );
+
+    expect(labels.length, "no 'View all …' CTA found on /all-courses").toBeGreaterThan(0);
+    const doubled = labels.filter((t) => (t.match(/\bcourses?\b/gi)?.length ?? 0) !== 1);
+    expect(
+      doubled,
+      `@${vw} these all-courses CTAs do not say "courses" exactly once: ${doubled
+        .map((t) => `"${t}"`)
+        .join(", ")}`,
+    ).toEqual([]);
+  });
 });
 
 /**
