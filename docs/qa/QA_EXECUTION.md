@@ -420,6 +420,14 @@ npx playwright test e2e/design-fidelity.spec.ts \
    > across `chromium`, `desktop-1920` and `mobile-440`. That is the same baseline, counted
    > three times. Compare a full run against **4 specs × 3 projects**, not against six.
    >
+   > **Even warm, `page.goto` can time out under default parallelism.** On 2026-08-24 a
+   > warm full run reported 16 — the 12 baseline plus four `chromium` design-fidelity
+   > cases whose message was `page.goto: Test timeout of 30000ms exceeded`, not an
+   > assertion. All four passed at `--workers=1` with no code change. The category and
+   > blog routes fetch the whole catalogue server-side, so four workers hitting them at
+   > once outruns one dev server. Read the failure's message before its name: a `goto`
+   > timeout is contention, an `expect` with expected/observed is a regression.
+   >
    > **A wiped `.next` adds cold-compile failures that are not regressions.** The four
    > extras in that run — three "section headings use the bold H2 token" (All Courses and
    > Course Category) and `QA-HOME-A13`, which failed on `#mobile-nav` "element(s) not

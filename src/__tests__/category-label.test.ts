@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { categoryCtaLabel, categoryCtaText } from "@/lib/utils/category-label";
+import {
+  categoryCtaLabel,
+  categoryCtaText,
+  categoryCoursesTitle,
+} from "@/lib/utils/category-label";
 import { COURSE_CATEGORY_NAMES } from "./fixtures/course-categories";
 
 /** Occurrences of the standalone word "course"/"courses", case-insensitive. */
@@ -57,5 +61,26 @@ describe("categoryCtaText", () => {
   // the assertion that has to hold for every name the CMS can serve.
   it.each(COURSE_CATEGORY_NAMES)("says the word exactly once for %s", (name) => {
     expect(countCourseWord(categoryCtaText(name))).toBe(1);
+  });
+});
+
+describe("categoryCoursesTitle", () => {
+  it("does not double the word for a suffixed name", () => {
+    expect(categoryCoursesTitle("Education Courses")).toBe("Education Courses");
+    expect(categoryCoursesTitle("Animal Care Courses")).toBe("Animal Care Courses");
+  });
+
+  it("adds the word for a name that lacks it", () => {
+    expect(categoryCoursesTitle("Groupon")).toBe("Groupon Courses");
+  });
+
+  it("preserves acronym casing", () => {
+    expect(categoryCoursesTitle("HACCP Courses")).toBe("HACCP Courses");
+  });
+
+  // QA-CAT-A6: the heading, the metadata title and the JSON-LD name all compose
+  // this string, so the rule has to hold for every name the CMS can serve.
+  it.each(COURSE_CATEGORY_NAMES)("says the word exactly once for %s", (name) => {
+    expect(countCourseWord(categoryCoursesTitle(name))).toBe(1);
   });
 });

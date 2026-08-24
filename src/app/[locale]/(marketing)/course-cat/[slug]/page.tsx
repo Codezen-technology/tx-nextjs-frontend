@@ -14,6 +14,7 @@ import type { PaginatedResponse } from "@/types/api";
 import type { Course } from "@/types/course";
 import { CourseTrustedStrip } from "@/components/courses/course-trusted-strip";
 import { CourseFaq } from "@/components/courses/course-faq";
+import { categoryCoursesTitle, categoryCtaLabel } from "@/lib/utils/category-label";
 
 const fetchCategories = cache(() => serverApi.taxonomy.categories({ per_page: 100 }));
 
@@ -61,10 +62,10 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     const category = categoriesResult.items.find((c) => c.slug === slug);
     if (!category) return {};
     const metadata = await buildPageMetadata(seo, {
-      title: `${category.name} Courses`,
+      title: categoryCoursesTitle(category.name),
       description:
         category.description ||
-        `Browse our accredited ${category.name} online courses. Flexible, CPD-certified training for professionals.`,
+        `Browse our accredited ${categoryCtaLabel(category.name)} online courses. Flexible, CPD-certified training for professionals.`,
       image: category.image ?? undefined,
       canonical,
     });
@@ -90,7 +91,7 @@ function buildCategorySchema(
   return {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: `${category.name} Courses`,
+    name: categoryCoursesTitle(category.name),
     ...(category.description ? { description: category.description } : {}),
     url,
     ...(category.image ? { image: category.image } : {}),
@@ -189,7 +190,7 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
 
       {/* FAQ */}
       {categoryFaq.length > 0 && (
-        <div className="container py-12">
+        <div className="py-section container lg:py-12">
           <CourseFaq
             heading={`Frequently Asked Questions About ${category.name} Training`}
             items={categoryFaq}

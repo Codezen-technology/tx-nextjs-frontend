@@ -616,6 +616,167 @@ test.describe("Class A — Course Category", () => {
         .join(", ")}`,
     ).toEqual([]);
   });
+
+  /**
+   * QA-CAT-A5 — report item R-CAT-440-01, "the spacing between these sections is
+   * too much — the spacing here will be 40px".
+   *
+   * The three content sections shipped `container py-12`, so a boundary measured
+   * 96 at 440. `--spacing-section` is 20px and each section owns half a boundary,
+   * which is the contract the homepage already uses: two adjacent sections
+   * compose to 40 without either knowing about the other.
+   *
+   * The hero is excluded deliberately — a hero band is sized by its own content
+   * and carries its own inset (QA-CAT-A2 measured 106 at 1920).
+   */
+  test("content sections sit on the 40px mobile rhythm at 440", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 440, "The 40px rhythm is a 440 target.");
+
+    await page.goto(CATEGORY_ROUTE);
+    await settleImages(page);
+
+    const gaps = await page.evaluate(() => {
+      const main = document.querySelector("main") ?? document.body;
+      // The page's content bands are the `.container` wrappers below the hero.
+      // Anchoring on `.container` rather than on element order keeps the check
+      // pointed at the page column even if a band is added or reordered.
+      const bands = [...main.querySelectorAll(".container")].filter(
+        (el) => !el.closest("header") && !el.closest("footer") && el.querySelector("h2"),
+      );
+      const out: { a: string; b: string; gap: number }[] = [];
+      for (let i = 1; i < bands.length; i++) {
+        const prev = bands[i - 1].getBoundingClientRect();
+        const cur = bands[i].getBoundingClientRect();
+        out.push({
+          a: (bands[i - 1].querySelector("h2")?.textContent || "").trim().slice(0, 28),
+          b: (bands[i].querySelector("h2")?.textContent || "").trim().slice(0, 28),
+          gap: Math.round(cur.top - prev.bottom),
+        });
+      }
+      return out;
+    });
+
+    expect(gaps.length, "fewer than two content bands found on the category page").toBeGreaterThan(
+      0,
+    );
+    const wrong = gaps.filter((g) => Math.abs(g.gap) > 1);
+    expect(
+      wrong,
+      `@${vw} these category section boundaries are not flush — the rhythm is carried by each section's own py-section (20 + 20 = 40), so the gap between their boxes must be 0: ${wrong
+        .map((g) => `"${g.a}" -> "${g.b}" = ${g.gap}`)
+        .join(", ")}`,
+    ).toEqual([]);
+
+    // The 40 itself: each band contributes 20 top and 20 bottom at 440.
+    const pads = await page.evaluate(() => {
+      const main = document.querySelector("main") ?? document.body;
+      return [...main.querySelectorAll(".container")]
+        .filter((el) => !el.closest("header") && !el.closest("footer") && el.querySelector("h2"))
+        .map((el) => {
+          const cs = getComputedStyle(el);
+          return {
+            h2: (el.querySelector("h2")?.textContent || "").trim().slice(0, 28),
+            pt: Math.round(parseFloat(cs.paddingTop)),
+            pb: Math.round(parseFloat(cs.paddingBottom)),
+          };
+        });
+    });
+    const offRhythm = pads.filter((p) => p.pt !== 20 || p.pb !== 20);
+    expect(
+      offRhythm,
+      `@${vw} these category sections do not carry the 20px half-boundary (--spacing-section), so a boundary will not read the design's 40: ${offRhythm
+        .map((p) => `"${p.h2}" = ${p.pt}/${p.pb}`)
+        .join(", ")}`,
+    ).toEqual([]);
+  });
+
+  /**
+   * QA-CAT-A5's other half — desktop must not move. The sections shipped 48px a
+   * side and the mobile fix is a `py-section lg:py-12` pair, so a mistake in the
+   * `lg:` half shows up here rather than as a silent desktop regression.
+   */
+  test("category sections keep their 48px desktop padding at 1280", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 1280, "Desktop rhythm is checked at 1280.");
+
+    await page.goto(CATEGORY_ROUTE);
+    const pads = await page.evaluate(() => {
+      const main = document.querySelector("main") ?? document.body;
+      return [...main.querySelectorAll(".container")]
+        .filter((el) => !el.closest("header") && !el.closest("footer") && el.querySelector("h2"))
+        .map((el) => {
+          const cs = getComputedStyle(el);
+          return {
+            h2: (el.querySelector("h2")?.textContent || "").trim().slice(0, 28),
+            pt: Math.round(parseFloat(cs.paddingTop)),
+            pb: Math.round(parseFloat(cs.paddingBottom)),
+          };
+        });
+    });
+
+    const wrong = pads.filter((p) => p.pt !== 48 || p.pb !== 48);
+    expect(
+      wrong,
+      `@${vw} these category sections no longer carry the 48px desktop padding they shipped with: ${wrong
+        .map((p) => `"${p.h2}" = ${p.pt}/${p.pb}`)
+        .join(", ")}`,
+    ).toEqual([]);
+  });
+
+  /**
+   * QA-CAT-A4 — report item R-CAT-1920-01, "the background color does not match
+   * the actual design".
+   *
+   * It does. Frame `3294:42433` and the build were sampled at eight points across
+   * the band and differ by at most 1/255 (`.context/figma/targets.md`); the report
+   * reviewed the live WordPress site, where the defect was real. This is the guard
+   * that keeps the measured value from drifting back, not a fix.
+   */
+  test("the category hero carries the measured design gradient", async ({ page }) => {
+    await page.goto(CATEGORY_ROUTE);
+
+    const bg = await page.evaluate(() => {
+      const h1 = document.querySelector("h1");
+      const band = h1?.closest("div.relative");
+      const layer = band?.parentElement?.querySelector<HTMLElement>("div.absolute.inset-0");
+      return layer ? getComputedStyle(layer).backgroundImage : null;
+    });
+
+    expect(bg, "could not locate the category hero's gradient layer").not.toBeNull();
+    for (const stop of ["rgb(0, 32, 74)", "rgb(0, 79, 101)"]) {
+      expect(
+        bg,
+        `category hero gradient lost the measured stop ${stop} (node 3294:42433, sampled max delta 1/255) — got ${bg}`,
+      ).toContain(stop);
+    }
+  });
+
+  /**
+   * QA-CAT-A6 (Ref NONE, found while measuring A5) — the courses section heading
+   * composed `{categoryName} Courses`, and the CMS names already end in the word,
+   * so the page read "Education Courses Courses". Same defect as QA-COURSES-A4,
+   * one page over.
+   */
+  test("the category courses heading says 'Courses' exactly once", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    await page.goto(CATEGORY_ROUTE);
+
+    const headings = await page.evaluate(() =>
+      [...(document.querySelector("main") ?? document.body).querySelectorAll("h1, h2")].map((h) =>
+        (h.textContent || "").replace(/\s+/g, " ").trim(),
+      ),
+    );
+
+    expect(headings.length, "no headings found on the category page").toBeGreaterThan(0);
+    const doubled = headings.filter((t) => (t.match(/\bcourses?\b/gi)?.length ?? 0) > 1);
+    expect(
+      doubled,
+      `@${vw} these category headings say "courses" more than once: ${doubled
+        .map((t) => `"${t}"`)
+        .join(", ")}`,
+    ).toEqual([]);
+  });
 });
 
 /**

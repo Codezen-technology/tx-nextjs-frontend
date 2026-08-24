@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CourseCard } from "@/components/courses/course-card";
 import type { Course } from "@/types/course";
 import type { PaginatedResponse } from "@/types/api";
+import { categoryCoursesTitle } from "@/lib/utils/category-label";
 
 interface CategoryCoursesProps {
   data: PaginatedResponse<Course>;
@@ -29,11 +30,11 @@ export function CategoryCourses({
 
   return (
     <div className="bg-white">
-      <div className="container py-12">
+      <div className="py-section container lg:py-12">
         {/* Section header */}
         <div className="mb-8">
           <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
-            {categoryName} Courses
+            {categoryCoursesTitle(categoryName)}
           </h2>
           {categoryDescription ? (
             <p className="font-open-sans mt-3 max-w-[856px] text-[16px] leading-[1.6] text-neutral-500">

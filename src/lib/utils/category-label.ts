@@ -37,3 +37,14 @@ export function categoryCtaText(name: string): string {
   if (BARE_COURSE_WORD.test(label)) return `View all ${label}`;
   return `View all ${label} courses`;
 }
+
+/**
+ * The category's display title in headings, the document title and structured
+ * data — `QA-CAT-A6`. Same rule as {@link categoryCtaText}: the CMS name already
+ * carries the word for most categories, so appending it doubles it.
+ */
+export function categoryCoursesTitle(name: string): string {
+  const label = categoryCtaLabel(name);
+  if (BARE_COURSE_WORD.test(label)) return label;
+  return `${label} Courses`;
+}

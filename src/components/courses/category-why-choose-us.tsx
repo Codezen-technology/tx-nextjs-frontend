@@ -26,7 +26,7 @@ interface CategoryWhyChooseUsProps {
 export function CategoryWhyChooseUs({ whyChooseUs, categoryName }: CategoryWhyChooseUsProps) {
   return (
     <div className="bg-white">
-      <div className="container py-12">
+      <div className="py-section container lg:py-12">
         <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
           Why Choose Us?
         </h2>
