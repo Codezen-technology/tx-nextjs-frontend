@@ -9,6 +9,7 @@ import { stripePromise } from "@/lib/stripe";
 import { stripeCardPaymentData, findClientSecret } from "@/lib/services/checkout";
 import { CheckoutProcessingOverlay } from "./CheckoutProcessingOverlay";
 import { SecurePaymentBadge } from "./SecurePaymentBadge";
+import { CardBrandMarks } from "./CardBrandMarks";
 import type { BillingFormHandle } from "./BillingForm";
 
 interface PaymentMethodSelectorProps {
@@ -197,16 +198,7 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
                 </span>
                 <span className="text-sm font-medium text-[#1a171b]">Credit/Debit Card</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                {["VISA", "MC", "AMEX", "DISC"].map((l) => (
-                  <span
-                    key={l}
-                    className="rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[8px] font-bold text-gray-500"
-                  >
-                    {l}
-                  </span>
-                ))}
-              </div>
+              <CardBrandMarks />
             </button>
 
             {method === "stripe" && (
@@ -231,16 +223,10 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
             )}
           </div>
 
-          {/* PayPal — coming soon */}
-          <div className="bg-white px-4 py-3.5 opacity-50">
-            <div className="flex items-center gap-3">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-gray-300 bg-white" />
-              <span className="text-sm font-medium text-[#1a171b]">PayPal</span>
-              <span className="ml-auto rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[9px] font-medium text-gray-400">
-                Coming soon
-              </span>
-            </div>
-          </div>
+          {/* No PayPal row — QA-CHECK-A4. The design shows PayPal as a working
+              option; this build cannot process one, and a dimmed "coming soon"
+              placeholder takes space in the payment decision to advertise a
+              method that does not exist yet. It comes back when it works. */}
         </div>
       )}
 
