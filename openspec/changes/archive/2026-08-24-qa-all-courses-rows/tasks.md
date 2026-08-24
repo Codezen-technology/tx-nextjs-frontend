@@ -38,4 +38,4 @@
 - [x] 6.3 `pnpm test` — all green including the doc checker's 6 assertions
 - [x] 6.4 Restart `pnpm dev`, then full `pnpm test:e2e`; confirm the result equals the documented baseline (6 failed) with no new failure
 - [x] 6.5 `openspec validate qa-all-courses-rows --strict`
-- [ ] 6.6 Commit
+- [x] 6.6 Commit
