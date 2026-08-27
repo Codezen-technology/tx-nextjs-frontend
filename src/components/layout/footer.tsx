@@ -169,8 +169,6 @@ export async function SiteFooter() {
     serverApi.footer.get().catch(() => null),
     fetchSettings().catch(() => null),
   ]);
-  console.log("footerData", footerData);
-  console.log("settings", settings);
   const navCols = buildNavColumns(footerData?.nav);
   const social = footerData?.social ?? FALLBACK_SOCIAL;
   const contact = footerData?.contact ?? {};
