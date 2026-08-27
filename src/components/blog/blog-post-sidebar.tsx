@@ -1,14 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type MouseEvent } from "react";
 import type { TocItem } from "@/lib/utils/toc";
 
 interface BlogPostSidebarProps {
   toc: TocItem[];
 }
 
+/** Clearance for the sticky header so the target heading is not scrolled under it. */
+const SCROLL_OFFSET_PX = 96;
+
 export function BlogPostSidebar({ toc }: BlogPostSidebarProps) {
   const [activeId, setActiveId] = useState<string>("");
+
+  /**
+   * The native `#id` jump lands the heading flush with the viewport top, i.e.
+   * behind the sticky header, which reads as "the link did nothing". Scroll
+   * explicitly with clearance instead, and only fall through to the browser if
+   * the target is genuinely missing.
+   */
+  const handleJump = useCallback((e: MouseEvent<HTMLAnchorElement>, id: string) => {
+    const target = document.getElementById(id);
+    if (!target) return;
+
+    e.preventDefault();
+    const top = target.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET_PX;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    setActiveId(id);
+
+    // Keep the URL shareable and the heading focusable without a second jump.
+    window.history.replaceState(null, "", `#${id}`);
+    target.setAttribute("tabindex", "-1");
+    target.focus({ preventScroll: true });
+  }, []);
 
   useEffect(() => {
     if (!toc.length) return;
@@ -45,6 +69,9 @@ export function BlogPostSidebar({ toc }: BlogPostSidebarProps) {
             <a
               key={id}
               href={`#${id}`}
+              onClick={(e) => handleJump(e, id)}
+              data-toc-link={id}
+              aria-current={active ? "location" : undefined}
               className={`font-open-sans flex items-start gap-2 border-l-[3px] px-4 py-2.5 text-base leading-normal transition-colors ${
                 active
                   ? "border-secondary-500 bg-secondary-50 text-secondary-500 font-semibold"

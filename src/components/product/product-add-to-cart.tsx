@@ -33,7 +33,7 @@ export function ProductAddToCart({ productId, label, disabledReason }: ProductAd
         type="button"
         onClick={() => !inCart && addToCart.mutate({ product_id: productId, quantity: 1 })}
         disabled={inCart || addToCart.isPending}
-        className="bg-secondary-500 hover:bg-secondary-600 w-full rounded-md px-6 py-3 text-center text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+        className="bg-secondary-600 hover:bg-secondary-700 w-full rounded-md px-6 py-3 text-center text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
       >
         {inCart ? "Added to cart" : addToCart.isPending ? "Adding…" : label}
       </button>

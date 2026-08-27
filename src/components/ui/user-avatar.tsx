@@ -32,9 +32,12 @@ export function UserAvatar({ user, size = "md", className, fallbackClassName }: 
   return (
     <Avatar className={cn(SIZE_CLASS[size], className)}>
       {src ? <AvatarImage src={src} alt={alt} /> : null}
-      <AvatarFallback
-        className={cn("bg-lms-secondary font-bold text-white", SIZE_CLASS[size], fallbackClassName)}
-      >
+      {/* No size class here. `AvatarFallback` is already `h-full w-full`, so it
+          tracks whatever the root ends up being — including a caller that
+          resizes it through `className`. Passing `SIZE_CLASS` too pinned the
+          fallback to the preset size, and a root shrunk to `h-6 w-6` held a
+          32px fallback whose initial centred outside the circle and clipped. */}
+      <AvatarFallback className={cn("bg-lms-secondary font-bold text-white", fallbackClassName)}>
         {initials}
       </AvatarFallback>
     </Avatar>

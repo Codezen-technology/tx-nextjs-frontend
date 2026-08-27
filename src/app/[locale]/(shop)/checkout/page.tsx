@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Elements } from "@stripe/react-stripe-js";
@@ -101,15 +102,13 @@ export default function CheckoutPage() {
 
           {/* Billing details */}
           <div className="rounded-lg bg-white p-8 shadow-xs">
-            <h2 className="font-suse mb-6 text-2xl font-medium text-neutral-900">
-              Billing Details
-            </h2>
+            <h2 className="font-suse mb-6 text-2xl font-bold text-neutral-900">Billing Details</h2>
             <BillingForm ref={billingRef} defaultValues={billingDefaults} />
           </div>
 
           {/* Order summary */}
           <div className="rounded-lg bg-white p-8 shadow-xs">
-            <h2 className="font-suse mb-6 text-2xl font-medium text-neutral-900">Order Summary</h2>
+            <h2 className="font-suse mb-6 text-2xl font-bold text-neutral-900">Order Summary</h2>
             <CheckoutOrderSummary />
           </div>
 
@@ -118,7 +117,15 @@ export default function CheckoutPage() {
 
           {/* Payment */}
           <div className="rounded-lg bg-[rgba(245,241,233,0.5)] p-8">
-            <h2 className="font-suse mb-6 text-2xl font-medium text-[#1a171b]">Payment method</h2>
+            {/* "100% secure payment" sits beside the heading in the design
+                (6239:134665), stacking beneath it on mobile — QA-CHECK-A5. */}
+            <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="font-suse text-2xl font-bold text-[#1a171b]">Payment method</h2>
+              <p className="font-open-sans flex items-center gap-2 text-base text-[#1a171b]">
+                <ShieldCheck className="h-6 w-6 text-[#1fb356]" aria-hidden />
+                100% secure payment
+              </p>
+            </div>
             {/* Always mount Elements (accepts stripe={null} while unconfigured/loading) so
                 free (£0) orders can complete even when Stripe isn't set up. The selector
                 shows a config warning + disables submit for paid orders when stripe is null. */}

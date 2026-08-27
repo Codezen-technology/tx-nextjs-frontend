@@ -32,7 +32,7 @@ export function Accreditations({ items = DEFAULT_ITEMS }: AccreditationsProps) {
   if (!items.length) return null;
 
   return (
-    <section className="bg-white py-16">
+    <section className="py-section bg-white lg:py-16">
       <div className="container mx-auto">
         <h2 className="font-suse mb-8 text-[2rem] font-bold text-neutral-900">Accreditations</h2>
 
@@ -48,7 +48,12 @@ export function Accreditations({ items = DEFAULT_ITEMS }: AccreditationsProps) {
                   alt={item.alt}
                   width={80}
                   height={80}
-                  className="h-auto max-h-20 w-auto object-contain"
+                  // Never both axes auto: `width: auto` resolves against the
+                  // source's intrinsic size, which is 0 for an image that fails
+                  // to decode, collapsing the logo to a 0x0 box. Capping both
+                  // axes keeps varied logo aspect ratios undistorted while
+                  // guaranteeing a non-zero box.
+                  className="max-h-20 w-20 object-contain"
                 />
               </div>
               <div className="flex flex-col gap-2 text-center sm:text-left">

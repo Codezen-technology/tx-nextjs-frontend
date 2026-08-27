@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CourseCard } from "@/components/courses/course-card";
+import { categoryCtaText } from "@/lib/utils/category-label";
 import type { ApiCategory } from "@/lib/api/server";
 import type { Course } from "@/types/course";
 
@@ -13,6 +14,8 @@ export function CoursesByCategorySection({ category, courses }: CoursesByCategor
   if (courses.length === 0) return null;
 
   const viewAllHref = `/course-cat/${category.slug}`;
+  // One label for both CTA surfaces — the frame carries both and they must agree.
+  const viewAllLabel = categoryCtaText(category.name);
 
   return (
     <section className="flex flex-col gap-6">
@@ -25,7 +28,7 @@ export function CoursesByCategorySection({ category, courses }: CoursesByCategor
             href={viewAllHref}
             className="font-open-sans text-secondary-500 hover:text-secondary-600 inline-flex items-center gap-1 text-[16px] leading-normal"
           >
-            View all {category.name} courses
+            {viewAllLabel}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -48,7 +51,7 @@ export function CoursesByCategorySection({ category, courses }: CoursesByCategor
           href={viewAllHref}
           className="border-secondary-500 font-open-sans text-secondary-500 hover:bg-secondary-50 relative inline-flex items-center gap-2 rounded-full border bg-white px-[17px] py-[9px] text-[16px] leading-normal transition-colors"
         >
-          View all {category.name} courses
+          {viewAllLabel}
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>

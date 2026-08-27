@@ -176,7 +176,7 @@ function PaymentFields({ orderId, orderKey, total, onPaid, onCancel }: OrderPaym
           type="button"
           onClick={pay}
           disabled={submitting || !stripe}
-          className="bg-secondary-500 flex-1 hover:bg-[#7d5819]"
+          className="bg-secondary-600 flex-1 hover:bg-[#7d5819]"
         >
           {submitting ? (
             <>

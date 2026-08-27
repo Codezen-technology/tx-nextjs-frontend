@@ -8,7 +8,7 @@ export default function AllCoursesLoading() {
         className="relative w-full animate-pulse"
         style={{ background: "linear-gradient(80.83deg,#00204a 0%,#004f65 100%)", minHeight: 320 }}
       >
-        <div className="mx-auto flex max-w-[1296px] items-center gap-[179px] px-4 py-[112px]">
+        <div className="container flex items-center gap-[179px] py-[112px]">
           <div className="shrink-0 space-y-3">
             <div className="h-10 w-32 rounded bg-white/20" />
             <div className="h-10 w-48 rounded bg-white/20" />
@@ -22,7 +22,7 @@ export default function AllCoursesLoading() {
 
       {/* Content skeleton — sidebar + course sections */}
       <div className="bg-white">
-        <div className="mx-auto max-w-[1296px] px-4 py-12">
+        <div className="container py-12">
           <div className="flex items-start gap-6">
             {/* Filter sidebar skeleton */}
             <aside className="border-neutral-30 w-[306px] shrink-0 space-y-3 rounded-xl border p-5">

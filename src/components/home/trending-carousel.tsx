@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { decodeEntities } from "@/lib/api/parsers";
+import { formatCardDate } from "@/lib/utils/format";
 import type { BlogPost, WPCategory } from "@/types/blog";
 import type { CategorySection } from "@/lib/services/blog.server";
 
@@ -16,18 +17,6 @@ interface TrendingCarouselProps {
 
 function getFeaturedImage(post: BlogPost): string | undefined {
   return post.featured_image_url ?? post._embedded?.["wp:featuredmedia"]?.[0]?.source_url;
-}
-
-function formatDate(dateStr: string): string {
-  try {
-    return new Date(dateStr).toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  } catch {
-    return dateStr;
-  }
 }
 
 function TrendingPostCard({ post, category }: { post: BlogPost; category?: WPCategory }) {
@@ -58,7 +47,7 @@ function TrendingPostCard({ post, category }: { post: BlogPost; category?: WPCat
         <div className="font-open-sans flex items-center gap-0 text-sm font-semibold">
           {category && <span className="text-primary-500">{decodeEntities(category.name)}</span>}
           {category && <span className="mx-2 text-neutral-400">•</span>}
-          <span className="text-neutral-400">{formatDate(post.date)}</span>
+          <span className="text-neutral-400">{formatCardDate(post.date)}</span>
         </div>
         <h2 className="font-suse group-hover:text-primary-500 text-2xl leading-snug font-bold text-neutral-900 transition-colors md:text-3xl">
           {title}
@@ -66,7 +55,11 @@ function TrendingPostCard({ post, category }: { post: BlogPost; category?: WPCat
         {excerpt && (
           <p className="font-open-sans line-clamp-3 text-base text-neutral-500">{excerpt}</p>
         )}
-        <span className="bg-secondary-500 font-open-sans inline-flex w-fit items-center justify-center rounded-full px-6 py-4 text-base text-white">
+        {/* Not a button or a link: the whole card is the <a>, so an interactive
+            element here would be invalid markup. The hover affordance the report
+            asks for (QA-BLOG-A5) is driven by the card's `group`, the same way the
+            title above already is. */}
+        <span className="bg-secondary-600 group-hover:bg-secondary-700 font-open-sans inline-flex w-fit items-center justify-center rounded-full px-6 py-4 text-base text-white transition-colors">
           Read this article
         </span>
       </div>

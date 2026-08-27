@@ -69,7 +69,7 @@ export function MiniCart({ onClose }: { onClose: () => void }) {
             <Link
               href="/checkout"
               onClick={onClose}
-              className="bg-secondary-500 font-open-sans flex h-10 items-center justify-center rounded text-[13px] font-semibold text-white transition hover:bg-[#7d5819]"
+              className="bg-secondary-600 font-open-sans flex h-10 items-center justify-center rounded text-[13px] font-semibold text-white transition hover:bg-[#7d5819]"
             >
               Checkout
             </Link>

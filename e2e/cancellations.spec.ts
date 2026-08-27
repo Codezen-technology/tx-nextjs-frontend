@@ -12,7 +12,10 @@ test.describe("Cancellations & support request", () => {
     await page.goto("/cancellations?refund=1#refund-form");
     await expect(page.getByRole("heading", { name: /refund request details/i })).toBeVisible();
     await expect(page.getByLabel(/full name/i)).toBeVisible();
-    await expect(page.getByText("Request details")).toBeVisible();
+    // `exact` — the page also has an H2 "Refund request details", and a
+    // substring match resolved to both, failing on strict mode rather than on
+    // anything being wrong.
+    await expect(page.getByText("Request details", { exact: true })).toBeVisible();
     await expect(page.getByText("Before you submit")).toBeVisible();
   });
 
@@ -30,7 +33,11 @@ test.describe("Cancellations & support request", () => {
     await expect(page.getByText("Step 2 of 2")).toBeVisible();
     await expect(page.getByText("How we fix this")).toBeVisible();
     await expect(page.getByRole("button", { name: /change issue/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /tell us where to reply/i })).toBeVisible();
+    // The wizard no longer renders a "Tell us where to reply" heading; the reply
+    // fields are labelled directly. Asserting the fields is what this line meant
+    // — a heading is copy, a labelled input is the contract.
+    await expect(page.getByLabel(/full name/i)).toBeVisible();
+    await expect(page.getByLabel(/email address/i)).toBeVisible();
   });
 
   test("change issue returns to step 1", async ({ page }) => {

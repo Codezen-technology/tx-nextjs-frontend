@@ -13,7 +13,7 @@ export default function CourseCategoryLoading() {
       >
         <div className="absolute inset-0 bg-black/55" />
         <div className="relative z-10 flex h-full flex-col justify-center">
-          <div className="mx-auto w-full max-w-[1296px] px-4">
+          <div className="container">
             {/* Breadcrumb */}
             <div className="mb-6 flex items-center gap-2">
               <div className="h-3.5 w-12 rounded bg-white/20" />
@@ -34,7 +34,7 @@ export default function CourseCategoryLoading() {
 
       {/* Course grid skeleton */}
       <div className="bg-white">
-        <div className="mx-auto max-w-[1296px] px-4 py-12">
+        <div className="container py-12">
           {/* Section header */}
           <div className="mb-8 space-y-3">
             <div className="h-8 w-64 animate-pulse rounded bg-neutral-200" />

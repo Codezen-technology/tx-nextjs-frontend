@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils/cn";
 import { decodeEntities } from "@/lib/api/parsers";
+import { formatCardDate } from "@/lib/utils/format";
 import type { BlogPost, WPCategory } from "@/types/blog";
 
 interface BlogCardProps {
@@ -12,18 +13,6 @@ interface BlogCardProps {
 
 function getPostImage(post: BlogPost): string | undefined {
   return post.featured_image_url ?? post._embedded?.["wp:featuredmedia"]?.[0]?.source_url;
-}
-
-function formatDate(dateStr: string): string {
-  try {
-    return new Date(dateStr).toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  } catch {
-    return dateStr;
-  }
 }
 
 export function BlogCard({ post, category, className }: BlogCardProps) {
@@ -57,12 +46,14 @@ export function BlogCard({ post, category, className }: BlogCardProps) {
       </Link>
 
       <div className="flex flex-1 flex-col gap-2 px-6 py-4">
-        <div className="font-open-sans flex items-center gap-0 text-sm font-semibold">
+        <div className="font-open-sans flex flex-wrap items-center gap-0 text-sm font-semibold">
           {category ? (
-            <span className="text-primary-500">{decodeEntities(category.name)}</span>
+            <span className="text-primary-500 min-w-0 truncate">
+              {decodeEntities(category.name)}
+            </span>
           ) : null}
           {category && <span className="mx-2 text-neutral-400">•</span>}
-          <span className="text-neutral-400">{formatDate(post.date)}</span>
+          <span className="whitespace-nowrap text-neutral-400">{formatCardDate(post.date)}</span>
         </div>
 
         <div className="flex flex-col gap-2">

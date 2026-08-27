@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import { HomeIcon } from "./home-icon";
 import type { HomeTeamSection } from "@/types/home";
 
@@ -14,20 +15,25 @@ export function TransformTeam({ data }: TransformTeamProps) {
 
   return (
     <section
-      className="relative overflow-hidden py-14 lg:py-16"
+      className="py-section relative overflow-hidden lg:py-16"
       style={{ background: "linear-gradient(113.58deg, #00204a 0%, #004f65 100%)" }}
     >
-      {/* Purely decorative backdrop — empty alt keeps it out of the a11y tree. */}
+      {/* Purely decorative backdrop — empty alt keeps it out of the a11y tree, and
+          `pointer-events-none` keeps it out of hit-testing. Without it this
+          positioned, full-bleed layer paints over the static content below and
+          takes every pointer event: the CTA could not be hovered *or clicked*
+          (QA-HOME-A8). Same shape as `category-hero` and `all-courses-hero`,
+          which pair a decorative layer with a `relative z-10` content wrapper. */}
       <Image
         src="https://trainingexcellence-media.s3.eu-west-2.amazonaws.com/wp-content/uploads/2026/07/16092625/transfrom-team-bg-shape.png"
         alt=""
         aria-hidden
         fill
         sizes="100vw"
-        className="absolute inset-0 object-cover"
+        className="pointer-events-none absolute inset-0 object-cover"
       />
 
-      <div className="container flex flex-col items-center justify-between gap-10">
+      <div className="relative z-10 container flex flex-col items-center justify-between gap-10">
         <div className="flex max-w-2xl flex-col items-center gap-4 text-center">
           <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-white">{data.title}</h2>
           {data.description && (
@@ -62,10 +68,12 @@ export function TransformTeam({ data }: TransformTeamProps) {
             <div className="flex shrink-0 items-center gap-6">
               {/* Explicit dimensions reserve the space so the section does not
                   shift as these load. Decorative team photography — the section
-                  heading and bullets carry the meaning. */}
+                  heading and bullets carry the meaning. FallbackImage because
+                  production's paths (`/images/team/collaboration-*.jpg`) are not
+                  in `public/` and 404 — an absent photo beats an empty box. */}
               <div className="flex h-auto w-76.5 flex-col gap-6">
                 {images.slice(0, 2).map((src) => (
-                  <Image
+                  <FallbackImage
                     key={src}
                     src={src}
                     alt=""
@@ -76,16 +84,14 @@ export function TransformTeam({ data }: TransformTeamProps) {
                   />
                 ))}
               </div>
-              {images[2] && (
-                <Image
-                  src={images[2]}
-                  alt=""
-                  aria-hidden
-                  width={306}
-                  height={424}
-                  className="h-auto w-76.5 object-cover"
-                />
-              )}
+              <FallbackImage
+                src={images[2]}
+                alt=""
+                aria-hidden
+                width={306}
+                height={424}
+                className="h-auto w-76.5 object-cover"
+              />
             </div>
           )}
         </div>
@@ -93,7 +99,7 @@ export function TransformTeam({ data }: TransformTeamProps) {
         {data.cta?.href && (
           <Link
             href={data.cta.href}
-            className="bg-secondary-500 hover:bg-secondary-600 font-open-sans inline-flex w-50 cursor-pointer items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition-opacity hover:opacity-90"
+            className="bg-secondary-600 hover:bg-secondary-700 font-open-sans inline-flex w-50 cursor-pointer items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition hover:opacity-90"
           >
             {data.cta.label}
           </Link>

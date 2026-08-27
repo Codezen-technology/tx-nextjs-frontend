@@ -87,7 +87,7 @@ export default async function HomePage() {
 
       <TrustedOrgs data={home?.trusted_orgs} />
 
-      <section className="flex flex-col gap-20 py-16 lg:py-20">
+      <section className="py-section flex flex-col gap-20 lg:py-20">
         <CategoriesGrid categories={categoriesRes?.items} />
 
         <PopularCourses limit={8} header={home?.popular_courses_header} />

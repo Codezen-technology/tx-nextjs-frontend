@@ -1,8 +1,15 @@
 import { Search } from "lucide-react";
+import { HeroWave } from "../courses/hero-wave";
 
+/**
+ * `2xl` carries the measured 1920 inset: band `4900:75793` is 320 tall around
+ * content ending at 235, so 85. `md:py-20` still covers 768–1535 — the 1280
+ * frame measures 64, but the report signs that width off as working, so it is
+ * recorded in `targets.md` rather than applied. QA-BLOG-A2 is scoped to 1920.
+ */
 export function BlogHero() {
   return (
-    <section className="relative overflow-hidden bg-neutral-900 py-14 md:py-20">
+    <section className="relative overflow-hidden bg-neutral-900 py-14 md:py-20 2xl:py-[85px]">
       <div
         className="pointer-events-none absolute inset-0 opacity-10"
         style={{
@@ -10,6 +17,7 @@ export function BlogHero() {
           backgroundSize: "32px 32px",
         }}
       />
+      <HeroWave />
       <div className="relative container">
         <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
           <div className="max-w-xl">
@@ -36,7 +44,7 @@ export function BlogHero() {
             />
             <button
               type="submit"
-              className="bg-secondary-500 font-open-sans hover:bg-secondary-600 flex items-center gap-2 px-5 py-3 text-sm font-semibold text-white transition-colors"
+              className="bg-secondary-600 font-open-sans hover:bg-secondary-700 flex items-center gap-2 px-5 py-3 text-sm font-semibold text-white transition-colors"
             >
               <Search className="h-4 w-4" />
               Search

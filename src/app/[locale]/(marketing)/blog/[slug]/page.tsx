@@ -236,20 +236,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
             {/* Main content */}
             <article className="order-1 min-w-0 xl:order-2">
-              {image.url && (
-                <div className="relative mb-10 aspect-video w-full overflow-hidden rounded-xl bg-neutral-100">
-                  <Image
-                    src={image.url}
-                    alt={image.alt ?? title}
-                    fill
-                    sizes="(max-width: 1280px) 100vw, calc(100vw - 700px)"
-                    className="object-cover"
-                  />
-                </div>
-              )}
+              {/* No featured image here — QA-BLOGS-A4. The hero above already
+                  renders it, and the frame's rich-text column (6015:127203)
+                  opens with text. Images inside the post body are unaffected. */}
               <ParsedHtml
                 as="div"
-                className="prose-wp font-open-sans text-neutral-500"
+                className="prose-wp prose-wp-article font-open-sans text-neutral-500"
                 content={contentWithIds}
               />
               {faq.length > 0 && (
@@ -302,7 +294,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 View all posts <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
               {morePosts.map((p) => (
                 <BlogCard
                   key={p.id}

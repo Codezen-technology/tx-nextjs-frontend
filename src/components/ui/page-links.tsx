@@ -51,7 +51,7 @@ export function PageLinks({ page, totalPages, hrefFor, className }: PageLinksPro
             className={cn(
               "font-open-sans flex h-10 w-10 items-center justify-center rounded-md border text-sm",
               item === page
-                ? "border-secondary-500 bg-secondary-500 font-semibold text-white"
+                ? "border-secondary-500 bg-secondary-600 font-semibold text-white"
                 : "border-neutral-30 hover:bg-primary-50 text-neutral-600",
             )}
           >

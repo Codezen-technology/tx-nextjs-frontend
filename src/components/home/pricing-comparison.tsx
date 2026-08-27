@@ -25,7 +25,7 @@ export function PricingComparison({ plans, title = "What You'll Get" }: PricingC
   );
 
   return (
-    <section className="bg-white py-20">
+    <section className="py-section bg-white lg:py-20">
       <div className="container mx-auto">
         <h2 className="font-suse mb-12 text-center text-[2rem] font-bold text-neutral-900">
           {title}

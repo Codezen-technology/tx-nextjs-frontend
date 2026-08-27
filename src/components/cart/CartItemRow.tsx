@@ -55,6 +55,9 @@ export function CartItemRow({ item }: CartItemRowProps) {
             content={item.name}
             className="line-clamp-2 max-w-[24rem] font-medium text-neutral-900"
           />
+          {/* The frame labels this "Price: £24.99" (QA-CART-A1). A row shows two
+              money values — this one and the line total — and an unlabelled
+              pair invites reading one for the other. */}
           <div className="mt-1 flex items-center gap-1.5 text-sm">
             {isOnSale && (
               <span className="text-gray-400 line-through">
@@ -62,6 +65,10 @@ export function CartItemRow({ item }: CartItemRowProps) {
                 {item.regular_price.toFixed(2)}
               </span>
             )}
+            {/* The label sits immediately before the price it names. Placed ahead
+                of the struck regular price it read "Price: £30.00 £24.99" on a
+                sale row — labelling the number the shopper is *not* paying. */}
+            <span className="font-semibold text-neutral-900">Price:</span>
             <span className={cn("text-neutral-500", isOnSale && "text-secondary-500 font-medium")}>
               {currency}
               {item.price.toFixed(2)}

@@ -15,6 +15,15 @@ The `/` route SHALL render, top to bottom: Topbar, Header, Hero (headline + sear
 - **WHEN** a user requests `/`
 - **THEN** the page renders the sections above in that order and does not render a `BlogSection`
 
+### Requirement: The homepage never scrolls wider than the viewport
+
+At every covered breakpoint the homepage's document scroll width SHALL equal the viewport width. No section SHALL place content past the viewport's right edge, whether or not an ancestor clips it.
+
+#### Scenario: Horizontal overflow at mobile
+
+- **WHEN** the homepage is rendered at a 440px viewport
+- **THEN** `document.documentElement.scrollWidth` equals 440
+
 ### Requirement: Hero section includes a course search affordance
 
 The hero section SHALL present a subject/qualification text input with a submit action, in addition to the existing headline, description, and accreditation logos.
@@ -46,6 +55,20 @@ The trusted-orgs endpoint response SHALL include a header object (containing at 
 
 - **WHEN** the homepage requests home data and the trusted-orgs section returns a header and a non-empty org list
 - **THEN** the section renders the header title followed by the organization logos
+
+### Requirement: The categories CTA sits below the grid at mobile widths
+
+The "View all courses" call to action in the course-categories section SHALL render below the category grid at mobile widths, and beside the section heading at `md` and above.
+
+#### Scenario: Categories CTA at 440
+
+- **WHEN** the homepage is rendered at a 440px viewport
+- **THEN** the CTA's top edge is below the bottom edge of the category grid
+
+#### Scenario: Categories CTA at 1920
+
+- **WHEN** the homepage is rendered at a 1920px viewport
+- **THEN** the CTA renders in the heading row, vertically aligned with the section heading, unchanged from the current desktop layout
 
 ### Requirement: Popular Courses section reuses the shared course card with promotional data
 
@@ -100,6 +123,20 @@ The homepage SHALL render a "CPD Accredited Certificate & Transcript" section wi
 
 - **WHEN** the homepage loads and no CMS override is configured for the certificate section
 - **THEN** the section renders the heading, description, and an "Order Certificate" call-to-action with a working destination
+
+### Requirement: The CPD Certificate section stacks at mobile widths
+
+The CPD Certificate & Transcript section SHALL lay its text column and its imagery out vertically below the `lg` breakpoint, and horizontally at `lg` and above. At mobile widths the section's heading and body text SHALL each span the page content column rather than a fraction of it.
+
+#### Scenario: Viewing the CPD Certificate section at 440
+
+- **WHEN** the homepage is rendered at a 440px viewport
+- **THEN** the section's heading and its body paragraph each measure the full content column width, within the tolerance recorded for that breakpoint
+
+#### Scenario: Viewing the CPD Certificate section at 1920
+
+- **WHEN** the homepage is rendered at a 1920px viewport
+- **THEN** the text column and the imagery remain side by side, unchanged from the current desktop layout
 
 ### Requirement: Homepage composite endpoint includes all sections
 

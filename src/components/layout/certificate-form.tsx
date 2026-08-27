@@ -45,7 +45,7 @@ export function CertificateForm() {
           <button
             type="submit"
             disabled={loading}
-            className="border-secondary-500 bg-secondary-500 font-open-sans hover:bg-secondary-600 flex h-10 shrink-0 items-center gap-1.5 rounded border px-3 text-[16px] leading-normal text-white transition-colors disabled:opacity-70"
+            className="border-secondary-500 bg-secondary-600 font-open-sans hover:bg-secondary-700 flex h-10 shrink-0 items-center gap-1.5 rounded border px-3 text-[16px] leading-normal text-white transition-colors disabled:opacity-70"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             Validate

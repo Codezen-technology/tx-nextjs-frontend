@@ -173,7 +173,7 @@ export default async function BlogCategoryPage({ params, searchParams }: PagePro
                     aria-current={page === p ? "page" : undefined}
                     className={`font-open-sans flex h-9 w-9 items-center justify-center rounded-full border text-sm transition-colors ${
                       page === p
-                        ? "border-secondary-500 bg-secondary-500 text-white"
+                        ? "border-secondary-500 bg-secondary-600 text-white"
                         : "border-neutral-30 text-neutral-600 hover:bg-neutral-50"
                     }`}
                   >

@@ -36,7 +36,7 @@ export function AllCoursesClient({ categoryData }: AllCoursesClientProps) {
   if (categoryData.length === 0) {
     return (
       <div className="bg-white">
-        <div className="mx-auto max-w-[1296px] px-4 py-16 text-center">
+        <div className="container py-16 text-center">
           <p className="font-open-sans text-[16px] text-neutral-400">
             No course categories available.
           </p>
@@ -47,7 +47,7 @@ export function AllCoursesClient({ categoryData }: AllCoursesClientProps) {
 
   return (
     <div className="bg-white">
-      <div className="mx-auto max-w-[1296px] px-4 py-12">
+      <div className="container py-12">
         <div className="flex items-start gap-6">
           <aside className="sticky top-4 w-[306px] shrink-0">
             <CourseCategoryFilter

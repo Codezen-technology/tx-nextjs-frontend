@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AboutImagePlaceholder } from "./about-image-placeholder";
@@ -21,7 +21,7 @@ export function AboutTeamSection({ data }: { data: AboutTeam }) {
         <div className="flex flex-col gap-10">
           <div className="flex flex-col gap-5">
             <p className="font-open-sans text-primary-500 text-base font-bold">{data.eyebrow}</p>
-            <h2 className="font-suse text-3xl font-medium text-neutral-900 sm:text-[40px]">
+            <h2 className="font-suse text-3xl font-bold text-neutral-900 sm:text-[40px]">
               {data.heading}
             </h2>
             <p className="font-open-sans text-lg font-light text-neutral-500 sm:text-xl">
@@ -32,7 +32,7 @@ export function AboutTeamSection({ data }: { data: AboutTeam }) {
             <Button asChild variant="outline">
               <Link href={data.secondary_button.href}>{data.secondary_button.label}</Link>
             </Button>
-            <Button asChild className="bg-secondary-500 hover:bg-secondary-600 text-white">
+            <Button asChild className="bg-secondary-600 hover:bg-secondary-700 text-white">
               <Link href={data.primary_button.href}>{data.primary_button.label}</Link>
             </Button>
           </div>
@@ -47,17 +47,14 @@ export function AboutTeamSection({ data }: { data: AboutTeam }) {
                 className="absolute overflow-hidden rounded-2xl"
                 style={{ left: slot.left, top: slot.top, width: slot.width, height: slot.height }}
               >
-                {src ? (
-                  <Image
-                    src={src}
-                    alt=""
-                    fill
-                    className="object-cover"
-                    sizes="(min-width: 1024px) 25vw, 40vw"
-                  />
-                ) : (
-                  <AboutImagePlaceholder label="" className="h-full w-full" />
-                )}
+                <FallbackImage
+                  src={src}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="(min-width: 1024px) 25vw, 40vw"
+                  fallback={<AboutImagePlaceholder label="" className="h-full w-full" />}
+                />
               </div>
             );
           })}

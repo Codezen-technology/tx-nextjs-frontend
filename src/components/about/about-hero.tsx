@@ -18,7 +18,7 @@ export function AboutHero({ data }: { data: AboutHeroData }) {
           <Button asChild variant="outline">
             <Link href={data.secondary_button.href}>{data.secondary_button.label}</Link>
           </Button>
-          <Button asChild className="bg-secondary-500 hover:bg-secondary-600 text-white">
+          <Button asChild className="bg-secondary-600 hover:bg-secondary-700 text-white">
             <Link href={data.primary_button.href}>{data.primary_button.label}</Link>
           </Button>
         </div>

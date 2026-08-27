@@ -89,7 +89,9 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
       { product_id: wcProductId, quantity: qty },
       {
         onSuccess: () => {
-          router.push("/checkout");
+          // Land on the cart, not checkout: the buyer needs to see the line they
+          // just added (and any bulk discount applied to it) before paying.
+          router.push("/cart");
         },
         onError: (err) => {
           setAddError((err as Error).message ?? "Could not process purchase.");
@@ -109,9 +111,11 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
               onClick={() => selectTab(t)}
               className={cn(
                 "font-open-sans flex-1 cursor-pointer py-2.5 text-base font-medium transition-colors",
+                // Both states answer the pointer — QA-COURSE-A5. The selected tab had no
+                // hover at all, which reads as disabled on the control you can still click.
                 tab === t
-                  ? "border-secondary-500 text-secondary-600 bg-secondary-50 border-b-2"
-                  : "text-neutral-500 hover:text-neutral-700",
+                  ? "border-secondary-500 text-secondary-600 bg-secondary-50 hover:bg-secondary-100 border-b-2"
+                  : "hover:bg-neutral-10 text-neutral-500 hover:text-neutral-700",
               )}
             >
               {t === "me" ? "For me" : "For teams"}
@@ -198,14 +202,14 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                 type="button"
                 onClick={handleBuyNow}
                 disabled={isBuyingNow}
-                className="bg-secondary-500 font-open-sans hover:bg-secondary-600 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                className="bg-secondary-600 font-open-sans hover:bg-secondary-700 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isBuyingNow ? "Adding…" : "Buy this course"}
               </button>
             ) : (
               <Link
                 href="/contact-us"
-                className="bg-secondary-500 font-open-sans hover:bg-secondary-600 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors"
+                className="bg-secondary-600 font-open-sans hover:bg-secondary-700 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors"
               >
                 Get in Touch
               </Link>
