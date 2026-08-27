@@ -276,6 +276,32 @@
   }
 }
 
+/*
+ * Link treatment for long-form legal copy — privacy policy, terms, cancellations.
+ *
+ * QA-PRIVACY-A2: on `/privacy-policy` the `mailto:`/`tel:` links measured
+ * **2.14:1** against WCAG AA's 4.5:1, with `text-decoration: none` — failing
+ * both 1.4.3 (contrast) and 1.4.1 (colour as the only cue distinguishing a link
+ * from body text). `primary-800` measures **6.19:1** on this page's `N10` ground
+ * and keeps the link hue; the underline is permanent, so colour is not doing the
+ * work alone.
+ *
+ * Scoped as a modifier, not applied to `prose-wp` itself. `prose-wp` has
+ * thirteen consumers, including `assignment-player`, which renders it as
+ * `prose-wp prose-invert` inside a `text-white` panel — a dark surface where
+ * `primary-800` reads *worse* than the cyan it replaced. The measurement that
+ * justifies this colour was taken against a light ground and only holds there.
+ *
+ * Same specificity note as `prose-wp-article`: a plain descendant selector,
+ * because `prose-wp` types its anchors through `:where()` and a second
+ * zero-specificity rule would be decided by source order.
+ */
+@utility prose-wp-legal {
+  & a {
+    @apply text-primary-800 underline underline-offset-4 hover:no-underline;
+  }
+}
+
 @utility prose-wp {
   & :where(h1, h2, h3, h4) {
     /* scroll-mt clears the sticky header when a heading is reached via a
@@ -323,13 +349,7 @@
     @apply mb-4 list-inside list-decimal;
   }
   & :where(a) {
-    /* QA-PRIVACY-A2: `text-primary` measured 2.14:1 on this page's N10 ground,
-       against WCAG AA's 4.5:1, and carried no underline until hover — failing
-       both 1.4.3 (contrast) and 1.4.1 (colour as the only cue distinguishing a
-       link from body text). `primary-800` measures 6.19:1 and keeps the link
-       hue; the underline is now permanent, so colour is not doing the work
-       alone. */
-    @apply text-primary-800 underline underline-offset-4 hover:no-underline;
+    @apply text-primary underline-offset-4 hover:underline;
   }
   & :where(img) {
     @apply my-4 rounded-md;

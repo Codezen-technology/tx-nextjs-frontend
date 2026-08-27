@@ -19,6 +19,7 @@ import type {
 } from "@/types/form";
 
 import { MARKETING_FIELD_CLASS, MARKETING_LABEL_CLASS } from "@/components/ui/form-field";
+import { growToFit } from "@/lib/utils/auto-grow-textarea";
 
 const FIELD_CLASS = MARKETING_FIELD_CLASS;
 const LABEL_CLASS = MARKETING_LABEL_CLASS;
@@ -133,22 +134,6 @@ export type FormLayoutGroup =
   | { type: "divider"; label: string }
   | { type: "stack"; fieldIds: number[] }
   | { type: "remaining"; excludeFieldIds: number[] };
-
-/**
- * The tallest a free-text field may grow before it scrolls instead, so a long
- * answer cannot push the rest of the form off the screen.
- */
-const TEXTAREA_MAX_HEIGHT_PX = 320;
-
-/** Grow a textarea to fit its content, bounded. `QA-SUPPORT-A2`. */
-function growToFit(el: HTMLTextAreaElement) {
-  // Reset first: `scrollHeight` never reports less than the current height, so
-  // without this the field grows and never shrinks back.
-  el.style.height = "auto";
-  const next = Math.min(el.scrollHeight, TEXTAREA_MAX_HEIGHT_PX);
-  el.style.height = `${next}px`;
-  el.style.overflowY = el.scrollHeight > TEXTAREA_MAX_HEIGHT_PX ? "auto" : "hidden";
-}
 
 export function GravityForm({
   form,
