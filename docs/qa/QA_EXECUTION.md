@@ -131,37 +131,42 @@ Homepage, Course Category and Contact are now closed out. `QA-HOME-A10` moved to
 ledger rather than closing, which is why Homepage reads `AMBER 0 open / 7 blocked` and not
 `GREEN`.
 
-### The remaining order — 2026-08-27
+### The remaining order — 2026-08-27 (spent)
 
-Descending open count, blocked rows excluded. Counts mirror `QA_BY_PAGE.md`'s page index —
-if they disagree, that file is right and this one is stale. **12 open across 10 pages, 12
-blocked.**
+That order listed **12 open across 10 pages**, of which 8 were Class A. All eight are now
+closed, by three further changes:
 
-| #   | Page             | Open | Rows                         | What it is                                         |
-| --- | ---------------- | ---- | ---------------------------- | -------------------------------------------------- |
-| 1   | Single Blog      | 2    | `QA-BLOGS-A7`, `QA-BLOGS-D1` | FAQ section vs design; mobile ToC drawer (D)       |
-| 2   | Pricing          | 2    | `QA-PRICE-A3`, `QA-PRICE-D1` | Remove the marked section's button; third card (D) |
-| 3   | About Us         | 1    | `QA-ABOUT-A1`                | Breadcrumb removal — **`GAP`**, test owed          |
-| 4   | Blog             | 1    | `QA-BLOG-A5`                 | Card button colour does not change on hover        |
-| 5   | Privacy Policy   | 1    | `QA-PRIVACY-A2`              | Email and phone not properly visible               |
-| 6   | FAQ / Help       | 1    | `QA-HELP-A1`                 | FAQ section vs design                              |
-| 7   | Cart             | 1    | `QA-CART-A1`                 | Card content parity with the frame                 |
-| 8   | Priority Support | 1    | `QA-SUPPORT-A2`              | Additional Details textarea height — **`GAP`**     |
-| 9   | All Courses      | 1    | `QA-COURSES-D1`              | Mobile responsive rebuild (D)                      |
-| 10  | Checkout         | 1    | `QA-CHECK-D1`                | The section present in Figma, absent in build (D)  |
+| Change                    | Closed | What                                                                                                             |
+| ------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------- |
+| `qa-faq-section-fidelity` | 2      | `QA-BLOGS-A7` + `QA-HELP-A1` — one FAQ design across two pages, and the site's second FAQ implementation deleted |
+| `qa-final-class-a-rows`   | 4      | `QA-ABOUT-A1`, `QA-BLOG-A5`, `QA-PRIVACY-A2`, `QA-SUPPORT-A2` — the last four needing no ruling                  |
+| `qa-cart-pricing-rows`    | 2      | `QA-CART-A1` + `QA-PRICE-A3`                                                                                     |
 
-**Four are Class D** — `QA-BLOGS-D1`, `QA-PRICE-D1`, `QA-COURSES-D1`, `QA-CHECK-D1`. These
-are net-new builds that need sizing as their own OpenSpec changes (slice 8 item 2), not page
-slices. That leaves **8 Class A rows across 8 pages — exactly one each.** Single Blog and
-Pricing read 2 only because each also carries a D. There is no multi-row page left, so the
-descending-open-count ordering above is now a formality: the eighth commit closes the
-report.
+### What is left — 2026-08-27
 
-**Two carry a test debt**, not just a fix: `QA-ABOUT-A1` and `QA-SUPPORT-A2` are the only
-`GAP` rows left in Appendix B. Every other open row is `MANUAL-VISUAL`.
+**No Class A row is open. Nothing on the board can be closed by writing code against a
+measurement.** Both remaining categories need something from outside this repo.
 
-These are **independent**. The sequence is by value, not by dependency — they can be worked
-in any order, or in parallel by different people.
+| Class | Count | What it needs                                                              |
+| ----- | ----- | -------------------------------------------------------------------------- |
+| **D** | 4     | Sizing as their own OpenSpec changes — these are net-new builds, not fixes |
+| **E** | 12    | A design or product decision (Appendix A carries the specific ask per row) |
+
+The four Class D items:
+
+| Row             | Page        | What                                                 |
+| --------------- | ----------- | ---------------------------------------------------- |
+| `QA-BLOGS-D1`   | Single Blog | Mobile table-of-contents drawer (`4146:87332`)       |
+| `QA-PRICE-D1`   | Pricing     | The third pricing card                               |
+| `QA-COURSES-D1` | All Courses | Mobile responsive rebuild — unbounded as written     |
+| `QA-CHECK-D1`   | Checkout    | A section present in Figma and absent from the build |
+
+Plus **Team Training**, which has no route at all and no row, because a page that does not
+exist cannot carry one.
+
+**Two of the three "Done" conditions are met:** Appendix B is empty, and no `RED` page holds
+a non-blocked open row that is not Class D. The third — every open row `FIXED` with
+evidence — cannot be met until Class D is sized and Class E is answered.
 
 ---
 
