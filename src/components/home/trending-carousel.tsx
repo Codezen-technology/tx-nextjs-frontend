@@ -55,7 +55,11 @@ function TrendingPostCard({ post, category }: { post: BlogPost; category?: WPCat
         {excerpt && (
           <p className="font-open-sans line-clamp-3 text-base text-neutral-500">{excerpt}</p>
         )}
-        <span className="bg-secondary-600 font-open-sans inline-flex w-fit items-center justify-center rounded-full px-6 py-4 text-base text-white">
+        {/* Not a button or a link: the whole card is the <a>, so an interactive
+            element here would be invalid markup. The hover affordance the report
+            asks for (QA-BLOG-A5) is driven by the card's `group`, the same way the
+            title above already is. */}
+        <span className="bg-secondary-600 group-hover:bg-secondary-700 font-open-sans inline-flex w-fit items-center justify-center rounded-full px-6 py-4 text-base text-white transition-colors">
           Read this article
         </span>
       </div>

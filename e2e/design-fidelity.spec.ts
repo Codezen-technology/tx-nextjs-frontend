@@ -1742,3 +1742,186 @@ test.describe("Class A — FAQ section", () => {
     await assertFaqSemantics(page, BLOG_ROUTE);
   });
 });
+
+/**
+ * The last four Class A rows — `qa-final-class-a-rows`. Four unrelated defects
+ * on four pages, each measured before it was fixed. Evidence in
+ * `.context/figma/targets.md`.
+ */
+test.describe("Class A — the final four rows", () => {
+  /**
+   * QA-ABOUT-A1 — report item R-ABOUT-1920-02, "there is breadcrumbs in the
+   * website — no need of breadcrumbs".
+   *
+   * Same fix as QA-COURSE-A2 with one difference: that page kept its
+   * `BreadcrumbList` JSON-LD after the visible bar came off, because it had one.
+   * About publishes only `AboutPage` structured data, so nothing is retained.
+   */
+  test("about-us renders no breadcrumb bar", async ({ page }) => {
+    await page.goto("/about-us");
+    const crumbs = page.locator(
+      'main nav[aria-label="Breadcrumb" i], nav[aria-label="Breadcrumb" i], nav[aria-label="Breadcrumbs" i]',
+    );
+    expect(
+      await crumbs.count(),
+      "a breadcrumb bar still renders on /about-us — the report asks for it to be removed",
+    ).toBe(0);
+  });
+
+  /**
+   * QA-BLOG-A5 — report item R-BLOG-1920-03, "when hovered, the button color
+   * doesn't change at all".
+   *
+   * The trending pill is a <span> with no hover class and no transition, inside
+   * a card that animates its own shadow and title. It stays a span — the card is
+   * the link — so the hover is driven by the card's `group`, which is why the
+   * hover here is on the card, not on the pill.
+   */
+  test("the blog trending pill responds to hover", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    await page.goto("/blog");
+    await settleImages(page);
+
+    const canHover = await page.evaluate(() => matchMedia("(hover: hover)").matches);
+    test.skip(
+      !canHover,
+      "This viewport reports (hover: hover) = false — hover styles do not apply.",
+    );
+
+    // The pill itself, not the card. A `hasText` locator matches ancestors, so
+    // it resolves the whole card and reports its colours instead of the pill's —
+    // the mistake that made the first sweep of this page report nonsense.
+    const pill = page.locator("main span", { hasText: /^Read this article$/ }).first();
+    await pill.waitFor();
+    const card = pill.locator("xpath=ancestor::a[1]");
+    await card.scrollIntoViewIfNeeded();
+
+    const read = () => pill.evaluate((el) => getComputedStyle(el).backgroundColor);
+    const settle = async () => {
+      let prev = await read();
+      for (let i = 0; i < 20; i++) {
+        await page.waitForTimeout(60);
+        const next = await read();
+        if (next === prev) return next;
+        prev = next;
+      }
+      return prev;
+    };
+
+    const resting = await settle();
+    await card.hover();
+    const hovered = await settle();
+
+    expect(
+      hovered,
+      `@${vw} the trending pill does not change when its card is hovered — resting and hovered both read ${resting}`,
+    ).not.toBe(resting);
+
+    const transition = await pill.evaluate((el) => getComputedStyle(el).transitionProperty);
+    expect(
+      transition === "all" ||
+        transition.includes("background-color") ||
+        transition.includes("colors"),
+      `the trending pill changes its background on hover but transitions only "${transition}" — the colour lands instantly`,
+    ).toBe(true);
+  });
+
+  /**
+   * QA-PRIVACY-A2 — report item R-PRIVACY-1920-02, "Email & Numbers are not
+   * properly visible".
+   *
+   * Measured at 2.14:1 against WCAG AA's 4.5:1, with `text-decoration: none`.
+   * Two independent failures — 1.4.3 (contrast) and 1.4.1 (colour as the only
+   * cue) — so the row is settled by measurement rather than by a design ruling,
+   * which is why it did not go to the blocked ledger.
+   */
+  test("legal-content links are readable and identifiable", async ({ page }) => {
+    await page.goto("/privacy-policy");
+    await settleImages(page);
+
+    const links = await page.evaluate(() => {
+      const lum = (c: number[]) => {
+        const s = c.map((v) => {
+          const n = v / 255;
+          return n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * s[0] + 0.7152 * s[1] + 0.0722 * s[2];
+      };
+      const parse = (v: string) => (v.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
+      const bgOf = (el: Element) => {
+        let n: Element | null = el;
+        while (n && getComputedStyle(n).backgroundColor === "rgba(0, 0, 0, 0)") n = n.parentElement;
+        return n ? getComputedStyle(n).backgroundColor : "rgb(255, 255, 255)";
+      };
+
+      return [...document.querySelectorAll('main a[href^="mailto:"], main a[href^="tel:"]')].map(
+        (a) => {
+          const cs = getComputedStyle(a);
+          const bg = bgOf(a);
+          const [hi, lo] = [lum(parse(cs.color)), lum(parse(bg))].sort((x, y) => y - x);
+          return {
+            text: (a.textContent || "").trim().slice(0, 34),
+            colour: cs.color,
+            bg,
+            ratio: Number(((hi + 0.05) / (lo + 0.05)).toFixed(2)),
+            decoration: cs.textDecorationLine,
+            weight: cs.fontWeight,
+          };
+        },
+      );
+    });
+
+    expect(links.length, "no mailto:/tel: links found in the privacy policy").toBeGreaterThan(0);
+
+    const lowContrast = links.filter((l) => l.ratio < 4.5);
+    expect(
+      lowContrast,
+      `these legal-content links fail WCAG AA (4.5:1): ${lowContrast
+        .map((l) => `"${l.text}" ${l.colour} on ${l.bg} = ${l.ratio}:1`)
+        .join(", ")}`,
+    ).toEqual([]);
+
+    // Colour alone is not enough — WCAG 1.4.1.
+    const colourOnly = links.filter((l) => l.decoration === "none" && l.weight === "400");
+    expect(
+      colourOnly,
+      `these legal-content links are distinguished from body text by colour alone — no underline, no weight change: ${colourOnly
+        .map((l) => `"${l.text}"`)
+        .join(", ")}`,
+    ).toEqual([]);
+  });
+
+  /**
+   * QA-SUPPORT-A2 — report item R-SUPPORT-1920-02, "the height of the text box
+   * in Additional Details is not enough".
+   *
+   * The report asks for a box that "will cover all the text in it" and names no
+   * height, so the field grows with its content rather than taking a taller
+   * fixed guess.
+   */
+  test("the support form's free-text field grows with its content", async ({ page }) => {
+    await page.goto("/support-request?issue=access");
+    await settleImages(page);
+
+    const textarea = page.locator("form textarea").first();
+    if (!(await textarea.count())) test.skip(true, "No textarea on the support form.");
+    await textarea.scrollIntoViewIfNeeded();
+
+    const height = () => textarea.evaluate((el) => Math.round(el.getBoundingClientRect().height));
+    const before = await height();
+
+    await textarea.fill(
+      Array.from(
+        { length: 12 },
+        (_, i) => `Line ${i + 1} of a longer answer than three rows.`,
+      ).join("\n"),
+    );
+    await page.waitForTimeout(200);
+    const after = await height();
+
+    expect(
+      after,
+      `the Additional Details field did not grow: ${before}px before typing, ${after}px after twelve lines — the typed content is hidden behind a scrollbar`,
+    ).toBeGreaterThan(before);
+  });
+});

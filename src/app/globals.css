@@ -323,7 +323,13 @@
     @apply mb-4 list-inside list-decimal;
   }
   & :where(a) {
-    @apply text-primary underline-offset-4 hover:underline;
+    /* QA-PRIVACY-A2: `text-primary` measured 2.14:1 on this page's N10 ground,
+       against WCAG AA's 4.5:1, and carried no underline until hover — failing
+       both 1.4.3 (contrast) and 1.4.1 (colour as the only cue distinguishing a
+       link from body text). `primary-800` measures 6.19:1 and keeps the link
+       hue; the underline is now permanent, so colour is not doing the work
+       alone. */
+    @apply text-primary-800 underline underline-offset-4 hover:no-underline;
   }
   & :where(img) {
     @apply my-4 rounded-md;

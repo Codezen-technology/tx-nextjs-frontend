@@ -1,7 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { AboutBreadcrumb } from "@/components/about/about-breadcrumb";
 import { AboutHero } from "@/components/about/about-hero";
 import { AboutCommitmentSection } from "@/components/about/about-commitment-section";
 import { AboutValuesGrid } from "@/components/about/about-values-grid";
@@ -13,14 +12,6 @@ vi.mock("@/lib/api/server", () => ({
     about: { get: vi.fn() },
   },
 }));
-
-describe("AboutBreadcrumb", () => {
-  it("renders Home link and the current page label", () => {
-    render(<AboutBreadcrumb />);
-    expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
-    expect(screen.getByText("About us")).toHaveAttribute("aria-current", "page");
-  });
-});
 
 describe("AboutHero", () => {
   it("renders eyebrow, heading, subheading, and both CTAs with configured hrefs", () => {

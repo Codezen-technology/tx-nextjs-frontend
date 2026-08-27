@@ -134,6 +134,22 @@ export type FormLayoutGroup =
   | { type: "stack"; fieldIds: number[] }
   | { type: "remaining"; excludeFieldIds: number[] };
 
+/**
+ * The tallest a free-text field may grow before it scrolls instead, so a long
+ * answer cannot push the rest of the form off the screen.
+ */
+const TEXTAREA_MAX_HEIGHT_PX = 320;
+
+/** Grow a textarea to fit its content, bounded. `QA-SUPPORT-A2`. */
+function growToFit(el: HTMLTextAreaElement) {
+  // Reset first: `scrollHeight` never reports less than the current height, so
+  // without this the field grows and never shrinks back.
+  el.style.height = "auto";
+  const next = Math.min(el.scrollHeight, TEXTAREA_MAX_HEIGHT_PX);
+  el.style.height = `${next}px`;
+  el.style.overflowY = el.scrollHeight > TEXTAREA_MAX_HEIGHT_PX ? "auto" : "hidden";
+}
+
 export function GravityForm({
   form,
   className,
@@ -758,8 +774,16 @@ function FieldControl({
           className={cn(
             "flex w-full rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-hidden disabled:opacity-50",
             fieldClass,
+            // `fieldClass` carries `h-11` for the cancellations/support styling —
+            // a single-line input height that silently overrode `rows` and left
+            // the Additional Details box 44px tall whatever it said (QA-SUPPORT-A2).
+            // `h-auto` hands the height back to `rows`; the handler below then
+            // grows it with the content, which is what the report asks for and
+            // what a fixed height cannot do for every answer.
+            "h-auto",
           )}
           {...register(field.name, { required })}
+          onInput={(e) => growToFit(e.currentTarget)}
         />
       );
 
