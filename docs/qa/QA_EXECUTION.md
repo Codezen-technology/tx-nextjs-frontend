@@ -1,7 +1,7 @@
 # QA Report — Page-by-Page Execution Runbook
 
 **Companion to:** [`QA_BY_PAGE.md`](./QA_BY_PAGE.md) · **Owner change:** `openspec/changes/qa-class-a-design-fidelity`
-**Last updated:** 2026-08-14
+**Last updated:** 2026-08-27
 
 ---
 
@@ -33,6 +33,10 @@ closes one. This file re-cuts the same work into page slices, one commit each.
 > the index went from 3 open to **35 open across 12 pages**, with 11 blocked. The eight
 > slices below are all landed — the order that matters now is the reconciled one, further
 > down.
+>
+> **Updated 2026-08-27.** Seven changes have since worked that reconciled order down to
+> **12 open across 10 pages, with 12 blocked** — 8 Class A rows and 4 Class D builds. Go to
+> [The remaining order](#the-remaining-order--2026-08-27); everything above it is history.
 
 ---
 
@@ -105,31 +109,59 @@ with pages that share a single fix kept adjacent.**
 heading-weight contradiction. Single Course was worked separately as
 `fix-single-course-page-qa`. What follows replaces this table, not supplements it.
 
-### The reconciled order — 2026-08-14
+### The reconciled order — 2026-08-14 (spent)
 
-Descending open count, blocked rows excluded. Every row cites a report item, so a slice can
-be scoped by reading the page's section and nothing else.
+The reconciliation's order was Single Blog 7, Pricing 6, Homepage 6, Checkout 4, All
+Courses 3, Course Category 2, Blog 2, then five pages at 1 — **35 open across 12 pages**.
+Seven changes have landed against it since:
 
-| #   | Page             | Open | What it is                                                                                         |
-| --- | ---------------- | ---- | -------------------------------------------------------------------------------------------------- |
-| 1   | Single Blog      | 7    | Category name, two image removals, body/H2 type scale, FAQ vs design, 1280 padding, mobile ToC (D) |
-| 2   | Pricing          | 6    | Hero vs design, header size, a button removal, 440 spacing and alignment                           |
-| 3   | Homepage         | 6    | Nav and footer link removals, the Pricing nav item, a section button hover, footer copy            |
-| 4   | Checkout         | 4    | Card-scheme logos, PayPal "coming soon", trust lines, the missing section (D)                      |
-| 5   | All Courses      | 3    | CTA copy duplication, hero pattern (D), mobile responsive (D)                                      |
-| 6   | Course Category  | 2    | Hero background colour, 440 spacing                                                                |
-| 7   | Blog             | 2    | Card button hover, hero gradient + pattern (D)                                                     |
-| 8   | About Us         | 1    | Breadcrumb removal — the same one-line fix shipped as `QA-COURSE-A2`                               |
-| 9   | Privacy Policy   | 1    | Email and phone visibility                                                                         |
-| 10  | FAQ / Help       | 1    | FAQ section vs design                                                                              |
-| 11  | Cart             | 1    | Card content parity with the frame                                                                 |
-| 12  | Priority Support | 1    | Additional Details textarea height                                                                 |
+| Change                        | Closed | What                                                                                                                                                                                                               |
+| ----------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `qa-homepage-nav-footer-rows` | 4      | 4 Homepage rows; `QA-HOME-A10` moved to the blocked ledger rather than closing                                                                                                                                     |
+| `qa-single-blog-rows`         | 5      | 5 of Single Blog's 7                                                                                                                                                                                               |
+| `qa-pricing-rows`             | 4      | 4 of Pricing's 6                                                                                                                                                                                                   |
+| `qa-checkout-rows`            | 3      | 3 of Checkout's 4                                                                                                                                                                                                  |
+| `qa-all-courses-rows`         | 1      | `QA-COURSES-A4`, the CTA copy duplication                                                                                                                                                                          |
+| `qa-course-category-rows`     | 4      | Both Category rows, **plus `QA-BLOG-D2` and `QA-COURSES-D2`** — measuring the category gradient proved the Blog and All Courses hero gradients `CANT-REPRODUCE` too. Filed `QA-CAT-A6` in passing, already `FIXED` |
+| `qa-homepage-team-cta`        | 1      | Homepage's last non-blocked row                                                                                                                                                                                    |
 
-Four of these are Class D — net-new builds that need sizing before they are worked, not a
-page slice. The rest are ordinary slices under the recipe below.
+**23 closed, 35 → 12.** The 6th Homepage row is the ledger move, not a fix.
 
-Slices 1–7 are **independent** once slice 0 lands. The sequence is by value, not by
-dependency — they can be worked in any order, or in parallel by different people.
+Homepage, Course Category and Contact are now closed out. `QA-HOME-A10` moved to the blocked
+ledger rather than closing, which is why Homepage reads `AMBER 0 open / 7 blocked` and not
+`GREEN`.
+
+### The remaining order — 2026-08-27
+
+Descending open count, blocked rows excluded. Counts mirror `QA_BY_PAGE.md`'s page index —
+if they disagree, that file is right and this one is stale. **12 open across 10 pages, 12
+blocked.**
+
+| #   | Page             | Open | Rows                         | What it is                                         |
+| --- | ---------------- | ---- | ---------------------------- | -------------------------------------------------- |
+| 1   | Single Blog      | 2    | `QA-BLOGS-A7`, `QA-BLOGS-D1` | FAQ section vs design; mobile ToC drawer (D)       |
+| 2   | Pricing          | 2    | `QA-PRICE-A3`, `QA-PRICE-D1` | Remove the marked section's button; third card (D) |
+| 3   | About Us         | 1    | `QA-ABOUT-A1`                | Breadcrumb removal — **`GAP`**, test owed          |
+| 4   | Blog             | 1    | `QA-BLOG-A5`                 | Card button colour does not change on hover        |
+| 5   | Privacy Policy   | 1    | `QA-PRIVACY-A2`              | Email and phone not properly visible               |
+| 6   | FAQ / Help       | 1    | `QA-HELP-A1`                 | FAQ section vs design                              |
+| 7   | Cart             | 1    | `QA-CART-A1`                 | Card content parity with the frame                 |
+| 8   | Priority Support | 1    | `QA-SUPPORT-A2`              | Additional Details textarea height — **`GAP`**     |
+| 9   | All Courses      | 1    | `QA-COURSES-D1`              | Mobile responsive rebuild (D)                      |
+| 10  | Checkout         | 1    | `QA-CHECK-D1`                | The section present in Figma, absent in build (D)  |
+
+**Four are Class D** — `QA-BLOGS-D1`, `QA-PRICE-D1`, `QA-COURSES-D1`, `QA-CHECK-D1`. These
+are net-new builds that need sizing as their own OpenSpec changes (slice 8 item 2), not page
+slices. That leaves **8 Class A rows across 8 pages — exactly one each.** Single Blog and
+Pricing read 2 only because each also carries a D. There is no multi-row page left, so the
+descending-open-count ordering above is now a formality: the eighth commit closes the
+report.
+
+**Two carry a test debt**, not just a fix: `QA-ABOUT-A1` and `QA-SUPPORT-A2` are the only
+`GAP` rows left in Appendix B. Every other open row is `MANUAL-VISUAL`.
+
+These are **independent**. The sequence is by value, not by dependency — they can be worked
+in any order, or in parallel by different people.
 
 ---
 
@@ -352,12 +384,16 @@ that has them) get folded into the shared breakpoint ramp if they disagree with 
 
 ### Slice 8 — Close-out
 
-1. **Class E ledger** — re-issue Appendix A's 7 blocked items to design/product, each
+1. **Class E ledger** — re-issue Appendix A's **12** blocked items to design/product, each
    with what specifically is missing. Anything still unanswered ships as
    `BLOCKED-DESIGN` with the code untouched, called out in the PR description.
-2. **Class D** — file the outstanding proposals as their own OpenSpec changes: Team
-   Training page, All Courses mobile, Checkout section, Category FAQ, Blog and All
-   Courses hero gradient, Single Blog mobile ToC drawer, Pricing third card.
+2. **Class D** — file the outstanding proposals as their own OpenSpec changes. **Five as of
+   2026-08-27**, down from the seven this list carried: Team Training page (no route at
+   all), All Courses mobile (`QA-COURSES-D1`), Checkout section (`QA-CHECK-D1`), Single Blog
+   mobile ToC drawer (`QA-BLOGS-D1`), Pricing third card (`QA-PRICE-D1`). Two left the list
+   without a proposal — Category FAQ (`QA-CAT-D2`) was built since the report and is
+   `FIXED`; the Blog and All Courses hero gradient (`QA-BLOG-D2`, `QA-COURSES-D2`) is
+   `CANT-REPRODUCE` at 1920.
 3. **Full gate** — see Verification below.
 4. **PR description** — state which items measurement resolved, which stayed blocked,
    and what specifically is still needed for each.
@@ -440,10 +476,11 @@ npx playwright test e2e/design-fidelity.spec.ts \
 
 ### Done
 
-- Every open row is `FIXED` with evidence — **35 as of the 2026-08-14 reconciliation**, not
-  the 15 this file used to claim
+- Every open row is `FIXED` with evidence — **12 remain as of 2026-08-27**, down from the
+  35 the 2026-08-14 reconciliation filed (and never the 15 this file once claimed)
 - No `RED` page in the index has a non-blocked open row
-- Appendix B's test backlog is empty — **16 tests owed** as of the reconciliation
+- Appendix B's test backlog is empty — **2 tests owed** as of 2026-08-27, down from the 16
+  the reconciliation filed
 - Every item in `QA_REPORT_ITEMS.md` is cited by a row, and `pnpm test` proves it
 
 ---
