@@ -4,13 +4,8 @@ import { getLocale, setRequestLocale } from "next-intl/server";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { CourseFaq } from "@/components/courses/course-faq";
 
 export const revalidate = 3600;
 
@@ -102,25 +97,10 @@ export default function HelpPage() {
 
       <section className="py-16">
         <div className="container max-w-3xl">
-          <h2 className="font-suse mb-8 text-center text-2xl font-bold text-neutral-900">
-            Frequently Asked Questions
-          </h2>
-          <Accordion type="single" collapsible className="space-y-3">
-            {FAQS.map((faq, i) => (
-              <AccordionItem
-                key={faq.question}
-                value={`faq-${i}`}
-                className="border-neutral-30 rounded-lg border bg-white px-5"
-              >
-                <AccordionTrigger className="font-open-sans text-left font-semibold text-neutral-900 hover:no-underline">
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent className="font-open-sans text-sm leading-relaxed text-neutral-600">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          {/* One FAQ component site-wide — QA-HELP-A1 and QA-BLOGS-A7 are the
+              same defect on two pages, and the help and blog frames specify the
+              identical treatment. This page used to hand-roll its own accordion. */}
+          <CourseFaq heading="Frequently Asked Questions" items={FAQS} />
         </div>
       </section>
 

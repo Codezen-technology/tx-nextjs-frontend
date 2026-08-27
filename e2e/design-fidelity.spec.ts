@@ -1445,3 +1445,300 @@ test.describe("Class A — Contact", () => {
     ).toBe(CONTACT_ICON_CIRCLE.fill);
   });
 });
+
+/**
+ * FAQ section — `QA-BLOGS-A7` and `QA-HELP-A1`, one defect on two pages.
+ *
+ * Two independent frames specify the same treatment: the single-blog article
+ * (`6015:127392`) and the help page (`6239:109818`). Sampled from the Help frame
+ * and cross-checked against the blog frame's recorded values in
+ * `.context/figma/targets.md` — identical on every property both express. That
+ * agreement is what makes this the site's FAQ design rather than one page's, and
+ * what unblocked `A7`, which had been left open pending exactly that question.
+ *
+ * Asserted on both routes on purpose: a single-route check would let one page
+ * drift while the row claims both are fixed.
+ */
+const FAQ_ROUTES = [
+  { name: "help", path: "/help" },
+  { name: "blog", path: "/blog/how-to-get-a-nursing-assistant-certification" },
+];
+
+/** Measured from `6239:109818`. */
+const FAQ_TARGET = {
+  /** `secondary-50` #F5F1E9 at 50% alpha. */
+  containerFill: "rgba(245, 241, 233, 0.5)",
+  /** `N30` #EBEDF1. */
+  divider: "rgb(235, 237, 241)",
+  /** `N500` #3B5374. */
+  questionColour: "rgb(59, 83, 116)",
+  questionWeight: "400",
+  questionSize: 16,
+  iconSize: 24,
+  /** `secondary-50` #F5F1E9, solid. */
+  answerFill: "rgb(245, 241, 233)",
+};
+
+/**
+ * Sample the FAQ container's painted colour, and compute what the design says it
+ * should be: `secondary-50` #F5F1E9 at 50% alpha over whatever opaque backdrop
+ * sits behind it. Returns both so the assertion can report the pair.
+ */
+async function faqContainerPixel(
+  page: Page,
+): Promise<{ observed: number[]; expected: number[] } | null> {
+  const box = await page.evaluate(() => {
+    const trigger = document.querySelector<HTMLElement>("main [aria-expanded]");
+    if (!trigger) return null;
+    const transparent = (v: string) => v === "rgba(0, 0, 0, 0)" || v === "transparent";
+    let container: HTMLElement | null = trigger.parentElement;
+    while (container && transparent(getComputedStyle(container).backgroundColor)) {
+      container = container.parentElement;
+    }
+    if (!container) return null;
+    // The opaque backdrop the container is composited over.
+    let backdrop: HTMLElement | null = container.parentElement;
+    while (backdrop && transparent(getComputedStyle(backdrop).backgroundColor)) {
+      backdrop = backdrop.parentElement;
+    }
+    const parse = (v: string) => (v.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
+    container.scrollIntoView({ block: "center" });
+    const r = container.getBoundingClientRect();
+    return {
+      rect: {
+        x: Math.round(r.x),
+        y: Math.round(r.y),
+        width: Math.round(r.width),
+        height: Math.round(r.height),
+      },
+      backdrop: backdrop ? parse(getComputedStyle(backdrop).backgroundColor) : [255, 255, 255],
+    };
+  });
+  if (!box || box.rect.width < 8 || box.rect.height < 8) return null;
+
+  // Top-left corner sits inside the first row's horizontal padding, clear of the
+  // question text and the toggle icon, so it shows the container fill itself.
+  const shot = await page.screenshot({
+    clip: { x: box.rect.x + 2, y: box.rect.y + 2, width: 4, height: 4 },
+  });
+  const png = shot;
+  // Decode the 4x4 PNG's first pixel via the browser, avoiding an image dependency.
+  const observed = await page.evaluate(async (bytes) => {
+    const blob = new Blob([new Uint8Array(bytes)], { type: "image/png" });
+    const bmp = await createImageBitmap(blob);
+    const canvas = document.createElement("canvas");
+    canvas.width = bmp.width;
+    canvas.height = bmp.height;
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(bmp, 0, 0);
+    const d = ctx.getImageData(1, 1, 1, 1).data;
+    return [d[0], d[1], d[2]];
+  }, Array.from(png));
+
+  const SECONDARY_50 = [245, 241, 233];
+  const expected = SECONDARY_50.map((c, i) => Math.round(0.5 * c + 0.5 * box.backdrop[i]));
+  return { observed, expected };
+}
+
+/**
+ * Both routes run the same two checks. Written as helpers behind four literal
+ * `test()` titles rather than a loop over templated ones: the QA doc checker
+ * verifies that every `Auto` reference in `QA_BY_PAGE.md` names a title that
+ * literally appears in the spec, and a template makes that unverifiable.
+ */
+async function assertFaqFrameValues(page: Page, vw: number, route: { name: string; path: string }) {
+  await page.goto(route.path);
+  await settleImages(page);
+
+  const faq = await page.evaluate(() => {
+    // Anchored on the disclosure control rather than on a class, so a restyle
+    // does not move the target.
+    const trigger = document.querySelector<HTMLElement>("main [aria-expanded]");
+    if (!trigger) return null;
+
+    // Walk up to the first ancestor that actually paints a background: that is
+    // the container the frames describe. Anchoring on nesting depth was wrong —
+    // Radix wraps its trigger in an <h3> and the plain build did not, so the
+    // same depth landed on different elements per implementation.
+    const transparent = (v: string) => v === "rgba(0, 0, 0, 0)" || v === "transparent";
+    let container: HTMLElement | null = trigger.parentElement;
+    while (container && transparent(getComputedStyle(container).backgroundColor)) {
+      container = container.parentElement;
+    }
+    const row =
+      [...(container?.children ?? [])].find((c) => c.contains(trigger)) ?? trigger.parentElement;
+
+    const cs = (el: Element | null) => (el ? getComputedStyle(el) : null);
+    const containerStyle = cs(container);
+    const rowStyle = cs(row);
+    const label = trigger.querySelector("span") ?? trigger;
+    const labelStyle = cs(label);
+
+    // The visible toggle glyph. Both are rendered and one is hidden by the
+    // open/closed state, so taking the first svg reads a display:none node.
+    const iconBox = [...trigger.querySelectorAll("svg")]
+      .map((el) => el.getBoundingClientRect())
+      .find((r) => r.width > 0);
+
+    // The open answer, found through the association rather than by position.
+    const open = document.querySelector<HTMLElement>('main [aria-expanded="true"]');
+    const controls = open?.getAttribute("aria-controls");
+    const panel = controls
+      ? document.getElementById(controls)
+      : ((open?.parentElement?.nextElementSibling ?? null) as HTMLElement | null);
+    // The frames fill an *inner* panel inset within the row's padding.
+    const inner =
+      [...(panel?.querySelectorAll<HTMLElement>("div") ?? [])].find(
+        (d) => getComputedStyle(d).backgroundColor !== "rgba(0, 0, 0, 0)",
+      ) ?? null;
+
+    return {
+      containerRadius: containerStyle?.borderTopLeftRadius ?? null,
+      divider: rowStyle?.borderBottomColor ?? null,
+      questionColour: labelStyle?.color ?? null,
+      questionWeight: labelStyle?.fontWeight ?? null,
+      questionSize: labelStyle ? Math.round(parseFloat(labelStyle.fontSize)) : null,
+      iconSize: iconBox ? Math.round(iconBox.width) : null,
+      answerFill: inner ? getComputedStyle(inner).backgroundColor : null,
+    };
+  });
+
+  expect(faq, `no FAQ disclosure found on ${route.path}`).not.toBeNull();
+  const f = faq!;
+
+  // Tailwind v4 emits the half-alpha fill through its oklab pipeline, so the
+  // computed string is `oklab(... / 0.5)` and a text compare against `rgba(...)`
+  // fails on a container that is in fact correct. Compare what is painted
+  // instead — which is what the design specifies, a colour not a serialisation.
+  const painted = await faqContainerPixel(page);
+  expect(painted, `@${vw} ${route.name}: could not sample the FAQ container`).not.toBeNull();
+  const { observed, expected } = painted!;
+  const delta = Math.max(...observed.map((c, i) => Math.abs(c - expected[i])));
+  expect(
+    delta,
+    `@${vw} ${route.name} FAQ container fill: design secondary-50 #F5F1E9 at 50% alpha over its backdrop = rgb(${expected.join(", ")}) (node 6239:109818), painted rgb(${observed.join(", ")})`,
+  ).toBeLessThanOrEqual(2);
+
+  expect(
+    f.containerRadius,
+    `@${vw} ${route.name} FAQ container is square in both frames, observed radius ${f.containerRadius}`,
+  ).toBe("0px");
+  expect(
+    f.divider,
+    `@${vw} ${route.name} FAQ row divider: design ${FAQ_TARGET.divider} (N30), observed ${f.divider}`,
+  ).toBe(FAQ_TARGET.divider);
+  expect(
+    f.questionWeight,
+    `@${vw} ${route.name} FAQ question weight: design ${FAQ_TARGET.questionWeight}, observed ${f.questionWeight}`,
+  ).toBe(FAQ_TARGET.questionWeight);
+  expect(
+    f.questionColour,
+    `@${vw} ${route.name} FAQ question colour: design ${FAQ_TARGET.questionColour} (N500), observed ${f.questionColour}`,
+  ).toBe(FAQ_TARGET.questionColour);
+  expect(
+    f.questionSize,
+    `@${vw} ${route.name} FAQ question size: design ${FAQ_TARGET.questionSize}, observed ${f.questionSize}`,
+  ).toBe(FAQ_TARGET.questionSize);
+  expect(
+    f.iconSize,
+    `@${vw} ${route.name} FAQ toggle icon: design ${FAQ_TARGET.iconSize}px, observed ${f.iconSize}`,
+  ).toBe(FAQ_TARGET.iconSize);
+  expect(
+    f.answerFill,
+    `@${vw} ${route.name} FAQ open answer panel: design ${FAQ_TARGET.answerFill} (secondary-50 solid), observed ${f.answerFill}`,
+  ).toBe(FAQ_TARGET.answerFill);
+}
+
+/**
+ * The site had two FAQ implementations and the one being deleted was the more
+ * capable: `/help`'s Radix accordion gives roving focus, arrow keys, and — on
+ * the open item — `aria-controls` plus an `aria-labelledby` answer region, none
+ * of which `CourseFaq` had. Converging on the weaker one would have been a
+ * regression no visual check catches, so it is asserted rather than assumed.
+ */
+async function assertFaqSemantics(page: Page, route: { name: string; path: string }) {
+  await page.goto(route.path);
+  await settleImages(page);
+
+  const semantics = await page.evaluate(() => {
+    const triggers = [...document.querySelectorAll<HTMLElement>("main [aria-expanded]")].filter(
+      (el) => !el.closest("header") && !el.closest("footer"),
+    );
+    if (!triggers.length) return null;
+    // Read the OPEN item. A closed disclosure has no panel to point at, and
+    // Radix only emits `aria-controls` while one is mounted — asserting it on a
+    // closed trigger measures the wrong thing.
+    const open = triggers.find((el) => el.getAttribute("aria-expanded") === "true");
+    const subject = open ?? triggers[0];
+    const controls = open?.getAttribute("aria-controls");
+    const panel = controls ? document.getElementById(controls) : null;
+    return {
+      isButton: subject.tagName.toLowerCase() === "button",
+      expanded: subject.getAttribute("aria-expanded"),
+      // Both frames show the first question expanded.
+      hasOpenItem: Boolean(open),
+      hasControls: Boolean(controls),
+      panelFound: Boolean(panel),
+      panelIsRegion: panel?.getAttribute("role") === "region",
+      panelLabelled: panel?.getAttribute("aria-labelledby") === open?.id,
+    };
+  });
+
+  expect(semantics, `no FAQ disclosure found on ${route.path}`).not.toBeNull();
+  const s = semantics!;
+
+  expect(s.isButton, `${route.name}: the FAQ question is not a <button>`).toBe(true);
+  expect(s.expanded, `${route.name}: the FAQ question does not report an expanded state`).toMatch(
+    /true|false/,
+  );
+  expect(
+    s.hasOpenItem,
+    `${route.name}: no FAQ question is open — both frames show the first one expanded`,
+  ).toBe(true);
+  expect(
+    s.hasControls,
+    `${route.name}: the open FAQ question has no aria-controls, so its answer is not associated with it`,
+  ).toBe(true);
+  expect(
+    s.panelFound,
+    `${route.name}: the open FAQ question's aria-controls points at no element`,
+  ).toBe(true);
+  expect(s.panelIsRegion, `${route.name}: the open FAQ answer is not exposed as a region`).toBe(
+    true,
+  );
+  expect(
+    s.panelLabelled,
+    `${route.name}: the open FAQ answer is not labelled by the question that controls it`,
+  ).toBe(true);
+
+  // Keyboard: focus a question and toggle it without a pointer.
+  const trigger = page.locator("main [aria-expanded]").first();
+  const before = await trigger.getAttribute("aria-expanded");
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect
+    .poll(() => trigger.getAttribute("aria-expanded"), {
+      message: `${route.name}: pressing Enter on a focused FAQ question did not toggle it`,
+    })
+    .not.toBe(before);
+}
+
+const [HELP_ROUTE, BLOG_ROUTE] = FAQ_ROUTES;
+
+test.describe("Class A — FAQ section", () => {
+  test("help: the FAQ carries the measured frame values", async ({ page, viewport }) => {
+    await assertFaqFrameValues(page, viewport?.width ?? 0, HELP_ROUTE);
+  });
+
+  test("help: the FAQ is operable and announced correctly", async ({ page }) => {
+    await assertFaqSemantics(page, HELP_ROUTE);
+  });
+
+  test("blog: the FAQ carries the measured frame values", async ({ page, viewport }) => {
+    await assertFaqFrameValues(page, viewport?.width ?? 0, BLOG_ROUTE);
+  });
+
+  test("blog: the FAQ is operable and announced correctly", async ({ page }) => {
+    await assertFaqSemantics(page, BLOG_ROUTE);
+  });
+});
