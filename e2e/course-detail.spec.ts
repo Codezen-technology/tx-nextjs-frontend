@@ -34,8 +34,11 @@ test.describe("Course detail page", () => {
   test("has a canonical link pointing to the frontend domain", async ({ page }) => {
     test.skip(!courseSlug, "No courses available on WP backend");
     await page.goto(`/course/${courseSlug}`);
-    // Wait for client-side hydration to settle so head tags are stable
-    await page.waitForSelector('link[rel="canonical"]', { timeout: 10_000 });
+    // `waitForSelector` defaults to `state: "visible"`, and a <link> in <head>
+    // is never visible — so this timed out for ten seconds and failed on a page
+    // whose canonical was present all along. `state: "attached"` is what a head
+    // tag can actually reach.
+    await page.waitForSelector('link[rel="canonical"]', { state: "attached", timeout: 10_000 });
     const canonical = await page.evaluate(
       () => document.querySelector('link[rel="canonical"]')?.getAttribute("href") ?? null,
     );
@@ -47,8 +50,14 @@ test.describe("Course detail page", () => {
   test("injects valid JSON-LD structured data", async ({ page }) => {
     test.skip(!courseSlug, "No courses available on WP backend");
     await page.goto(`/course/${courseSlug}`);
-    // JSON-LD is rendered in the page body by CourseDetailPage (not via generateMetadata)
-    await page.waitForSelector('script[type="application/ld+json"]', { timeout: 10_000 });
+    // JSON-LD is rendered in the page body by CourseDetailPage (not via
+    // generateMetadata), but a <script> is `display: none` either way, so this
+    // has to wait for attachment rather than visibility — the same defect as the
+    // canonical check above.
+    await page.waitForSelector('script[type="application/ld+json"]', {
+      state: "attached",
+      timeout: 10_000,
+    });
     const scripts = await page.evaluate(() =>
       Array.from(document.querySelectorAll('script[type="application/ld+json"]')).map(
         (s) => s.textContent,

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { seedGuestCart } from "./helpers/cart";
 
 /**
  * Design-fidelity check for the Class A items.
@@ -1923,5 +1924,94 @@ test.describe("Class A — the final four rows", () => {
       after,
       `the Additional Details field did not grow: ${before}px before typing, ${after}px after twelve lines — the typed content is hidden behind a scrollbar`,
     ).toBeGreaterThan(before);
+  });
+});
+
+/**
+ * Cart and Pricing — `qa-cart-pricing-rows`, the last two Class A rows.
+ */
+test.describe("Class A — Cart and Pricing", () => {
+  /**
+   * QA-CART-A1 — report item R-CART-1920-01, "the card will have all the
+   * contents available on the design card".
+   *
+   * That reads like a rebuild; the frame (`6239:113878`) says otherwise. Every
+   * field matched except one: the frame labels the unit price `Price: £24.99`
+   * and the build rendered a bare `£24.99`. A row shows two money values — unit
+   * price and line total — and an unlabelled pair invites confusing them.
+   */
+  test("a cart row labels its unit price", async ({ page }) => {
+    const seeded = await seedGuestCart(page);
+    test.skip(!seeded, "No purchasable course available on the WP backend to seed a cart.");
+
+    await page.goto("/cart");
+    // Anchored on the row's own remove control rather than a test id, so the
+    // assertion does not require a marker added to production markup for its
+    // benefit.
+    const remove = page.getByRole("button", { name: /^Remove /i }).first();
+    await remove.waitFor({ timeout: 30_000 }).catch(() => {});
+    test.skip((await remove.count()) === 0, "Cart rendered no rows.");
+    const row = remove.locator('xpath=ancestor::div[contains(@class,"border-b")][1]');
+
+    const text = (await row.innerText()).replace(/\s+/g, " ");
+    expect(
+      text,
+      `the cart row does not label its unit price — the frame reads "Price: £24.99", the row reads "${text.slice(0, 90)}"`,
+    ).toMatch(/Price:/i);
+  });
+
+  /**
+   * QA-PRICE-A3 — report item R-PRICE-1920-06, "in this section, there won't be
+   * any Button in the marked area — remove the button".
+   *
+   * The frame's categories section is a heading with nothing to its right,
+   * running straight into the FAQ. The build rendered a "View all courses" link
+   * in that heading row.
+   *
+   * Both halves are asserted. `CategoriesGrid` is shared with the homepage,
+   * whose frame keeps the link (QA-HOME-A7 measured its position there and
+   * recorded the heading row as correct), so a one-sided test would let a later
+   * cleanup delete it everywhere and still pass.
+   */
+  test("the categories CTA is absent on pricing and present on the homepage", async ({ page }) => {
+    /**
+     * Scoped to the categories section by its heading, not to the page.
+     *
+     * A page-wide count was the first shape of this assertion and it was wrong:
+     * the homepage's "View all courses" links come from the Popular Courses
+     * block, so deleting the link from `CategoriesGrid` outright left the
+     * page-wide count unchanged and the test passed on a broken homepage. The
+     * mutation check caught it.
+     */
+    const categoriesCta = async () =>
+      page.evaluate(() => {
+        const heading = [...document.querySelectorAll("main h2, main h3")].find((h) =>
+          /explore courses by category/i.test(h.textContent || ""),
+        );
+        if (!heading) return { sectionFound: false, links: 0 };
+        const section = heading.closest(".container") ?? heading.parentElement;
+        const links = [...(section?.querySelectorAll('a[href="/all-courses"]') ?? [])].filter((a) =>
+          /view all courses/i.test(a.textContent || ""),
+        );
+        return { sectionFound: true, links: links.length };
+      });
+
+    await page.goto("/pricing");
+    await settleImages(page);
+    const pricing = await categoriesCta();
+    expect(pricing.sectionFound, "no categories section found on /pricing").toBe(true);
+    expect(
+      pricing.links,
+      'the pricing page still renders a "View all courses" link in its categories section — the frame\'s heading row is empty to its right',
+    ).toBe(0);
+
+    await page.goto("/");
+    await settleImages(page);
+    const home = await categoriesCta();
+    expect(home.sectionFound, "no categories section found on the homepage").toBe(true);
+    expect(
+      home.links,
+      'the homepage\'s categories section lost its "View all courses" link — QA-HOME-A7 measured it in the heading row and recorded that placement as correct, so removing it site-wide is not the fix for QA-PRICE-A3',
+    ).toBeGreaterThan(0);
   });
 });

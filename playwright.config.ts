@@ -1,4 +1,34 @@
 import { defineConfig, devices } from "@playwright/test";
+import { readFileSync } from "node:fs";
+
+/**
+ * Load `.env.local` into the test process.
+ *
+ * Specs that need a course slug or a purchasable product read
+ * `NEXT_PUBLIC_WP_API_URL` to reach WordPress directly, exactly as the browser
+ * does. Without it they `test.skip` — and a skip is indistinguishable from a
+ * pass in the summary line, which is how the three `QA-CHECK-*` assertions and
+ * the two `course-detail` head-tag tests sat silently inert in every full run
+ * while their rows read FIXED with a test reference.
+ *
+ * The runbook told humans to prefix the command with `set -a; . ./.env.local`.
+ * A config that loads it cannot be forgotten. Existing environment wins, so CI
+ * and one-off overrides still take precedence.
+ */
+function loadEnvLocal() {
+  try {
+    for (const line of readFileSync(".env.local", "utf8").split("\n")) {
+      const m = /^\s*([A-Z0-9_]+)\s*=\s*(.*)$/.exec(line);
+      if (!m) continue;
+      const key = m[1];
+      if (process.env[key] !== undefined) continue;
+      process.env[key] = m[2].trim().replace(/^["']|["']$/g, "");
+    }
+  } catch {
+    // No .env.local — CI supplies the environment directly.
+  }
+}
+loadEnvLocal();
 
 export default defineConfig({
   testDir: "e2e",

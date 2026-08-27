@@ -54,7 +54,10 @@ export default async function PricingPage() {
           second inset this section a whole page-pad further than every other
           section on the page: 48 against 24 at 440. QA-PRICE-A5. */}
       <section className="py-section bg-white lg:py-20">
-        <CategoriesGrid categories={categoriesRes?.items} />
+        {/* No CTA here: the pricing frame's categories heading row is empty to
+            its right and runs straight into the FAQ (QA-PRICE-A3). The homepage
+            keeps its link — see the prop's note. */}
+        <CategoriesGrid categories={categoriesRes?.items} showViewAll={false} />
       </section>
 
       {pricing?.faq?.length ? (

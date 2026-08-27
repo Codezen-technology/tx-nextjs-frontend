@@ -450,6 +450,29 @@ npx playwright test e2e/design-fidelity.spec.ts \
    > **Load `.env.local` before an E2E run** (`set -a; . ./.env.local; set +a`) or the run
    > silently under-reports by skipping every test that needs a course.
 
+   > **Superseded 2026-08-27: `playwright.config.ts` loads `.env.local` itself.** The
+   > prefix above was a rule humans had to remember, and forgetting it was invisible —
+   > **53 tests had been skipping in every full run**, including the three `QA-CHECK-*`
+   > assertions whose rows read `FIXED` with a test reference, and the two `course-detail`
+   > head-tag tests. A skip and a pass look identical in the summary line. Existing
+   > environment still wins, so CI and one-off overrides are unaffected.
+
+   > **The baseline is now 0.** Loading the environment took the count from 12 to 18 by
+   > un-skipping two genuinely failing tests; fixing six stale specs took it to **1 flake**,
+   > and that one (`qa-round-1 > the mega menu opens on hover`, desktop-1920) passed three
+   > times out of three when re-run alone. What the six were:
+   >
+   > | Spec                                | Was asserting                                | Reality                                                                                                        |
+   > | ----------------------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+   > | `course-detail` canonical + JSON-LD | `waitForSelector` default `state: "visible"` | A `<link>`/`<script>` in `<head>` is never visible — `state: "attached"`                                       |
+   > | `auth-flow` login form              | `getByPlaceholder("Email")`                  | The field is labelled "Email or Username"; its placeholder is an example address                               |
+   > | `smoke` courses page                | `/courses` is public                         | `/courses` is in the `(student)` group and is protected **by design** — the public catalogue is `/all-courses` |
+   > | `cancellations` refund form         | `getByText("Request details")`               | Also matches the H2 "Refund request details" — strict-mode violation                                           |
+   > | `cancellations` step 2              | heading "tell us where to reply"             | The wizard labels the reply fields directly; the heading no longer exists                                      |
+   >
+   > Every one failed on a working application. Compare a full run against **zero**, and
+   > treat any failure as real until a re-run says otherwise.
+
    > **The "six" is a per-project number; `pnpm test:e2e` runs three.** On 2026-08-24 a
    > full run reported **16 failed / 94 skipped / 169 passed** and a warm re-run settled at
    > **12** — `smoke:9`, `auth-flow:15`, `cancellations:11` and `cancellations:28`, each

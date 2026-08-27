@@ -55,7 +55,11 @@ export function CartItemRow({ item }: CartItemRowProps) {
             content={item.name}
             className="line-clamp-2 max-w-[24rem] font-medium text-neutral-900"
           />
+          {/* The frame labels this "Price: £24.99" (QA-CART-A1). A row shows two
+              money values — this one and the line total — and an unlabelled
+              pair invites reading one for the other. */}
           <div className="mt-1 flex items-center gap-1.5 text-sm">
+            <span className="font-semibold text-neutral-900">Price:</span>
             {isOnSale && (
               <span className="text-gray-400 line-through">
                 {currency}
