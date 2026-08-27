@@ -4,8 +4,9 @@ import Image from "next/image";
 import { serverApi } from "@/lib/api/server";
 import { fetchSettings } from "@/lib/services/settings.server";
 import { CertificateForm } from "./certificate-form";
-import { toFrontendPath } from "@/lib/utils/url";
-import type { FooterNavLink, FooterData, WpNavItem } from "@/types/settings";
+import { buildNavColumns } from "@/lib/utils/footer-nav";
+import { decodeEntities } from "@/lib/api/parsers";
+import { SafeImage } from "@/components/ui/safe-image";
 const overlayImage = "/images/bg-footer.webp";
 
 function SocialIcon({ className, children }: { className?: string; children: React.ReactNode }) {
@@ -79,99 +80,18 @@ const SOCIAL_LABEL_MAP: Record<string, string> = {
   youtube: "YouTube",
 };
 
-const FALLBACK_NAV_LINKS: FooterNavLink[] = [
-  { href: "/about-us", label: "About us" },
-  { href: "/reviews", label: "Reviews" },
-  { href: "/help", label: "Help and FAQs" },
-  { href: "/contact-us", label: "Contact us" },
-  { href: "/verify-certificate", label: "Verify certificate" },
-  { href: "/cancellations", label: "Cancellations and refunds" },
-  { href: "/terms-and-conditions", label: "Policies and terms of use" },
-];
-
-/** WP menu permalinks that differ from the headless route slug. */
-const NAV_HREF_REMAP: Record<string, string> = {
-  "/contact": "/contact-us",
-  "/policies": "/privacy-policy",
-};
-
-/** Normalise a WP-menu href to the matching headless route (trailing slash tolerant). */
-function remapNavHref(href: string): string {
-  return NAV_HREF_REMAP[href.replace(/\/$/, "")] ?? href;
-}
-
-type NavCol = { header?: string; links: FooterNavLink[] };
-
-/**
- * Footer links the business asked to drop — QA-HOME-A9 (`R-HOME-1920-15`).
- *
- * These live in the **WordPress** menu, not in this file: prod's
- * `/lms-backend/v1/footer` still serves all three, so editing the fallback below
- * would have closed the QA row while changing nothing on the site. Filtering here
- * is a guard, and the durable fix is deleting the three items from the WP footer
- * menu — do that, and this list can go.
- *
- * Matched on destination, not label: renaming "Work for us" to "Careers" in the
- * CMS must not bring it back.
- */
-const REMOVED_FOOTER_PATHS = new Set(["/force-for-good", "/careers", "/resources"]);
-
-function keepLink(link: FooterNavLink): boolean {
-  const href = remapNavHref(link.href);
-  // `toFrontendPath` only strips an origin it recognises, so a menu served from
-  // any other host arrives here absolute. Compare pathnames, or the filter leaks
-  // the moment the backend origin changes.
-  let path = href;
-  try {
-    if (/^https?:\/\//.test(href)) path = new URL(href).pathname;
-  } catch {
-    // Not a URL — fall through and match the raw value.
-  }
-  return !REMOVED_FOOTER_PATHS.has(path.replace(/\/$/, ""));
-}
-
-/** Exported for `footer-nav.test.ts` — the CMS shape is what needs guarding, not the fallback. */
-export function buildNavColumns(nav: FooterData["nav"] | undefined): NavCol[] {
-  if (!nav) {
-    const links = FALLBACK_NAV_LINKS.filter(keepLink);
-    const mid = Math.ceil(links.length / 2);
-    return [
-      { header: "About", links: links.slice(0, mid) },
-      { header: "Support", links: links.slice(mid) },
-    ];
-  }
-  if (Array.isArray(nav)) {
-    const items = (nav as WpNavItem[])
-      .map((item) => ({
-        label: item.title,
-        href: toFrontendPath(item.url),
-      }))
-      .filter(keepLink);
-    const mid = Math.ceil(items.length / 2);
-    return [{ links: items.slice(0, mid) }, { links: items.slice(mid) }];
-  }
-  return [
-    { header: "About", links: (nav.about ?? []).filter(keepLink) },
-    { header: "Support", links: (nav.support ?? []).filter(keepLink) },
-  ];
-}
-
-const FALLBACK_SOCIAL: FooterData["social"] = {
-  facebook: "https://facebook.com/trainingexcellence",
-  twitter: "https://x.com/trainingexcellence",
-  tiktok: "https://tiktok.com/@trainingexcellence",
-  instagram: "https://instagram.com/trainingexcellence",
-  linkedin: "https://linkedin.com/company/trainingexcellence",
-};
-
 export async function SiteFooter() {
   const [footerData, settings] = await Promise.all([
     serverApi.footer.get().catch(() => null),
     fetchSettings().catch(() => null),
   ]);
   const navCols = buildNavColumns(footerData?.nav);
-  const social = footerData?.social ?? FALLBACK_SOCIAL;
+  // No social fallback: an unconfigured platform renders nothing. Inventing a
+  // handle (the old `facebook.com/trainingexcellence`) produces a dead link
+  // that misrepresents the brand — worse than an absent icon.
+  const social = footerData?.social ?? {};
   const contact = footerData?.contact ?? {};
+  const badges = footerData?.compliance?.badges ?? [];
 
   const socialLinks = (Object.entries(social) as [string, string | null | undefined][])
     .filter((entry): entry is [string, string] => !!entry[1])
@@ -248,11 +168,16 @@ export async function SiteFooter() {
                 </span>
               )}
             </Link>
-            <p className="font-open-sans text-neutral-30 text-[16px] leading-normal">
-              Training Excellence delivers CPD-accredited, expert-led online training for businesses
-              and professionals. Our flexible, high-quality courses ensure compliance, workplace
-              safety, and career growth—anytime, anywhere.
-            </p>
+            {contact.description && (
+              <p className="font-open-sans text-neutral-30 text-[16px] leading-normal">
+                {decodeEntities(contact.description)}
+              </p>
+            )}
+            {contact.address && (
+              <p className="font-open-sans text-neutral-30 text-[16px] leading-normal">
+                {decodeEntities(contact.address)}
+              </p>
+            )}
             {socialLinks.length > 0 && (
               <div className="flex items-center gap-3.5">
                 <span className="font-open-sans text-[14px] leading-normal text-white">
@@ -308,14 +233,25 @@ export async function SiteFooter() {
                     </p>
                   )}
                   <ul className="flex flex-col gap-3">
-                    {col.links.map(({ href, label, badge }) => (
-                      <li key={href} className="flex items-center gap-2">
-                        <a
-                          href={remapNavHref(href)}
-                          className="font-suse text-neutral-30 hover:text-primary-400 text-[16px] leading-[1.2] font-medium transition-colors"
-                        >
-                          {label}
-                        </a>
+                    {col.links.map(({ key, href, label, badge, external }) => (
+                      <li key={key} className="flex items-center gap-2">
+                        {external ? (
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-suse text-neutral-30 hover:text-primary-400 text-[16px] leading-[1.2] font-medium transition-colors"
+                          >
+                            {label}
+                          </a>
+                        ) : (
+                          <Link
+                            href={href}
+                            className="font-suse text-neutral-30 hover:text-primary-400 text-[16px] leading-[1.2] font-medium transition-colors"
+                          >
+                            {label}
+                          </Link>
+                        )}
                         {badge && (
                           <span className="font-open-sans rounded-full border border-white/30 bg-white/10 px-2 py-0.5 text-[12px] leading-[18px] font-medium text-white">
                             {badge}
@@ -338,6 +274,28 @@ export async function SiteFooter() {
                 certificates with Training Excellence&apos;s Course Certificate Validator tool.
               </p>
               <CertificateForm />
+              {badges.length > 0 && (
+                <div className="flex flex-wrap items-center gap-4">
+                  {badges.map((badge) => (
+                    // SafeImage, not Image: `src` is author-supplied from a
+                    // wp_option, so it can be empty or malformed and must not
+                    // crash the optimizer. A host outside `next.config.mjs`'s
+                    // remotePatterns still fails — add it there if a brand
+                    // serves badges from a new CDN.
+                    <SafeImage
+                      key={badge.src}
+                      src={badge.src}
+                      // Author-supplied and often decorative — an empty alt is
+                      // correct here, and never a placeholder graphic: a stand-in
+                      // badge would claim an accreditation the brand may not hold.
+                      alt={decodeEntities(badge.alt)}
+                      width={96}
+                      height={96}
+                      className="h-16 w-auto object-contain"
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -346,12 +304,12 @@ export async function SiteFooter() {
       {/* Bottom bar */}
       <div className="border-t border-neutral-600 px-4">
         <div className="mx-auto max-w-[1296px] py-8 text-right">
+          {/* Legal entity and registration number — must match the operating
+              company on the live site. The previous values (Training Excellence,
+              VAT 923 6593 07, reg. 6428976) named a different company. */}
           <p className="font-open-sans text-[16px] leading-normal text-neutral-200">
-            © {new Date().getFullYear()} Training Excellence.{" "}
-            {contact.address ??
-              "Riverside Business Park, Dansk Way, Ilkley, West Yorkshire, LS29 8JZ."}
-            <br />
-            VAT Reg. No: 923 6593 07 &nbsp;|&nbsp; Registered in England and Wales: 6428976
+            © {new Date().getFullYear()} EXCELLENT TRAINING GROUP LTD. Registered in England and
+            Wales: 16275537
           </p>
           <p className="font-open-sans mt-1 text-[16px] leading-normal text-neutral-200">
             This site is protected by reCAPTCHA and the Google{" "}
