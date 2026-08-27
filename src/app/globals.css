@@ -3,15 +3,113 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+  Side padding is a ramp, measured off the Blog responsive frames
+  (`4118:68465` — 1920 `4900:75788`, 1280 `4099:78249`, 440 `4115:68390`):
+
+    1920 -> 312px padding, 1296px content
+    1280 -> 128px padding, 1024px content
+     440 ->  24px padding,  392px content
+
+  It is deliberately not linear, so it cannot be one value. Before this, every
+  width below 1400 got 16px — 8x too little at 1280, which is the QA report's
+  "laptop side padding 128px" defect.
+
+  The max content width is `--page-grid-max`, defined in `@theme` below. The
+  design's content column is 1296, but that is a separate, recorded decision
+  (see .context/figma/node-resolution.md) and is inactive below the cap anyway,
+  so the ramp lands without touching it.
+
+  Both utilities below read the same tokens. Nothing else may restate them: five
+  independent copies of `1400px` is how the header, the mega menu and the
+  trusted-orgs bleed drifted apart from the page column in the first place.
+*/
 @utility container {
   margin-inline: auto;
-  padding-inline: 1rem;
+  padding-inline: var(--page-grid-pad);
   @media (width >= --theme(--breakpoint-sm)) {
     max-width: none;
   }
-  @media (width >= 1400px) {
-    max-width: 1400px;
+  @media (width >= --theme(--breakpoint-lg)) {
+    padding-inline: var(--page-grid-pad-lg);
   }
+  @media (width >= 1280px) {
+    padding-inline: var(--page-grid-pad-xl);
+  }
+  @media (width >= --theme(--page-grid-max)) {
+    max-width: var(--page-grid-max);
+    padding-inline: var(--page-grid-pad-max);
+  }
+}
+
+/*
+  Aligns a full-bleed surface's start edge to the page content column, for a
+  surface that deliberately runs off the opposite edge and so cannot be a
+  `container` itself.
+
+  The ramp is the container's, step for step, so a change to the grid moves both.
+  The cap branch resolves `100%` against the full-width ancestor rather than
+  `100vw` on purpose — `100vw` includes the scrollbar, which `container`'s
+  centring does not, and the two would disagree by half a scrollbar.
+*/
+@utility grid-inset-start {
+  padding-inline-start: var(--page-grid-pad);
+  @media (width >= --theme(--breakpoint-lg)) {
+    padding-inline-start: var(--page-grid-pad-lg);
+  }
+  @media (width >= 1280px) {
+    padding-inline-start: var(--page-grid-pad-xl);
+  }
+  @media (width >= --theme(--page-grid-max)) {
+    padding-inline-start: calc((100% - var(--page-grid-max)) / 2 + var(--page-grid-pad-max));
+  }
+}
+
+/*
+  The page grid. One definition; `container`, `grid-inset-start` and every
+  surface that has to line up with the content column read it from here.
+
+  `--page-grid-max` is the container's outer width, padding included, so the
+  content column at the widest step is `--page-grid-max` minus twice
+  `--page-grid-pad-max`. The padding steps are a measured ramp, not a formula —
+  see the comment above the container utility for their Figma sources.
+
+  `static` so the tokens are emitted whether or not a utility happens to
+  reference them: they are read from component-level arbitrary values too, and a
+  pruned token fails silently as an invalid `var()` rather than loudly.
+
+  The value 1400 is the status quo, not a design ruling: the design measures a
+  1296 content column. That gap is deliberately open — see the `site-page-grid`
+  change and .context/figma/node-resolution.md.
+*/
+@theme static {
+  --page-grid-max: 1400px;
+  --page-grid-pad: 1.5rem; /* 24px — the 440 target */
+  --page-grid-pad-lg: 4rem; /* 64px — midpoint of the ramp between 440 and 1280 */
+  --page-grid-pad-xl: 8rem; /* 128px — measured at 1280 */
+  --page-grid-pad-max: 2rem; /* 32px — at and above the cap */
+}
+
+/*
+  The vertical counterpart of the page grid: one value for the whitespace
+  between two stacked top-level sections below `lg`.
+
+  The design puts 40 between adjacent section frames at 440 — blog mobile
+  `4115:68390`, three independent gaps (721→761, 9489→9529, 9790→9830). The
+  build stacks sections with no gap between their boxes, so each side of a
+  boundary owns half: `py-section` is 20, and a boundary reads 40.
+
+  Sized as a `--spacing-*` entry rather than a bespoke utility so it composes as
+  an ordinary `py-section`, and a `lg:py-*` on the same element still wins above
+  the breakpoint — each section keeps the desktop padding it already shipped.
+  Desktop is deliberately untouched here: the 1920 rhythm is 80 and the 1280 is
+  56, but no open QA row asks for them and changing them is a separate slice.
+
+  Not applied to heroes. A hero band is sized by its own content and carries its
+  own inset (QA-HOME-A1 measured 133 at 1920), so it is not a rhythm participant.
+*/
+@theme static {
+  --spacing-section: 1.25rem; /* 20px — half of the measured 40px mobile rhythm */
 }
 
 @theme {
@@ -150,9 +248,68 @@
   text-wrap: balance;
 }
 
+/**
+ * Blog-article heading token — QA-BLOGS-A6.
+ *
+ * The single-post frame (`6015:127141`) binds `Heading/Bold/H5` for in-article
+ * headings: SUSE Bold 20px, 1.2 line-height, Neutral/N900. The QA report asked
+ * for 32px bold and the build shipped Open Sans 24/600 — three different values
+ * for one property, settled by the frame per `design-token-fidelity`. The
+ * report's number is recorded on the row for a design ruling.
+ *
+ * Scoped as a modifier because `prose-wp` also types the privacy policy, course
+ * descriptions and bundle copy, none of which were measured against this frame.
+ */
+@utility prose-wp-article {
+  /* Not `:where()` — `prose-wp` types its headings through `:where()`, which
+     contributes no specificity, so a second zero-specificity rule would be
+     decided by source order. A plain descendant selector wins outright. */
+  & h1,
+  & h2,
+  & h3,
+  & h4 {
+    font-family: var(--font-suse);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--color-neutral-900);
+  }
+}
+
+/*
+ * Link treatment for long-form legal copy — privacy policy, terms, cancellations.
+ *
+ * QA-PRIVACY-A2: on `/privacy-policy` the `mailto:`/`tel:` links measured
+ * **2.14:1** against WCAG AA's 4.5:1, with `text-decoration: none` — failing
+ * both 1.4.3 (contrast) and 1.4.1 (colour as the only cue distinguishing a link
+ * from body text). `primary-800` measures **6.19:1** on this page's `N10` ground
+ * and keeps the link hue; the underline is permanent, so colour is not doing the
+ * work alone.
+ *
+ * Scoped as a modifier, not applied to `prose-wp` itself. `prose-wp` has
+ * thirteen consumers, including `assignment-player`, which renders it as
+ * `prose-wp prose-invert` inside a `text-white` panel — a dark surface where
+ * `primary-800` reads *worse* than the cyan it replaced. The measurement that
+ * justifies this colour was taken against a light ground and only holds there.
+ *
+ * Same specificity note as `prose-wp-article`: a plain descendant selector,
+ * because `prose-wp` types its anchors through `:where()` and a second
+ * zero-specificity rule would be decided by source order.
+ */
+@utility prose-wp-legal {
+  & a {
+    @apply text-primary-800 underline underline-offset-4 hover:no-underline;
+  }
+}
+
 @utility prose-wp {
   & :where(h1, h2, h3, h4) {
-    @apply font-semibold tracking-tight;
+    /* scroll-mt clears the sticky header when a heading is reached via a
+       Table-of-Contents anchor or a shared `#id` URL. */
+    @apply scroll-mt-24 font-semibold tracking-tight;
+  }
+  & :where(h1, h2, h3, h4):focus {
+    @apply outline-none;
   }
   & :where(h1) {
     @apply mt-8 mb-4 text-3xl;
@@ -164,7 +321,9 @@
     @apply mt-4 mb-2 text-xl;
   }
   & :where(p) {
-    @apply mb-4 leading-relaxed;
+    /* Figma body copy is 150% (`leading-normal`); `leading-relaxed` (162.5%)
+       was the source of the Privacy Policy / Single Course line-height defect. */
+    @apply mb-4 leading-normal;
   }
   & :where(ul) {
     @apply mb-4 list-none space-y-2 pl-0;
@@ -181,7 +340,10 @@
     height: 6px;
     border-radius: 9999px;
     background-color: currentColor;
-    opacity: 0.6;
+    /* 0.6 measured 2.94:1 against white — below the 3:1 WCAG floor for non-text
+       graphics (QA-COURSE-A7). 0.75 measures 4.14:1 and still reads lighter than
+       the body text it belongs to. */
+    opacity: 0.75;
   }
   & :where(ol) {
     @apply mb-4 list-inside list-decimal;

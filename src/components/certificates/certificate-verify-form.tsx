@@ -75,7 +75,6 @@ export function CertificateVerifyForm({ initialCode }: { initialCode?: string })
       didAutoVerify.current = true;
       void verify(initialCode);
     }
-     
   }, [initialCode]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -102,7 +101,7 @@ export function CertificateVerifyForm({ initialCode }: { initialCode?: string })
           <Button
             type="submit"
             disabled={status === "checking"}
-            className="bg-secondary-500 hover:bg-secondary-600 w-full text-white"
+            className="bg-secondary-600 hover:bg-secondary-700 w-full text-white"
             size="lg"
           >
             {status === "checking" && <Loader2 className="animate-spin" />}

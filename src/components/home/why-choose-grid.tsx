@@ -10,7 +10,7 @@ export function WhyChooseGrid({ features }: WhyChooseGridProps) {
   if (!features?.length) return null;
 
   return (
-    <section className="py-16 lg:py-20">
+    <section className="py-section lg:py-20">
       <div className="container flex flex-col items-center gap-6 lg:flex-row lg:gap-6">
         <div className="flex w-full flex-col gap-4 lg:w-104 lg:shrink-0">
           <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">

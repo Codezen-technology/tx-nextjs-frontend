@@ -8,7 +8,6 @@ import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/
 import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { CourseAnnouncement } from "@/components/courses/course-announcement";
-import { CourseBreadcrumb } from "@/components/courses/course-breadcrumb";
 import { CourseTrustedStrip } from "@/components/courses/course-trusted-strip";
 import { CourseBanner } from "@/components/courses/course-banner";
 import { CoursePurchaseCard } from "@/components/courses/course-purchase-card";
@@ -185,7 +184,8 @@ export default async function CourseDetailPage({ params }: PageProps) {
           dangerouslySetInnerHTML={{ __html: stringifyJsonLd(schema) }}
         />
       ))}
-      <CourseBreadcrumb course={course} />
+      {/* No visual breadcrumb — QA-COURSE-A2. The BreadcrumbList JSON-LD above stays:
+          it is read by search engines, not shown to the reader. */}
       <CourseTrustedStrip />
 
       {course.announcement ? <CourseAnnouncement message={course.announcement} /> : null}
@@ -313,7 +313,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           </div>
 
           {/* ── Desktop sticky sidebar ── */}
-          <aside className="hidden shrink-0 lg:mt-[-428px] lg:block lg:w-[307px] lg:self-stretch">
+          <aside className="hidden shrink-0 lg:block lg:self-stretch">
             <div className="sticky top-24 z-20">
               <CoursePurchaseCard course={course} />
             </div>

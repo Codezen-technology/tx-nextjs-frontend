@@ -19,6 +19,7 @@ import type {
 } from "@/types/form";
 
 import { MARKETING_FIELD_CLASS, MARKETING_LABEL_CLASS } from "@/components/ui/form-field";
+import { growToFit } from "@/lib/utils/auto-grow-textarea";
 
 const FIELD_CLASS = MARKETING_FIELD_CLASS;
 const LABEL_CLASS = MARKETING_LABEL_CLASS;
@@ -444,7 +445,7 @@ export function GravityForm({
             disabled={isSubmitting}
             className={cn(
               "w-full sm:w-auto",
-              isCancellations && "bg-secondary-500 hover:bg-secondary-600 text-white",
+              isCancellations && "bg-secondary-600 hover:bg-secondary-700 text-white",
             )}
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -758,8 +759,16 @@ function FieldControl({
           className={cn(
             "flex w-full rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-hidden disabled:opacity-50",
             fieldClass,
+            // `fieldClass` carries `h-11` for the cancellations/support styling —
+            // a single-line input height that silently overrode `rows` and left
+            // the Additional Details box 44px tall whatever it said (QA-SUPPORT-A2).
+            // `h-auto` hands the height back to `rows`; the handler below then
+            // grows it with the content, which is what the report asks for and
+            // what a fixed height cannot do for every answer.
+            "h-auto",
           )}
           {...register(field.name, { required })}
+          onInput={(e) => growToFit(e.currentTarget)}
         />
       );
 
@@ -769,7 +778,9 @@ function FieldControl({
           id={id}
           defaultValue=""
           className={cn(
-            "flex h-11 w-full rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-hidden",
+            // `pr-4` is the report's 16px right inset (QA-CHECK-A1 /
+            // QA-SUPPORT-A1). The left stays at 12 — only the right was filed.
+            "flex h-11 w-full rounded-md border px-3 py-2 pr-4 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-hidden",
             fieldClass,
           )}
           {...register(field.name, { required })}

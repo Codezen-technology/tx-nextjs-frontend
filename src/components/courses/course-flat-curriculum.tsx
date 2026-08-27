@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ChevronDown, FileText, PlayCircle, HelpCircle, Book } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-import { formatDuration } from "@/lib/utils/format";
 import type { CourseFlatCurriculumItem } from "@/types/course";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -42,7 +41,6 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
   const groups = buildGroups(items);
   const sectionCount = groups.length;
   const unitCount = items.filter((i) => i.type !== "section").length;
-  const totalSeconds = groups.reduce((acc, g) => acc + (g.section.durationSeconds ?? 0), 0);
 
   const [openSections, setOpenSections] = useState<Set<number>>(new Set([0]));
   const [allExpanded, setAllExpanded] = useState(false);
@@ -78,14 +76,15 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
 
   return (
     <div className="space-y-3">
-      <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-neutral-900">
+      <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
         Course Curriculum
       </h2>
       <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* No durations anywhere in this section — QA-COURSE-A3. `durationSeconds`
+            stays on the payload; the player and the purchase card still use it. */}
         <p className="text-sm text-neutral-600">
           {sectionCount} {sectionCount === 1 ? "section" : "sections"} &bull; {unitCount}{" "}
           {unitCount === 1 ? "lecture" : "lectures"}
-          {totalSeconds > 0 ? ` • ${formatDuration(totalSeconds)} total` : ""}
         </p>
         <button
           onClick={toggleAll}
@@ -118,9 +117,6 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
                 </span>
                 <span className="shrink-0 text-base text-neutral-500">
                   {group.units.length} {group.units.length === 1 ? "lecture" : "lectures"}
-                  {group.section.durationSeconds
-                    ? ` • ${formatDuration(group.section.durationSeconds)}`
-                    : ""}
                 </span>
               </button>
 
@@ -142,9 +138,6 @@ export function CourseFlatCurriculum({ items }: CourseFlatCurriculumProps) {
                         <span className="bg-secondary-50 text-secondary-600 rounded px-1.5 py-0.5 font-medium">
                           Preview
                         </span>
-                      ) : null}
-                      {unit.durationSeconds ? (
-                        <span className="text-base">{formatDuration(unit.durationSeconds)}</span>
                       ) : null}
                     </div>
                   </li>

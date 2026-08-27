@@ -13,11 +13,14 @@ export function TrustedOrgs({ data }: TrustedOrgsProps) {
   const track = [...sponsors, ...sponsors];
 
   return (
-    <section className="bg-secondary-50 overflow-hidden py-12">
-      <div className="flex items-center gap-8 pl-4 2xl:pl-[calc((100vw-1400px)/2+1rem)]">
+    <section className="bg-secondary-50 py-section overflow-hidden lg:py-12">
+      {/* Bleeds off the right edge by design — the logo track scrolls out of the
+          viewport — so it cannot be a `container`. `grid-inset-start` gives it
+          the container's start edge without its max-width or its right padding. */}
+      <div data-grid-surface="trusted-orgs" className="grid-inset-start flex items-center gap-8">
         <div className="flex w-[446px] shrink-0 flex-col gap-4">
           <div className="bg-secondary-500 h-0.5 w-24" />
-          <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-neutral-900">
+          <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
             {data?.header?.title || "Trusted by Over 1000+ UK organisations"}
           </h2>
         </div>
@@ -29,7 +32,7 @@ export function TrustedOrgs({ data }: TrustedOrgsProps) {
                 key={i}
                 src={sponsor.src}
                 alt={sponsor.alt}
-                className="h-14 w-auto shrink-0 object-contain"
+                className="h-14 w-auto min-w-14 shrink-0 object-contain"
               />
             ))}
           </div>

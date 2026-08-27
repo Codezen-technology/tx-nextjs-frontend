@@ -10,7 +10,7 @@ export function AllCoursesHero() {
       }}
     >
       <HeroWave />
-      <div className="mx-auto flex max-w-[1296px] items-center gap-[179px] px-4 py-[112px]">
+      <div className="container flex items-center gap-[179px] py-[112px]">
         {/* The catalogue landing page's H1. Rendered as two lines to match the
             Figma treatment without splitting the heading into two elements. */}
         <h1 className="font-suse shrink-0 text-[40px] leading-[1.2] text-white">

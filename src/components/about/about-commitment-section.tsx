@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { AboutIcon } from "./about-icon";
@@ -10,7 +10,7 @@ export function AboutCommitmentSection({ data }: { data: AboutCommitmentSectionD
   return (
     <section className="bg-white py-16 lg:py-24">
       <div className="container mx-auto max-w-3xl px-4 text-center">
-        <h2 className="font-suse text-3xl font-medium text-[#111a2b] sm:text-[40px]">
+        <h2 className="font-suse text-3xl font-bold text-[#111a2b] sm:text-[40px]">
           {data.heading}
         </h2>
         <p className="font-open-sans mt-5 text-lg font-light text-neutral-500 sm:text-xl">
@@ -48,27 +48,27 @@ export function AboutCommitmentSection({ data }: { data: AboutCommitmentSectionD
                 </ul>
               </div>
 
-              {block.image ? (
-                <div
-                  className={cn(
-                    "relative aspect-4/3.5 w-full overflow-hidden rounded-xl",
-                    reversed && "lg:order-1",
-                  )}
-                >
-                  <Image
-                    src={block.image}
-                    alt={block.heading}
-                    fill
-                    className="object-cover"
-                    sizes="(min-width: 1024px) 50vw, 100vw"
-                  />
-                </div>
-              ) : (
-                <AboutImagePlaceholder
-                  label={block.heading}
-                  className={cn("aspect-4/3.5 w-full rounded-xl", reversed && "lg:order-1")}
+              {/* The sized `aspect-4/3.5` wrapper is always rendered, so the row
+                  keeps its layout whether the image loads, fails, or is unset.
+                  FallbackImage covers the third case QA hit: a field that holds a
+                  URL which 404s, which would otherwise render a broken image. */}
+              <div
+                className={cn(
+                  "relative aspect-4/3.5 w-full overflow-hidden rounded-xl",
+                  reversed && "lg:order-1",
+                )}
+              >
+                <FallbackImage
+                  src={block.image}
+                  alt={block.heading}
+                  fill
+                  className="object-cover"
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  fallback={
+                    <AboutImagePlaceholder label={block.heading} className="h-full w-full" />
+                  }
                 />
-              )}
+              </div>
             </div>
           );
         })}

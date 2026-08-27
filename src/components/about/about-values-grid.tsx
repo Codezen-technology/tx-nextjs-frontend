@@ -7,7 +7,7 @@ export function AboutValuesGrid({ data }: { data: AboutValues }) {
     <section className="bg-[#f9fafb] py-16 lg:py-24">
       <div className="container mx-auto max-w-3xl px-4 text-center">
         <p className="font-open-sans text-primary-500 text-base font-bold">{data.eyebrow}</p>
-        <h2 className="font-suse mt-3 text-3xl font-medium text-neutral-900 sm:text-[40px]">
+        <h2 className="font-suse mt-3 text-3xl font-bold text-neutral-900 sm:text-[40px]">
           {data.heading}
         </h2>
       </div>

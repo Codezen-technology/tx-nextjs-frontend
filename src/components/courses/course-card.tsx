@@ -72,6 +72,10 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
         {/* Rating + bookmark */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 text-sm text-neutral-400">
+            {/* A rating is a claim about other buyers' opinions — it is rendered only
+                when the course actually carries one (QA-COURSE-B3). This branch used to
+                fall back to "4.7"/"4.9" by course ID, which put an invented score on
+                every card while the course page correctly showed none. */}
             {course.rating ? (
               <>
                 <span>{course.rating.toFixed(1)}</span>
@@ -82,12 +86,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
                   </span>
                 ) : null}
               </>
-            ) : (
-              <div className="flex flex-row items-center gap-1 text-neutral-400">
-                <span className="text-sm">{course.id % 2 === 0 ? "4.7" : "4.9"}</span>
-                <Star className="h-4 w-4 fill-amber-300 stroke-amber-300" />
-              </div>
-            )}
+            ) : null}
           </div>
           {/* <button
             type="button"
@@ -100,7 +99,9 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
 
         {/* Title */}
         <Link href={`/course/${course.slug}`}>
-          <h3 className="font-suse group-hover:text-secondary-500 line-clamp-2 h-14 text-xl leading-snug font-bold text-neutral-900 transition-colors">
+          {/* No hover colour shift — QA asks for the title to stay put. The card
+              still signals interactivity through its own hover treatment. */}
+          <h3 className="font-suse line-clamp-2 h-14 text-xl leading-snug font-bold text-neutral-900">
             {course.title}
           </h3>
         </Link>
@@ -174,7 +175,7 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
         {/* CTA */}
         <Link
           href={`/course/${course.slug}`}
-          className="bg-secondary-500 group-hover:bg-primary-600 flex h-10 w-full items-center justify-center rounded-full text-sm text-white transition-colors"
+          className="bg-secondary-600 group-hover:bg-primary-600 flex h-10 w-full items-center justify-center rounded-full text-sm text-white transition-colors"
         >
           View Course
         </Link>

@@ -14,8 +14,12 @@ test.describe("Auth redirect flows", () => {
 
   test("/login page renders the login form", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.getByPlaceholder("Email")).toBeVisible();
-    await expect(page.getByPlaceholder("••••••••••••")).toBeVisible();
+    // Targeted by label, not by placeholder. The identity field is labelled
+    // "Email or Username" and its placeholder is an example address, so
+    // `getByPlaceholder("Email")` matched nothing and this failed on a form that
+    // renders correctly. A label is the field's contract; a placeholder is copy.
+    await expect(page.getByLabel(/email or username/i)).toBeVisible();
+    await expect(page.getByLabel(/^password$/i)).toBeVisible();
     await expect(page.getByRole("button", { name: /log in/i })).toBeVisible();
   });
 

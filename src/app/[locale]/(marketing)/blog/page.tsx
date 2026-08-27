@@ -61,7 +61,7 @@ export default async function BlogPage() {
         <section className="py-12 md:py-16">
           <div className="container">
             <h2 className="font-suse mb-6 text-2xl font-bold text-neutral-900">Most Recent</h2>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
               {mostRecent.map((post) => (
                 <BlogCard key={post.id} post={post} />
               ))}
@@ -87,7 +87,7 @@ export default async function BlogPage() {
                     View more <ChevronRight className="h-4 w-4" />
                   </Link>
                 </div>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                   {posts.map((post) => (
                     <BlogCard key={post.id} post={post} category={category} />
                   ))}
@@ -99,7 +99,7 @@ export default async function BlogPage() {
       ) : allPosts.length > 0 ? (
         <section className="py-12 md:py-16">
           <div className="container">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
               {allPosts
                 .filter(
                   (post) =>
@@ -124,7 +124,10 @@ export default async function BlogPage() {
         </section>
       )}
 
-      <BlogTeamCta />
+      {/* QA: the final CTA sat flush against the footer — Figma gives it 80px. */}
+      <div className="pb-20">
+        <BlogTeamCta />
+      </div>
     </>
   );
 }

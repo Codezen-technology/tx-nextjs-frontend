@@ -280,3 +280,104 @@ describe("buildNavColumns — link targets", () => {
     expect(new Set(keys).size).toBe(keys.length);
   });
 });
+
+/**
+ * QA-HOME-A9 (`R-HOME-1920-15`) — the three removed footer destinations.
+ *
+ * The E2E check cannot prove this: locally the footer endpoint returns
+ * `nav: []`, so an assertion that the three links are absent passes on empty
+ * data and would keep passing if the filter were deleted. The payloads below are
+ * the shapes prod actually serves, captured from
+ * `https://trainingexcellence.org.uk/wp-json/lms-backend/v1/footer` on
+ * 2026-08-14. That is the data the filter has to survive.
+ */
+describe("buildNavColumns — removed destinations", () => {
+  const hrefs = (cols: ReturnType<typeof buildNavColumns>) =>
+    cols.flatMap((c) => c.links.map((l) => l.href));
+
+  /** The legacy `{ about, support }` payload prod still returns. */
+  const PROD_NAV = {
+    about: [
+      { label: "About us", href: "/about" },
+      { label: "Work for us", href: "/careers" },
+      { label: "Resources", href: "/resources", badge: "New" },
+      { label: "Force for Good", href: "/force-for-good" },
+      { label: "Reviews", href: "/reviews" },
+    ],
+    support: [
+      { label: "Help and FAQs", href: "/help" },
+      { label: "Contact us", href: "/contact" },
+      { label: "Verify certificate", href: "/verify-certificate" },
+      { label: "Cancellations and refunds", href: "/cancellations" },
+      { label: "Policies and terms of use", href: "/policies" },
+    ],
+  };
+
+  it("drops them from the prod CMS payload", () => {
+    const rendered = hrefs(buildNavColumns(PROD_NAV));
+
+    expect(rendered).not.toContain("/careers");
+    expect(rendered).not.toContain("/resources");
+    expect(rendered).not.toContain("/force-for-good");
+  });
+
+  it("keeps every other CMS link, in order and remapped", () => {
+    const cols = buildNavColumns(PROD_NAV);
+
+    expect(cols[0].links.map((l) => l.href)).toEqual(["/about", "/reviews"]);
+    expect(cols[1].links.map((l) => l.href)).toEqual([
+      "/help",
+      "/contact-us",
+      "/verify-certificate",
+      "/cancellations",
+      "/privacy-policy",
+    ]);
+  });
+
+  it("drops them from a nested WP menu served off an unrecognised origin", () => {
+    // `toFrontendPath` only strips the origin it knows, so these stay absolute —
+    // exactly the case a string-equality filter would miss.
+    const nav = [
+      item({
+        title: "Quick links",
+        url: "#",
+        menu_order: 1,
+        items: [
+          item({ title: "Resources", url: "https://wp.test/resources", menu_order: 1 }),
+          item({ title: "Reviews", url: "https://wp.test/reviews", menu_order: 2 }),
+          item({ title: "Force for Good", url: "https://wp.test/force-for-good", menu_order: 3 }),
+        ],
+      }),
+    ];
+
+    expect(hrefs(buildNavColumns(nav))).toEqual(["https://wp.test/reviews"]);
+  });
+
+  it("drops them from the built-in fallback", () => {
+    const rendered = hrefs(buildNavColumns(undefined));
+
+    expect(rendered).not.toContain("/resources");
+    expect(rendered).not.toContain("/force-for-good");
+    expect(rendered).toContain("/about-us");
+    // The list itself no longer carries them, so the filter is a belt-and-braces
+    // guard here: every entry survives, split across two non-empty columns.
+    const cols = buildNavColumns(undefined);
+    expect(cols[1].links.length).toBeGreaterThan(1);
+    expect(rendered.length).toBe(FALLBACK_NAV_LINKS.length);
+  });
+
+  it("matches the destination, not the label", () => {
+    // An editor renaming a removed item must not resurrect it.
+    const rendered = hrefs(
+      buildNavColumns({
+        about: [
+          { label: "Careers", href: "/careers/" },
+          { label: "Reviews", href: "/reviews" },
+        ],
+        support: [],
+      }),
+    );
+
+    expect(rendered).toEqual(["/reviews"]);
+  });
+});

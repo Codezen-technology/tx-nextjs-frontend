@@ -14,7 +14,7 @@ export function PricingSection({ data }: PricingSectionProps) {
   const { header, plans } = data;
 
   return (
-    <section className="bg-white py-20">
+    <section className="py-section bg-white lg:py-20">
       <div className="container mx-auto">
         <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-2">

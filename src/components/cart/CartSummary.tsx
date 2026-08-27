@@ -73,7 +73,7 @@ export function CartSummary({ currency = "£" }: CartSummaryProps) {
 
         <button
           onClick={() => router.push("/checkout")}
-          className="bg-secondary-500 mt-6 w-full rounded px-6 py-4 text-base font-medium text-white transition-colors hover:bg-[#7d5819] active:bg-[#6b4c16]"
+          className="bg-secondary-600 mt-6 w-full rounded px-6 py-4 text-base font-medium text-white transition-colors hover:bg-[#7d5819] active:bg-[#6b4c16]"
         >
           Proceed to Checkout
         </button>

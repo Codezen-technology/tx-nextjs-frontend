@@ -81,7 +81,7 @@ function PayContent() {
             <p className="mt-1 text-sm text-neutral-600">Your order has been paid.</p>
           </div>
           <Button
-            className="bg-secondary-500 hover:bg-[#7d5819]"
+            className="bg-secondary-600 hover:bg-[#7d5819]"
             onClick={() => router.push(returnUrl)}
           >
             Continue

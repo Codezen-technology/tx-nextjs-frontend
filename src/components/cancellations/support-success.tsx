@@ -42,7 +42,7 @@ export function SupportSuccess() {
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <Button asChild className="bg-secondary-500 hover:bg-secondary-600 text-white">
+        <Button asChild className="bg-secondary-600 hover:bg-secondary-700 text-white">
           <Link href="/all-courses">Browse all courses</Link>
         </Button>
         <Button asChild variant="outline" className="border-neutral-300 bg-white">
@@ -65,7 +65,7 @@ export function RefundSuccess() {
       </p>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <Button asChild className="bg-secondary-500 hover:bg-secondary-600 text-white">
+        <Button asChild className="bg-secondary-600 hover:bg-secondary-700 text-white">
           <Link href="/all-courses">Browse all courses</Link>
         </Button>
         <Button asChild variant="outline" className="border-neutral-300 bg-white">

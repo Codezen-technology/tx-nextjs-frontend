@@ -29,7 +29,7 @@ export function RefundSidebar({ className }: RefundSidebarProps) {
         </p>
         <Link
           href="/support-request"
-          className="border-primary-200 bg-primary-50 font-open-sans text-primary-700 hover:bg-primary-100 focus-visible:ring-primary-400 mt-4 inline-flex items-center rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          className="border-primary-200 bg-primary-50 font-open-sans text-primary-800 hover:bg-primary-100 focus-visible:ring-primary-400 mt-4 inline-flex items-center rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
         >
           Get help →
         </Link>

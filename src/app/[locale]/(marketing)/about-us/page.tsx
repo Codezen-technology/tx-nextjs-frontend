@@ -6,7 +6,6 @@ import { env } from "@/lib/env";
 import { serverApi } from "@/lib/api/server";
 import { getAboutPage } from "@/lib/services/about";
 import { Topbar } from "@/components/home/topbar";
-import { AboutBreadcrumb } from "@/components/about/about-breadcrumb";
 import { AboutHero } from "@/components/about/about-hero";
 import { AboutCommitmentSection } from "@/components/about/about-commitment-section";
 import { AboutValuesGrid } from "@/components/about/about-values-grid";
@@ -43,7 +42,6 @@ export default async function AboutPage() {
         dangerouslySetInnerHTML={{ __html: stringifyJsonLd(ABOUT_SCHEMA) }}
       />
 
-      <AboutBreadcrumb />
       <Topbar items={home?.topbar} />
       <AboutHero data={about.hero} />
       <AboutCommitmentSection data={about.commitment_section} />

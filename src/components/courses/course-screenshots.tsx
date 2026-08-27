@@ -50,9 +50,7 @@ export function CourseScreenshots({ screenshots, caption }: CourseScreenshotsPro
 
   return (
     <section className="space-y-8">
-      <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-neutral-900">
-        Sneak Peek
-      </h2>
+      <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">Sneak Peek</h2>
 
       <div className="flex gap-6">
         {hasMultiple && (

@@ -33,12 +33,12 @@ export interface FooterNavColumn {
  * works.
  *
  * Only list routes known to exist: `/careers` was removed because no such WP
- * page exists and the catch-all route 404s on it.
+ * page exists and the catch-all route 404s on it. `/resources` and
+ * `/force-for-good` are gone for a different reason — the business dropped them
+ * (QA-HOME-A9), so `REMOVED_FOOTER_PATHS` would filter them straight back out.
  */
 export const FALLBACK_NAV_LINKS: FooterNavLink[] = [
   { href: "/about-us", label: "About us" },
-  { href: "/resources", label: "Resources", badge: "New" },
-  { href: "/force-for-good", label: "Force for Good" },
   { href: "/reviews", label: "Reviews" },
   { href: "/help", label: "Help and FAQs" },
   { href: "/contact-us", label: "Contact us" },
@@ -46,6 +46,40 @@ export const FALLBACK_NAV_LINKS: FooterNavLink[] = [
   { href: "/cancellations", label: "Cancellations and refunds" },
   { href: "/terms-and-conditions", label: "Policies and terms of use" },
 ];
+
+/**
+ * Footer destinations the business asked to drop — QA-HOME-A9 (`R-HOME-1920-15`).
+ *
+ * These live in the **WordPress** menu, not in this file: prod's
+ * `/lms-backend/v1/footer` still serves all three, so editing `FALLBACK_NAV_LINKS`
+ * alone would have closed the QA row while changing nothing on the live site.
+ * Filtering here is the guard; the durable fix is deleting the three items from
+ * the WP footer menu, after which this list can go.
+ *
+ * Matched on destination, not label: renaming "Work for us" to "Careers" in the
+ * CMS must not bring it back.
+ */
+const REMOVED_FOOTER_PATHS = new Set(["/force-for-good", "/careers", "/resources"]);
+
+/**
+ * True when an href points at one of the removed destinations.
+ *
+ * Compares pathnames: `toFrontendPath` only strips an origin it recognises, so a
+ * menu served from any other host arrives here absolute, and a string-equality
+ * check would leak the moment the backend origin changes.
+ */
+function isRemoved(href: string): boolean {
+  let path = href;
+  if (/^https?:\/\//.test(href)) {
+    try {
+      path = new URL(href).pathname;
+    } catch {
+      // Not a parseable URL — fall through and match the raw value.
+    }
+  }
+  const [, pathname] = /^([^?#]*)/.exec(path) as RegExpExecArray;
+  return REMOVED_FOOTER_PATHS.has(pathname.length > 1 ? pathname.replace(/\/$/, "") : pathname);
+}
 
 /** WP menu permalinks that differ from the headless route slug. */
 const NAV_HREF_REMAP: Record<string, string> = {
@@ -102,7 +136,8 @@ function hasChildren(item: WpNavItem): boolean {
 function isRenderable(link: FooterLink): boolean {
   if (link.label === "") return false;
   const href = link.href.trim();
-  return href !== "" && href !== "#" && !href.toLowerCase().startsWith("javascript:");
+  if (href === "" || href === "#" || href.toLowerCase().startsWith("javascript:")) return false;
+  return !isRemoved(href);
 }
 
 /**
@@ -156,9 +191,14 @@ function toFrontendLink(l: FooterNavLink): FooterLink {
 }
 
 function fallbackColumns(): FooterNavColumn[] {
+  // Split after filtering, not before: the removed destinations are still listed
+  // above (they remain real routes), so a fixed 5/4 slice would leave the two
+  // columns lopsided once they are dropped.
+  const links = FALLBACK_NAV_LINKS.map(toFrontendLink).filter(isRenderable);
+  const mid = Math.ceil(links.length / 2);
   return [
-    { header: "About", links: FALLBACK_NAV_LINKS.slice(0, 5).map(toFrontendLink) },
-    { header: "Support", links: FALLBACK_NAV_LINKS.slice(5).map(toFrontendLink) },
+    { header: "About", links: links.slice(0, mid) },
+    { header: "Support", links: links.slice(mid) },
   ];
 }
 

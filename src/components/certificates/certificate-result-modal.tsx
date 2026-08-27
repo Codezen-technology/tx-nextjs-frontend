@@ -134,7 +134,7 @@ export function CertificateResultModal({
             </p>
             <button
               onClick={onClose}
-              className="bg-secondary-500 font-open-sans hover:bg-secondary-600 mt-2 rounded px-6 py-2 text-sm font-semibold text-white"
+              className="bg-secondary-600 font-open-sans hover:bg-secondary-700 mt-2 rounded px-6 py-2 text-sm font-semibold text-white"
             >
               Try again
             </button>

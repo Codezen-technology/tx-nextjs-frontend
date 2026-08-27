@@ -50,14 +50,18 @@ export default async function PricingPage() {
 
       <PricingComparison plans={pricing?.pricing?.plans} />
 
-      <section className="bg-white py-16 lg:py-20">
-        <div className="container mx-auto">
-          <CategoriesGrid categories={categoriesRes?.items} />
-        </div>
+      {/* No container here — `CategoriesGrid` opens with one, and wrapping it in a
+          second inset this section a whole page-pad further than every other
+          section on the page: 48 against 24 at 440. QA-PRICE-A5. */}
+      <section className="py-section bg-white lg:py-20">
+        {/* No CTA here: the pricing frame's categories heading row is empty to
+            its right and runs straight into the FAQ (QA-PRICE-A3). The homepage
+            keeps its link — see the prop's note. */}
+        <CategoriesGrid categories={categoriesRes?.items} showViewAll={false} />
       </section>
 
       {pricing?.faq?.length ? (
-        <section className="bg-white py-20">
+        <section className="py-section bg-white lg:py-20">
           <div className="container mx-auto max-w-4xl">
             <CourseFaq items={pricing.faq} />
           </div>

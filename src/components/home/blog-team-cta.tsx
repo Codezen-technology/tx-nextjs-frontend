@@ -19,7 +19,10 @@ export function BlogTeamCta() {
 
           <Link
             href="/contact-us"
-            className="bg-secondary-500 font-open-sans inline-flex w-50 items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition-opacity hover:opacity-90"
+            // secondary-500 measures 4.42:1 against white — below the AA floor the
+            // `interactive-contrast` spec sets. 600 is where the other 39 filled
+            // surfaces went in the cancellations slice; this one was missed.
+            className="bg-secondary-600 hover:bg-secondary-700 font-open-sans inline-flex w-50 items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition-colors"
           >
             Request A Quote
           </Link>

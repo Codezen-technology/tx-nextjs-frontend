@@ -205,14 +205,14 @@ export default function OrderConfirmationPage() {
             {isLoggedIn ? (
               <Link
                 href="/dashboard"
-                className="border-secondary-500 bg-secondary-500 flex flex-1 items-center justify-center rounded border px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#7d5819]"
+                className="border-secondary-500 bg-secondary-600 flex flex-1 items-center justify-center rounded border px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#7d5819]"
               >
                 Start Learning
               </Link>
             ) : (
               <Link
                 href={loginHref}
-                className="border-secondary-500 bg-secondary-500 flex flex-1 items-center justify-center rounded border px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#7d5819]"
+                className="border-secondary-500 bg-secondary-600 flex flex-1 items-center justify-center rounded border px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#7d5819]"
               >
                 Log in to start learning
               </Link>

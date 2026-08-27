@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import type { Ref } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -49,8 +49,15 @@ const BUSINESS_FEATURES = [
 ];
 
 interface MegaMenuProps {
-  onClose: () => void;
   categories: CourseCategory[];
+  /** Hover intent from the header — the panel has to keep itself open while the
+   *  pointer is inside it, and it is absolutely positioned, so a wrapping div
+   *  would collapse to zero height and never receive the events. */
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  /** The header owns every close path (outside click, Escape, hover-out) and
+   *  needs this to test whether an event landed inside the panel. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 function CategoryCard({ category }: { category: CourseCategory }) {
@@ -98,7 +105,7 @@ function CategoryCard({ category }: { category: CourseCategory }) {
   );
 }
 
-export function MegaMenu({ onClose, categories }: MegaMenuProps) {
+export function MegaMenu({ categories, onMouseEnter, onMouseLeave, ref }: MegaMenuProps) {
   const displayed = categories.slice(0, 9);
 
   const rows: CourseCategory[][] = [];
@@ -106,21 +113,20 @@ export function MegaMenu({ onClose, categories }: MegaMenuProps) {
     rows.push(displayed.slice(i, i + 3));
   }
 
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   return (
     <div
+      ref={ref}
+      id="mega-menu"
       className="bg-neutral-10 absolute top-full right-0 left-0 z-50 shadow-[0_16px_24px_rgba(0,0,0,0.17)]"
       role="dialog"
       aria-label="Our courses menu"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
-      <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-4 py-14 md:flex-row lg:px-0">
+      {/* `container`, not its own max-width: the menu hangs off the header, so
+          its columns have to start where the header's nav does. Its own copy of
+          the width put it 32px out at 1920 and 128px out at 1280. */}
+      <div className="container flex flex-col gap-6 py-14 md:flex-row">
         {/* Left: Business Training promo */}
         <div
           className="flex w-75 shrink-0 flex-col items-start justify-between rounded-2xl p-6"
@@ -187,16 +193,13 @@ export function MegaMenu({ onClose, categories }: MegaMenuProps) {
             </div>
             <Link
               href="/all-courses"
-              className="bg-secondary-500 font-open-sans hover:bg-secondary-600 ml-6 flex shrink-0 items-center justify-center rounded-full px-6 py-4 text-base font-semibold text-white shadow-xs transition-colors"
+              className="bg-secondary-600 font-open-sans hover:bg-secondary-700 ml-6 flex shrink-0 items-center justify-center rounded-full px-6 py-4 text-base font-semibold text-white shadow-xs transition-colors"
             >
               See All Courses
             </Link>
           </div>
         </div>
       </div>
-
-      {/* Backdrop — closes menu on outside click */}
-      <div className="fixed inset-0 -z-10" aria-hidden="true" onClick={onClose} />
     </div>
   );
 }

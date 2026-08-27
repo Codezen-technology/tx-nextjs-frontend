@@ -138,7 +138,7 @@ export async function SiteFooter() {
             </Link>
             <Link
               href="/all-courses"
-              className="border-secondary-500 bg-secondary-500 font-open-sans hover:bg-secondary-600 rounded border px-6 py-4 text-[16px] leading-normal text-white transition-colors"
+              className="border-secondary-500 bg-secondary-600 font-open-sans hover:bg-secondary-700 rounded border px-6 py-4 text-[16px] leading-normal text-white transition-colors"
             >
               Get Started
             </Link>
@@ -158,7 +158,7 @@ export async function SiteFooter() {
                   alt="Training Excellence"
                   width={190}
                   height={80}
-                  className="h-16 w-auto object-contain"
+                  className="h-16 w-auto min-w-16 object-contain"
                 />
               ) : (
                 <span className="font-suse text-xl leading-tight font-bold text-white">

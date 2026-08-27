@@ -46,7 +46,7 @@ export function ReviewsSection({
   if (!testimonials?.length) return null;
 
   return (
-    <section className="bg-secondary-50 flex flex-col gap-8 py-16">
+    <section className="bg-secondary-50 py-section flex flex-col gap-8 lg:py-16">
       <div className="container flex items-center justify-between">
         <div>
           <h2 className="font-suse text-3xl font-bold text-neutral-900 md:text-[2rem]">{title}</h2>
