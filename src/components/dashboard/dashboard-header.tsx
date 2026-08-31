@@ -148,7 +148,9 @@ export function DashboardHeader({
         <button type="button" onClick={onOpenMobileSidebar} aria-label="Open menu">
           <Menu className="h-6 w-6" />
         </button>
-        <DashboardLogo />
+        {/* This toolbar is on the header's white background, not the navy
+            sidebar — so it needs the light-background logo slot. */}
+        <DashboardLogo onDark={false} />
         {profileMenu}
       </div>
     </header>

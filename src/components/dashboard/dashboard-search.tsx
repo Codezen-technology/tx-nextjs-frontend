@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Search, ShoppingCart } from "lucide-react";
+import { useSiteSettings } from "@/components/providers/site-settings-provider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
@@ -57,19 +58,68 @@ export function CartIconButton({ count, onClick }: { count: number; onClick: () 
   );
 }
 
-export function DashboardLogo({ className }: { className?: string }) {
+/**
+ * Dashboard brand mark, sourced from WordPress (`GET /settings` → branding).
+ *
+ * `onDark` picks which of the backend's two slots to use. They are named by the
+ * background they belong on — WP admin → Branding offers "Logo" and "Logo for
+ * dark backgrounds" — precisely because "light/dark logo" reads both ways and
+ * has been filled backwards before. So the caller states its own background and
+ * the component picks; it cannot infer that from a Tailwind class.
+ *
+ * Defaults to `true`: the sidebar panel is the primary use and sits on the navy
+ * brand colour. The white mobile toolbar must pass `onDark={false}`.
+ */
+export function DashboardLogo({
+  className,
+  onDark = true,
+}: {
+  className?: string;
+  onDark?: boolean;
+}) {
+  const settings = useSiteSettings();
+  const [failed, setFailed] = useState(false);
+
+  // Prefer the slot matching this background, then the other one. The
+  // cross-slot step is deliberate: a site that filled only one slot is better
+  // served its own logo at imperfect contrast than no mark at all, and most
+  // logos carry enough colour to read either way.
+  const src = onDark
+    ? settings.logo_dark_url || settings.logo_url
+    : settings.logo_url || settings.logo_dark_url;
+
   return (
-    <Link href="/dashboard/my-learning" className={cn("flex items-center", className)}>
-      <Image
-        src="/dashboard/dashboard-white-logo.svg"
-        alt="Dashboard"
-        width={160}
-        height={48}
-        className="h-12 w-auto object-contain"
-        onError={(e) => {
-          (e.target as HTMLImageElement).style.display = "none";
-        }}
-      />
+    <Link
+      href="/dashboard/my-learning"
+      className={cn("flex h-12 items-center", className)}
+      aria-label={`${settings.site_name} — dashboard home`}
+    >
+      {src && !failed ? (
+        <Image
+          // Remount on src change so switching slots re-arms onError rather
+          // than keeping a stale failed state.
+          key={src}
+          src={src}
+          alt={settings.site_name}
+          width={160}
+          height={48}
+          className="h-12 w-auto object-contain"
+          // No bundled artwork stands in — shipping one brand's logo as every
+          // site's fallback is exactly the trap ADR-0008 calls out. A broken or
+          // unset URL degrades to the site's own name instead.
+          onError={() => setFailed(true)}
+          priority
+        />
+      ) : (
+        <span
+          className={cn(
+            "truncate text-lg leading-tight font-bold",
+            onDark ? "text-white" : "text-lms-text",
+          )}
+        >
+          {settings.site_name}
+        </span>
+      )}
     </Link>
   );
 }
