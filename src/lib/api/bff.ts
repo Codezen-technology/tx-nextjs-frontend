@@ -392,3 +392,18 @@ export async function proxyFormDataToWP(
   }
   return NextResponse.json(json, { status: res.status });
 }
+
+/**
+ * Client-IP headers to pass through to WordPress.
+ *
+ * Auth endpoints in the LMS plugin rate-limit by client IP
+ * (`Auth_Controller::get_client_ip()`). Because those calls originate from this
+ * Next.js server rather than the browser, WordPress otherwise sees a single IP
+ * for every visitor and one user's failed logins lock out everybody. Forward the
+ * real client address so each visitor gets their own bucket.
+ */
+export function clientIpHeaders(request: Request): Record<string, string> {
+  const forwarded = request.headers.get("x-forwarded-for");
+  const ip = forwarded?.split(",")[0]?.trim() || request.headers.get("x-real-ip")?.trim();
+  return ip ? { "X-Forwarded-For": ip } : {};
+}

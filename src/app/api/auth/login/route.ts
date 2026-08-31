@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { clientIpHeaders } from "@/lib/api/bff";
 import { endpoints } from "@/lib/api/endpoints";
 import { sanitizeWpErrorMessage } from "@/lib/api/error";
 import { getServerWpJsonBase } from "@/lib/env";
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
   try {
     wpRes = await fetch(`${base}${endpoints.auth.login}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...clientIpHeaders(request) },
       body: JSON.stringify(body),
       redirect: "manual",
     });
