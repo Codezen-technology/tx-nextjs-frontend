@@ -33,7 +33,7 @@ export function CpdCertificate({ data }: CpdCertificateProps) {
           so it lifts at the same breakpoint. */}
       <div className="container flex flex-col items-center justify-between gap-10 lg:flex-row">
         <div className="flex max-w-none flex-col gap-4 lg:max-w-104">
-          <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
+          <h2 className="font-suse text-2xl leading-[1.2] font-bold text-neutral-900 md:text-[32px]">
             {data.title}
           </h2>
           {data.description && (

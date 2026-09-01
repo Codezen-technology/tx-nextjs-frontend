@@ -44,10 +44,10 @@ export async function HeroSection({ headline }: HeroSectionProps) {
       {/* lg:py-[133px] is measured, not chosen: Figma's hero band (`6056:20231`)
           is 844 tall around a 577-tall visual column, leaving a 133/134 inset.
           The QA report's "80–100px" matches neither the frame nor the build. */}
-      <div className="mx-auto flex max-w-none flex-col items-start gap-12 px-4 py-15 lg:max-w-350 lg:items-center lg:py-[133px] xl:flex-row xl:px-0">
+      <div className="mx-auto flex max-w-none flex-col items-start gap-12 px-4 py-15 lg:max-w-350 lg:items-center lg:py-20 xl:flex-row xl:px-0">
         <div className="flex w-full min-w-0 flex-col gap-6 lg:max-w-159">
           <div className="flex flex-col gap-4">
-            <h1 className="font-suse text-[40px] leading-[1.2] font-bold text-neutral-900 md:text-[48px] lg:text-[56px]">
+            <h1 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900 md:text-[40px] lg:text-[56px]">
               {headline.title}
             </h1>
             {headline.description && (
@@ -86,17 +86,17 @@ export async function HeroSection({ headline }: HeroSectionProps) {
             <form
               action="/search"
               method="get"
-              className="flex flex-col items-center gap-6 p-6 md:flex-row"
+              className="flex flex-col items-center gap-4 p-6 md:flex-row lg:gap-6"
             >
               <input
                 name="q"
                 type="text"
                 placeholder="Subject or qualification, e.g. IT Course"
-                className="font-open-sans h-14 flex-1 rounded-[2px] bg-white px-8 text-sm text-[#767476] outline-hidden placeholder:text-[#767476]"
+                className="font-open-sans w-full flex-1 rounded-[2px] bg-white px-4 py-3 text-sm text-[#767476] outline-hidden placeholder:text-[#767476] md:py-3.5"
               />
               <button
                 type="submit"
-                className="bg-secondary-600 font-open-sans shrink-0 rounded-[2px] px-6.25 py-4 text-base leading-normal font-normal text-white transition-opacity hover:opacity-90"
+                className="bg-secondary-600 font-open-sans w-full shrink-0 rounded-[2px] px-6.25 py-1.75 text-base leading-normal font-normal text-white transition-opacity hover:opacity-90 md:w-fit md:py-3"
               >
                 Search Courses
               </button>

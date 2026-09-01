@@ -35,7 +35,9 @@ export function TransformTeam({ data }: TransformTeamProps) {
 
       <div className="relative z-10 container flex flex-col items-center justify-between gap-10">
         <div className="flex max-w-2xl flex-col items-center gap-4 text-center">
-          <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-white">{data.title}</h2>
+          <h2 className="font-suse text-2xl leading-[1.2] font-bold text-white md:text-[32px]">
+            {data.title}
+          </h2>
           {data.description && (
             <p className="font-open-sans text-neutral-40 text-base leading-normal">
               {data.description}
@@ -99,7 +101,7 @@ export function TransformTeam({ data }: TransformTeamProps) {
         {data.cta?.href && (
           <Link
             href={data.cta.href}
-            className="bg-secondary-600 hover:bg-secondary-700 font-open-sans inline-flex w-50 cursor-pointer items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition hover:opacity-90"
+            className="bg-secondary-600 hover:bg-primary-500 font-open-sans inline-flex w-50 cursor-pointer items-center justify-center rounded-full px-6 py-4 text-base leading-normal text-white transition hover:opacity-90"
           >
             {data.cta.label}
           </Link>

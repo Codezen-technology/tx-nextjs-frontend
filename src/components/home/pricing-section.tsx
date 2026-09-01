@@ -18,7 +18,9 @@ export function PricingSection({ data }: PricingSectionProps) {
       <div className="container mx-auto">
         <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-2">
-            <h2 className="font-suse text-[2rem] font-bold text-neutral-900">{header.title}</h2>
+            <h2 className="font-suse text-2xl font-bold text-neutral-900 md:text-[32px]">
+              {header.title}
+            </h2>
             <p className="font-open-sans text-base text-neutral-500">{header.description}</p>
           </div>
           <Link

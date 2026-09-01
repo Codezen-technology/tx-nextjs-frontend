@@ -29,9 +29,9 @@ export async function PopularCourses({ limit = 8, header }: PopularCoursesProps)
   return (
     <section>
       <div className="container">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col items-start justify-between md:flex-row md:items-center">
           <div>
-            <h2 className="font-suse text-3xl font-bold text-neutral-900 md:text-[2rem]">
+            <h2 className="font-suse text-2xl font-bold text-neutral-900 md:text-[32px]">
               {header.title}
             </h2>
             <p className="font-open-sans mt-2 max-w-[760px] text-sm text-neutral-500 md:text-base">
@@ -41,7 +41,7 @@ export async function PopularCourses({ limit = 8, header }: PopularCoursesProps)
 
           <Link
             href={header.ctaHref}
-            className="self-justify-start font-open-sans text-secondary-500 hover:text-secondary-600 flex items-center gap-1 text-base font-normal transition-colors"
+            className="font-open-sans text-secondary-500 hover:text-secondary-600 mt-2 flex items-center gap-1 justify-self-start text-base font-normal transition-colors md:mt-0 md:justify-self-end"
           >
             {header.ctaLabel}
             <ChevronRight className="h-4 w-4" />

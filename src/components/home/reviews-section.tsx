@@ -47,9 +47,9 @@ export function ReviewsSection({
 
   return (
     <section className="bg-secondary-50 py-section flex flex-col gap-8 lg:py-16">
-      <div className="container flex items-center justify-between">
+      <div className="container flex flex-col items-start justify-between md:flex-row md:items-center">
         <div>
-          <h2 className="font-suse text-3xl font-bold text-neutral-900 md:text-[2rem]">{title}</h2>
+          <h2 className="font-suse text-2xl font-bold text-neutral-900 md:text-[32px]">{title}</h2>
           {subtitle ? (
             <p className="font-open-sans mt-2 text-base text-neutral-500">{subtitle}</p>
           ) : null}

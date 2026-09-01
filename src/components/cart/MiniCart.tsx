@@ -14,7 +14,7 @@ export function MiniCart({ onClose }: { onClose: () => void }) {
   const { mutate: removeItem, isPending } = useRemoveCartItem();
 
   return (
-    <div className="absolute top-full right-0 z-50 mt-2 w-[340px] rounded-md border border-neutral-200 bg-white shadow-xl">
+    <div className="border-neutral-30 absolute top-full right-0 z-50 mt-2 w-[340px] rounded-md border bg-white shadow-xl">
       {items.length === 0 ? (
         <p className="font-open-sans px-5 py-6 text-center text-sm text-neutral-500">
           Your basket is empty.
@@ -49,7 +49,7 @@ export function MiniCart({ onClose }: { onClose: () => void }) {
             ))}
           </ul>
 
-          <div className="border-t border-neutral-100 px-4 py-3">
+          <div className="border-neutral-30 border-t px-4 py-3">
             <div className="font-open-sans flex items-center justify-between">
               <span className="text-[14px] font-medium text-neutral-700">Total:</span>
               <span className="text-[15px] font-semibold text-neutral-900">

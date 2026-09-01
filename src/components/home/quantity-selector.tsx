@@ -43,10 +43,7 @@ export function QuantitySelector({ plan }: QuantitySelectorProps) {
             </span>
           )}
           <span
-            className={cn(
-              "font-suse font-bold",
-              plan.variant === "navy" ? "text-white" : "text-neutral-900",
-            )}
+            className={cn("font-bold", plan.variant === "navy" ? "text-white" : "text-neutral-900")}
           >
             <span className="text-2xl" data-testid="plan-price">
               {displayPrice}
