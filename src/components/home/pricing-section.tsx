@@ -23,13 +23,15 @@ export function PricingSection({ data }: PricingSectionProps) {
             </h2>
             <p className="font-open-sans text-base text-neutral-500">{header.description}</p>
           </div>
-          <Link
-            href={header.ctaHref}
-            className="font-open-sans text-secondary-500 hover:text-secondary-600 inline-flex shrink-0 items-center gap-2 text-base font-medium transition-colors"
-          >
-            {header.ctaLabel}
-            <ArrowRight className="h-5 w-5" />
-          </Link>
+          {header.ctaHref && header.ctaLabel && (
+            <Link
+              href={header.ctaHref}
+              className="font-open-sans text-secondary-500 hover:text-secondary-600 inline-flex shrink-0 items-center gap-2 text-base font-medium transition-colors"
+            >
+              {header.ctaLabel}
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
