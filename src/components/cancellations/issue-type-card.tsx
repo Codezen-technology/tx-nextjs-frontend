@@ -23,7 +23,7 @@ export function IssueTypeCard({ issue, selected = false, href, onClick }: IssueT
       <span
         className={cn(
           "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg",
-          selected ? "bg-primary-100 text-primary-700" : "bg-neutral-100 text-neutral-600",
+          selected ? "bg-primary-100 text-primary-700" : "bg-gray-100 text-neutral-600",
         )}
         aria-hidden
       >
