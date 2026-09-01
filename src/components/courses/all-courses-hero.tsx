@@ -1,9 +1,9 @@
 import { HeroWave, HERO_GRADIENT } from "@/components/courses/hero-wave";
 
 /**
- * Mobile-first: the base classes are the 440 layout and `lg:` re-applies the
- * measured desktop band. The desktop values used to carry no breakpoint, which
- * put a 179px gap and a 112px inset inside a 440 viewport — `QA-COURSES-D1`.
+ * The desktop values used to carry no breakpoint, which put a 179px gap and a
+ * 112px inset inside a 440 viewport — `QA-COURSES-D1`. Written mobile-first so a
+ * value with no breakpoint means the small screen, not every screen.
  *
  * The 1920 inset (112, node `3306:50115`) and the 1280 page-grid edge are pinned
  * by `e2e/design-fidelity.spec.ts`; `lg` rather than `2xl` because 1280 renders

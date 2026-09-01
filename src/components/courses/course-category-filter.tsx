@@ -5,6 +5,9 @@ import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import type { ApiCategory } from "@/lib/api/server";
 
+/** Written once: the toggle and the desktop heading render the same label. */
+const FILTER_LABEL = "Course Categories";
+
 interface CourseCategoryFilterProps {
   categories: ApiCategory[];
   selected: string[];
@@ -44,7 +47,7 @@ export function CourseCategoryFilter({
             aria-controls={listId}
             className="flex cursor-pointer items-center gap-2 text-left lg:hidden"
           >
-            Course Categories
+            {FILTER_LABEL}
             {selected.length > 0 && (
               <span className="font-open-sans text-secondary-500 text-[14px] font-normal">
                 ({selected.length} selected)
@@ -56,7 +59,7 @@ export function CourseCategoryFilter({
               className={cn("transition-transform", open && "rotate-180")}
             />
           </button>
-          <span className="hidden lg:inline">Course Categories</span>
+          <span className="hidden lg:inline">{FILTER_LABEL}</span>
         </h2>
         {selected.length > 0 && (
           <button
