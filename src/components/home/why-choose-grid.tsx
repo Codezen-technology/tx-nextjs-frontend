@@ -13,7 +13,7 @@ export function WhyChooseGrid({ features }: WhyChooseGridProps) {
     <section className="py-section lg:py-20">
       <div className="container flex flex-col items-center gap-6 lg:flex-row lg:gap-6">
         <div className="flex w-full flex-col gap-4 lg:w-104 lg:shrink-0">
-          <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
+          <h2 className="font-suse text-2xl leading-[1.2] font-bold text-neutral-900 md:text-[32px]">
             Why Choose Us
           </h2>
           <p className="font-open-sans text-base leading-normal text-neutral-500">
@@ -36,7 +36,7 @@ export function WhyChooseGrid({ features }: WhyChooseGridProps) {
               >
                 <div className="bg-primary-50 flex shrink-0 items-start rounded-[28px] p-2">
                   <div className="bg-primary-100 flex shrink-0 items-start rounded-[20px] p-2">
-                    <HomeIcon name={feature.icon} className="h-6 w-6 text-[#00BBF0]" />
+                    <HomeIcon name={feature.icon} className="text-primary-500 h-6 w-6" />
                   </div>
                 </div>
                 <div className="flex flex-1 flex-col gap-2">

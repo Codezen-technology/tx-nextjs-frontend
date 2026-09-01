@@ -88,7 +88,9 @@ export function CertificateVerifyForm({ initialCode }: { initialCode?: string })
       <div className="space-y-5">
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div className="space-y-1.5">
-            <Label htmlFor="certificate-code">Certificate code</Label>
+            <Label className="font-open-sans text-sm text-neutral-700" htmlFor="certificate-code">
+              Certificate code
+            </Label>
             <Input
               id="certificate-code"
               name="code"
@@ -96,6 +98,7 @@ export function CertificateVerifyForm({ initialCode }: { initialCode?: string })
               placeholder="Enter certificate code"
               required
               autoComplete="off"
+              className="focus-visible:none focus-visible:ring-secondary-50/90 h-auto rounded-lg border-[#d0d5dd] bg-white px-3.5 py-2.5 text-base leading-6 text-neutral-900 shadow-[0px_1px_2px_rgb(16_24_40/0.05)] placeholder:text-[#667085]"
             />
           </div>
           <Button

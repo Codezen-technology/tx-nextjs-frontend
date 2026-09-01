@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { Loader2 } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -774,28 +774,32 @@ function FieldControl({
 
     case "select":
       return (
-        <select
-          id={id}
-          defaultValue=""
-          className={cn(
-            // `pr-4` is the report's 16px right inset (QA-CHECK-A1 /
-            // QA-SUPPORT-A1). The left stays at 12 — only the right was filed.
-            "flex h-11 w-full rounded-md border px-3 py-2 pr-4 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-hidden",
-            fieldClass,
-          )}
-          {...register(field.name, { required })}
-        >
-          {selectPlaceholder ? (
-            <option value="" disabled>
-              {selectPlaceholder}
-            </option>
-          ) : null}
-          {field.choices?.map((choice) => (
-            <option key={choice.value} value={choice.value}>
-              {choice.text}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            id={id}
+            defaultValue=""
+            className={cn(
+              // `appearance-none` hides the native dropdown arrow; the
+              // custom ChevronDown below replaces it. `pr-10` keeps the
+              // selected text clear of the icon.
+              "flex h-11 w-full appearance-none rounded-md border px-3 py-2 pr-10 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-hidden",
+              fieldClass,
+            )}
+            {...register(field.name, { required })}
+          >
+            {selectPlaceholder ? (
+              <option value="" disabled>
+                {selectPlaceholder}
+              </option>
+            ) : null}
+            {field.choices?.map((choice) => (
+              <option key={choice.value} value={choice.value}>
+                {choice.text}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+        </div>
       );
 
     case "radio":

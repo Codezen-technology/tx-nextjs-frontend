@@ -18,16 +18,20 @@ export function PricingSection({ data }: PricingSectionProps) {
       <div className="container mx-auto">
         <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-2">
-            <h2 className="font-suse text-[2rem] font-bold text-neutral-900">{header.title}</h2>
+            <h2 className="font-suse text-2xl font-bold text-neutral-900 md:text-[32px]">
+              {header.title}
+            </h2>
             <p className="font-open-sans text-base text-neutral-500">{header.description}</p>
           </div>
-          <Link
-            href={header.ctaHref}
-            className="font-open-sans text-secondary-500 hover:text-secondary-600 inline-flex shrink-0 items-center gap-2 text-base font-medium transition-colors"
-          >
-            {header.ctaLabel}
-            <ArrowRight className="h-5 w-5" />
-          </Link>
+          {header.ctaHref && header.ctaLabel && (
+            <Link
+              href={header.ctaHref}
+              className="font-open-sans text-secondary-500 hover:text-secondary-600 inline-flex shrink-0 items-center gap-2 text-base font-medium transition-colors"
+            >
+              {header.ctaLabel}
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

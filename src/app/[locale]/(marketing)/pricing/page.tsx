@@ -8,7 +8,7 @@ import { Topbar } from "@/components/home/topbar";
 import { PricingHero } from "@/components/home/pricing-hero";
 import { PricingSection } from "@/components/home/pricing-section";
 import { Accreditations } from "@/components/home/accreditations";
-import { PricingComparison } from "@/components/home/pricing-comparison";
+//import { PricingComparison } from "@/components/home/pricing-comparison";
 import { TrustedOrgs } from "@/components/home/trusted-orgs";
 import { ReviewsSection } from "@/components/home/reviews-section";
 import { CategoriesGrid } from "@/components/home/categories-grid";
@@ -48,12 +48,12 @@ export default async function PricingPage() {
 
       <ReviewsSection testimonials={home?.testimonials} />
 
-      <PricingComparison plans={pricing?.pricing?.plans} />
+      {/* <PricingComparison plans={pricing?.pricing?.plans} /> */}
 
       {/* No container here — `CategoriesGrid` opens with one, and wrapping it in a
           second inset this section a whole page-pad further than every other
           section on the page: 48 against 24 at 440. QA-PRICE-A5. */}
-      <section className="py-section bg-white lg:py-20">
+      <section className="py-section lg:py-20">
         {/* No CTA here: the pricing frame's categories heading row is empty to
             its right and runs straight into the FAQ (QA-PRICE-A3). The homepage
             keeps its link — see the prop's note. */}
@@ -61,7 +61,7 @@ export default async function PricingPage() {
       </section>
 
       {pricing?.faq?.length ? (
-        <section className="py-section bg-white lg:py-20">
+        <section className="py-section bg-white lg:pb-20">
           <div className="container mx-auto max-w-4xl">
             <CourseFaq items={pricing.faq} />
           </div>

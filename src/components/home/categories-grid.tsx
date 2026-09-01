@@ -64,14 +64,14 @@ export async function CategoriesGrid({
     // `order-last` (QA-HOME-A7). Rendering it twice behind `hidden`/`md:block`
     // would give it two accessible names; moving it in the DOM instead would put
     // desktop focus order behind all twelve category links.
-    <div className="container grid grid-cols-1 md:grid-cols-[1fr_auto] md:items-center">
-      <h3 className="font-suse mb-6 text-[32px] leading-normal font-bold text-neutral-900">
+    <div className="container grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto] md:items-center">
+      <h3 className="font-suse text-2xl leading-normal font-bold text-neutral-900 md:text-[32px]">
         Explore courses by category
       </h3>
       {showViewAll ? (
         <Link
           href="/all-courses"
-          className="font-open-sans text-secondary-500 hover:text-secondary-600 order-last mt-6 flex items-end gap-1 justify-self-end text-base font-normal transition-colors md:order-none md:mt-0 md:mb-6 md:items-center"
+          className="font-open-sans text-secondary-500 hover:text-secondary-600 order-last flex items-end gap-1 justify-self-center text-base font-normal transition-colors md:order-none md:items-center md:justify-self-end"
         >
           View all courses
           <ChevronRight className="h-4 w-4" />

@@ -78,7 +78,7 @@ export function ProfileMenu() {
         <div
           role="menu"
           aria-label="Profile menu"
-          className="absolute top-full right-0 z-50 mt-2 w-64 rounded-md border border-neutral-200 bg-white py-2 shadow-xl"
+          className="border-neutral-30 absolute top-full right-0 z-50 mt-2 w-64 rounded-md border bg-white py-2 shadow-xl"
         >
           {/* Identity header */}
           <div className="flex items-center gap-3 px-4 pt-2 pb-3">
@@ -103,7 +103,7 @@ export function ProfileMenu() {
             </div>
           </div>
 
-          <div className="border-t border-neutral-100" />
+          <div className="border-neutral-30 border-t" />
 
           {/* Dashboard CTAs */}
           <div className="flex flex-col gap-2 px-3 py-3">
@@ -121,7 +121,7 @@ export function ProfileMenu() {
                 href="/business-dashboard"
                 onClick={() => setOpen(false)}
                 role="menuitem"
-                className="font-open-sans hover:border-primary-400 hover:text-primary-400 flex items-center justify-center gap-2 rounded border border-neutral-300 px-3 py-2 text-[13px] font-medium text-neutral-800 transition-colors"
+                className="font-open-sans hover:border-primary-500 hover:text-primary-400 flex items-center justify-center gap-2 rounded border border-neutral-300 px-3 py-2 text-[13px] font-medium text-neutral-800 transition-colors"
               >
                 <Briefcase className="h-4 w-4 shrink-0" />
                 Go to Business Dashboard
@@ -129,7 +129,7 @@ export function ProfileMenu() {
             )}
           </div>
 
-          <div className="border-t border-neutral-100" />
+          <div className="border-neutral-30 border-t" />
 
           {/* Student links */}
           <div className="py-1">
@@ -139,7 +139,7 @@ export function ProfileMenu() {
                 href={href}
                 onClick={() => setOpen(false)}
                 role="menuitem"
-                className="font-open-sans hover:text-primary-400 flex items-center gap-2.5 px-4 py-2 text-[13px] text-neutral-700 transition-colors hover:bg-neutral-50"
+                className="font-open-sans hover:text-primary-500 hover:bg-primary-50 flex items-center gap-2.5 px-4 py-2 text-sm text-neutral-700 transition-colors"
               >
                 <Icon className="h-4 w-4 shrink-0 text-neutral-400" />
                 {label}
@@ -147,7 +147,7 @@ export function ProfileMenu() {
             ))}
           </div>
 
-          <div className="border-t border-neutral-100" />
+          <div className="border-neutral-30 border-t" />
 
           {/* Account links */}
           <div className="py-1">
@@ -157,7 +157,7 @@ export function ProfileMenu() {
                 href={href}
                 onClick={() => setOpen(false)}
                 role="menuitem"
-                className="font-open-sans hover:text-primary-400 flex items-center gap-2.5 px-4 py-2 text-[13px] text-neutral-700 transition-colors hover:bg-neutral-50"
+                className="font-open-sans hover:text-primary-500 hover:bg-primary-50 flex items-center gap-2.5 px-4 py-2 text-sm text-neutral-700 transition-colors"
               >
                 <Icon className="h-4 w-4 shrink-0 text-neutral-400" />
                 {label}
@@ -165,7 +165,7 @@ export function ProfileMenu() {
             ))}
           </div>
 
-          <div className="border-t border-neutral-100" />
+          <div className="border-neutral-30 border-t" />
 
           {/* Footer */}
           <div className="py-1">
@@ -173,7 +173,7 @@ export function ProfileMenu() {
               href="/help"
               onClick={() => setOpen(false)}
               role="menuitem"
-              className="font-open-sans hover:text-primary-400 flex items-center gap-2.5 px-4 py-2 text-[13px] text-neutral-700 transition-colors hover:bg-neutral-50"
+              className="font-open-sans hover:text-primary-500 hover:bg-primary-50 flex items-center gap-2.5 px-4 py-2 text-sm text-neutral-700 transition-colors"
             >
               <HelpCircle className="h-4 w-4 shrink-0 text-neutral-400" />
               Help & Support
@@ -185,7 +185,7 @@ export function ProfileMenu() {
               }}
               disabled={isLoggingOut}
               role="menuitem"
-              className="font-open-sans flex w-full items-center gap-2.5 px-4 py-2 text-[13px] text-red-500 transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-70"
+              className="font-open-sans hover:bg-primary-50 flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-500 transition-colors disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isLoggingOut ? (
                 <Loader2 className="h-4 w-4 shrink-0 animate-spin" />

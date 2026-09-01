@@ -86,9 +86,6 @@ export async function SiteFooter() {
     fetchSettings().catch(() => null),
   ]);
   const navCols = buildNavColumns(footerData?.nav);
-  // No social fallback: an unconfigured platform renders nothing. Inventing a
-  // handle (the old `facebook.com/trainingexcellence`) produces a dead link
-  // that misrepresents the brand — worse than an absent icon.
   const social = footerData?.social ?? {};
   const contact = footerData?.contact ?? {};
   const badges = footerData?.compliance?.badges ?? [];
@@ -118,7 +115,7 @@ export async function SiteFooter() {
         alt="BG Shape"
       />
       {/* CTA band */}
-      <div className="border-b border-neutral-500 px-4 py-16">
+      <div className="mx-auto max-w-[1296px] border-b border-gray-600 px-4 py-16">
         <div className="mx-auto flex max-w-[768px] flex-col items-center gap-10 text-center">
           <div className="flex flex-col gap-4">
             <h2 className="font-suse text-[32px] leading-[1.2] font-medium text-white">
@@ -168,11 +165,18 @@ export async function SiteFooter() {
                 </span>
               )}
             </Link>
-            {contact.description && (
-              <p className="font-open-sans text-neutral-30 text-[16px] leading-normal">
+            {contact.description ? (
+              <p className="font-open-sans text-neutral-30 text-base leading-normal">
                 {decodeEntities(contact.description)}
               </p>
+            ) : (
+              <p className="font-open-sans text-neutral-30 text-base leading-normal">
+                Training Excellence delivers CPD-accredited, expert-led online training for
+                businesses and professionals. Our flexible, high-quality courses ensure compliance,
+                workplace safety, and career growth—anytime, anywhere.
+              </p>
             )}
+
             {contact.address && (
               <p className="font-open-sans text-neutral-30 text-[16px] leading-normal">
                 {decodeEntities(contact.address)}
@@ -302,16 +306,16 @@ export async function SiteFooter() {
       </div>
 
       {/* Bottom bar */}
-      <div className="border-t border-neutral-600 px-4">
-        <div className="mx-auto max-w-[1296px] py-8 text-right">
+      <div className="px-4">
+        <div className="mx-auto max-w-[1296px] border-t border-gray-600 pt-8 pb-12 text-center">
           {/* Legal entity and registration number — must match the operating
               company on the live site. The previous values (Training Excellence,
               VAT 923 6593 07, reg. 6428976) named a different company. */}
-          <p className="font-open-sans text-[16px] leading-normal text-neutral-200">
+          <p className="font-open-sans text-base leading-normal text-neutral-200">
             © {new Date().getFullYear()} EXCELLENT TRAINING GROUP LTD. Registered in England and
             Wales: 16275537
           </p>
-          <p className="font-open-sans mt-1 text-[16px] leading-normal text-neutral-200">
+          <p className="font-open-sans mt-1 text-base leading-normal text-neutral-200">
             This site is protected by reCAPTCHA and the Google{" "}
             <a
               href="https://policies.google.com/privacy"

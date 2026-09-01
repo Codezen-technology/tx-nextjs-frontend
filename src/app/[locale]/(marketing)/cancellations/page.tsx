@@ -63,7 +63,11 @@ export default async function CancellationsPage() {
             align="center"
           >
             <div className="flex flex-wrap items-center justify-center gap-3">
-              <Button asChild variant="outline" className="border-neutral-300 bg-white">
+              <Button
+                asChild
+                variant="outline"
+                className="border-neutral-300 bg-white text-neutral-900"
+              >
                 <Link href="/support-request">{content.cancellations.cta.supportLabel}</Link>
               </Button>
               <Button asChild className="bg-secondary-600 hover:bg-secondary-700 text-white">

@@ -34,15 +34,17 @@ export function Accreditations({ items = DEFAULT_ITEMS }: AccreditationsProps) {
   return (
     <section className="py-section bg-white lg:py-16">
       <div className="container mx-auto">
-        <h2 className="font-suse mb-8 text-[2rem] font-bold text-neutral-900">Accreditations</h2>
+        <h2 className="font-suse mb-8 text-2xl font-bold text-neutral-900 md:text-[32px]">
+          Accreditations
+        </h2>
 
-        <div className="border-neutral-30 overflow-hidden rounded-[12px] border">
+        <div className="border-neutral-30 overflow-hidden rounded-xl border">
           {items.map((item, i) => (
             <div
               key={i}
               className="border-neutral-30 flex flex-col items-center gap-6 border-b p-6 last:border-b-0 sm:flex-row sm:items-start"
             >
-              <div className="flex h-[108px] w-[152px] shrink-0 items-center justify-center">
+              <div className="flex h-27 w-38 shrink-0 items-center justify-center">
                 <Image
                   src={item.src}
                   alt={item.alt}

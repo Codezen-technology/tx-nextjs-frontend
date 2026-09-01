@@ -87,7 +87,11 @@ export function RefundFormSection({
                     >
                       Check refund options
                     </Button>
-                    <Button asChild variant="outline" className="border-neutral-30 bg-white">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="border-neutral-300 bg-white text-neutral-900"
+                    >
                       <Link href="/support-request">Get help first</Link>
                     </Button>
                   </div>
