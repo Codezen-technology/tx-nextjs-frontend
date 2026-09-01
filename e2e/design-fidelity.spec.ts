@@ -1056,6 +1056,95 @@ test.describe("Class A — All Courses", () => {
         .join(", ")}`,
     ).toEqual([]);
   });
+
+  /**
+   * QA-COURSES-D1 — report item R-COURSES-440-01, "there are huge mobile
+   * responsive issues".
+   *
+   * The filter rail kept its 306px desktop width beside the course column at
+   * every width, so 440 measured a 660px document. There is no 440 frame for
+   * this page, so the mobile paddings and type sizes are decisions, not
+   * measurements — these assertions pin the behaviour the report asks for (the
+   * page fits its viewport, the filter does not bury the courses) and
+   * deliberately pin no mobile pixel value. See the change's design.md.
+   */
+  test("all-courses fits the viewport at 440", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 440, "The overflow regression is a 440 target.");
+
+    await page.goto("/all-courses");
+    await page.locator("main aside").first().waitFor();
+
+    const { scrollWidth, clientWidth, offenders } = await page.evaluate(() => {
+      const de = document.documentElement;
+      // The hero's wave is clipped by its own overflow-hidden wrapper: it adds
+      // no scroll width and QA-COURSES-D2 owns it.
+      const offenders = [...document.querySelectorAll("main *")]
+        .filter((el) => {
+          const s = getComputedStyle(el);
+          if (s.position === "fixed" || s.pointerEvents === "none") return false;
+          return el.getBoundingClientRect().right > de.clientWidth + 1;
+        })
+        .slice(0, 8)
+        .map((el) => `${el.tagName}.${el.className.toString().slice(0, 40)}`);
+      return { scrollWidth: de.scrollWidth, clientWidth: de.clientWidth, offenders };
+    });
+
+    expect(
+      scrollWidth,
+      `all-courses document scrollWidth @${vw}: got ${scrollWidth}, viewport ${clientWidth}. In-flow elements past the content column: ${offenders.join(", ") || "none"}`,
+    ).toBe(clientWidth);
+  });
+
+  test("all-courses filter is collapsed by default at 440", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 440, "The filter only collapses below the desktop breakpoint.");
+
+    await page.goto("/all-courses");
+    const toggle = page.locator("main aside button[aria-controls]").first();
+    await toggle.waitFor();
+
+    await expect(toggle, "the filter toggle is not visible at 440").toBeVisible();
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+
+    const listId = await toggle.getAttribute("aria-controls");
+    // Attribute selector, not `#id` — React's generated ids are not guaranteed
+    // to be valid CSS identifiers and `CSS.escape` is a browser global.
+    const list = page.locator(`[id="${listId}"]`);
+    await expect(list, "the category list is open on load at 440").toBeHidden();
+
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await expect(list).toBeVisible();
+    expect(
+      await list.locator('[role="checkbox"]').count(),
+      "the expanded filter lists no categories",
+    ).toBeGreaterThan(0);
+  });
+
+  /**
+   * The results scroll fired on mount as well as on a filter change, so every
+   * load landed inside the card grid — with the page heading off-screen at 440.
+   */
+  test("all-courses scrolls to results only after a filter change", async ({ page }) => {
+    await page.goto("/all-courses");
+    await page.locator("main aside").first().waitFor();
+    await expect(page.locator("h1")).toBeVisible();
+    expect(
+      await page.evaluate(() => window.scrollY),
+      "loading /all-courses scrolled the viewport away from the top",
+    ).toBe(0);
+
+    const toggle = page.locator("main aside button[aria-controls]").first();
+    if (await toggle.isVisible()) await toggle.click();
+    await page.locator('main aside [role="checkbox"]').first().click();
+
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY), {
+        message: "selecting a category did not scroll to the results",
+      })
+      .toBeGreaterThan(0);
+  });
 });
 
 /**

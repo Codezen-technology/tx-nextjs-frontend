@@ -18,8 +18,17 @@ interface AllCoursesClientProps {
 export function AllCoursesClient({ categoryData }: AllCoursesClientProps) {
   const [selected, setSelected] = useState<string[]>([]);
   const contentRef = useRef<HTMLDivElement>(null);
+  // The effect runs on mount too, which scrolled every visitor past the hero
+  // into the card grid — and on a phone, past the page heading entirely. Guard
+  // it so only a selection change moves the viewport; a browser-restored scroll
+  // position is not a selection change, so it is left alone.
+  const hasFiltered = useRef(false);
 
   useEffect(() => {
+    if (!hasFiltered.current) {
+      hasFiltered.current = true;
+      return;
+    }
     contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [selected]);
 
@@ -48,8 +57,10 @@ export function AllCoursesClient({ categoryData }: AllCoursesClientProps) {
   return (
     <div className="bg-white">
       <div className="container py-12">
-        <div className="flex items-start gap-6">
-          <aside className="sticky top-4 w-[306px] shrink-0">
+        {/* One column below `lg`; the 306px rail plus a three-column grid only
+            fits inside the content column from `lg` up — `QA-COURSES-D1`. */}
+        <div className="flex flex-col items-stretch gap-6 lg:flex-row lg:items-start">
+          <aside className="w-full lg:sticky lg:top-4 lg:w-[306px] lg:shrink-0">
             <CourseCategoryFilter
               categories={categories}
               selected={selected}
