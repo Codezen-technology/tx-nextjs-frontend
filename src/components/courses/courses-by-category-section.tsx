@@ -20,8 +20,11 @@ export function CoursesByCategorySection({ category, courses }: CoursesByCategor
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
+        {/* Stacked below `sm`: side by side, the 32px heading wrapped to two
+            lines and squeezed the CTA into two more beside it. The heading also
+            drops below the hero's H1 there rather than matching it. */}
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="font-suse text-[24px] leading-[1.2] font-bold text-neutral-900 sm:text-[32px]">
             {category.name}
           </h2>
           <Link

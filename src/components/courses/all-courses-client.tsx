@@ -18,8 +18,18 @@ interface AllCoursesClientProps {
 export function AllCoursesClient({ categoryData }: AllCoursesClientProps) {
   const [selected, setSelected] = useState<string[]>([]);
   const contentRef = useRef<HTMLDivElement>(null);
+  // Mount used to scroll every visitor past the hero into the card grid — on a
+  // phone, past the page heading entirely. The previous selection, rather than a
+  // "have I run yet" boolean, is what the effect actually needs: a boolean is
+  // true for every run after the first whether or not the selection moved, so a
+  // re-run from any other cause scrolls. A browser-restored scroll position is
+  // not a selection change, so it is left alone either way.
+  const prevSelected = useRef<string[] | null>(null);
 
   useEffect(() => {
+    const previous = prevSelected.current;
+    prevSelected.current = selected;
+    if (previous === null || previous === selected) return;
     contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [selected]);
 
@@ -48,8 +58,10 @@ export function AllCoursesClient({ categoryData }: AllCoursesClientProps) {
   return (
     <div className="bg-white">
       <div className="container py-12">
-        <div className="flex items-start gap-6">
-          <aside className="sticky top-4 w-[306px] shrink-0">
+        {/* The 306px rail plus a three-column grid only fits inside the content
+            column from `lg` up — `QA-COURSES-D1`. */}
+        <div className="flex flex-col items-stretch gap-6 lg:flex-row lg:items-start">
+          <aside className="w-full lg:sticky lg:top-4 lg:w-[306px] lg:shrink-0">
             <CourseCategoryFilter
               categories={categories}
               selected={selected}

@@ -199,6 +199,49 @@ async function settleImages(page: Page, capMs = 4000): Promise<void> {
   }, capMs);
 }
 
+interface Overflow {
+  viewportWidth: number;
+  scrollWidth: number;
+  offenders: string[];
+}
+
+/**
+ * The document's width against the viewport's, plus the elements that stick out
+ * past the right edge with no clipping ancestor to absorb them.
+ *
+ * An element inside an `overflow-hidden` box is skipped: it adds no scroll width
+ * and it is not what "extends past the content column" means. That is why the
+ * check walks ancestors rather than filtering on the element itself — a
+ * decorative bleed clipped by its own wrapper reads as clean, and a genuinely
+ * oversized child of a clean ancestor does not.
+ *
+ * `scope` narrows the sweep; the whole document is the default because the
+ * symptom of an overflow is the page scrolling, wherever the offender lives.
+ */
+async function collectOverflow(page: Page, scope = "*"): Promise<Overflow> {
+  return page.evaluate((sel) => {
+    const viewportWidth = document.documentElement.clientWidth;
+    const offenders: string[] = [];
+    document.querySelectorAll(sel).forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.right <= viewportWidth + 1) return;
+      for (let p = el.parentElement; p; p = p.parentElement) {
+        const o = getComputedStyle(p).overflowX;
+        if (o === "hidden" || o === "clip" || o === "auto" || o === "scroll") return;
+      }
+      offenders.push(
+        `<${el.tagName.toLowerCase()} class="${String(el.className).slice(0, 60)}"> right=${Math.round(r.right)}`,
+      );
+    });
+
+    return {
+      viewportWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      offenders: offenders.slice(0, 5),
+    };
+  }, scope);
+}
+
 test.describe("Class A — Homepage", () => {
   test("hero vertical padding matches the measured band", async ({ page, viewport }) => {
     const vw = viewport?.width ?? 0;
@@ -353,29 +396,9 @@ test.describe("Class A — Homepage", () => {
 
     await page.goto("/");
     await settleImages(page);
-    const m = await page.evaluate(() => {
-      const viewportWidth = document.documentElement.clientWidth;
-      // Name the offender: an element past the right edge with no clipping
-      // ancestor. Without this the failure is a bare number on a 27-section page.
-      const offenders: string[] = [];
-      document.querySelectorAll("*").forEach((el) => {
-        const r = el.getBoundingClientRect();
-        if (r.width === 0 || r.right <= viewportWidth + 1) return;
-        for (let p = el.parentElement; p; p = p.parentElement) {
-          const o = getComputedStyle(p).overflowX;
-          if (o === "hidden" || o === "clip" || o === "auto" || o === "scroll") return;
-        }
-        offenders.push(
-          `<${el.tagName.toLowerCase()} class="${String(el.className).slice(0, 60)}"> right=${Math.round(r.right)}`,
-        );
-      });
-
-      return {
-        viewportWidth,
-        scrollWidth: document.documentElement.scrollWidth,
-        offenders: offenders.slice(0, 5),
-      };
-    });
+    // Naming the offender matters here: without it the failure is a bare number
+    // on a 27-section page.
+    const m = await collectOverflow(page);
 
     expect(
       m.scrollWidth,
@@ -1055,6 +1078,134 @@ test.describe("Class A — All Courses", () => {
         .map((t) => `"${t}"`)
         .join(", ")}`,
     ).toEqual([]);
+  });
+
+  /**
+   * QA-COURSES-D1 — report item R-COURSES-440-01, "there are huge mobile
+   * responsive issues".
+   *
+   * The filter rail kept its 306px desktop width beside the course column at
+   * every width, so 440 measured a 660px document. There is no 440 frame for
+   * this page, so the mobile paddings and type sizes are decisions, not
+   * measurements — these assertions pin the behaviour the report asks for (the
+   * page fits its viewport, the filter does not bury the courses) and
+   * deliberately pin no mobile pixel value. See the change's design.md.
+   */
+  test("all-courses fits the viewport at 440", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 440, "The overflow regression is a 440 target.");
+
+    await page.goto("/all-courses");
+    await page.locator("main aside").first().waitFor();
+    await settleImages(page);
+    const m = await collectOverflow(page);
+
+    expect(
+      m.scrollWidth,
+      `all-courses document scrollWidth @${vw}: got ${m.scrollWidth}, viewport ${m.viewportWidth}. Unclipped past the right edge: ${m.offenders.join(" | ") || "(none found — check for a clipped-but-oversized ancestor)"}`,
+    ).toBe(m.viewportWidth);
+
+    // The spec's second clause, asserted rather than only reported: a clipping
+    // ancestor keeps the document at viewport width while an element still sits
+    // outside the content column.
+    expect(
+      m.offenders,
+      `@${vw} these all-courses elements extend past the content column with no clipping ancestor`,
+    ).toEqual([]);
+  });
+
+  test("all-courses filter is collapsed by default at 440", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 440, "The filter only collapses below the desktop breakpoint.");
+
+    await page.goto("/all-courses");
+    const toggle = page.locator("main aside button[aria-controls]").first();
+    await toggle.waitFor();
+
+    await expect(toggle, "the filter toggle is not visible at 440").toBeVisible();
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    // "a control … reporting no active selection" — an unfiltered page must not
+    // claim one.
+    await expect(toggle).not.toContainText(/selected/i);
+
+    const listId = await toggle.getAttribute("aria-controls");
+    // Attribute selector, not `#id` — React's generated ids are not guaranteed
+    // to be valid CSS identifiers and `CSS.escape` is a browser global.
+    const list = page.locator(`[id="${listId}"]`);
+    await expect(list, "the category list is open on load at 440").toBeHidden();
+
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await expect(list).toBeVisible();
+
+    // "with every category and its course count" — a row without its count is a
+    // half-rendered filter, which a bare row count would not notice.
+    const rows = list.locator("li");
+    expect(await rows.count(), "the expanded filter lists no categories").toBeGreaterThan(0);
+    const withoutCount = await rows.evaluateAll((els) =>
+      els
+        .filter((el) => !/\(\d+\)\s*$/.test((el.textContent || "").trim()))
+        .map((el) => (el.textContent || "").trim().slice(0, 40)),
+    );
+    expect(withoutCount, `@${vw} these filter rows carry no course count`).toEqual([]);
+
+    // "reports the number of selected categories, whether the list is visible or not"
+    await rows.first().locator('[role="checkbox"]').click();
+    await expect(toggle).toContainText("(1 selected)");
+    await toggle.click();
+    await expect(list).toBeHidden();
+    await expect(toggle, "the collapsed toggle stopped reporting the active filter").toContainText(
+      "(1 selected)",
+    );
+  });
+
+  test("all-courses filter has no disclosure control at 1920", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw !== 1920, "The filter is static at and above the desktop breakpoint.");
+
+    await page.goto("/all-courses");
+    const aside = page.locator("main aside").first();
+    await aside.waitFor();
+
+    await expect(
+      aside.locator("button[aria-controls]"),
+      "a collapse control is exposed on the desktop rail",
+    ).toBeHidden();
+    await expect(aside.locator("ul").first()).toBeVisible();
+  });
+
+  /**
+   * The results scroll fired on mount as well as on a filter change, so every
+   * load landed inside the card grid — with the page heading off-screen at 440.
+   *
+   * The scroll is smooth, so a single read straight after load returns 0 whether
+   * or not one was triggered. Holding the position across several frames is what
+   * makes the first half of this test mean anything.
+   */
+  test("all-courses scrolls to results only after a filter change", async ({ page }) => {
+    await page.goto("/all-courses");
+    await page.locator("main aside").first().waitFor();
+    await expect(page.locator("h1")).toBeVisible();
+
+    const positions: number[] = [];
+    for (let i = 0; i < 6; i++) {
+      positions.push(await page.evaluate(() => window.scrollY));
+      await page.waitForTimeout(250);
+    }
+    expect(
+      positions.filter((y) => y !== 0),
+      `loading /all-courses scrolled the viewport away from the top: ${positions.join(", ")}`,
+    ).toEqual([]);
+
+    const toggle = page.locator("main aside button[aria-controls]").first();
+    if (await toggle.isVisible()) await toggle.click();
+    await page.locator('main aside [role="checkbox"]').first().click();
+
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY), {
+        message: "selecting a category did not scroll to the results",
+      })
+      .toBeGreaterThan(0);
   });
 });
 

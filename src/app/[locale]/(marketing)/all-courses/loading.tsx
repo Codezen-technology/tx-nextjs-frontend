@@ -1,5 +1,10 @@
 import { CourseCardSkeleton } from "@/components/courses/course-card";
 
+/**
+ * The breakpoints mirror `all-courses-hero.tsx` and `all-courses-client.tsx`.
+ * A skeleton that keeps the desktop rail shows the 660px-wide document at 440
+ * that `QA-COURSES-D1` is about, for as long as the page is streaming.
+ */
 export default function AllCoursesLoading() {
   return (
     <>
@@ -8,7 +13,7 @@ export default function AllCoursesLoading() {
         className="relative w-full animate-pulse"
         style={{ background: "linear-gradient(80.83deg,#00204a 0%,#004f65 100%)", minHeight: 320 }}
       >
-        <div className="container flex items-center gap-[179px] py-[112px]">
+        <div className="container flex flex-col gap-6 py-12 lg:flex-row lg:items-center lg:gap-[179px] lg:py-[112px]">
           <div className="shrink-0 space-y-3">
             <div className="h-10 w-32 rounded bg-white/20" />
             <div className="h-10 w-48 rounded bg-white/20" />
@@ -23,9 +28,9 @@ export default function AllCoursesLoading() {
       {/* Content skeleton — sidebar + course sections */}
       <div className="bg-white">
         <div className="container py-12">
-          <div className="flex items-start gap-6">
+          <div className="flex flex-col items-stretch gap-6 lg:flex-row lg:items-start">
             {/* Filter sidebar skeleton */}
-            <aside className="border-neutral-30 w-[306px] shrink-0 space-y-3 rounded-xl border p-5">
+            <aside className="border-neutral-30 w-full space-y-3 rounded-xl border p-5 lg:w-[306px] lg:shrink-0">
               <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />
               {Array.from({ length: 7 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-3">
