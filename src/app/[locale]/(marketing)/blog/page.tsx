@@ -124,10 +124,9 @@ export default async function BlogPage() {
         </section>
       )}
 
-      {/* QA: the final CTA sat flush against the footer — Figma gives it 80px. */}
-      <div className="pb-20">
-        <BlogTeamCta />
-      </div>
+      {/* The 80px the frame puts under this CTA lives on the component now — a
+          wrapper here stacked on top of its own padding and shipped 144. */}
+      <BlogTeamCta />
     </>
   );
 }

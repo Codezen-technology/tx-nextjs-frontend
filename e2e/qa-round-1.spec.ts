@@ -202,7 +202,10 @@ test.describe("QA-COURSE-* — buy CTA routes to the cart", () => {
 test.describe("QA-BLOGS-* — Table of Contents anchors", () => {
   test.slow();
 
-  test("clicking a ToC entry scrolls the page to that heading", async ({ page }) => {
+  test("clicking a ToC entry scrolls the page to that heading", async ({ page, viewport }) => {
+    // The rail is an `lg`-and-up surface. Below that the ToC is the bottom
+    // drawer, covered by `blog-single.spec.ts > QA-BLOGS-D1`.
+    test.skip((viewport?.width ?? 0) < 1024, "The ToC rail only renders from lg up");
     await page.goto("/blog");
     // Exclude /blog/category/* — those are listings, not articles.
     const hrefs = await page
@@ -213,7 +216,10 @@ test.describe("QA-BLOGS-* — Table of Contents anchors", () => {
     if (hrefs.length === 0) test.skip(true, "No blog posts published.");
 
     // Not every post has two or more h2s, and only those get a ToC.
-    const tocLinks = page.locator("[data-toc-link]");
+    // Scope to the desktop rail: the mobile drawer (QA-BLOGS-D1) renders the same
+    // links and is only display-hidden at this viewport, so an unscoped locator
+    // matches each heading twice.
+    const tocLinks = page.locator('[data-toc-surface="rail"] [data-toc-link]');
     let found = false;
     for (const href of hrefs) {
       await page.goto(href as string);

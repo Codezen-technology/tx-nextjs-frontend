@@ -73,8 +73,19 @@ Only the items whose target the doc states outright, so they do not depend on th
 unresolved Figma nodes.
 
 - [x] **QA-PRIVACY-A1 / QA-COURSE-A1** — body copy line-height 150% (`prose-wp p`: `leading-relaxed` 162.5% → `leading-normal`)
-- [x] **QA-BLOG-A1** — 80px between the final CTA and the footer (`pb-20` around `BlogTeamCta`)
+- [x] **QA-BLOG-A1** — 80px between the final CTA and the footer (`pb-20` **on** `BlogTeamCta`; the earlier `pb-20` _wrapper_ stacked on the section's own `lg:py-16` and shipped 144)
 - [x] **QA-BLOGS-A2** — headings landed under the sticky header (`scroll-mt-24`, ships with B3)
+
+### Reopened 2026-09-02 — rows that read FIXED but were not
+
+- [x] **QA-BLOG-D2** — blog hero was a flat `bg-neutral-900`, not the frame's navy→teal gradient (`4900:75794`). `neutral-900` _is_ the gradient's first stop, which is how a sampled screenshot passed the 2026-08-24 re-verdict. Now `HERO_GRADIENT`.
+- [x] **QA-BLOG-C2** — the trending panel stretched to 1.9 against the frame's 636x400, so `object-cover` cropped every trending image. Ratio pinned; two-column split moved `md`→`lg`.
+- [x] **QA-BLOG-A1** — see above: measured 144px under the CTA card, not 80.
+- [x] **QA-BLOGS-A3** — `postCategory.name` rendered raw, so `&amp;` reached the page. The old assertion compared it to WP's equally-encoded `name`, so it passed on a broken page.
+- [x] **QA-BLOGS-D1** — mobile ToC drawer built (`BlogTocDrawer`); it was never started.
+
+Still open, needs a design ruling, unchanged: **QA-BLOGS-A6** — the report asks
+for H2 32px, frame `6015:127252` measures SUSE Bold **20**. The build ships 20.
 
 Already correct on `main` — mark `FIXED` in the tracker, do not rework:
 

@@ -1,8 +1,15 @@
 import Link from "next/link";
 
+/**
+ * QA-BLOG-A1: the report asks for 80px between this CTA and the footer, and the
+ * frame agrees — card `4900:75889` ends at 5028, `Footer 2` starts at 5108. The
+ * previous close put a `pb-20` wrapper *around* a section that already carried
+ * `lg:py-16`, so the visible gap under the gradient card measured 144, not 80.
+ * The 80 lives on the section itself now, and both consumers get it.
+ */
 export function BlogTeamCta() {
   return (
-    <section className="py-14 lg:py-16">
+    <section className="pt-14 pb-20 lg:pt-16">
       <div className="container">
         <div
           className="flex flex-col items-center gap-6 py-14 text-center lg:py-16"

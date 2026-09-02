@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { decodeEntities } from "../src/lib/api/parsers";
 
 /**
  * QA-BLOGS-* — single blog post rows.
@@ -149,12 +150,62 @@ test.describe("QA-BLOGS-* — single blog post", () => {
       await fetch(`${base}/wp-json/wp/v2/categories/${firstCategory}?_fields=name`)
     ).json()) as { name: string };
 
+    // WP hands back the name with its entities still encoded. Comparing the two
+    // raw strings is what let this row close while the page was printing a
+    // literal "&amp;" — the expectation has to be the decoded name.
+    const expected = decodeEntities(cat.name);
     const rendered = await page.locator('a[href^="/blog/category/"]').first().innerText();
 
     expect(
       rendered.trim(),
-      `single blog: category label — expected the post's own category "${cat.name}", observed "${rendered.trim()}"`,
-    ).toBe(cat.name);
+      `single blog: category label — expected the post's own category "${expected}", observed "${rendered.trim()}"`,
+    ).toBe(expected);
+    expect(
+      rendered,
+      `single blog: category label — an HTML entity reached the page verbatim: "${rendered.trim()}"`,
+    ).not.toMatch(/&(?:[a-z]+|#\d+);/i);
+  });
+
+  test("QA-BLOGS-D1: at 440 the ToC is a bottom drawer that opens and jumps", async ({ page }) => {
+    test.skip(!slug, "No post with a featured image on this backend");
+    await page.setViewportSize({ width: 440, height: 900 });
+    await page.goto(`/blog/${slug}`);
+
+    const trigger = page.getByRole("button", { name: /Table of Contents/i }).first();
+    if (!(await trigger.isVisible().catch(() => false)))
+      test.skip(true, "Post has no multi-heading Table of Contents.");
+
+    // Anchored to the bottom edge of the viewport, not laid out in the article.
+    const box = (await trigger.boundingBox())!;
+    expect(
+      900 - (box.y + box.height),
+      "single blog @440: the ToC trigger should sit on the bottom edge of the screen",
+    ).toBeLessThan(40);
+    await expect(
+      page.locator('[data-toc-surface="rail"]'),
+      "single blog @440: the desktop ToC rail should not render",
+    ).toBeHidden();
+
+    await trigger.click();
+    const panel = page.getByRole("dialog", { name: /Table of contents/i });
+    await expect(panel).toBeVisible();
+    expect(
+      await panel.evaluate((e) => getComputedStyle(e.parentElement!).position),
+      "single blog @440: the open ToC should float over the page, not push it",
+    ).toBe("fixed");
+
+    const link = panel.locator("[data-toc-link]").first();
+    const id = await link.getAttribute("data-toc-link");
+    await link.click();
+    await expect(panel).toBeHidden();
+    await page.waitForFunction(
+      (target) => {
+        const el = document.getElementById(target!);
+        return !!el && Math.abs(el.getBoundingClientRect().top - 96) < 4;
+      },
+      id,
+      { timeout: 5_000 },
+    );
   });
 
   test("QA-BLOGS-A8: 128px side padding at 1280", async ({ page }, testInfo) => {
