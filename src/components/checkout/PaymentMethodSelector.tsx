@@ -8,8 +8,8 @@ import { useCart } from "@/lib/hooks/useCart";
 import { stripePromise } from "@/lib/stripe";
 import { stripeCardPaymentData, findClientSecret } from "@/lib/services/checkout";
 import { CheckoutProcessingOverlay } from "./CheckoutProcessingOverlay";
-import { SecurePaymentBadge } from "./SecurePaymentBadge";
-import { CardBrandMarks } from "./CardBrandMarks";
+import { SecureCheckoutBand } from "@/components/commerce/SecureCheckoutBand";
+import { CardBrandMarks } from "@/components/commerce/CardBrandMarks";
 import type { BillingFormHandle } from "./BillingForm";
 
 interface PaymentMethodSelectorProps {
@@ -243,7 +243,7 @@ export function PaymentMethodSelector({ billingRef, onSuccess }: PaymentMethodSe
         {isSubmitting ? "Processing…" : isFreeOrder ? "Complete Order" : "Proceed to Checkout"}
       </button>
 
-      <SecurePaymentBadge />
+      <SecureCheckoutBand />
     </div>
   );
 }

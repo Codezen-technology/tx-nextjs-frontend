@@ -8,6 +8,7 @@ import { CartItemRow } from "@/components/cart/CartItemRow";
 import { CartSummary } from "@/components/cart/CartSummary";
 import { CouponInput } from "@/components/cart/CouponInput";
 import { UpsellBanner } from "@/components/cart/UpsellBanner";
+import { RelatedCourses } from "@/components/cart/RelatedCourses";
 
 export default function CartPage() {
   const { items, itemCount, isLoading, errors } = useCart();
@@ -92,10 +93,12 @@ export default function CartPage() {
           </div>
         )}
 
-        {/* Upsell banner — always shown */}
+        {/* Upsell banner — always shown. "Customers Also Purchased" follows it,
+            as the frame orders them (6239:113930 then 6239:113955). */}
         {!isLoading && (
           <div className="mt-12 space-y-10">
             <UpsellBanner variant="cart" />
+            <RelatedCourses />
           </div>
         )}
       </div>

@@ -1,11 +1,4 @@
-# checkout-payment-presentation Specification
-
-## Purpose
-
-Governs what the checkout page claims about payment — which card brands it displays, and
-the rule that it never offers a method it cannot process.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Card brands render as brand marks, from one list
 
@@ -33,17 +26,6 @@ Visa.
 
 - **WHEN** the trust band beneath the pay button is rendered
 - **THEN** it shows the same four brands in the same order as the payment-method row
-
-### Requirement: The page does not offer a payment method it cannot process
-
-The checkout page SHALL NOT present a payment method that cannot complete a purchase —
-including as a disabled row, a greyed-out option or a "coming soon" placeholder. A method
-appears when it works.
-
-#### Scenario: PayPal is not implemented
-
-- **WHEN** the payment method list is rendered and PayPal cannot be processed
-- **THEN** no PayPal row, badge or placeholder appears
 
 ### Requirement: The payment section states its security assurance
 

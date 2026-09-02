@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { CardBrandMarks, CARD_BRANDS } from "@/components/checkout/CardBrandMarks";
+import { CardBrandMarks, CARD_BRANDS } from "@/components/commerce/CardBrandMarks";
 
 /**
  * QA-CHECK-A3 — the checkout page showed brand names as text in boxes, and the

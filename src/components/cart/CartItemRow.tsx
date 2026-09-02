@@ -77,8 +77,12 @@ export function CartItemRow({ item }: CartItemRowProps) {
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex shrink-0 items-center gap-4 pl-0 sm:gap-6 sm:pl-4">
+      {/* Controls. Below `sm` the row wraps under the title, and the mobile frame
+          (6239:114085) anchors the stepper to the row's start and groups the total
+          with the remove control at its end — `justify-between`, not three evenly
+          spread controls. From `sm` up the parent's own `justify-between` produces
+          the desktop arrangement QA-CART-A1 verified field by field. */}
+      <div className="flex shrink-0 items-center justify-between gap-4 pl-0 sm:justify-start sm:gap-6 sm:pl-4">
         {showStepper ? (
           <div
             className={cn(
@@ -126,27 +130,32 @@ export function CartItemRow({ item }: CartItemRowProps) {
           <span className="text-sm text-[#8a97a8]">Qty: {item.quantity}</span>
         )}
 
-        {/* Line total — show skeleton while server recalculates */}
-        <span className="flex w-20 justify-end font-semibold text-neutral-900">
-          {isUpdating ? (
-            <span className="h-5 w-14 animate-pulse rounded bg-gray-200" />
-          ) : (
-            <>
-              {currency}
-              {item.line_total.toFixed(2)}
-            </>
-          )}
-        </span>
+        {/* Total and remove travel together — the frame draws them as one group at
+            the row's end (6239:114096), 24px apart. Spread individually they read
+            as two unrelated controls floating mid-row at 440px. */}
+        <div className="flex items-center gap-4 sm:gap-6">
+          {/* Line total — show skeleton while server recalculates */}
+          <span className="flex w-20 justify-end font-semibold text-neutral-900">
+            {isUpdating ? (
+              <span className="h-5 w-14 animate-pulse rounded bg-gray-200" />
+            ) : (
+              <>
+                {currency}
+                {item.line_total.toFixed(2)}
+              </>
+            )}
+          </span>
 
-        {/* Remove */}
-        <button
-          onClick={() => removeItem(item.key)}
-          disabled={isUpdating || isRemoving}
-          aria-label={`Remove ${item.name}`}
-          className="flex items-center justify-center rounded-full p-1 text-gray-400 transition-colors hover:text-red-500 disabled:opacity-40"
-        >
-          <X size={20} />
-        </button>
+          {/* Remove */}
+          <button
+            onClick={() => removeItem(item.key)}
+            disabled={isUpdating || isRemoving}
+            aria-label={`Remove ${item.name}`}
+            className="flex items-center justify-center rounded-full p-1 text-gray-400 transition-colors hover:text-red-500 disabled:opacity-40"
+          >
+            <X size={20} />
+          </button>
+        </div>
       </div>
     </div>
   );
