@@ -19,6 +19,7 @@ export const queryKeys = {
     sections: (id: number | string) => ["courses", "sections", id] as const,
     reviews: (id: number | string) => ["courses", "reviews", id] as const,
     related: (id: number | string) => ["courses", "related", id] as const,
+    popular: (perPage: number) => ["courses", "popular", perPage] as const,
     categories: ["courses", "categories"] as const,
   },
   units: {

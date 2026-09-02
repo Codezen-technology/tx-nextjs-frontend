@@ -96,4 +96,76 @@ test.describe("QA-CHECK-* — checkout payment presentation", () => {
       `checkout @${testInfo.project.name}: expected the frame's "100% secure payment" line beside the heading (6239:134665)`,
     ).toBeVisible();
   });
+
+  /**
+   * QA-CHECK-D1 — the section the report filed as present in Figma and absent
+   * from the build, and the half of QA-CHECK-A5 that shipped unread because
+   * `image 24` is a raster in the frame. Rendered, it is the trust band.
+   */
+  test("QA-CHECK-D1: a trust band sits beneath the pay button", async ({ page }, testInfo) => {
+    const ready = await seedCartAndOpenCheckout(page);
+    test.skip(!ready, "Could not seed a cart on this backend");
+
+    const band = page.getByText(/guaranteed safe & secure checkout/i).first();
+    await expect(
+      band,
+      `checkout @${testInfo.project.name}: expected the frame's trust band beneath the pay button (image 24, 6239:134737)`,
+    ).toBeVisible();
+
+    await expect(
+      page.getByText(/powered by stripe/i).first(),
+      `checkout @${testInfo.project.name}: the band names the payment processor`,
+    ).toBeVisible();
+
+    // Below the button, not above it — the band is read at the moment of
+    // committing, and a trust claim above the control is a different claim.
+    const buttonBox = await page
+      .getByRole("button", { name: /proceed to checkout|complete order/i })
+      .first()
+      .boundingBox();
+    const bandBox = await band.boundingBox();
+    expect(
+      buttonBox && bandBox && bandBox.y > buttonBox.y,
+      `checkout @${testInfo.project.name}: expected the band below the pay button, not above it`,
+    ).toBe(true);
+  });
+
+  /**
+   * The band's artwork draws seven brands, the payment-method row four. Two
+   * surfaces disagreeing about what the gateway accepts is exactly what
+   * QA-CHECK-A3 was filed for, so this asserts they cannot.
+   */
+  test("QA-CHECK-D1: the band and the payment row list the same brands", async ({
+    page,
+  }, testInfo) => {
+    const ready = await seedCartAndOpenCheckout(page);
+    test.skip(!ready, "Could not seed a cart on this backend");
+
+    const alts = await page.evaluate(() => {
+      const groups = [...document.querySelectorAll("main img")]
+        .map((img) => img.getAttribute("alt") ?? "")
+        .filter((alt) => ["American Express", "Discover", "Mastercard", "Visa"].includes(alt));
+      return groups;
+    });
+
+    // Four brands, twice: once in the payment-method row, once in the band.
+    expect(
+      alts.length,
+      `checkout @${testInfo.project.name}: expected both surfaces to show four marks each, found ${alts.length} in total`,
+    ).toBe(8);
+    expect(
+      alts.slice(0, 4),
+      `checkout @${testInfo.project.name}: the two surfaces list different brands or a different order`,
+    ).toEqual(alts.slice(4));
+  });
+
+  test("the trusted strip sits beneath the header", async ({ page }, testInfo) => {
+    const ready = await seedCartAndOpenCheckout(page);
+    test.skip(!ready, "Could not seed a cart on this backend");
+
+    await expect(
+      page.getByText(/money-back guarantee/i).first(),
+      `checkout @${testInfo.project.name}: expected the trusted strip every checkout frame carries beneath the header`,
+    ).toBeVisible();
+  });
 });

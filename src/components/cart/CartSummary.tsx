@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/hooks/useCart";
+import { SecureCheckoutBand } from "@/components/commerce/SecureCheckoutBand";
 import { cn } from "@/lib/utils/cn";
 import parse from "html-react-parser";
 
@@ -79,13 +80,13 @@ export function CartSummary({ currency = "£" }: CartSummaryProps) {
         </button>
       </div>
 
-      <div className="flex items-center justify-center gap-2 border-t border-gray-100 px-6 py-4">
-        <div className="flex items-center gap-1.5 text-xs text-neutral-500">
-          <svg className="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
-          </svg>
-          Secure checkout
-        </div>
+      {/* The design puts its trust band here too (6239:113976), beneath the
+          checkout button. This replaced a hand-rolled "Secure checkout" line with
+          its own shield and its own idea of which brands the site takes — the
+          band reads the shared brand list, so the cart cannot disagree with the
+          checkout page about what is accepted. */}
+      <div className="px-6 pb-6">
+        <SecureCheckoutBand />
       </div>
     </div>
   );

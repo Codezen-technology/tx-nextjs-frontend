@@ -30,6 +30,20 @@ export function useCourseCurriculum(idOrSlug: string | number, opts?: { enabled?
   });
 }
 
+/**
+ * Courses ordered by student count — `GET /courses/popular`.
+ *
+ * Not `useCourses({ orderBy: "popularity" })`: `/courses` accepts `orderby` of
+ * `date` or `title` only, so that spelling quietly returned the newest courses.
+ */
+export function usePopularCourses(perPage = 8) {
+  return useQuery({
+    queryKey: queryKeys.courses.popular(perPage),
+    queryFn: () => coursesService.popular(perPage),
+    staleTime: 5 * 60_000,
+  });
+}
+
 export function useCourseCategories() {
   return useQuery({
     queryKey: queryKeys.courses.categories,
