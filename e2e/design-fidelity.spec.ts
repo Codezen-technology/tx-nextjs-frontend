@@ -679,6 +679,84 @@ test.describe("Class A — Blog", () => {
         .join(", ")}`,
     ).toEqual([]);
   });
+
+  /**
+   * QA-BLOG-D2, reopened. `4900:75794` fills the hero band with a navy→teal
+   * linear gradient; the build shipped a flat `neutral-900` (#00204a, the
+   * gradient's first stop) with a white dot overlay, and the previous close read
+   * that overlay as "the gradient". Both stops have to be present.
+   */
+  test("the blog hero carries the measured design gradient", async ({ page }) => {
+    await page.goto("/blog");
+
+    const bg = await page.evaluate(() => {
+      const h1 = document.querySelector("main h1");
+      const band = h1?.closest("section");
+      return band ? getComputedStyle(band).backgroundImage : null;
+    });
+
+    expect(bg, "could not locate the blog hero band").not.toBeNull();
+    for (const stop of ["rgb(0, 32, 74)", "rgb(0, 79, 101)"]) {
+      expect(
+        bg,
+        `blog hero gradient lost the measured stop ${stop} (node 4900:75794) — got ${bg}`,
+      ).toContain(stop);
+    }
+  });
+
+  /**
+   * QA-BLOG-C2 (report item R-BLOG-1920-02, "the image is not totally visible").
+   * The trending panel is `636x400` on the frame (`4900:75818`). The build sized
+   * it by min-height alone, so at 1920 it stretched to 1.9 and `object-cover`
+   * cropped the top and bottom off every trending image.
+   */
+  test("the blog trending image keeps its measured 636x400 box", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+
+    await page.goto("/blog");
+
+    const ratio = await page.evaluate(() => {
+      // The trending card is the one carrying the "Read this article" pill —
+      // scoping by href alone matches the first blog card in the grid instead.
+      const card = [...document.querySelectorAll('main a[href^="/blog/"]')].find((a) =>
+        /Read this article/i.test(a.textContent || ""),
+      );
+      // First cell of the two-column card — the image panel, which renders as an
+      // empty tinted box when the post has no featured image.
+      const panel = card?.firstElementChild;
+      if (!panel) return null;
+      const r = panel.getBoundingClientRect();
+      return +(r.width / r.height).toFixed(2);
+    });
+
+    expect(ratio, "could not locate the trending image panel").not.toBeNull();
+    expect(
+      Math.abs(ratio! - 636 / 400),
+      `@${vw} blog trending panel is ${ratio}, expected the frame's 1.59 (636x400)`,
+    ).toBeLessThan(0.03);
+  });
+
+  /**
+   * QA-BLOG-A1, reopened. The frame puts 80px between the CTA card (`4900:75889`
+   * ends at 5028) and `Footer 2` (starts at 5108). The previous close wrapped a
+   * section that already carried `lg:py-16` in a `pb-20` div, which measures 144
+   * under the card, not 80.
+   */
+  test("the blog CTA keeps 80px between its card and the footer", async ({ page, viewport }) => {
+    const vw = viewport?.width ?? 0;
+    test.skip(vw < 1024, "80 is the lg+ value; below that the section uses its own rhythm");
+    await page.goto("/blog");
+
+    const gap = await page.evaluate(() => {
+      const cta = document.querySelector('main a[href="/contact-us"]')?.closest("div");
+      const footer = document.querySelector("footer");
+      if (!cta || !footer) return null;
+      return Math.round(footer.getBoundingClientRect().top - cta.getBoundingClientRect().bottom);
+    });
+
+    expect(gap, "could not locate the blog CTA card or the footer").not.toBeNull();
+    expect(gap, `@${vw} blog CTA card to footer measured ${gap}px, expected 80`).toBe(80);
+  });
 });
 
 /**
@@ -948,6 +1026,112 @@ test.describe("Class A — Course Category", () => {
         .map((t) => `"${t}"`)
         .join(", ")}`,
     ).toEqual([]);
+  });
+
+  /**
+   * QA-CAT report item R-CAT-440-02, "the image of the Why choose us section is
+   * missing in mobile responsive".
+   *
+   * The wrapper carried `hidden … lg:block`, so the visual never rendered below
+   * 1024 whatever the CMS returned — the row could not have closed by supplying
+   * data. The wrapper is also the only sizing authority here: the image inside is
+   * `fill` and contributes no intrinsic height, so a wrapper without a sub-`lg`
+   * box collapses to 0 exactly as QA-HOME-C1 did.
+   *
+   * Asserted on the box, not on the `img`: every category currently returns
+   * `why_choose_us: null`, so what renders today is the section's gradient empty
+   * state. Both branches must occupy the same non-zero box, and when an image is
+   * present it must also decode.
+   */
+  test("the Why Choose Us visual occupies a non-zero box at every width", async ({
+    page,
+    viewport,
+  }) => {
+    const vw = viewport?.width ?? 0;
+    await page.goto(CATEGORY_ROUTE);
+    await settleImages(page);
+
+    const visual = await page.evaluate(() => {
+      const h2 = [...document.querySelectorAll("h2")].find((h) =>
+        /why choose us/i.test(h.textContent || ""),
+      );
+      if (!h2) return null;
+      const row = h2.parentElement?.querySelector<HTMLElement>(".lg\\:flex-row");
+      const box = row?.children[1] as HTMLElement | undefined;
+      if (!box) return null;
+      const r = box.getBoundingClientRect();
+      const img = box.querySelector("img");
+      return {
+        w: Math.round(r.width),
+        h: Math.round(r.height),
+        display: getComputedStyle(box).display,
+        naturalWidth: img ? img.naturalWidth : null,
+      };
+    });
+
+    expect(visual, "could not locate the Why Choose Us visual").not.toBeNull();
+    expect(
+      visual!.display,
+      `@${vw} the Why Choose Us visual is display:${visual!.display} — the wrapper must not be gated on the breakpoint (R-CAT-440-02)`,
+    ).not.toBe("none");
+    expect(
+      visual!.w > 0 && visual!.h > 0,
+      `@${vw} the Why Choose Us visual measures ${visual!.w}x${visual!.h} — the wrapper is the sizing authority for a \`fill\` image, so a missing sub-lg box collapses it`,
+    ).toBe(true);
+    if (visual!.naturalWidth !== null) {
+      expect(
+        visual!.naturalWidth,
+        `@${vw} the Why Choose Us image is in the DOM but did not decode (naturalWidth 0)`,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  /**
+   * Not a filed QA row — found while validating the page against the design.
+   * Both candidate frames (`3294:42427` and `6015:108699`, identical here) put the
+   * trusted-organisations band between "Why Choose Us" and the team CTA, and the
+   * build never adopted it. Homepage and `/pricing` already render the same band
+   * from the same `GET /home` payload.
+   */
+  test("the trusted-organisations band sits between Why Choose Us and the team CTA", async ({
+    page,
+    viewport,
+  }) => {
+    const vw = viewport?.width ?? 0;
+    await page.goto(CATEGORY_ROUTE);
+
+    const order = await page.evaluate(() => {
+      const band = document.querySelector('[data-grid-surface="trusted-orgs"]');
+      if (!band) return { band: false, afterWhyChooseUs: false, beforeCta: false, logos: 0 };
+      const wcu = [...document.querySelectorAll("h2")].find((h) =>
+        /why choose us/i.test(h.textContent || ""),
+      );
+      const cta = [...document.querySelectorAll("h2, h3")].find((h) =>
+        /training that works for your team/i.test(h.textContent || ""),
+      );
+      const follows = (a: Element, b: Element) =>
+        !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+      return {
+        band: true,
+        afterWhyChooseUs: !!wcu && follows(wcu, band),
+        beforeCta: !cta || follows(band, cta),
+        logos: band.querySelectorAll("img").length,
+      };
+    });
+
+    expect(
+      order.band,
+      `@${vw} no trusted-organisations band on the category page — both design frames place one after "Why Choose Us". If GET /home is returning an empty org list this is a data problem, not a layout one.`,
+    ).toBe(true);
+    expect(
+      order.afterWhyChooseUs,
+      `@${vw} the trusted-organisations band is not after the "Why Choose Us" section`,
+    ).toBe(true);
+    expect(
+      order.beforeCta,
+      `@${vw} the trusted-organisations band is not before the team CTA`,
+    ).toBe(true);
+    expect(order.logos, `@${vw} the band rendered with no logos`).toBeGreaterThan(0);
   });
 });
 
