@@ -32,17 +32,19 @@ export interface Business {
   user_id: number;
   company_name: string;
   business_email: string;
-  phone: string;
-  address: string;
-  tax_id: string;
-  industry: string;
+  // Nullable columns: null means never set, '' means explicitly cleared. The API
+  // preserves that distinction rather than collapsing both to ''.
+  phone: string | null;
+  address: string | null;
+  tax_id: string | null;
+  industry: string | null;
   company_size: number | string;
   status: string;
   credit_balance: number;
   created_at: string;
   updated_at: string;
   logo_id: number;
-  logo_url: string;
+  logo_url: string | null;
   system_type?: "credits" | "subscription";
 }
 
@@ -361,22 +363,60 @@ export interface LicencePricing {
 
 // ─── Subscriptions ───────────────────────────────────────────────────────────────
 
-export interface SubscriptionSummary {
-  total_seats?: number;
-  used_seats?: number;
-  available_seats?: number;
-  plan_name?: string;
-  status?: string;
+/**
+ * Seat totals per plan type, e.g. { yearly: { total, assigned, available } }.
+ * The API keys this by plan_type — it is not a flat object.
+ */
+export type SubscriptionSummary = Record<string, SubscriptionPlanTotals>;
+
+export interface SubscriptionPlanTotals {
+  total: number;
+  assigned: number;
+  available: number;
 }
 
+/**
+ * A subscription row. `/businesses/subscriptions/assigned` returns these, not
+ * per-member rows — the seated learners live under `/{id}/seats`.
+ */
 export interface AssignedSubscription {
   id: number;
-  user_id?: number;
-  user_name?: string;
-  user_email?: string;
-  plan_name?: string;
-  status?: string;
-  assigned_at?: string;
+  business_id: number;
+  plan_type: string;
+  status: string;
+  total_seats: number;
+  assigned_seats: number;
+  available_seats: number;
+  start_date: string | null;
+  end_date: string | null;
+  wc_reference_id: number | null;
+  wc_reference_type?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+/** A single seat on a subscription, with its learner when assigned. */
+export interface SubscriptionSeat {
+  id: number;
+  subscription_id: number;
+  business_id: number;
+  learner_id: number | null;
+  learner_name?: string | null;
+  learner_email?: string | null;
+  status: string;
+  assigned_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface SubscriptionSeatsResponse {
+  seats: SubscriptionSeat[];
+  counts: {
+    total: number;
+    available: number;
+    assigned: number;
+    suspended: number;
+  };
 }
 
 // ─── Managers ──────────────────────────────────────────────────────────────────
@@ -384,10 +424,38 @@ export interface AssignedSubscription {
 export interface BusinessManager {
   id: number;
   user_id: number;
+  business_id?: number;
   display_name: string;
-  email: string;
+  /**
+   * The API returns `user_email`. `email` is kept because older callers read it,
+   * but it is not populated by lms-b2b/v1 — read `user_email`.
+   */
+  user_email: string;
+  email?: string;
   status: string;
   role?: string;
+  business_name?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/** manager_id -> capability -> granted. */
+export type ManagerPermissions = Record<string, boolean>;
+
+export interface ManagerCapabilitiesResponse {
+  permissions: ManagerPermissions;
+  available: Record<string, string> | string[];
+}
+
+export interface ManagerEmailCheck {
+  exists: boolean;
+  is_manager: boolean;
+  user_data?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    display_name: string;
+  };
 }
 
 export interface ManagersResponse {

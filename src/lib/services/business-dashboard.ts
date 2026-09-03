@@ -21,9 +21,13 @@ import type {
   LicenceBalanceResponse,
   LicenceCoursesResponse,
   ManagersResponse,
+  ManagerEmailCheck,
+  ManagerCapabilitiesResponse,
+  ManagerPermissions,
   ReviewHasResponse,
   SubmitReviewPayload,
   SubscriptionSummary,
+  SubscriptionSeatsResponse,
   TeamResponse,
   B2BPaginated,
   ReportCertificate,
@@ -391,6 +395,40 @@ export const businessDashboardService = {
     return bffJson<SubscriptionSummary>("/api/business/subscriptions/summary");
   },
 
+  async getSubscription(id: number): Promise<AssignedSubscription> {
+    return bffJson<AssignedSubscription>(`/api/business/subscriptions/${id}`);
+  },
+
+  async getSubscriptionSeats(id: number): Promise<SubscriptionSeatsResponse> {
+    return bffJson<SubscriptionSeatsResponse>(`/api/business/subscriptions/${id}/seats`);
+  },
+
+  async setSubscriptionStatus(
+    id: number,
+    status: "active" | "on-hold",
+  ): Promise<AssignedSubscription> {
+    return bffJson<AssignedSubscription>(`/api/business/subscriptions/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  async revokeSubscriptionSeat(id: number, seatId: number): Promise<{ revoked: boolean }> {
+    return bffJson<{ revoked: boolean }>(`/api/business/subscriptions/${id}/seats/${seatId}`, {
+      method: "DELETE",
+    });
+  },
+
+  async assignUserToSubscription(payload: {
+    user_id: number;
+    subscription_type: string;
+  }): Promise<{ subscription_id: number }> {
+    return bffJson<{ subscription_id: number }>("/api/business/subscriptions/assign-user", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
   async getAssignedSubscriptions(
     params: BusinessListParams = {},
   ): Promise<B2BPaginated<AssignedSubscription>> {
@@ -410,10 +448,60 @@ export const businessDashboardService = {
     return bffJson<ManagersResponse>(`/api/business/managers?business_id=${businessId}`);
   },
 
-  async addManager(payload: { email: string; display_name?: string }): Promise<BusinessManager> {
+  async addManager(payload: {
+    business_id: number;
+    email: string;
+    first_name: string;
+    last_name: string;
+  }): Promise<BusinessManager> {
     return bffJson<BusinessManager>("/api/business/managers", {
       method: "POST",
       body: JSON.stringify(payload),
+    });
+  },
+
+  async updateManager(
+    id: number,
+    payload: { business_id: number; status?: string },
+  ): Promise<BusinessManager> {
+    return bffJson<BusinessManager>(`/api/business/managers/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async setManagerStatus(id: number, status: string): Promise<BusinessManager> {
+    return bffJson<BusinessManager>(`/api/business/managers/${id}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  async deleteManager(id: number): Promise<{ deleted: boolean }> {
+    return bffJson<{ deleted: boolean }>(`/api/business/managers/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  async checkManagerEmail(email: string, businessId: number): Promise<ManagerEmailCheck> {
+    const qs = buildQuery({ email, business_id: businessId });
+    return bffJson<ManagerEmailCheck>(`/api/business/managers/check-email${qs}`);
+  },
+
+  async getManagerCapabilities(managerId: number): Promise<ManagerCapabilitiesResponse> {
+    const qs = buildQuery({ manager_id: managerId });
+    return bffJson<ManagerCapabilitiesResponse>(
+      `/api/business/permissions/manager/capabilities${qs}`,
+    );
+  },
+
+  async updateManagerPermissions(
+    managerId: number,
+    permissions: ManagerPermissions,
+  ): Promise<{ updated: boolean; permissions: ManagerPermissions }> {
+    return bffJson(`/api/business/permissions/business/managers/${managerId}/permissions`, {
+      method: "PUT",
+      body: JSON.stringify({ permissions }),
     });
   },
 
