@@ -29,21 +29,29 @@ function TrendingPostCard({ post, category }: { post: BlogPost; category?: WPCat
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group border-neutral-30 grid grid-cols-1 overflow-hidden rounded-xl border bg-white transition-shadow hover:shadow-lg md:grid-cols-2"
+      className="group border-neutral-30 grid grid-cols-1 overflow-hidden rounded-xl border bg-white transition-shadow hover:shadow-lg lg:grid-cols-2 lg:items-center"
     >
-      <div className="relative min-h-[260px] overflow-hidden bg-neutral-100 md:min-h-[340px]">
+      {/* `636x400` on the frame (`4900:75818`) — a 1.59 box. The build sized the
+          panel by min-height alone, so at 1920 it stretched to 648x340 (1.9) and
+          `object-cover` ate the top and bottom of every trending image.
+          `lg:self-start` goes with it: a stretched grid item takes the row height
+          the text column decided (316 at 1280) and ignores its own ratio. The
+          two-column split starts at `lg` for the same reason — at 768 the copy
+          is taller than a 1.59 panel, and a top-aligned image would leave a
+          white block under it. */}
+      <div className="relative aspect-636/400 overflow-hidden bg-neutral-100 lg:self-start">
         {image && (
           <Image
             src={image}
             alt={title}
             fill
-            sizes="(max-width: 768px) 100vw, 50vw"
+            sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
             priority
           />
         )}
       </div>
-      <div className="flex flex-col justify-center gap-4 p-8 md:p-10">
+      <div className="flex flex-col justify-center gap-4 p-8 lg:p-10">
         <div className="font-open-sans flex items-center gap-0 text-sm font-semibold">
           {category && <span className="text-primary-500">{decodeEntities(category.name)}</span>}
           {category && <span className="mx-2 text-neutral-400">•</span>}

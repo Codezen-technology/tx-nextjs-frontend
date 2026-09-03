@@ -10,6 +10,7 @@ import { env } from "@/lib/env";
 import { CategoryHero } from "@/components/courses/category-hero";
 import { CategoryCourses } from "@/components/courses/category-courses";
 import { CategoryWhyChooseUs } from "@/components/courses/category-why-choose-us";
+import { TrustedOrgs } from "@/components/home/trusted-orgs";
 import type { PaginatedResponse } from "@/types/api";
 import type { Course } from "@/types/course";
 import { CourseTrustedStrip } from "@/components/courses/course-trusted-strip";
@@ -128,10 +129,15 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
   const rawPage = Array.isArray(sp.page) ? sp.page[0] : sp.page;
   const page = Math.max(1, Number(rawPage) || 1);
 
-  const [categoriesResult, coursesResult, seoResult] = await Promise.allSettled([
+  // `home` joins the batch for the trusted-organisations band alone. `allSettled`
+  // isolates its failure: an outage on `GET /home` drops the band and leaves the
+  // rest of the page exactly as it renders today. The call shares its cache entry
+  // (tag `home`, 300s) with the homepage and /pricing, so a warm cache costs nothing.
+  const [categoriesResult, coursesResult, seoResult, homeResult] = await Promise.allSettled([
     fetchCategories(),
     serverApi.courses.list({ category: slug, per_page: PER_PAGE, page }),
     fetchRankMathSeo(wpPath.courseCategory(slug)),
+    serverApi.home.get(),
   ]);
 
   const category =
@@ -142,6 +148,7 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
 
   const coursesData = coursesResult.status === "fulfilled" ? coursesResult.value : null;
   const rmSeo = seoResult.status === "fulfilled" ? seoResult.value : null;
+  const home = homeResult.status === "fulfilled" ? homeResult.value : null;
 
   const courses: Course[] = (coursesData?.items ?? []).map((raw) =>
     normalizeCourse(raw as Parameters<typeof normalizeCourse>[0]),
@@ -202,6 +209,11 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
         whyChooseUs={category.why_choose_us ?? category.image}
         categoryName={category.name}
       />
+
+      {/* Outside the sections' `bg-white` wrappers on purpose: the band carries its
+          own background and bleeds off the right edge through `grid-inset-start`,
+          so nesting it in a `container` would inset it a second page-pad. */}
+      <TrustedOrgs data={home?.trusted_orgs} />
     </div>
   );
 }

@@ -46,8 +46,12 @@ export function CategoryWhyChooseUs({ whyChooseUs, categoryName }: CategoryWhyCh
             ))}
           </div>
 
-          {/* Image */}
-          <div className="relative hidden shrink-0 overflow-hidden rounded-2xl lg:block lg:h-[312px] lg:w-[526px]">
+          {/* Image — sized by this wrapper at every width, because the image inside
+              is `fill` and so contributes no intrinsic height. Below `lg` it spans
+              the content column on a 16/9 box; the desktop box is 526×312 (1.69),
+              close enough that the crop keeps its character across the breakpoint.
+              A fixed mobile height would be right at 440 and wrong everywhere else. */}
+          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl lg:aspect-auto lg:h-[312px] lg:w-[526px] lg:shrink-0">
             {whyChooseUs ? (
               <Image
                 src={whyChooseUs}

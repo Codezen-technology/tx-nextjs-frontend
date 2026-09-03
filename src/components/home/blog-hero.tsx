@@ -1,5 +1,5 @@
 import { Search } from "lucide-react";
-import { HeroWave } from "../courses/hero-wave";
+import { HeroWave, HERO_GRADIENT } from "../courses/hero-wave";
 
 /**
  * `2xl` carries the measured 1920 inset: band `4900:75793` is 320 tall around
@@ -7,10 +7,19 @@ import { HeroWave } from "../courses/hero-wave";
  * 768–1535 and is left alone — the 1280 frame measures 64, but the report signs
  * that width off as working, so it is recorded in `targets.md` rather than
  * applied. QA-BLOG-A2 is scoped to 1920.
+ *
+ * Background: `4900:75794` is a linear gradient navy→teal at 80.83deg, not the
+ * flat `neutral-900` this hero shipped with — the earlier close of QA-BLOG-D2
+ * read the dot overlay below as "the gradient". It uses the shared
+ * `HERO_GRADIENT` (88deg, same two stops) so all five marketing heroes stay one
+ * value; the 7deg difference is not visible across a 1920px band.
  */
 export function BlogHero() {
   return (
-    <section className="relative overflow-hidden bg-neutral-900 py-14 md:py-28 2xl:py-[85px]">
+    <section
+      className="relative overflow-hidden py-14 md:py-28 2xl:py-[85px]"
+      style={{ background: HERO_GRADIENT }}
+    >
       <div
         className="pointer-events-none absolute inset-0 opacity-10"
         style={{

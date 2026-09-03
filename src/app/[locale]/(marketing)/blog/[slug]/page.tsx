@@ -14,6 +14,7 @@ import { decodeEntities } from "@/lib/api/parsers";
 import { ParsedHtml } from "@/components/ui/parsed-html";
 import { BlogCard } from "@/components/home/blog-card";
 import { BlogPostSidebar } from "@/components/blog/blog-post-sidebar";
+import { BlogTocDrawer } from "@/components/blog/blog-toc-drawer";
 import { BlogShareCard } from "@/components/blog/blog-share-card";
 import { CourseCard } from "@/components/courses/course-card";
 import { CourseFaq } from "@/components/courses/course-faq";
@@ -115,6 +116,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const catMap = new Map(cats.map((c) => [c.id, c]));
   const postCategory = post.categories?.[0] ? catMap.get(post.categories[0]) : undefined;
+  // WP returns category names with the entities still encoded, so "Health &
+  // Social Care" arrives as "Health &amp; Social Care" and rendered straight
+  // into JSX it stays that way. QA-BLOGS-A3 read as "the category name is
+  // incorrect"; `BlogCard` already decodes, this page did not.
+  const postCategoryName = postCategory ? decodeEntities(postCategory.name) : "";
 
   const rawContent = post.content?.rendered ?? "";
   const { toc, content: contentWithToc } = parseToc(rawContent);
@@ -171,7 +177,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   href={`/blog/category/${postCategory.slug}`}
                   className="transition-colors hover:text-white"
                 >
-                  {postCategory.name}
+                  {postCategoryName}
                 </Link>
               </>
             )}
@@ -192,7 +198,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <div className="font-open-sans mt-6 flex flex-wrap items-center gap-2 text-sm font-semibold">
                 {postCategory && (
                   <>
-                    <span className="text-primary-500">{postCategory.name}</span>
+                    <span className="text-primary-500">{postCategoryName}</span>
                     <span className="text-neutral-10 font-normal">•</span>
                   </>
                 )}
@@ -227,9 +233,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 : "xl:grid-cols-[minmax(0,1fr)_306px]",
             )}
           >
-            {/* TOC / contributors */}
+            {/* TOC rail — `lg` and up only. Below that the drawer mounted after
+                this grid is the ToC surface (QA-BLOGS-D1). */}
             {hasSidebar && (
-              <div className="order-2 w-full xl:sticky xl:top-8 xl:order-1 xl:self-start">
+              <div className="order-2 hidden w-full lg:block xl:sticky xl:top-8 xl:order-1 xl:self-start">
                 <BlogPostSidebar toc={toc} />
               </div>
             )}
@@ -258,6 +265,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
         </div>
       </div>
+
+      {hasSidebar && <BlogTocDrawer toc={toc} />}
 
       {/* Related courses */}
       {relatedCourses.length > 0 && (
