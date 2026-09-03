@@ -269,7 +269,6 @@ export const endpoints = {
     subscriptions: `${b2b}/businesses/subscriptions`,
     subscriptionSummary: `${b2b}/businesses/subscriptions/summary`,
     subscriptionAssigned: `${b2b}/businesses/subscriptions/assigned`,
-    subscriptionAssignUser: `${b2b}/businesses/subscriptions/assign-user`,
     excludedCategories: `${b2b}/course-categories/excluded`,
     certificateGenerate: `${b2b}/certificate/generate`,
     managers: `${b2b}/managers`,
@@ -278,7 +277,7 @@ export const endpoints = {
     reviews: `${b2b}/reviews`,
     teamCheckEmail: `${b2b}/team/check-email`,
     teamConvertRole: (id: number) => `${b2b}/team/${id}/convert-role`,
-    businessLogo: (id: number) => `${b2b}/businesses/${id}/logo`,
+    licenceQuote: `${b2b}/licences/quote`,
   },
   partners: {
     list: `${wp}/partner_logo`,

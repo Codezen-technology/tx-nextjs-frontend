@@ -96,7 +96,9 @@ export default function BusinessProfilePage() {
   }
 
   const availableLicences = sumAvailableLicences(licenceBalance?.pools ?? []);
-  const industry = INDUSTRY_LABELS[business.industry?.toLowerCase()] ?? business.industry ?? "—";
+  const industryKey = business.industry?.toLowerCase();
+  const industry =
+    (industryKey ? INDUSTRY_LABELS[industryKey] : undefined) ?? business.industry ?? "—";
 
   return (
     <div className="space-y-6">

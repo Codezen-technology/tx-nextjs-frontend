@@ -32,17 +32,19 @@ export interface Business {
   user_id: number;
   company_name: string;
   business_email: string;
-  phone: string;
-  address: string;
-  tax_id: string;
-  industry: string;
+  // Nullable columns: null means never set, '' means explicitly cleared. The API
+  // preserves that distinction rather than collapsing both to ''.
+  phone: string | null;
+  address: string | null;
+  tax_id: string | null;
+  industry: string | null;
   company_size: number | string;
   status: string;
   credit_balance: number;
   created_at: string;
   updated_at: string;
   logo_id: number;
-  logo_url: string;
+  logo_url: string | null;
   system_type?: "credits" | "subscription";
 }
 
