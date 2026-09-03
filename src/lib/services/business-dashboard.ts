@@ -27,6 +27,7 @@ import type {
   ReviewHasResponse,
   SubmitReviewPayload,
   SubscriptionSummary,
+  SubscriptionSeatsResponse,
   TeamResponse,
   B2BPaginated,
   ReportCertificate,
@@ -392,6 +393,40 @@ export const businessDashboardService = {
 
   async getSubscriptionSummary(): Promise<SubscriptionSummary> {
     return bffJson<SubscriptionSummary>("/api/business/subscriptions/summary");
+  },
+
+  async getSubscription(id: number): Promise<AssignedSubscription> {
+    return bffJson<AssignedSubscription>(`/api/business/subscriptions/${id}`);
+  },
+
+  async getSubscriptionSeats(id: number): Promise<SubscriptionSeatsResponse> {
+    return bffJson<SubscriptionSeatsResponse>(`/api/business/subscriptions/${id}/seats`);
+  },
+
+  async setSubscriptionStatus(
+    id: number,
+    status: "active" | "on-hold",
+  ): Promise<AssignedSubscription> {
+    return bffJson<AssignedSubscription>(`/api/business/subscriptions/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  async revokeSubscriptionSeat(id: number, seatId: number): Promise<{ revoked: boolean }> {
+    return bffJson<{ revoked: boolean }>(`/api/business/subscriptions/${id}/seats/${seatId}`, {
+      method: "DELETE",
+    });
+  },
+
+  async assignUserToSubscription(payload: {
+    user_id: number;
+    subscription_type: string;
+  }): Promise<{ subscription_id: number }> {
+    return bffJson<{ subscription_id: number }>("/api/business/subscriptions/assign-user", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   },
 
   async getAssignedSubscriptions(

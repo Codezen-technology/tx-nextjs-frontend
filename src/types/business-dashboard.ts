@@ -363,22 +363,60 @@ export interface LicencePricing {
 
 // ─── Subscriptions ───────────────────────────────────────────────────────────────
 
-export interface SubscriptionSummary {
-  total_seats?: number;
-  used_seats?: number;
-  available_seats?: number;
-  plan_name?: string;
-  status?: string;
+/**
+ * Seat totals per plan type, e.g. { yearly: { total, assigned, available } }.
+ * The API keys this by plan_type — it is not a flat object.
+ */
+export type SubscriptionSummary = Record<string, SubscriptionPlanTotals>;
+
+export interface SubscriptionPlanTotals {
+  total: number;
+  assigned: number;
+  available: number;
 }
 
+/**
+ * A subscription row. `/businesses/subscriptions/assigned` returns these, not
+ * per-member rows — the seated learners live under `/{id}/seats`.
+ */
 export interface AssignedSubscription {
   id: number;
-  user_id?: number;
-  user_name?: string;
-  user_email?: string;
-  plan_name?: string;
-  status?: string;
-  assigned_at?: string;
+  business_id: number;
+  plan_type: string;
+  status: string;
+  total_seats: number;
+  assigned_seats: number;
+  available_seats: number;
+  start_date: string | null;
+  end_date: string | null;
+  wc_reference_id: number | null;
+  wc_reference_type?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+/** A single seat on a subscription, with its learner when assigned. */
+export interface SubscriptionSeat {
+  id: number;
+  subscription_id: number;
+  business_id: number;
+  learner_id: number | null;
+  learner_name?: string | null;
+  learner_email?: string | null;
+  status: string;
+  assigned_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface SubscriptionSeatsResponse {
+  seats: SubscriptionSeat[];
+  counts: {
+    total: number;
+    available: number;
+    assigned: number;
+    suspended: number;
+  };
 }
 
 // ─── Managers ──────────────────────────────────────────────────────────────────

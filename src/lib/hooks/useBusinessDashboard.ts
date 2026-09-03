@@ -279,6 +279,54 @@ export function useSubmitBusinessReview() {
   });
 }
 
+export function useBusinessSubscription(id: number | null) {
+  return useQuery({
+    queryKey: ["business", "subscriptions", id],
+    queryFn: () => businessDashboardService.getSubscription(id as number),
+    enabled: typeof id === "number" && id > 0,
+  });
+}
+
+/** Seats for one subscription. Disabled until a subscription is selected. */
+export function useSubscriptionSeats(id: number | null) {
+  return useQuery({
+    queryKey: ["business", "subscriptions", id, "seats"],
+    queryFn: () => businessDashboardService.getSubscriptionSeats(id as number),
+    enabled: typeof id === "number" && id > 0,
+  });
+}
+
+function invalidateSubscriptions(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: ["business", "subscriptions"] });
+}
+
+export function useSetSubscriptionStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: number; status: "active" | "on-hold" }) =>
+      businessDashboardService.setSubscriptionStatus(id, status),
+    onSuccess: () => invalidateSubscriptions(qc),
+  });
+}
+
+export function useRevokeSubscriptionSeat() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, seatId }: { id: number; seatId: number }) =>
+      businessDashboardService.revokeSubscriptionSeat(id, seatId),
+    onSuccess: () => invalidateSubscriptions(qc),
+  });
+}
+
+export function useAssignUserToSubscription() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { user_id: number; subscription_type: string }) =>
+      businessDashboardService.assignUserToSubscription(payload),
+    onSuccess: () => invalidateSubscriptions(qc),
+  });
+}
+
 export function useAddBusinessManager() {
   const qc = useQueryClient();
   return useMutation({
