@@ -21,6 +21,9 @@ import type {
   LicenceBalanceResponse,
   LicenceCoursesResponse,
   ManagersResponse,
+  ManagerEmailCheck,
+  ManagerCapabilitiesResponse,
+  ManagerPermissions,
   ReviewHasResponse,
   SubmitReviewPayload,
   SubscriptionSummary,
@@ -410,10 +413,60 @@ export const businessDashboardService = {
     return bffJson<ManagersResponse>(`/api/business/managers?business_id=${businessId}`);
   },
 
-  async addManager(payload: { email: string; display_name?: string }): Promise<BusinessManager> {
+  async addManager(payload: {
+    business_id: number;
+    email: string;
+    first_name: string;
+    last_name: string;
+  }): Promise<BusinessManager> {
     return bffJson<BusinessManager>("/api/business/managers", {
       method: "POST",
       body: JSON.stringify(payload),
+    });
+  },
+
+  async updateManager(
+    id: number,
+    payload: { business_id: number; status?: string },
+  ): Promise<BusinessManager> {
+    return bffJson<BusinessManager>(`/api/business/managers/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async setManagerStatus(id: number, status: string): Promise<BusinessManager> {
+    return bffJson<BusinessManager>(`/api/business/managers/${id}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  async deleteManager(id: number): Promise<{ deleted: boolean }> {
+    return bffJson<{ deleted: boolean }>(`/api/business/managers/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  async checkManagerEmail(email: string, businessId: number): Promise<ManagerEmailCheck> {
+    const qs = buildQuery({ email, business_id: businessId });
+    return bffJson<ManagerEmailCheck>(`/api/business/managers/check-email${qs}`);
+  },
+
+  async getManagerCapabilities(managerId: number): Promise<ManagerCapabilitiesResponse> {
+    const qs = buildQuery({ manager_id: managerId });
+    return bffJson<ManagerCapabilitiesResponse>(
+      `/api/business/permissions/manager/capabilities${qs}`,
+    );
+  },
+
+  async updateManagerPermissions(
+    managerId: number,
+    permissions: ManagerPermissions,
+  ): Promise<{ updated: boolean; permissions: ManagerPermissions }> {
+    return bffJson(`/api/business/permissions/business/managers/${managerId}/permissions`, {
+      method: "PUT",
+      body: JSON.stringify({ permissions }),
     });
   },
 

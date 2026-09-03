@@ -282,10 +282,73 @@ export function useSubmitBusinessReview() {
 export function useAddBusinessManager() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { email: string; display_name?: string }) =>
-      businessDashboardService.addManager(payload),
+    mutationFn: (payload: {
+      business_id: number;
+      email: string;
+      first_name: string;
+      last_name: string;
+    }) => businessDashboardService.addManager(payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["business", "managers"] });
+    },
+  });
+}
+
+export function useUpdateBusinessManager() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...payload }: { id: number; business_id: number; status?: string }) =>
+      businessDashboardService.updateManager(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["business", "managers"] });
+    },
+  });
+}
+
+export function useSetBusinessManagerStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: number; status: string }) =>
+      businessDashboardService.setManagerStatus(id, status),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["business", "managers"] });
+    },
+  });
+}
+
+export function useDeleteBusinessManager() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => businessDashboardService.deleteManager(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["business", "managers"] });
+    },
+  });
+}
+
+/** Manager capabilities. Disabled until a manager is selected. */
+export function useManagerCapabilities(managerId: number | null) {
+  return useQuery({
+    queryKey: ["business", "managers", "capabilities", managerId],
+    queryFn: () => businessDashboardService.getManagerCapabilities(managerId as number),
+    enabled: typeof managerId === "number" && managerId > 0,
+  });
+}
+
+export function useUpdateManagerPermissions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      managerId,
+      permissions,
+    }: {
+      managerId: number;
+      permissions: Record<string, boolean>;
+    }) => businessDashboardService.updateManagerPermissions(managerId, permissions),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({
+        queryKey: ["business", "managers", "capabilities", variables.managerId],
+      });
     },
   });
 }

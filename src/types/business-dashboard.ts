@@ -386,10 +386,38 @@ export interface AssignedSubscription {
 export interface BusinessManager {
   id: number;
   user_id: number;
+  business_id?: number;
   display_name: string;
-  email: string;
+  /**
+   * The API returns `user_email`. `email` is kept because older callers read it,
+   * but it is not populated by lms-b2b/v1 — read `user_email`.
+   */
+  user_email: string;
+  email?: string;
   status: string;
   role?: string;
+  business_name?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/** manager_id -> capability -> granted. */
+export type ManagerPermissions = Record<string, boolean>;
+
+export interface ManagerCapabilitiesResponse {
+  permissions: ManagerPermissions;
+  available: Record<string, string> | string[];
+}
+
+export interface ManagerEmailCheck {
+  exists: boolean;
+  is_manager: boolean;
+  user_data?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    display_name: string;
+  };
 }
 
 export interface ManagersResponse {
