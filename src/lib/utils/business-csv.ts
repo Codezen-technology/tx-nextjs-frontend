@@ -91,3 +91,25 @@ export interface ImportResultRow {
   status: ImportRowStatus;
   message?: string;
 }
+
+/**
+ * Download rows as a CSV file.
+ *
+ * RFC 4180 escaping: a field containing a quote, comma or newline is wrapped in
+ * quotes with its own quotes doubled. Without this a learner name like
+ * `Smith, John` would silently split into two columns.
+ */
+export function downloadCsv(filename: string, headers: string[], rows: string[][]): void {
+  const escape = (value: string) =>
+    /[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+
+  const csv = [headers, ...rows].map((row) => row.map(escape).join(",")).join("\r\n");
+
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}

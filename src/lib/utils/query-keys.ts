@@ -130,6 +130,15 @@ export const queryKeys = {
     subscriptionAssigned: (params: BusinessListParams = {}) =>
       ["business", "subscription-assigned", params] as const,
     courseCategories: ["business", "course-categories"] as const,
+    settings: ["business", "settings"] as const,
+    activity: (params: BusinessListParams = {}) => ["business", "activity", params] as const,
+    learnerCoursesReport: (params: BusinessListParams = {}) =>
+      ["business", "learner-courses-report", params] as const,
+    trainingMatrix: (params: BusinessListParams = {}) =>
+      ["business", "training-matrix", params] as const,
+    reportCourseOptions: ["business", "report-course-options"] as const,
+    teamStats: ["business", "team-stats"] as const,
+    seatRoster: (params: BusinessListParams = {}) => ["business", "seat-roster", params] as const,
     learnerQuizScores: (courseId: number, userId: number) =>
       ["business", "quiz-scores", courseId, userId] as const,
     excludedCategories: ["business", "excluded-categories"] as const,

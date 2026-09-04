@@ -2,6 +2,8 @@ import { bffJson } from "@/lib/api/bff-client";
 import { ApiError } from "@/lib/api/error";
 import type {
   AddLearnerPayload,
+  AccountActionResult,
+  ActivityResponse,
   AssignCoursePayload,
   AssignmentListResponse,
   AssignmentsResponse,
@@ -15,25 +17,34 @@ import type {
   BusinessLogo,
   BusinessManager,
   BusinessOrdersResponse,
+  BusinessSettings,
+  BusinessSettingsUpdate,
   BusinessSummary,
   CertificatesResponse,
   CheckEmailResponse,
   CourseLearnersResponse,
   CoursesResponse,
   Learner,
+  LearnerCoursesReport,
   LearnerCoursesResponse,
   LearnerQuizScoresResponse,
   LicenceBalanceResponse,
   LicenceCoursesResponse,
+  MatrixCourse,
   ManagersResponse,
   ManagerEmailCheck,
   ManagerCapabilitiesResponse,
   ManagerPermissions,
+  OnboardingPayload,
+  RemindResult,
   ReviewHasResponse,
+  SeatRosterResponse,
   SubmitReviewPayload,
   SubscriptionSummary,
   SubscriptionSeatsResponse,
   TeamResponse,
+  TeamStats,
+  TrainingMatrix,
   B2BPaginated,
   ReportCertificate,
   ReportCourse,
@@ -141,6 +152,7 @@ export const businessDashboardService = {
       per_page: params.per_page,
       search: params.search,
       status: params.status,
+      role: params.role,
     });
     return bffJson<TeamResponse>(`/api/business/team${qs}`);
   },
@@ -425,6 +437,130 @@ export const businessDashboardService = {
     }
   },
 
+  // ─── Settings (Tier B) ───────────────────────────────────────────────────────
+
+  async getSettings(): Promise<BusinessSettings> {
+    return bffJson<BusinessSettings>("/api/business/settings");
+  },
+
+  async updateSettings(payload: BusinessSettingsUpdate): Promise<BusinessSettings> {
+    return bffJson<BusinessSettings>("/api/business/settings", {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  /**
+   * The onboarding wizard's final step. Nothing the wizard collects is persisted
+   * until this call, so abandoning it leaves the tenant untouched.
+   */
+  async completeOnboarding(payload: OnboardingPayload): Promise<BusinessSettings> {
+    return bffJson<BusinessSettings>("/api/business/settings/onboarding", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  /** Restores defaults and reopens the wizard. Learners and assignments are untouched. */
+  async resetSettings(): Promise<BusinessSettings> {
+    return bffJson<BusinessSettings>("/api/business/settings/reset", { method: "POST" });
+  },
+
+  // ─── Activity + learner reports (Tier B) ─────────────────────────────────────
+
+  async getActivity(params: BusinessListParams = {}): Promise<ActivityResponse> {
+    const qs = buildQuery({
+      page: params.page,
+      per_page: params.per_page,
+      course_id: params.course_id,
+      learner_id: params.learner_id,
+    });
+    return bffJson<ActivityResponse>(`/api/business/activity${qs}`);
+  },
+
+  /**
+   * Flat learner x course rows behind the status reports.
+   *
+   * `pass_mark` is deliberately omitted when unset: the backend reads an absent
+   * value as "use the business's configured mark" and echoes the effective one
+   * back, so sending a default would override the tenant's setting.
+   */
+  async getLearnerCoursesReport(params: BusinessListParams = {}): Promise<LearnerCoursesReport> {
+    const qs = buildQuery({
+      page: params.page,
+      per_page: params.per_page,
+      search: params.search,
+      status: params.status,
+      course_id: params.course_id,
+      learner_id: params.learner_id,
+      pass_mark: params.pass_mark,
+    });
+    return bffJson<LearnerCoursesReport>(`/api/business/reports/learner-courses${qs}`);
+  },
+
+  async getTrainingMatrix(params: BusinessListParams = {}): Promise<TrainingMatrix> {
+    const qs = buildQuery({
+      course_id: params.course_id,
+      learner_id: params.learner_id,
+      pass_mark: params.pass_mark,
+    });
+    return bffJson<TrainingMatrix>(`/api/business/reports/matrix${qs}`);
+  },
+
+  /** Course id + title only — the cheap option list, not the whole matrix. */
+  async getReportCourseOptions(): Promise<MatrixCourse[]> {
+    const data = await bffJson<{ courses?: MatrixCourse[] }>(
+      "/api/business/reports/courses/options",
+    );
+    return data.courses ?? [];
+  },
+
+  async getTeamStats(): Promise<TeamStats> {
+    return bffJson<TeamStats>("/api/business/team/stats");
+  },
+
+  // ─── Learner account actions (Tier B) ────────────────────────────────────────
+
+  async inviteLearner(id: number): Promise<AccountActionResult> {
+    return bffJson<AccountActionResult>(`/api/business/team/${id}/invite`, { method: "POST" });
+  },
+
+  async sendPasswordReset(id: number): Promise<AccountActionResult> {
+    return bffJson<AccountActionResult>(`/api/business/team/${id}/password-reset`, {
+      method: "POST",
+    });
+  },
+
+  // ─── Reminders (Tier B) ──────────────────────────────────────────────────────
+
+  async remindCourse(courseId: number): Promise<RemindResult> {
+    return bffJson<RemindResult>(`/api/business/courses/${courseId}/remind`, { method: "POST" });
+  },
+
+  /**
+   * Server-side sweep across the active filters. `learners` is the population
+   * selected, so `learners: 0` means nobody was behind — distinct from every
+   * mail having failed.
+   */
+  async remindBehind(
+    filters: { course_id?: number; learner_id?: number } = {},
+  ): Promise<RemindResult> {
+    return bffJson<RemindResult>("/api/business/courses/remind-behind", {
+      method: "POST",
+      body: JSON.stringify(filters),
+    });
+  },
+
+  async getSeatRoster(params: BusinessListParams = {}): Promise<SeatRosterResponse> {
+    const qs = buildQuery({
+      page: params.page,
+      per_page: params.per_page,
+      search: params.search,
+      status: params.status,
+    });
+    return bffJson<SeatRosterResponse>(`/api/business/subscriptions/seat-roster${qs}`);
+  },
+
   async getReportCourses(params: BusinessListParams = {}): Promise<B2BPaginated<ReportCourse>> {
     const qs = buildQuery({
       page: params.page,
@@ -451,6 +587,8 @@ export const businessDashboardService = {
       page: params.page,
       per_page: params.per_page,
       search: params.search,
+      course_id: params.course_id,
+      learner_id: params.learner_id,
     });
     return bffJson<B2BPaginated<ReportCertificate>>(`/api/business/reports/certificates${qs}`);
   },
@@ -467,6 +605,10 @@ export const businessDashboardService = {
       status: params.status,
       orderby: params.orderby,
       order: params.order,
+      course_id: params.course_id,
+      learner_id: params.learner_id,
+      date_from: params.date_from,
+      date_to: params.date_to,
     });
     const raw = await bffJson<{
       items?: BusinessCertificateWire[];

@@ -17,7 +17,9 @@ import {
   MessageSquareHeart,
   MoreHorizontal,
   Package,
+  Grid3x3,
   Search,
+  Settings,
   Tag,
   UserCog,
   Users,
@@ -94,7 +96,11 @@ const NAV_TREE: NavEntry[] = [
     label: "Reports",
     icon: BarChart3,
     capability: "manage_b2b_analytics",
-    items: [{ label: "Reports & Records", href: "/business-dashboard/analytics", icon: BarChart3 }],
+    items: [
+      { label: "Reports & Records", href: "/business-dashboard/analytics", icon: BarChart3 },
+      { label: "Status reports", href: "/business-dashboard/analytics/reports", icon: BarChart3 },
+      { label: "Training matrix", href: "/business-dashboard/analytics/matrix", icon: Grid3x3 },
+    ],
   },
   {
     label: "Pricing",
@@ -107,6 +113,12 @@ const NAV_TREE: NavEntry[] = [
     href: "/business-dashboard/orders",
     icon: CreditCard,
     capability: "business_owner",
+  },
+  {
+    label: "Settings",
+    href: "/business-dashboard/settings",
+    icon: Settings,
+    capability: "manage_b2b_dashboard",
   },
   {
     id: "more",

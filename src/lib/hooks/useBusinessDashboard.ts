@@ -8,6 +8,8 @@ import type {
   AddLearnerPayload,
   AssignCoursePayload,
   BusinessListParams,
+  BusinessSettingsUpdate,
+  OnboardingPayload,
   SubmitReviewPayload,
 } from "@/types/business-dashboard";
 
@@ -213,6 +215,60 @@ export function useBusinessReviewHas() {
   });
 }
 
+export function useBusinessSettings() {
+  return useQuery({
+    queryKey: queryKeys.business.settings,
+    queryFn: () => businessDashboardService.getSettings(),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useBusinessActivity(params: BusinessListParams = {}) {
+  return useQuery({
+    queryKey: queryKeys.business.activity(params),
+    queryFn: () => businessDashboardService.getActivity(params),
+    staleTime: LIST_STALE,
+  });
+}
+
+export function useLearnerCoursesReport(params: BusinessListParams = {}) {
+  return useQuery({
+    queryKey: queryKeys.business.learnerCoursesReport(params),
+    queryFn: () => businessDashboardService.getLearnerCoursesReport(params),
+  });
+}
+
+export function useTrainingMatrix(params: BusinessListParams = {}) {
+  return useQuery({
+    queryKey: queryKeys.business.trainingMatrix(params),
+    queryFn: () => businessDashboardService.getTrainingMatrix(params),
+  });
+}
+
+/** Course id + title only — much cheaper than pulling the whole matrix for a select. */
+export function useReportCourseOptions() {
+  return useQuery({
+    queryKey: queryKeys.business.reportCourseOptions,
+    queryFn: () => businessDashboardService.getReportCourseOptions(),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useTeamStats() {
+  return useQuery({
+    queryKey: queryKeys.business.teamStats,
+    queryFn: () => businessDashboardService.getTeamStats(),
+    staleTime: LIST_STALE,
+  });
+}
+
+export function useSeatRoster(params: BusinessListParams = {}) {
+  return useQuery({
+    queryKey: queryKeys.business.seatRoster(params),
+    queryFn: () => businessDashboardService.getSeatRoster(params),
+  });
+}
+
 // ─── Mutations ─────────────────────────────────────────────────────────────────
 
 export function useCheckLearnerEmail(email: string, enabled: boolean) {
@@ -288,6 +344,66 @@ export function useLearnerQuizScores(courseId: number | null, userId: number | n
       businessDashboardService.getLearnerQuizScores(courseId as number, userId as number),
     enabled: courseId != null && userId != null,
     staleTime: LIST_STALE,
+  });
+}
+
+export function useUpdateBusinessSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: BusinessSettingsUpdate) =>
+      businessDashboardService.updateSettings(payload),
+    onSuccess: (data) => {
+      qc.setQueryData(queryKeys.business.settings, data);
+      // The passing mark changes what every report counts as passed.
+      qc.invalidateQueries({ queryKey: queryKeys.business.profile });
+    },
+  });
+}
+
+export function useCompleteOnboarding() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: OnboardingPayload) =>
+      businessDashboardService.completeOnboarding(payload),
+    onSuccess: (data) => {
+      qc.setQueryData(queryKeys.business.settings, data);
+      qc.invalidateQueries({ queryKey: queryKeys.business.root });
+    },
+  });
+}
+
+export function useResetSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => businessDashboardService.resetSettings(),
+    onSuccess: (data) => {
+      qc.setQueryData(queryKeys.business.settings, data);
+    },
+  });
+}
+
+export function useInviteLearner() {
+  return useMutation({
+    mutationFn: (id: number) => businessDashboardService.inviteLearner(id),
+  });
+}
+
+export function useSendPasswordReset() {
+  return useMutation({
+    mutationFn: (id: number) => businessDashboardService.sendPasswordReset(id),
+  });
+}
+
+export function useRemindCourse() {
+  return useMutation({
+    mutationFn: (courseId: number) => businessDashboardService.remindCourse(courseId),
+  });
+}
+
+export function useRemindBehind() {
+  return useMutation({
+    mutationFn: (filters: { course_id?: number; learner_id?: number } = {}) =>
+      businessDashboardService.remindBehind(filters),
   });
 }
 

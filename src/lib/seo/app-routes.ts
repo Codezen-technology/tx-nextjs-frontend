@@ -100,6 +100,8 @@ export const APP_ROUTES: readonly AppRoute[] = [
   // Not indexable — business area
   { path: "/business-dashboard", indexable: false },
   { path: "/business-dashboard/analytics", indexable: false },
+  { path: "/business-dashboard/analytics/matrix", indexable: false },
+  { path: "/business-dashboard/analytics/reports", indexable: false },
   { path: "/business-dashboard/certificates", indexable: false },
   { path: "/business-dashboard/certificates/[courseId]", indexable: false, dynamic: true },
   { path: "/business-dashboard/courses", indexable: false },
@@ -115,6 +117,7 @@ export const APP_ROUTES: readonly AppRoute[] = [
   { path: "/business-dashboard/pricing", indexable: false },
   { path: "/business-dashboard/profile", indexable: false },
   { path: "/business-dashboard/reviews", indexable: false },
+  { path: "/business-dashboard/settings", indexable: false },
   { path: "/business-dashboard/subscriptions", indexable: false },
 
   // Not indexable — internal

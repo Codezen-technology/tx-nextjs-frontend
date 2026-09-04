@@ -270,6 +270,9 @@ export const endpoints = {
     teamMember: (id: B2BId) => `/team${seg(id)}`,
     teamCheckEmail: "/team/check-email",
     teamConvertRole: (id: B2BId) => `/team${seg(id)}/convert-role`,
+    teamStats: "/team/stats",
+    teamInvite: (id: B2BId) => `/team${seg(id)}/invite`,
+    teamPasswordReset: (id: B2BId) => `/team${seg(id)}/password-reset`,
 
     // Courses and assignments
     courses: "/courses",
@@ -283,6 +286,8 @@ export const endpoints = {
       `/courses${seg(courseId)}/learner${seg(userId)}/quiz-scores`,
     courseCategories: "/course-categories",
     excludedCategories: "/course-categories/excluded",
+    courseRemind: (id: B2BId) => `/courses${seg(id)}/remind`,
+    remindBehind: "/courses/remind-behind",
 
     // Licences
     licenceCourses: "/licences/courses",
@@ -301,6 +306,9 @@ export const endpoints = {
     reportCourses: "/reports/courses",
     reportMembers: "/reports/members",
     reportCertificates: "/reports/certificates",
+    reportLearnerCourses: "/reports/learner-courses",
+    reportMatrix: "/reports/matrix",
+    reportCourseOptions: "/reports/courses/options",
 
     // Certificates
     certificates: "/certificates",
@@ -309,6 +317,7 @@ export const endpoints = {
     // Subscriptions
     subscriptions: "/businesses/subscriptions",
     subscriptionActive: "/businesses/subscriptions/active",
+    subscriptionSeatRoster: "/businesses/subscriptions/seat-roster",
     subscriptionSummary: "/businesses/subscriptions/summary",
     subscriptionAssigned: "/businesses/subscriptions/assigned",
     subscriptionAssignUser: "/businesses/subscriptions/assign-user",
@@ -326,6 +335,14 @@ export const endpoints = {
     managerCheckEmail: "/managers/check-email",
     managerCapabilities: "/permissions/manager/capabilities",
     managerPermissions: (id: B2BId) => `/permissions/business/managers${seg(id)}/permissions`,
+
+    // Settings
+    settings: "/settings",
+    settingsOnboarding: "/settings/onboarding",
+    settingsReset: "/settings/reset",
+
+    // Activity
+    activity: "/activity",
 
     // Reviews
     reviews: "/reviews",

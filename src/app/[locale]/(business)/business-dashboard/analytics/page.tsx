@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { BarChart3, ExternalLink, Grid3x3, TrendingUp } from "lucide-react";
 import { BusinessPageHeader } from "@/components/business/business-page-header";
+import { KpiCard } from "@/components/business/kpi-card";
 import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useBusinessReportCertificates,
   useBusinessReportCourses,
   useBusinessReportMembers,
+  useBusinessSummary,
 } from "@/lib/hooks/useBusinessDashboard";
 import type { ReportCertificate, ReportCourse, ReportMember } from "@/types/business-dashboard";
 
@@ -132,6 +135,77 @@ function CertificateReports() {
 const TAB_TRIGGER =
   "rounded-none border-b-2 border-transparent bg-transparent px-4 py-2 text-sm font-medium text-neutral-300 data-[state=active]:border-[#3F576F] data-[state=active]:bg-transparent data-[state=active]:text-[#3F576F] data-[state=active]:shadow-none";
 
+/**
+ * The four figures the legacy Reports landing shows.
+ *
+ * `enrolments_completed` rather than `total_completed`: the latter counts the
+ * stored status column, which is not pass-mark aware, so the two disagree
+ * whenever someone finished a course below the passing mark.
+ */
+function ReportsSummary() {
+  const { data } = useBusinessSummary();
+
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <KpiCard
+        label="Total enrolments"
+        value={data?.total_enrolments ?? 0}
+        icon={BarChart3}
+        tone="primary"
+      />
+      <KpiCard
+        label="Completed"
+        value={data?.enrolments_completed ?? 0}
+        icon={TrendingUp}
+        tone="success"
+      />
+      <KpiCard
+        label="In progress"
+        value={data?.total_in_progress ?? 0}
+        icon={TrendingUp}
+        tone="amber"
+      />
+      <KpiCard
+        label="Compliance rate"
+        value={`${data?.compliance_rate ?? 0}%`}
+        icon={Grid3x3}
+        tone="warning"
+        hint="Completed as a share of enrolments"
+      />
+    </div>
+  );
+}
+
+function ReportLinks() {
+  const links = [
+    {
+      href: "/business-dashboard/analytics/reports",
+      title: "Status reports",
+      body: "Every learner and course enrolment, filtered by completion status. Exportable.",
+    },
+    {
+      href: "/business-dashboard/analytics/matrix",
+      title: "Training matrix",
+      body: "The whole learner-by-course compliance grid, against your passing mark.",
+    },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {links.map((link) => (
+        <Link
+          key={link.href}
+          href={link.href}
+          className="border-neutral-30 rounded-xl border bg-white p-5 shadow-xs transition-colors hover:border-[#3F576F]/40"
+        >
+          <h3 className="font-semibold text-neutral-900">{link.title}</h3>
+          <p className="mt-1 text-sm text-neutral-300">{link.body}</p>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export default function BusinessAnalyticsPage() {
   return (
     <div className="space-y-6">
@@ -139,6 +213,10 @@ export default function BusinessAnalyticsPage() {
         title="Analytics & Reports"
         description="Track course, member and certificate performance."
       />
+
+      <ReportsSummary />
+
+      <ReportLinks />
 
       <Tabs defaultValue="courses">
         <TabsList className="border-neutral-30 h-auto w-full justify-start gap-2 rounded-none border-b bg-transparent p-0">

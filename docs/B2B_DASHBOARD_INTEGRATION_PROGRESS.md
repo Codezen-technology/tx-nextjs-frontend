@@ -20,32 +20,30 @@ Keep feature IDs (B0–B7) in sync with the plan.
 
 ## Snapshot
 
-| Layer                                                   | State                                                |
-| ------------------------------------------------------- | ---------------------------------------------------- |
-| BFF proxy routes (`/api/business/**`)                   | **52 route files / 58 handlers** → `lms-b2b/v1` ✅   |
-| BFF paths sourced from `endpoints.business`             | **all routes** — no hardcoded path strings ✅        |
-| Client service (`businessDashboardService`)             | **58 methods** ✅                                    |
-| React Query hooks (`useBusinessDashboard.ts`)           | **45 hooks**, all on `queryKeys.business` ✅         |
-| Types (`business-dashboard.ts` + `business-pricing.ts`) | present ✅                                           |
-| Pages (`(business)/business-dashboard/**`)              | **18 route segments** ✅                             |
-| Auth (JWT Bearer + refresh, httpOnly cookies)           | wired in `bff.ts` ✅                                 |
-| Unit tests for business surfaces                        | `business-learners`, `business-csv` (17 cases) ✅    |
-| **Parity with the legacy WP dashboard**                 | **partial** — 7 clusters still blocked on backend ❗ |
-| **End-to-end verification per surface**                 | **pending** ❓                                       |
+| Layer                                                   | State                                              |
+| ------------------------------------------------------- | -------------------------------------------------- |
+| BFF proxy routes (`/api/business/**`)                   | **65 route files / 72 handlers** → `lms-b2b/v1` ✅ |
+| BFF paths sourced from `endpoints.business`             | **all routes** — no hardcoded path strings ✅      |
+| Client service (`businessDashboardService`)             | **72 methods** ✅                                  |
+| React Query hooks (`useBusinessDashboard.ts`)           | **64 hooks**, all on `queryKeys.business` ✅       |
+| Types (`business-dashboard.ts` + `business-pricing.ts`) | present ✅                                         |
+| Pages (`(business)/business-dashboard/**`)              | **21 route segments** ✅                           |
+| Auth (JWT Bearer + refresh, httpOnly cookies)           | wired in `bff.ts` ✅                               |
+| Unit tests for business surfaces                        | `business-learners`, `business-csv` (14 cases) ✅  |
+| **Parity with the legacy WP dashboard**                 | **near parity** — only Tier C outstanding ❗       |
+| **End-to-end verification per surface**                 | **pending** ❓                                     |
 
 Backend (`wp-lms-b2b-rest-api`) readiness: Phase 1 **8/10**, contract **117/117** standalone. Pending backend: CORS
 origins (deploy), Postman collection; 4 controllers still proxy-only. See `wp-lms-b2b-rest-api/PROGRESS.md`.
 
 ### Parity gap with `wplms-business-dashboard`
 
-The legacy SPA calls 92 distinct endpoints. `lms-b2b/v1` served 55 of them; backend **Tier A**
-(2026-09-04) closed clusters 9, 10 and 12 outright and 8 and 11 in part, plus defects D1–D9. The
-rest are specified in **[`B2B_API_GAPS.md`](./B2B_API_GAPS.md)**.
+The legacy SPA calls 92 distinct endpoints. Backend **Tier A** and **Tier B** (both 2026-09-04)
+closed all but three: departments, saved reports and a bulk team import. Those are specified in
+**[`B2B_API_GAPS.md`](./B2B_API_GAPS.md)** as Tier C.
 
-Blocked in this frontend until those land: `/settings`, the onboarding wizard, Departments,
-Training Matrix, Status Reports, Saved Views, the Overview activity feed, reminder actions
-(`remind` / `remind-behind`), learner invite + password-reset + name editing, the certificate
-register's course and date filters, the subscription seat-roster tab, and invoice download.
+Blocked in this frontend until they land: the Departments UI and the department filter on five
+pages, Saved Views on the status reports, and a real bulk import (CSV still loops `POST /team`).
 
 ---
 
@@ -142,28 +140,39 @@ Done with the endpoints the facade already serves:
 Landed after backend **Tier A** (2026-09-04):
 
 - [x] Business logo upload / remove on `/profile` (cluster 9)
-- [x] Catalogue sort + category filter, server-side exclusions (cluster 12) — the client-side
-      exclusion filter added in the first parity pass is gone
-- [x] Licence revoke on `/learners/assignments` (cluster 10) — a licence spent on the wrong learner
-      was previously unrecoverable through the UI
-- [x] Per-quiz score breakdown on `/certificates/[courseId]` (cluster 8, part)
-- [x] `GET /businesses/subscriptions/active` replaces the client-side sum over a capped
-      `?per_page=50` page (cluster 11, part)
-- [x] **Bug fix:** `PATCH /businesses/{owner_user_id}` was being sent `Business.id` (the row id)
-      instead of `Business.user_id`, so profile saves targeted the wrong record. Surfaced by the
-      backend's D6 rename.
+- [x] Catalogue sort + category filter, server-side exclusions (cluster 12)
+- [x] Licence revoke on `/learners/assignments` (cluster 10)
+- [x] Per-quiz score breakdown on `/certificates/[courseId]` (cluster 8)
+- [x] `GET /businesses/subscriptions/active` replaced a client-side sum over a capped page
+- [x] **Bug fix:** `PATCH /businesses/{owner_user_id}` was sent `Business.id` instead of
+      `Business.user_id`, so profile saves targeted the wrong record
 
-Still blocked — see [`B2B_API_GAPS.md`](./B2B_API_GAPS.md):
+Landed after backend **Tier B** (2026-09-04):
 
-- [!] `/settings` page and onboarding wizard (clusters 1–2)
+- [x] **New page** `/business-dashboard/settings` — appearance, passing mark, certificate download
+      control (one-way, renders a Locked chip once set), inert security/integration toggles, and a
+      two-step reset
+- [x] **New** `OnboardingWizard` behind `OnboardingGate` — six steps, writes nothing until the final
+      `POST /settings/onboarding`, fails open if settings cannot be read
+- [x] **New page** `/analytics/reports` — the five status views, filters held in the URL, CSV export
+- [x] **New page** `/analytics/matrix` — sticky-column grid, label/colour toggle, per-course
+      completion footer, CSV export
+- [x] Overview: activity feed, real `GET /team/stats` (the sampled partition is deleted), and
+      "Remind all behind" that distinguishes "nobody was behind" from "all failed"
+- [x] Learner options rail: send login invite, send password reset
+- [x] Assigned Courses: per-course Remind button
+- [x] Subscriptions: Assigned Learners seat roster
+- [x] Certificates: course and date-range filters
+- [x] Billing: invoice download, `is_paid` pill, billed-to name
+- [x] Reports landing: `total_enrolments`, `enrolments_completed`, `total_in_progress`,
+      `compliance_rate`
+
+Still blocked on **Tier C** — see [`B2B_API_GAPS.md`](./B2B_API_GAPS.md):
+
 - [!] Departments and every `department_id` filter (cluster 3)
-- [!] Status Reports, Training Matrix, Saved Views, CSV exports (cluster 4)
-- [!] Overview activity feed (cluster 5)
-- [!] Learner invite / password reset / name editing; bulk import endpoint (cluster 6)
-- [!] Remind and remind-behind (cluster 7)
-- [!] Certificate course + date-range filters (cluster 8, rest)
-- [!] Subscription seat-roster tab (cluster 11, rest)
-- [!] Invoice download (cluster 13)
+- [!] Saved Views on the status reports (cluster 4, rest)
+- [!] `POST /team/bulk` — CSV import is still a client-side loop (cluster 6, rest)
+- [ ] Learner name/email editing — `PATCH /team/{id}` accepts it now, but no UI surfaces it yet
 
 ---
 

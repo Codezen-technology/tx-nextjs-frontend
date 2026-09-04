@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { BusinessHeader } from "@/components/business/business-header";
 import { BusinessSidebar } from "@/components/business/business-sidebar";
 import { BusinessAccessGuard } from "@/components/business/business-access-guard";
+import { OnboardingGate } from "@/components/business/onboarding-gate";
 import { ImpersonationBanner } from "@/components/layout/impersonation-banner";
 import { useImpersonation } from "@/lib/hooks/useAuth";
 import { cn } from "@/lib/utils/cn";
@@ -46,7 +47,9 @@ export function BusinessShell({ children }: { children: React.ReactNode }) {
           sidebarOpen ? "md:ml-[280px]" : "md:ml-[72px]",
         )}
       >
-        <BusinessAccessGuard>{children}</BusinessAccessGuard>
+        <BusinessAccessGuard>
+          <OnboardingGate>{children}</OnboardingGate>
+        </BusinessAccessGuard>
       </main>
     </div>
   );

@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Archive, RotateCcw, ShieldCheck, UserCog } from "lucide-react";
+import { Archive, KeyRound, Mail, RotateCcw, ShieldCheck, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/business/status-badge";
 import {
   useConvertBusinessLearnerRole,
+  useInviteLearner,
+  useSendPasswordReset,
   useUpdateBusinessLearner,
 } from "@/lib/hooks/useBusinessDashboard";
 import { useBusinessCapabilities } from "@/lib/hooks/useBusinessCapabilities";
@@ -31,20 +33,44 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
  * Account actions for one learner.
  *
  * Archive and restore are `PATCH /team/{id} { status }` rather than the legacy
- * `/archive` and `/restore` sub-routes — same effect, one endpoint. Send login
- * invite, send password reset and edit-details are absent because the facade
- * has no route for them yet (docs/B2B_API_GAPS.md cluster 6).
+ * `/archive` and `/restore` sub-routes — same effect, one endpoint.
+ *
+ * Invite and password reset both ride core `retrieve_password()` on the
+ * backend, so neither ever returns a credential; the confirmation only names
+ * the address the mail went to.
  */
 export function LearnerOptionsRail({ learner }: { learner: Learner }) {
   const { isOwner } = useBusinessCapabilities();
   const updateLearner = useUpdateBusinessLearner();
   const convertRole = useConvertBusinessLearnerRole();
+  const invite = useInviteLearner();
+  const passwordReset = useSendPasswordReset();
   const [confirmingRole, setConfirmingRole] = useState(false);
+  const [notice, setNotice] = useState("");
 
   const displayStatus = deriveLearnerStatus(learner);
   const archived = displayStatus === "archived";
   const nextRole = learner.role === "manager" ? "learner" : "manager";
-  const busy = updateLearner.isPending || convertRole.isPending;
+  const busy =
+    updateLearner.isPending || convertRole.isPending || invite.isPending || passwordReset.isPending;
+
+  const sendAccountEmail = async (
+    action: "invite" | "reset",
+    mutate: (id: number) => Promise<{ sent: boolean; email?: string }>,
+  ) => {
+    setNotice("");
+    try {
+      const result = await mutate(learner.id);
+      const target = result.email ?? "their email address";
+      setNotice(
+        action === "invite"
+          ? `Login invitation sent to ${target}.`
+          : `Password reset sent to ${target}.`,
+      );
+    } catch {
+      setNotice("That email could not be sent. Please try again.");
+    }
+  };
 
   return (
     <aside className="border-neutral-30 space-y-5 rounded-xl border bg-white p-6 shadow-xs">
@@ -64,6 +90,26 @@ export function LearnerOptionsRail({ learner }: { learner: Learner }) {
       </div>
 
       <div className="border-neutral-30 space-y-2 border-t pt-4">
+        <Button
+          variant="outline"
+          className="w-full justify-start"
+          disabled={busy}
+          onClick={() => sendAccountEmail("invite", (id) => invite.mutateAsync(id))}
+        >
+          <Mail className="mr-2 h-4 w-4" />
+          Send login invite
+        </Button>
+
+        <Button
+          variant="outline"
+          className="w-full justify-start"
+          disabled={busy}
+          onClick={() => sendAccountEmail("reset", (id) => passwordReset.mutateAsync(id))}
+        >
+          <KeyRound className="mr-2 h-4 w-4" />
+          Send password reset
+        </Button>
+
         {isOwner ? (
           confirmingRole ? (
             <div className="space-y-2 rounded-lg bg-amber-50 p-3">
@@ -125,6 +171,8 @@ export function LearnerOptionsRail({ learner }: { learner: Learner }) {
             </>
           )}
         </Button>
+
+        {notice ? <p className="text-sm text-[#3F576F]">{notice}</p> : null}
 
         {updateLearner.isError || convertRole.isError ? (
           <p className="text-sm text-red-600">That action failed. Please try again.</p>

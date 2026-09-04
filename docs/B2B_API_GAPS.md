@@ -2,8 +2,9 @@
 
 **Audience:** maintainers of `wp-lms-b2b-rest-api` (the headless facade).
 **Date:** 2026-09-04
-**Status:** **Tier A landed.** Clusters 9, 10, 12 and defects D1–D9 are done, clusters 8 and 11
-partially; the frontend consumes them. Clusters 1–7 and 13 remain open. See "Tier A — landed".
+**Status:** **Tiers A and B landed.** Only Tier C remains: departments (cluster 3), saved reports
+(part of cluster 4) and `POST /team/bulk` (part of cluster 6). Everything else is implemented and
+consumed by the frontend.
 
 ---
 
@@ -66,6 +67,57 @@ For reference, the current machine-readable facade surface is
 
 ---
 
+## Tier B — landed (2026-09-04)
+
+Nine clusters that needed a service ported from `wplms-business-dashboard` but no new tables.
+
+| Route                                              | Frontend consumer                                                             |
+| -------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `GET` / `PATCH /settings` · `POST /settings/reset` | new `/business-dashboard/settings` page                                       |
+| `POST /settings/onboarding`                        | new `OnboardingWizard`, gating the dashboard via `OnboardingGate`             |
+| `GET /activity`                                    | `ActivityFeed` on the Overview                                                |
+| `GET /reports/learner-courses`                     | new `/analytics/reports` — five status views, URL-driven filters, CSV export  |
+| `GET /reports/matrix`                              | new `/analytics/matrix` — sticky-column grid, label/colour toggle, CSV export |
+| `GET /reports/courses/options`                     | course `<select>` on the status report and certificate register               |
+| `GET /team/stats`                                  | Overview Team KPI — replaced a one-page sample that had to be suppressed      |
+| `POST /team/{id}/invite` · `/password-reset`       | learner options rail                                                          |
+| `POST /courses/{id}/remind`                        | per-course Remind button on Assigned Courses                                  |
+| `POST /courses/remind-behind`                      | "Remind all behind" on the Overview                                           |
+| `GET /businesses/subscriptions/seat-roster`        | Assigned Learners table on Subscriptions                                      |
+| `PATCH /team/{id}` widened                         | (name/email editing not yet surfaced)                                         |
+| `/certificates` course + date filters              | certificate register filters                                                  |
+| `/reports/summary` new fields                      | Reports landing KPIs                                                          |
+| `/businesses/orders` new fields                    | invoice download, paid pill, billed-to                                        |
+
+Backend decisions worth carrying forward:
+
+- **Pagination totals moved into the body** on all three routes that used `X-WP-Total` headers, as
+  this document asked. The BFF needs no header special-casing.
+- **`learners` in the reminder result counts the population selected**, not the successes, so
+  `learners: 0` means nobody was behind — distinct from every mail failing. The Overview branches on
+  exactly that. The sweep is rate limited to one run per business per five minutes, surfaced as a
+  429 the client renders as "try again in a few minutes".
+- **`/reports/summary` adds `enrolments_completed` rather than overwriting `total_completed`.** The
+  two count different things — the shipped field reads the stored status column and is not pass-mark
+  aware. The Reports landing uses the new one; nothing that consumed the old one changed meaning.
+- **`wp_login` now stamps `b2b_last_login`.** Without it "has never signed in" is unanswerable. Note
+  every member who has not signed in since that release reads as `pending` until they do — expected,
+  and it resolves itself.
+- **No `/team/{id}/archive` or `/restore`**, as recommended here; both are `PATCH /team/{id}`.
+
+Superseded by the implementation:
+
+- `POST /settings` in cluster 1 is **`PATCH /settings`** — it is a partial update.
+- Cluster 4's `GET /reports/matrix` is joined by **`GET /reports/courses/options`**, the cheap
+  `[{course_id, title}]` list this document suggested as an alternative to pulling the whole grid
+  just to fill a `<select>`. Two pages use it.
+
+Frontend note: `partitionLearners` was deleted when `GET /team/stats` landed. Keeping a client-side
+version would have been a second, divergent definition of "enrolled" that could only ever see one
+page.
+
+---
+
 ## Tier A — landed (2026-09-04)
 
 Implemented in `wp-lms-b2b-rest-api` and wired in the frontend.
@@ -125,21 +177,21 @@ assign/revoke, certificate delete) are outstanding.
 
 ## Cluster index
 
-| #                                  | Cluster                 | Missing                                        | Blocks                                                    |
-| ---------------------------------- | ----------------------- | ---------------------------------------------- | --------------------------------------------------------- |
-| [1](#1--business-settings)         | Business settings       | 4 routes                                       | `/settings` page                                          |
-| [2](#2--onboarding)                | Onboarding              | 1 route                                        | First-run wizard                                          |
-| [3](#3--departments)               | Departments             | 6 routes + filters                             | Departments UI, every learner filter                      |
-| [4](#4--reporting-depth)           | Reporting depth         | 7 routes + 2 extensions                        | Status Reports, Training Matrix, Saved Views, CSV exports |
-| [5](#5--activity-feed)             | Activity feed           | 1 route                                        | Overview activity feed                                    |
-| [6](#6--learner-lifecycle)         | Learner lifecycle       | 3 routes + 3 extensions                        | Learner profile rail, CSV import, Team KPI                |
-| [7](#7--reminders)                 | Reminders               | 2 routes                                       | "Remind all behind", per-course remind                    |
-| [8](#8--certificates)              | Certificates            | 🟡 partial Certificate register, quiz scores   |
-| [9](#9--business-identity)         | Business identity       | ✅ done Logo upload on `/profile`              |
-| [10](#10--licence-pool-operations) | Licence pool operations | ✅ done Direct pool assign/revoke              |
-| [11](#11--subscriptions)           | Subscriptions           | 🟡 partial Assigned Learners tab, renewal date |
-| [12](#12--course-catalogue)        | Course catalogue        | ✅ done Catalogue sort + category filter       |
-| [13](#13--orders)                  | Orders                  | 3 response fields                              | Invoice download                                          |
+| #                                  | Cluster                 | Missing                                                                       | Blocks                               |
+| ---------------------------------- | ----------------------- | ----------------------------------------------------------------------------- | ------------------------------------ |
+| [1](#1--business-settings)         | Business settings       | ✅ done `/settings` page                                                      |
+| [2](#2--onboarding)                | Onboarding              | ✅ done First-run wizard                                                      |
+| [3](#3--departments)               | Departments             | 6 routes + filters                                                            | Departments UI, every learner filter |
+| [4](#4--reporting-depth)           | Reporting depth         | 🟡 saved views only Status Reports, Training Matrix, Saved Views, CSV exports |
+| [5](#5--activity-feed)             | Activity feed           | ✅ done Overview activity feed                                                |
+| [6](#6--learner-lifecycle)         | Learner lifecycle       | 🟡 /team/bulk only Learner profile rail, CSV import, Team KPI                 |
+| [7](#7--reminders)                 | Reminders               | ✅ done "Remind all behind", per-course remind                                |
+| [8](#8--certificates)              | Certificates            | ✅ done                                                                       |
+| [9](#9--business-identity)         | Business identity       | ✅ done Logo upload on `/profile`                                             |
+| [10](#10--licence-pool-operations) | Licence pool operations | ✅ done Direct pool assign/revoke                                             |
+| [11](#11--subscriptions)           | Subscriptions           | ✅ done                                                                       |
+| [12](#12--course-catalogue)        | Course catalogue        | ✅ done Catalogue sort + category filter                                      |
+| [13](#13--orders)                  | Orders                  | ✅ done Invoice download                                                      |
 
 ---
 

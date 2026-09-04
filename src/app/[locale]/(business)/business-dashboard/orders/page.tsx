@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CreditCard, Receipt } from "lucide-react";
+import { CreditCard, Download, Receipt } from "lucide-react";
 import { BusinessPageHeader } from "@/components/business/business-page-header";
 import { StatusBadge } from "@/components/business/status-badge";
 import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
@@ -109,8 +109,14 @@ export default function BusinessOrdersPage() {
           <span className="font-medium text-neutral-900">#{row.order_number}</span>
         ),
     },
+    { key: "name", header: "Name", cell: (row) => row.billing_name || "—" },
     { key: "date", header: "Date", cell: (row) => formatDate(row.date) },
-    { key: "status", header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
+    {
+      key: "status",
+      header: "Status",
+      // is_paid is authoritative; the WC status string is only a fallback label.
+      cell: (row) => <StatusBadge status={row.is_paid ? "paid" : row.status} />,
+    },
     {
       key: "total",
       header: "Total",
@@ -121,6 +127,25 @@ export default function BusinessOrdersPage() {
       key: "payment",
       header: "Payment",
       cell: (row) => row.payment_method ?? "—",
+    },
+    {
+      key: "invoice",
+      header: "",
+      className: "text-right",
+      // invoice_url is null unless the site answers the backend filter, so the
+      // action is hidden rather than rendered dead.
+      cell: (row) =>
+        row.invoice_url ? (
+          <a
+            href={row.invoice_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm font-medium text-[#3F576F] hover:underline"
+          >
+            <Download className="h-4 w-4" />
+            Invoice
+          </a>
+        ) : null,
     },
   ];
 
@@ -182,6 +207,7 @@ export default function BusinessOrdersPage() {
           <Row label="Email" value={business?.business_email} />
           <Row label="Phone" value={business?.phone} />
           <Row label="Address" value={business?.address} />
+          <Row label="Billed to" value={latestOrder?.billing_name} />
           <Row label="Tax ID" value={business?.tax_id} />
         </InfoCard>
 

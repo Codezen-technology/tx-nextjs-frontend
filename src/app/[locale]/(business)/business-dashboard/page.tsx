@@ -2,30 +2,30 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Award, KeyRound, TrendingUp, Users } from "lucide-react";
+import { Award, BellRing, KeyRound, TrendingUp, Users } from "lucide-react";
 import { BusinessPageHeader } from "@/components/business/business-page-header";
 import { AssignmentFundingBadge } from "@/components/business/assignment-funding-badge";
 import { AssignCourseModal } from "@/components/business/assign-course-modal";
+import { ActivityFeed } from "@/components/business/overview/activity-feed";
 import { CourseStatusTable } from "@/components/business/overview/course-status-table";
 import { KpiCard } from "@/components/business/kpi-card";
 import { StatusBadge } from "@/components/business/status-badge";
 import { UsageBar } from "@/components/business/usage-bar";
 import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
 import { Button } from "@/components/ui/button";
+import { ApiError } from "@/lib/api/error";
 import {
   useBusinessActiveSubscription,
   useBusinessAssignmentList,
   useBusinessAssignments,
-  useBusinessLearners,
   useBusinessLicenceBalance,
   useBusinessSummary,
+  useRemindBehind,
+  useTeamStats,
 } from "@/lib/hooks/useBusinessDashboard";
-import { partitionLearners } from "@/lib/utils/business-learners";
 import { sumAvailableLicences, sumLicenceTotals } from "@/lib/utils/business-licences";
 import type { AssignmentListCourse, CourseAssignment } from "@/types/business-dashboard";
 
-/** The facade caps per_page at 100, so the partition can only see one page. */
-const PARTITION_SAMPLE = 100;
 const COURSE_PAGE_SIZE = 10;
 
 function formatDate(value?: string | null) {
@@ -42,8 +42,8 @@ export default function BusinessOverviewPage() {
   const { data: licenceBalance } = useBusinessLicenceBalance();
   const { data: activeSubscription } = useBusinessActiveSubscription();
   const recent = useBusinessAssignments({ page: 1, per_page: 5 });
-  const team = useBusinessLearners({ page: 1, per_page: PARTITION_SAMPLE, status: "all" });
-  const assignmentSample = useBusinessAssignments({ page: 1, per_page: PARTITION_SAMPLE });
+  const { data: teamStats } = useTeamStats();
+  const remindBehind = useRemindBehind();
   const courseList = useBusinessAssignmentList({ page: coursePage, per_page: COURSE_PAGE_SIZE });
 
   const pools = licenceBalance?.pools ?? [];
@@ -60,31 +60,40 @@ export default function BusinessOverviewPage() {
     [courseList.data],
   );
 
-  /**
-   * Enrolled / unassigned / pending / archived, computed client-side from one
-   * page of the team and one page of assignments.
-   *
-   * Both are capped at 100 rows, so the split is only correct while the whole
-   * organisation fits in a single page. Past that it is suppressed rather than
-   * shown wrong — the honest fix is `GET /team/stats` on the backend
-   * (docs/B2B_API_GAPS.md cluster 6).
-   */
-  const teamTotal = team.data?.meta?.total ?? 0;
-  const assignmentRowTotal = Number(assignmentSample.data?.total ?? 0);
-  const partitionIsComplete =
-    !team.isLoading &&
-    !assignmentSample.isLoading &&
-    teamTotal > 0 &&
-    teamTotal <= PARTITION_SAMPLE &&
-    assignmentRowTotal <= PARTITION_SAMPLE;
+  const [remindMessage, setRemindMessage] = useState("");
 
-  const partition = useMemo(() => {
-    const learners = team.data?.members ?? [];
-    const assigned = new Set(
-      (assignmentSample.data?.assignments ?? []).map((a: CourseAssignment) => a.user_id),
-    );
-    return partitionLearners(learners, assigned);
-  }, [team.data, assignmentSample.data]);
+  /**
+   * Fire the server-side sweep and report honestly.
+   *
+   * `learners` is the population selected, not the successes, so zero means
+   * nobody was behind — a different outcome from every mail failing, and the
+   * one distinction a manager actually needs.
+   */
+  const onRemindAll = async () => {
+    setRemindMessage("");
+    try {
+      const result = await remindBehind.mutateAsync({});
+
+      if (result.learners === 0) {
+        setRemindMessage("Nobody is behind right now — no reminders sent.");
+      } else if (result.sent === 0) {
+        setRemindMessage(`No reminders could be sent to ${result.learners} learners.`);
+      } else if (result.failed > 0) {
+        setRemindMessage(`Reminded ${result.sent} learners; ${result.failed} could not be sent.`);
+      } else {
+        setRemindMessage(
+          `Reminded ${result.sent} learner${result.sent === 1 ? "" : "s"} across ${result.courses} course${result.courses === 1 ? "" : "s"}.`,
+        );
+      }
+    } catch (err) {
+      // The sweep is rate limited to one run per business per five minutes.
+      setRemindMessage(
+        err instanceof ApiError && err.status === 429
+          ? "Reminders were sent recently. Try again in a few minutes."
+          : "Could not send reminders. Please try again.",
+      );
+    }
+  };
 
   const columns: Column<CourseAssignment>[] = [
     {
@@ -119,12 +128,27 @@ export default function BusinessOverviewPage() {
             <Button asChild size="sm" variant="outline">
               <Link href="/business-dashboard/pricing">Need more licences</Link>
             </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={remindBehind.isPending}
+              onClick={onRemindAll}
+            >
+              <BellRing className="mr-2 h-4 w-4" />
+              {remindBehind.isPending ? "Sending…" : "Remind all behind"}
+            </Button>
             <Button asChild size="sm">
               <Link href="/business-dashboard/learners/add">Add learner</Link>
             </Button>
           </>
         }
       />
+
+      {remindMessage ? (
+        <p className="rounded-lg bg-[#3F576F]/5 px-4 py-3 text-sm text-[#3F576F]">
+          {remindMessage}
+        </p>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
@@ -136,12 +160,12 @@ export default function BusinessOverviewPage() {
         />
         <KpiCard
           label="Team overview"
-          value={summary?.total_members ?? teamTotal}
+          value={teamStats?.total ?? summary?.total_members ?? 0}
           icon={Users}
           tone="success"
           hint={
-            partitionIsComplete
-              ? `${partition.enrolled} enrolled · ${partition.unassigned} unassigned · ${partition.pending} pending`
+            teamStats
+              ? `${teamStats.enrolled} enrolled · ${teamStats.unassigned} unassigned · ${teamStats.pending} pending`
               : "Across your organisation"
           }
         />
@@ -227,6 +251,19 @@ export default function BusinessOverviewPage() {
           totalPages={courseList.data?.pages ?? 1}
           onPageChange={setCoursePage}
         />
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-neutral-900">Recent activity</h3>
+          <Link
+            href="/business-dashboard/analytics/reports"
+            className="text-sm font-medium text-[#3F576F] hover:underline"
+          >
+            See all
+          </Link>
+        </div>
+        <ActivityFeed />
       </div>
 
       <div className="space-y-3">

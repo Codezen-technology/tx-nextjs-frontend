@@ -7,7 +7,7 @@ import { BusinessPageHeader } from "@/components/business/business-page-header";
 import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
 import { StatusBadge } from "@/components/business/status-badge";
 import { Input } from "@/components/ui/input";
-import { useBusinessCertificates } from "@/lib/hooks/useBusinessDashboard";
+import { useBusinessCertificates, useReportCourseOptions } from "@/lib/hooks/useBusinessDashboard";
 import type { BusinessCertificate } from "@/types/business-dashboard";
 
 const PER_PAGE_OPTIONS = [10, 25, 50];
@@ -31,13 +31,20 @@ export default function BusinessCertificatesPage() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
+  const [courseId, setCourseId] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const { data, isLoading, isError } = useBusinessCertificates({
     page,
     per_page: perPage,
     search,
     status,
+    course_id: courseId ? Number(courseId) : undefined,
+    date_from: dateFrom || undefined,
+    date_to: dateTo || undefined,
   });
+  const { data: courseOptions } = useReportCourseOptions();
 
   const rows = data?.items ?? [];
   const totalPages = data?.pages ?? 1;
@@ -126,7 +133,50 @@ export default function BusinessCertificatesPage() {
           />
         </form>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={courseId}
+            onChange={(e) => {
+              setCourseId(e.target.value);
+              setPage(1);
+            }}
+            aria-label="Filter by course"
+            className="border-neutral-30 h-9 rounded-lg border bg-white px-2 text-sm text-neutral-900"
+          >
+            <option value="">All courses</option>
+            {(courseOptions ?? []).map((c) => (
+              <option key={c.course_id} value={c.course_id}>
+                {c.title}
+              </option>
+            ))}
+          </select>
+
+          <label className="flex items-center gap-1.5 text-sm text-neutral-300">
+            From
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => {
+                setDateFrom(e.target.value);
+                setPage(1);
+              }}
+              className="border-neutral-30 h-9 rounded-lg border bg-white px-2 text-sm text-neutral-900"
+            />
+          </label>
+
+          <label className="flex items-center gap-1.5 text-sm text-neutral-300">
+            To
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => {
+                setDateTo(e.target.value);
+                setPage(1);
+              }}
+              className="border-neutral-30 h-9 rounded-lg border bg-white px-2 text-sm text-neutral-900"
+            />
+          </label>
+
           <select
             value={status}
             onChange={(e) => {

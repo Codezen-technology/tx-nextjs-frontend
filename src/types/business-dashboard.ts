@@ -18,6 +18,14 @@ export interface BusinessListParams {
   order?: "asc" | "desc";
   /** `course-cat` term ids. Server-side filter on `GET /courses`. */
   taxonomy?: number[];
+  // Tier B filters, accepted by the report and certificate listings.
+  course_id?: number;
+  learner_id?: number;
+  date_from?: string;
+  date_to?: string;
+  role?: string;
+  /** Omitted means "use the business passing mark" — never send a default. */
+  pass_mark?: number;
 }
 
 /** Generic `{ items, total, pages }` envelope the B2B domain uses for lists. */
@@ -78,6 +86,168 @@ export interface LearnerQuizScoresResponse {
   total_quizzes: number;
 }
 
+// ─── Settings (Tier B) ───────────────────────────────────────────────────────────
+
+export interface BusinessSettings {
+  business_id: number;
+  passing_mark: number;
+  certificate_self_download: boolean;
+  /**
+   * True once onboarding completes. `certificate_self_download` is a one-way
+   * switch: when this is set, render a "Locked" chip rather than a toggle.
+   */
+  certificate_self_download_locked: boolean;
+  email_certificate_on_completion: boolean;
+  onboarding_complete: boolean;
+  platform_subdomain: string;
+  /** Stored but inert — the backend names these deliberately non-functional. */
+  mfa_enabled: boolean;
+  integration_slack: boolean;
+  integration_teams: boolean;
+  integration_genai: boolean;
+  company_name: string;
+  company_size: number;
+}
+
+export type BusinessSettingsUpdate = Partial<
+  Pick<
+    BusinessSettings,
+    | "passing_mark"
+    | "certificate_self_download"
+    | "email_certificate_on_completion"
+    | "platform_subdomain"
+    | "mfa_enabled"
+    | "integration_slack"
+    | "integration_teams"
+    | "integration_genai"
+    | "company_name"
+    | "company_size"
+  >
+>;
+
+export interface OnboardingPayload extends BusinessSettingsUpdate {
+  display_name?: string;
+}
+
+// ─── Activity feed (Tier B) ──────────────────────────────────────────────────────
+
+export interface ActivityEvent {
+  learner_id: number;
+  learner_name: string;
+  course_id: number;
+  course_title: string;
+  type: "completed" | "progress";
+  progress: number;
+  event_time: string;
+}
+
+export interface ActivityResponse {
+  items: ActivityEvent[];
+  total: number;
+  pages: number;
+  page: number;
+  per_page: number;
+}
+
+// ─── Learner reports (Tier B) ────────────────────────────────────────────────────
+
+export type ReportStatus = "all" | "completed" | "in_progress" | "not_started" | "failed";
+
+export interface LearnerCourseRecord {
+  learner_id: number;
+  learner_name: string;
+  learner_email: string;
+  course_id: number;
+  course_title: string;
+  /** Derived, not stored. `completed` downgrades to `failed` below the pass mark. */
+  status: Exclude<ReportStatus, "all">;
+  progress: number;
+  score: number | null;
+  completion_date: string | null;
+  enrolled_at: string | null;
+  last_accessed: string | null;
+}
+
+export interface LearnerCoursesReport {
+  items: LearnerCourseRecord[];
+  total: number;
+  pages: number;
+  page: number;
+  per_page: number;
+  /** The effective pass mark, echoed back — omitted requests use the business setting. */
+  pass_mark: number;
+}
+
+export interface MatrixLearner {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export interface MatrixCourse {
+  course_id: number;
+  title: string;
+}
+
+export interface MatrixCourseTotal {
+  course_id: number;
+  enrolled: number;
+  completed: number;
+  completion_rate: number;
+}
+
+export interface TrainingMatrix {
+  pass_mark: number;
+  learners: MatrixLearner[];
+  courses: MatrixCourse[];
+  /** Sparse — a learner with no assignment for a course simply has no cell. */
+  cells: LearnerCourseRecord[];
+  course_totals: MatrixCourseTotal[];
+}
+
+export interface TeamStats {
+  total: number;
+  enrolled: number;
+  unassigned: number;
+  pending: number;
+  archived: number;
+}
+
+export interface AccountActionResult {
+  sent: boolean;
+  email?: string;
+  action?: string;
+}
+
+export interface RemindResult {
+  sent: number;
+  failed: number;
+  /** The population selected, not only the successes — 0 means nobody was behind. */
+  learners: number;
+  courses: number;
+  course_id?: number;
+}
+
+export interface SeatRosterRow {
+  seat_id: number;
+  subscription_id: number;
+  plan_type: string;
+  user_id: number | null;
+  user_name: string | null;
+  user_email: string | null;
+  status: string;
+  assigned_at: string | null;
+  expires_at?: string | null;
+}
+
+export interface SeatRosterResponse {
+  items: SeatRosterRow[];
+  total: number;
+  pages: number;
+  page?: number;
+  per_page?: number;
+}
+
 /** Result of `POST /businesses/{business_id}/logo`. */
 export interface BusinessLogo {
   logo_id: number;
@@ -89,7 +259,13 @@ export interface BusinessSummary {
   total_members: number;
   total_certificates: number;
   total_active: number;
+  /** The stored status column. Not the same thing as `enrolments_completed`. */
   total_completed: number;
+  // Tier B additions — pass-mark aware, which `total_completed` is not.
+  total_enrolments?: number;
+  enrolments_completed?: number;
+  total_in_progress?: number;
+  compliance_rate?: number;
 }
 
 // ─── Learners / team ─────────────────────────────────────────────────────────────
@@ -412,6 +588,10 @@ export interface BusinessOrder {
   items_summary?: BusinessOrderItem[];
   payment_method?: string;
   view_url?: string;
+  /** Null unless the site answers `b2b_dashboard_order_invoice_url`. */
+  invoice_url?: string | null;
+  is_paid?: boolean;
+  billing_name?: string;
 }
 
 export interface BusinessOrdersResponse {
