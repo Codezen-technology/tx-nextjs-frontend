@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 import { BusinessPageHeader } from "@/components/business/business-page-header";
+import { DepartmentsSection } from "@/components/business/departments-section";
 import { SettingsSection, ToggleRow } from "@/components/business/settings-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -183,6 +184,13 @@ export default function BusinessSettingsPage() {
           disabled={update.isPending}
           onChange={(value) => save({ email_certificate_on_completion: value })}
         />
+      </SettingsSection>
+
+      <SettingsSection
+        title="Departments"
+        description="Group your learners. Every report and learner list can be filtered by department."
+      >
+        <DepartmentsSection />
       </SettingsSection>
 
       <SettingsSection

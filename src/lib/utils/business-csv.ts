@@ -1,18 +1,14 @@
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export const TEMPLATE_CSV = `First name,Last name,Email address
-Ayan,Ahmed,ayan.ahmed@example.co.uk
-Lena,Brooks,lena.brooks@example.co.uk
+export const TEMPLATE_CSV = `First name,Last name,Email address,Department
+Ayan,Ahmed,ayan.ahmed@example.co.uk,Care Workers
+Lena,Brooks,lena.brooks@example.co.uk,Senior Carers
 `;
 
-/**
- * What a spreadsheet column becomes. `dept` is parsed but not yet sent —
- * assigning departments needs `POST /departments/members/{id}`, which the
- * facade does not have (docs/B2B_API_GAPS.md cluster 3).
- */
+/** What a spreadsheet column becomes. */
 export type ColumnRole = "first" | "last" | "email" | "dept" | "skip";
 
-export const COLUMN_ROLES: ColumnRole[] = ["first", "last", "email", "skip"];
+export const COLUMN_ROLES: ColumnRole[] = ["first", "last", "email", "dept", "skip"];
 
 export const COLUMN_ROLE_LABELS: Record<ColumnRole, string> = {
   first: "First name",
@@ -81,15 +77,6 @@ export function buildImportRows(rows: string[][], mapping: ColumnRole[]): Import
     });
     return rec;
   });
-}
-
-export type ImportRowStatus = "added" | "skipped";
-
-export interface ImportResultRow {
-  row: number;
-  email: string;
-  status: ImportRowStatus;
-  message?: string;
 }
 
 /**

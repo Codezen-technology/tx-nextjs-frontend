@@ -2,9 +2,11 @@
 
 **Audience:** maintainers of `wp-lms-b2b-rest-api` (the headless facade).
 **Date:** 2026-09-04
-**Status:** **Tiers A and B landed.** Only Tier C remains: departments (cluster 3), saved reports
-(part of cluster 4) and `POST /team/bulk` (part of cluster 6). Everything else is implemented and
-consumed by the frontend.
+**Status:** **Closed.** All 13 clusters and defects D1–D9 landed across Tiers A, B and C
+(2026-09-04), and the frontend consumes every route. Kept as the record of what was specified,
+what was built, and where the implementation deliberately differs from the original proposal.
+
+Outstanding: **nothing has been verified against a live site** on either side.
 
 ---
 
@@ -64,6 +66,47 @@ the legacy layer is cookie+nonce and assumes a browser inside wp-admin. Apply co
 For reference, the current machine-readable facade surface is
 `wp-lms-b2b-rest-api/tests/contract/contract-test.php:62-120`. Note that `ARCHITECTURE.md`
 ("42 routes") and `docs/api-migration-tracking.md` are both stale.
+
+---
+
+## Tier C — landed (2026-09-04)
+
+The three clusters needing new tables. `b2b_departments` + `b2b_department_members`
+(`B2B_Department_Schema`) and `b2b_saved_reports` (`B2B_Saved_Reports_Schema`), created on
+activation and re-created idempotently on `init@26` so an upgrade that never re-activates still
+gets them.
+
+| Route                                                                  | Frontend consumer                                                                          |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `GET` / `POST /departments` · `PATCH` / `DELETE /departments/{id}`     | `DepartmentsSection` in Settings — tree with inline rename, reparent and confirmed removal |
+| `GET` / `PUT /departments/members/{user_id}`                           | department checkboxes on the learner options rail                                          |
+| `GET` / `POST /reports/saved` · `PATCH` / `DELETE /reports/saved/{id}` | `SavedViews` on the status report                                                          |
+| `POST /team/bulk`                                                      | CSV import — one request replaces the per-row loop                                         |
+| `department_id` on 8 existing routes                                   | learner list, status report, and the report/activity/certificate listings                  |
+
+Backend decisions worth carrying forward:
+
+- **Deleting a department detaches its members and reparents its children.** A department is a
+  label; removing a label must not remove the people wearing it. The confirmation dialog says so
+  explicitly.
+- **`department_id` filters with `EXISTS`, never a `JOIN`**, in one shared fragment
+  (`B2B_Department_Repository::membership_exists_sql()`). Membership is one row per learner per
+  department, so a join would list and count a learner in two departments twice.
+- **Saved-view `filters` is stored verbatim**, against the legacy whitelist. Under a whitelist, a
+  dashboard that adds a filter has it silently discarded until the backend is taught about it —
+  a failure with no error message. Only encoded size is bounded (16 KB). Accepted consequence: a
+  `course_id` naming a deleted course stays in the view where legacy pruned it on read.
+- **`POST /team/bulk` reports a created-but-unassigned row as `added` with a
+  `no_licence_available` code**, not `skipped` — the learner exists, and calling it skipped would
+  send a manager looking for someone already on the team. The importer surfaces those separately
+  from genuine skips. Licence availability is deliberately not pre-checked, because an assignment
+  can also be funded by a subscription seat.
+- **Verbs are the honest ones**: `PATCH /departments/{id}` for a partial update, `PUT` on the
+  membership route because it replaces the whole set.
+
+Frontend note: the CSV importer's `dept` column is live again — it was parsed but discarded while
+there was nowhere to send it. Department names are matched case-insensitively against the flat
+list, and an unmatched name is reported per row by the backend.
 
 ---
 
@@ -177,21 +220,21 @@ assign/revoke, certificate delete) are outstanding.
 
 ## Cluster index
 
-| #                                  | Cluster                 | Missing                                                                       | Blocks                               |
-| ---------------------------------- | ----------------------- | ----------------------------------------------------------------------------- | ------------------------------------ |
-| [1](#1--business-settings)         | Business settings       | ✅ done `/settings` page                                                      |
-| [2](#2--onboarding)                | Onboarding              | ✅ done First-run wizard                                                      |
-| [3](#3--departments)               | Departments             | 6 routes + filters                                                            | Departments UI, every learner filter |
-| [4](#4--reporting-depth)           | Reporting depth         | 🟡 saved views only Status Reports, Training Matrix, Saved Views, CSV exports |
-| [5](#5--activity-feed)             | Activity feed           | ✅ done Overview activity feed                                                |
-| [6](#6--learner-lifecycle)         | Learner lifecycle       | 🟡 /team/bulk only Learner profile rail, CSV import, Team KPI                 |
-| [7](#7--reminders)                 | Reminders               | ✅ done "Remind all behind", per-course remind                                |
-| [8](#8--certificates)              | Certificates            | ✅ done                                                                       |
-| [9](#9--business-identity)         | Business identity       | ✅ done Logo upload on `/profile`                                             |
-| [10](#10--licence-pool-operations) | Licence pool operations | ✅ done Direct pool assign/revoke                                             |
-| [11](#11--subscriptions)           | Subscriptions           | ✅ done                                                                       |
-| [12](#12--course-catalogue)        | Course catalogue        | ✅ done Catalogue sort + category filter                                      |
-| [13](#13--orders)                  | Orders                  | ✅ done Invoice download                                                      |
+| #                                  | Cluster                 | Missing                                        | Blocks |
+| ---------------------------------- | ----------------------- | ---------------------------------------------- | ------ |
+| [1](#1--business-settings)         | Business settings       | ✅ done `/settings` page                       |
+| [2](#2--onboarding)                | Onboarding              | ✅ done First-run wizard                       |
+| [3](#3--departments)               | Departments             | ✅ done Departments UI, every learner filter   |
+| [4](#4--reporting-depth)           | Reporting depth         | ✅ done                                        |
+| [5](#5--activity-feed)             | Activity feed           | ✅ done Overview activity feed                 |
+| [6](#6--learner-lifecycle)         | Learner lifecycle       | ✅ done                                        |
+| [7](#7--reminders)                 | Reminders               | ✅ done "Remind all behind", per-course remind |
+| [8](#8--certificates)              | Certificates            | ✅ done                                        |
+| [9](#9--business-identity)         | Business identity       | ✅ done Logo upload on `/profile`              |
+| [10](#10--licence-pool-operations) | Licence pool operations | ✅ done Direct pool assign/revoke              |
+| [11](#11--subscriptions)           | Subscriptions           | ✅ done                                        |
+| [12](#12--course-catalogue)        | Course catalogue        | ✅ done Catalogue sort + category filter       |
+| [13](#13--orders)                  | Orders                  | ✅ done Invoice download                       |
 
 ---
 

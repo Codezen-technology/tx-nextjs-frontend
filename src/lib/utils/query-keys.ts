@@ -131,6 +131,9 @@ export const queryKeys = {
       ["business", "subscription-assigned", params] as const,
     courseCategories: ["business", "course-categories"] as const,
     settings: ["business", "settings"] as const,
+    departments: ["business", "departments"] as const,
+    memberDepartments: (userId: number) => ["business", "member-departments", userId] as const,
+    savedReports: (reportType: string) => ["business", "saved-reports", reportType] as const,
     activity: (params: BusinessListParams = {}) => ["business", "activity", params] as const,
     learnerCoursesReport: (params: BusinessListParams = {}) =>
       ["business", "learner-courses-report", params] as const,

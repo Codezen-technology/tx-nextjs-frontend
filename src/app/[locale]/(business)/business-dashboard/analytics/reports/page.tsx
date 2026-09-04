@@ -6,11 +6,16 @@ import Link from "next/link";
 import { ArrowLeft, Download, Search } from "lucide-react";
 import { BusinessPageHeader } from "@/components/business/business-page-header";
 import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
+import { SavedViews } from "@/components/business/saved-views";
 import { StatusBadge } from "@/components/business/status-badge";
 import { UsageBar } from "@/components/business/usage-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useLearnerCoursesReport, useReportCourseOptions } from "@/lib/hooks/useBusinessDashboard";
+import {
+  useDepartments,
+  useLearnerCoursesReport,
+  useReportCourseOptions,
+} from "@/lib/hooks/useBusinessDashboard";
 import { downloadCsv } from "@/lib/utils/business-csv";
 import type { LearnerCourseRecord, ReportStatus } from "@/types/business-dashboard";
 
@@ -42,6 +47,7 @@ function StatusReport() {
   const reportParam = searchParams.get("report");
   const status: ReportStatus = isReportStatus(reportParam) ? reportParam : "all";
   const courseId = Number(searchParams.get("course_id")) || undefined;
+  const departmentId = Number(searchParams.get("department_id")) || undefined;
   const search = searchParams.get("q") ?? "";
   const page = Number(searchParams.get("page")) || 1;
   const perPage = Number(searchParams.get("per_page")) || PER_PAGE_OPTIONS[0];
@@ -51,11 +57,13 @@ function StatusReport() {
   const { data, isLoading, isError } = useLearnerCoursesReport({
     status,
     course_id: courseId,
+    department_id: departmentId,
     search: search || undefined,
     page,
     per_page: perPage,
   });
   const { data: courseOptions } = useReportCourseOptions();
+  const { data: departments } = useDepartments();
 
   const rows = data?.items ?? [];
   const view = VIEWS[status];
@@ -69,6 +77,24 @@ function StatusReport() {
     // Any filter change invalidates the current page number.
     if (!("page" in updates)) next.delete("page");
     router.replace(`?${next.toString()}`, { scroll: false });
+  };
+
+  /** What a saved view stores — the same keys the URL carries. */
+  const currentFilters = {
+    report: status,
+    course_id: courseId,
+    department_id: departmentId,
+    q: search || undefined,
+    per_page: perPage,
+  };
+
+  const applyFilters = (filters: Record<string, string | number | undefined>) => {
+    const next = new URLSearchParams();
+    for (const [key, value] of Object.entries(filters)) {
+      if (value !== undefined && value !== "" && value !== "all") next.set(key, String(value));
+    }
+    router.replace(`?${next.toString()}`, { scroll: false });
+    setSearchInput(typeof filters.q === "string" ? filters.q : "");
   };
 
   const exportCsv = () => {
@@ -133,6 +159,8 @@ function StatusReport() {
         }
       />
 
+      <SavedViews currentFilters={currentFilters} onApply={applyFilters} />
+
       <div className="flex flex-wrap items-center gap-2">
         {(Object.keys(VIEWS) as ReportStatus[]).map((key) => (
           <button
@@ -181,6 +209,22 @@ function StatusReport() {
               </option>
             ))}
           </select>
+
+          {departments?.flat.length ? (
+            <select
+              value={departmentId ?? ""}
+              onChange={(e) => setParam({ department_id: e.target.value || undefined })}
+              aria-label="Filter by department"
+              className="border-neutral-30 h-9 rounded-lg border bg-white px-2 text-sm text-neutral-900"
+            >
+              <option value="">All departments</option>
+              {departments.flat.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          ) : null}
 
           <select
             value={perPage}

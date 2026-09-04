@@ -22,15 +22,15 @@ Keep feature IDs (B0–B7) in sync with the plan.
 
 | Layer                                                   | State                                              |
 | ------------------------------------------------------- | -------------------------------------------------- |
-| BFF proxy routes (`/api/business/**`)                   | **65 route files / 72 handlers** → `lms-b2b/v1` ✅ |
+| BFF proxy routes (`/api/business/**`)                   | **71 route files / 83 handlers** → `lms-b2b/v1` ✅ |
 | BFF paths sourced from `endpoints.business`             | **all routes** — no hardcoded path strings ✅      |
-| Client service (`businessDashboardService`)             | **72 methods** ✅                                  |
-| React Query hooks (`useBusinessDashboard.ts`)           | **64 hooks**, all on `queryKeys.business` ✅       |
+| Client service (`businessDashboardService`)             | **83 methods** ✅                                  |
+| React Query hooks (`useBusinessDashboard.ts`)           | **75 hooks**, all on `queryKeys.business` ✅       |
 | Types (`business-dashboard.ts` + `business-pricing.ts`) | present ✅                                         |
 | Pages (`(business)/business-dashboard/**`)              | **21 route segments** ✅                           |
 | Auth (JWT Bearer + refresh, httpOnly cookies)           | wired in `bff.ts` ✅                               |
 | Unit tests for business surfaces                        | `business-learners`, `business-csv` (14 cases) ✅  |
-| **Parity with the legacy WP dashboard**                 | **near parity** — only Tier C outstanding ❗       |
+| **Parity with the legacy WP dashboard**                 | **parity reached** — pending live verification ❗  |
 | **End-to-end verification per surface**                 | **pending** ❓                                     |
 
 Backend (`wp-lms-b2b-rest-api`) readiness: Phase 1 **8/10**, contract **117/117** standalone. Pending backend: CORS
@@ -38,12 +38,11 @@ origins (deploy), Postman collection; 4 controllers still proxy-only. See `wp-lm
 
 ### Parity gap with `wplms-business-dashboard`
 
-The legacy SPA calls 92 distinct endpoints. Backend **Tier A** and **Tier B** (both 2026-09-04)
-closed all but three: departments, saved reports and a bulk team import. Those are specified in
-**[`B2B_API_GAPS.md`](./B2B_API_GAPS.md)** as Tier C.
+The legacy SPA calls 92 distinct endpoints. Backend Tiers **A**, **B** and **C** (all 2026-09-04)
+closed every one, and this frontend consumes them. **[`B2B_API_GAPS.md`](./B2B_API_GAPS.md)** is now
+the record of what was specified and where the implementation deliberately differs.
 
-Blocked in this frontend until they land: the Departments UI and the department filter on five
-pages, Saved Views on the status reports, and a real bulk import (CSV still loops `POST /team`).
+No feature is blocked on the backend. What remains is verification, i18n and the server-side guard.
 
 ---
 
@@ -167,12 +166,26 @@ Landed after backend **Tier B** (2026-09-04):
 - [x] Reports landing: `total_enrolments`, `enrolments_completed`, `total_in_progress`,
       `compliance_rate`
 
-Still blocked on **Tier C** — see [`B2B_API_GAPS.md`](./B2B_API_GAPS.md):
+Landed after backend **Tier C** (2026-09-04):
 
-- [!] Departments and every `department_id` filter (cluster 3)
-- [!] Saved Views on the status reports (cluster 4, rest)
-- [!] `POST /team/bulk` — CSV import is still a client-side loop (cluster 6, rest)
-- [ ] Learner name/email editing — `PATCH /team/{id}` accepts it now, but no UI surfaces it yet
+- [x] Departments — full tree CRUD in Settings (inline rename, reparent, confirmed removal that
+      states members are detached rather than deleted)
+- [x] Department membership on the learner options rail; `PUT` sends the whole set
+- [x] `department_id` filter on the learner list and the status report
+- [x] Saved Views on `/analytics/reports` — shared per business, select / save / rename / delete
+- [x] CSV import now sends one `POST /team/bulk` instead of a request per row. Rows created whose
+      course assignment failed are reported separately from genuine skips, because the backend
+      distinguishes them
+- [x] The CSV `dept` column is live again — it was parsed and discarded while there was nowhere to
+      send it
+
+Remaining, and not blocked on anything:
+
+- [ ] Learner name/email editing — `PATCH /team/{id}` accepts it, but no UI surfaces it yet
+- [ ] i18n: every business string is still hardcoded English despite the `[locale]` segment
+- [ ] Server-side route guard — `BusinessAccessGuard` is client-only and `proxy.ts` does not gate
+      `/business-dashboard`
+- [ ] **Live verification of all three tiers.** Nothing has been run against a real site
 
 ---
 

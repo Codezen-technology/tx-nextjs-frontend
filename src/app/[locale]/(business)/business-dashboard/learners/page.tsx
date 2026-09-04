@@ -18,6 +18,7 @@ import {
 import {
   useBusinessLearners,
   useConvertBusinessLearnerRole,
+  useDepartments,
   useUpdateBusinessLearner,
 } from "@/lib/hooks/useBusinessDashboard";
 import { deriveLearnerStatus } from "@/lib/utils/business-learners";
@@ -37,6 +38,9 @@ export default function BusinessLearnersPage() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [showArchived, setShowArchived] = useState(false);
+  const [departmentId, setDepartmentId] = useState("");
+
+  const { data: departments } = useDepartments();
 
   const { data, isLoading, isError } = useBusinessLearners({
     page,
@@ -44,6 +48,7 @@ export default function BusinessLearnersPage() {
     search,
     // The facade defaults to `all`; asking for `active` is what hides archived rows.
     status: showArchived ? "all" : "active",
+    department_id: departmentId ? Number(departmentId) : undefined,
   });
   const updateLearner = useUpdateBusinessLearner();
   const convertRole = useConvertBusinessLearnerRole();
@@ -144,7 +149,26 @@ export default function BusinessLearnersPage() {
           />
         </form>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          {departments?.flat.length ? (
+            <select
+              value={departmentId}
+              onChange={(e) => {
+                setDepartmentId(e.target.value);
+                setPage(1);
+              }}
+              aria-label="Filter by department"
+              className="border-neutral-30 h-9 rounded-lg border bg-white px-2 text-sm text-neutral-900"
+            >
+              <option value="">All departments</option>
+              {departments.flat.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          ) : null}
+
           <Label className="flex items-center gap-2 text-sm font-normal text-neutral-700">
             <input
               type="checkbox"

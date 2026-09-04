@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/business/status-badge";
 import {
   useConvertBusinessLearnerRole,
+  useDepartments,
   useInviteLearner,
+  useMemberDepartments,
   useSendPasswordReset,
+  useSetMemberDepartments,
   useUpdateBusinessLearner,
 } from "@/lib/hooks/useBusinessDashboard";
 import { useBusinessCapabilities } from "@/lib/hooks/useBusinessCapabilities";
@@ -45,7 +48,14 @@ export function LearnerOptionsRail({ learner }: { learner: Learner }) {
   const convertRole = useConvertBusinessLearnerRole();
   const invite = useInviteLearner();
   const passwordReset = useSendPasswordReset();
+  const { data: departments } = useDepartments();
+  const { data: memberDepartments } = useMemberDepartments(learner.user_id);
+  const setDepartments = useSetMemberDepartments();
   const [confirmingRole, setConfirmingRole] = useState(false);
+  const [editingDepartments, setEditingDepartments] = useState<number[] | null>(null);
+
+  // Null means "not editing" — the saved set is shown until the user changes it.
+  const selectedDepartments = editingDepartments ?? (memberDepartments ?? []).map((d) => d.id);
   const [notice, setNotice] = useState("");
 
   const displayStatus = deriveLearnerStatus(learner);
@@ -84,10 +94,64 @@ export function LearnerOptionsRail({ learner }: { learner: Learner }) {
           <StatusBadge status={displayStatus} />
         </Field>
         <Field label="Last login">{formatDateTime(learner.last_login)}</Field>
-        {learner.departments?.length ? (
-          <Field label="Departments">{learner.departments.map((d) => d.name).join(", ")}</Field>
-        ) : null}
       </div>
+
+      {departments?.flat.length ? (
+        <div className="border-neutral-30 space-y-2 border-t pt-4">
+          <p className="text-sm font-medium text-neutral-900">Departments</p>
+          <ul className="max-h-40 space-y-1 overflow-y-auto">
+            {departments.flat.map((department) => (
+              <li key={department.id}>
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-700">
+                  <input
+                    type="checkbox"
+                    checked={selectedDepartments.includes(department.id)}
+                    disabled={setDepartments.isPending}
+                    onChange={(e) =>
+                      setEditingDepartments(
+                        e.target.checked
+                          ? [...selectedDepartments, department.id]
+                          : selectedDepartments.filter((id) => id !== department.id),
+                      )
+                    }
+                    className="h-4 w-4 accent-[#3F576F]"
+                  />
+                  {department.name}
+                </label>
+              </li>
+            ))}
+          </ul>
+
+          {editingDepartments ? (
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                disabled={setDepartments.isPending}
+                onClick={async () => {
+                  setNotice("");
+                  try {
+                    // PUT replaces the whole set, so send the full selection.
+                    await setDepartments.mutateAsync({
+                      userId: learner.user_id,
+                      departmentIds: editingDepartments,
+                    });
+                    setNotice("Departments updated.");
+                  } catch {
+                    setNotice("Could not update departments.");
+                  } finally {
+                    setEditingDepartments(null);
+                  }
+                }}
+              >
+                Save departments
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setEditingDepartments(null)}>
+                Cancel
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="border-neutral-30 space-y-2 border-t pt-4">
         <Button

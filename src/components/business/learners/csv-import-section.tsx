@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Download, FileUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAddBusinessLearner } from "@/lib/hooks/useBusinessDashboard";
+import { useBulkImportLearners, useDepartments } from "@/lib/hooks/useBusinessDashboard";
 import {
   COLUMN_ROLES,
   COLUMN_ROLE_LABELS,
-  EMAIL_REGEX,
   TEMPLATE_CSV,
   buildImportRows,
   defaultMapping,
@@ -15,10 +14,12 @@ import {
   mappingFromHeader,
   parseCsv,
   type ColumnRole,
-  type ImportResultRow,
 } from "@/lib/utils/business-csv";
+import type { BulkImportMember, BulkImportRowResult } from "@/types/business-dashboard";
 
 const PREVIEW_ROWS = 5;
+/** The backend rejects more than this in one request. */
+const MAX_ROWS = 500;
 
 interface ParsedFile {
   name: string;
@@ -29,36 +30,29 @@ interface ParsedFile {
 /**
  * Bulk import from a spreadsheet.
  *
- * The upload is a client-side loop over `POST /team`, one request per row —
- * the same shape the legacy dashboard uses, and for the same reason: there is
- * no bulk endpoint yet (docs/B2B_API_GAPS.md cluster 6, `POST /team/bulk`).
- * Because of that, progress is reported per row and a failure never aborts the
- * remaining rows.
+ * One `POST /team/bulk` for the whole file, capped at 500 rows by the backend.
+ * This replaced a per-row loop, which partially succeeded when a connection
+ * dropped and could not report an honest total.
+ *
+ * Every row comes back with its own outcome. A row reported `added` may still
+ * carry a `no_licence_available` code: the learner was created but their course
+ * assignment failed, and calling that "skipped" would send a manager looking
+ * for someone who is already on the team.
  */
 export function CsvImportSection({ onDone }: { onDone?: () => void }) {
   const [file, setFile] = useState<ParsedFile | null>(null);
   const [mapping, setMapping] = useState<ColumnRole[]>([]);
   const [mappingConfirmed, setMappingConfirmed] = useState(false);
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
-  const [results, setResults] = useState<ImportResultRow[] | null>(null);
+  const [results, setResults] = useState<BulkImportRowResult[] | null>(null);
   const [error, setError] = useState("");
 
-  const addLearner = useAddBusinessLearner();
-
-  /** Set false on unmount so an in-flight import stops queueing requests. */
-  const alive = useRef(true);
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
+  const bulkImport = useBulkImportLearners();
+  const { data: departments } = useDepartments();
 
   const reset = () => {
     setFile(null);
     setMapping([]);
     setMappingConfirmed(false);
-    setProgress(null);
     setResults(null);
     setError("");
   };
@@ -67,7 +61,6 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
     if (!input) return;
     setError("");
     setResults(null);
-    setProgress(null);
     setMappingConfirmed(false);
 
     const rows = parseCsv(await input.text());
@@ -91,49 +84,37 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
     if (!file) return;
 
     const records = buildImportRows(dataRows, mapping);
-    const collected: ImportResultRow[] = [];
+
+    // Departments are matched by name, since a spreadsheet names them rather
+    // than knowing their ids. An unmatched name is left off and the backend
+    // reports it per row.
+    const byName = new Map(
+      (departments?.flat ?? []).map((d) => [d.name.trim().toLowerCase(), d.id]),
+    );
+
+    const members: BulkImportMember[] = records.map((record) => {
+      const departmentId = record.dept ? byName.get(record.dept.trim().toLowerCase()) : undefined;
+
+      return {
+        email: record.email,
+        first_name: record.first,
+        last_name: record.last,
+        department_ids: departmentId ? [departmentId] : undefined,
+      };
+    });
 
     setResults(null);
-    setProgress({ done: 0, total: records.length });
+    setError("");
 
-    for (let i = 0; i < records.length; i += 1) {
-      if (!alive.current) return;
-
-      const record = records[i];
-
-      if (!EMAIL_REGEX.test(record.email)) {
-        collected.push({
-          row: i + 1,
-          email: record.email || "(blank)",
-          status: "skipped",
-          message: "Not a valid email address",
-        });
-      } else {
-        try {
-          await addLearner.mutateAsync({
-            email: record.email,
-            first_name: record.first,
-            last_name: record.last,
-            role: "learner",
-          });
-          collected.push({ row: i + 1, email: record.email, status: "added" });
-        } catch (err) {
-          collected.push({
-            row: i + 1,
-            email: record.email,
-            status: "skipped",
-            message: err instanceof Error ? err.message : "Could not add this learner",
-          });
-        }
-      }
-
-      if (!alive.current) return;
-      setProgress({ done: i + 1, total: records.length });
+    try {
+      const result = await bulkImport.mutateAsync(members);
+      setResults(result.results);
+      onDone?.();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "That import could not be sent. Please try again.",
+      );
     }
-
-    setResults(collected);
-    setProgress(null);
-    onDone?.();
   };
 
   const downloadTemplate = () => {
@@ -148,6 +129,8 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
 
   const added = results?.filter((r) => r.status === "added").length ?? 0;
   const skipped = results?.filter((r) => r.status === "skipped") ?? [];
+  // Created, but their course assignment failed — worth calling out separately.
+  const addedWithProblems = results?.filter((r) => r.status === "added" && r.code) ?? [];
 
   return (
     <div className="border-neutral-40 space-y-5 rounded-xl border bg-white p-6 shadow-xs">
@@ -179,6 +162,12 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
           onChange={(e) => onFile(e.target.files?.[0])}
         />
       </label>
+
+      {dataRows.length > MAX_ROWS ? (
+        <p className="text-sm text-red-600">
+          That file has {dataRows.length} rows. Import at most {MAX_ROWS} at a time.
+        </p>
+      ) : null}
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
@@ -240,13 +229,13 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
             <Button
               type="button"
               className="bg-[#3F576F] hover:bg-[#33485d]"
-              disabled={progress != null || dataRows.length === 0}
+              disabled={bulkImport.isPending || dataRows.length === 0 || dataRows.length > MAX_ROWS}
               onClick={() => (mappingConfirmed ? runImport() : setMappingConfirmed(true))}
             >
-              {progress ? (
+              {bulkImport.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Adding {progress.done} of {progress.total}…
+                  Importing {dataRows.length} learners…
                 </>
               ) : mappingConfirmed ? (
                 `Import ${dataRows.length} learners`
@@ -254,7 +243,7 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
                 "Check column mapping"
               )}
             </Button>
-            <Button type="button" variant="outline" disabled={progress != null} onClick={reset}>
+            <Button type="button" variant="outline" disabled={bulkImport.isPending} onClick={reset}>
               Cancel
             </Button>
           </div>
@@ -267,6 +256,24 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
             Added {added} learner{added === 1 ? "" : "s"}
             {skipped.length > 0 ? `, skipped ${skipped.length}` : ""}.
           </p>
+
+          {addedWithProblems.length > 0 ? (
+            <div className="rounded-lg bg-amber-50 p-3">
+              <p className="text-sm font-medium text-amber-900">
+                {addedWithProblems.length} learner
+                {addedWithProblems.length === 1 ? " was" : "s were"} added, but their course
+                assignment did not complete.
+              </p>
+              <ul className="mt-1 max-h-32 space-y-1 overflow-y-auto text-sm text-amber-900">
+                {addedWithProblems.map((row) => (
+                  <li key={`added-${row.row}`}>
+                    {row.email} — {row.message}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
           {skipped.length > 0 ? (
             <ul className="max-h-40 space-y-1 overflow-y-auto text-sm text-neutral-700">
               {skipped.map((row) => (

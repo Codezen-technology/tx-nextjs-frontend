@@ -8,6 +8,7 @@ import type {
   AddLearnerPayload,
   AssignCoursePayload,
   BusinessListParams,
+  BulkImportMember,
   BusinessSettingsUpdate,
   OnboardingPayload,
   SubmitReviewPayload,
@@ -269,6 +270,29 @@ export function useSeatRoster(params: BusinessListParams = {}) {
   });
 }
 
+export function useDepartments() {
+  return useQuery({
+    queryKey: queryKeys.business.departments,
+    queryFn: () => businessDashboardService.getDepartments(),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useMemberDepartments(userId: number | null) {
+  return useQuery({
+    queryKey: queryKeys.business.memberDepartments(userId ?? 0),
+    queryFn: () => businessDashboardService.getMemberDepartments(userId as number),
+    enabled: userId != null,
+  });
+}
+
+export function useSavedReports(reportType = "learner-courses") {
+  return useQuery({
+    queryKey: queryKeys.business.savedReports(reportType),
+    queryFn: () => businessDashboardService.getSavedReports(reportType),
+  });
+}
+
 // ─── Mutations ─────────────────────────────────────────────────────────────────
 
 export function useCheckLearnerEmail(email: string, enabled: boolean) {
@@ -404,6 +428,102 @@ export function useRemindBehind() {
   return useMutation({
     mutationFn: (filters: { course_id?: number; learner_id?: number } = {}) =>
       businessDashboardService.remindBehind(filters),
+  });
+}
+
+/** Department writes all shift member counts, so the whole list is refetched. */
+function invalidateDepartments(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: queryKeys.business.departments });
+}
+
+export function useCreateDepartment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { name: string; parent_id?: number }) =>
+      businessDashboardService.createDepartment(payload),
+    onSuccess: () => invalidateDepartments(qc),
+  });
+}
+
+export function useUpdateDepartment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...payload }: { id: number; name?: string; parent_id?: number }) =>
+      businessDashboardService.updateDepartment(id, payload),
+    onSuccess: () => invalidateDepartments(qc),
+  });
+}
+
+export function useDeleteDepartment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => businessDashboardService.deleteDepartment(id),
+    onSuccess: () => invalidateDepartments(qc),
+  });
+}
+
+export function useSetMemberDepartments() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, departmentIds }: { userId: number; departmentIds: number[] }) =>
+      businessDashboardService.setMemberDepartments(userId, departmentIds),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({
+        queryKey: queryKeys.business.memberDepartments(variables.userId),
+      });
+      // Member counts on the department list move with every membership change.
+      invalidateDepartments(qc);
+    },
+  });
+}
+
+function invalidateSavedReports(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: ["business", "saved-reports"] });
+}
+
+export function useCreateSavedReport() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: {
+      name: string;
+      filters: Record<string, string | number | undefined>;
+      report_type?: string;
+    }) => businessDashboardService.createSavedReport(payload),
+    onSuccess: () => invalidateSavedReports(qc),
+  });
+}
+
+export function useUpdateSavedReport() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...payload
+    }: {
+      id: number;
+      name?: string;
+      filters?: Record<string, string | number | undefined>;
+    }) => businessDashboardService.updateSavedReport(id, payload),
+    onSuccess: () => invalidateSavedReports(qc),
+  });
+}
+
+export function useDeleteSavedReport() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => businessDashboardService.deleteSavedReport(id),
+    onSuccess: () => invalidateSavedReports(qc),
+  });
+}
+
+export function useBulkImportLearners() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (members: BulkImportMember[]) =>
+      businessDashboardService.bulkImportLearners(members),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.business.root });
+    },
   });
 }
 

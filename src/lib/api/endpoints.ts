@@ -271,6 +271,7 @@ export const endpoints = {
     teamCheckEmail: "/team/check-email",
     teamConvertRole: (id: B2BId) => `/team${seg(id)}/convert-role`,
     teamStats: "/team/stats",
+    teamBulk: "/team/bulk",
     teamInvite: (id: B2BId) => `/team${seg(id)}/invite`,
     teamPasswordReset: (id: B2BId) => `/team${seg(id)}/password-reset`,
 
@@ -309,6 +310,8 @@ export const endpoints = {
     reportLearnerCourses: "/reports/learner-courses",
     reportMatrix: "/reports/matrix",
     reportCourseOptions: "/reports/courses/options",
+    savedReports: "/reports/saved",
+    savedReport: (id: B2BId) => `/reports/saved${seg(id)}`,
 
     // Certificates
     certificates: "/certificates",
@@ -335,6 +338,11 @@ export const endpoints = {
     managerCheckEmail: "/managers/check-email",
     managerCapabilities: "/permissions/manager/capabilities",
     managerPermissions: (id: B2BId) => `/permissions/business/managers${seg(id)}/permissions`,
+
+    // Departments
+    departments: "/departments",
+    department: (id: B2BId) => `/departments${seg(id)}`,
+    departmentMembers: (userId: B2BId) => `/departments/members${seg(userId)}`,
 
     // Settings
     settings: "/settings",

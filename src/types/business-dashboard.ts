@@ -26,6 +26,8 @@ export interface BusinessListParams {
   role?: string;
   /** Omitted means "use the business passing mark" — never send a default. */
   pass_mark?: number;
+  /** Tier C — filters by department membership across the report and list routes. */
+  department_id?: number;
 }
 
 /** Generic `{ items, total, pages }` envelope the B2B domain uses for lists. */
@@ -84,6 +86,81 @@ export interface LearnerQuizScoresResponse {
   score: number;
   max_score: number;
   total_quizzes: number;
+}
+
+// ─── Departments (Tier C) ────────────────────────────────────────────────────────
+
+export interface Department {
+  id: number;
+  parent_id: number;
+  name: string;
+  member_count: number;
+}
+
+/** A department with its subtree. The list endpoint returns both shapes. */
+export interface DepartmentNode extends Department {
+  children: DepartmentNode[];
+}
+
+export interface DepartmentsResponse {
+  /** Nested, for the tree UI. */
+  departments: DepartmentNode[];
+  /** Flat, for every `<select>`. */
+  flat: Department[];
+}
+
+export interface MemberDepartmentsResponse {
+  departments: Department[];
+}
+
+// ─── Saved report views (Tier C) ─────────────────────────────────────────────────
+
+/**
+ * A saved set of report filters, shared across the whole business rather than
+ * per user. `filters` is an opaque blob owned by this client — the backend
+ * stores and returns it verbatim, so adding a filter here needs no backend
+ * change.
+ */
+export interface SavedReportView {
+  id: number;
+  business_id: number;
+  report_type: string;
+  name: string;
+  filters: Record<string, string | number | undefined>;
+  created_by: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// ─── Bulk import (Tier C) ────────────────────────────────────────────────────────
+
+export interface BulkImportMember {
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  department_ids?: number[];
+  course_ids?: number[];
+}
+
+export type BulkImportCode =
+  | "already_member"
+  | "invalid_email"
+  | "no_licence_available"
+  | "department_not_found";
+
+export interface BulkImportRowResult {
+  row: number;
+  email: string;
+  status: "added" | "skipped";
+  code?: BulkImportCode;
+  message?: string;
+  user_id?: number;
+}
+
+export interface BulkImportResult {
+  added: number;
+  skipped: number;
+  results: BulkImportRowResult[];
 }
 
 // ─── Settings (Tier B) ───────────────────────────────────────────────────────────

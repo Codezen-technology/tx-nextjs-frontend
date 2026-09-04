@@ -10,6 +10,8 @@ import type {
   AssignedSubscription,
   AvailableLearnersResponse,
   B2BPluginStatus,
+  BulkImportMember,
+  BulkImportResult,
   Business,
   BusinessListParams,
   BusinessCertificateWire,
@@ -23,6 +25,8 @@ import type {
   CertificatesResponse,
   CheckEmailResponse,
   CourseLearnersResponse,
+  Department,
+  DepartmentsResponse,
   CoursesResponse,
   Learner,
   LearnerCoursesReport,
@@ -31,6 +35,7 @@ import type {
   LicenceBalanceResponse,
   LicenceCoursesResponse,
   MatrixCourse,
+  MemberDepartmentsResponse,
   ManagersResponse,
   ManagerEmailCheck,
   ManagerCapabilitiesResponse,
@@ -38,6 +43,7 @@ import type {
   OnboardingPayload,
   RemindResult,
   ReviewHasResponse,
+  SavedReportView,
   SeatRosterResponse,
   SubmitReviewPayload,
   SubscriptionSummary,
@@ -153,6 +159,7 @@ export const businessDashboardService = {
       search: params.search,
       status: params.status,
       role: params.role,
+      department_id: params.department_id,
     });
     return bffJson<TeamResponse>(`/api/business/team${qs}`);
   },
@@ -437,6 +444,104 @@ export const businessDashboardService = {
     }
   },
 
+  // ─── Departments (Tier C) ────────────────────────────────────────────────────
+
+  async getDepartments(): Promise<DepartmentsResponse> {
+    return bffJson<DepartmentsResponse>("/api/business/departments");
+  },
+
+  async createDepartment(payload: { name: string; parent_id?: number }): Promise<Department> {
+    return bffJson<Department>("/api/business/departments", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async updateDepartment(
+    id: number,
+    payload: { name?: string; parent_id?: number },
+  ): Promise<Department> {
+    return bffJson<Department>(`/api/business/departments/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  /** Members are detached and children reparented — the people are not deleted. */
+  async deleteDepartment(id: number): Promise<{ deleted: boolean }> {
+    return bffJson<{ deleted: boolean }>(`/api/business/departments/${id}`, { method: "DELETE" });
+  },
+
+  async getMemberDepartments(userId: number): Promise<Department[]> {
+    const data = await bffJson<MemberDepartmentsResponse>(
+      `/api/business/departments/members/${userId}`,
+    );
+    return data.departments ?? [];
+  },
+
+  /** Replaces the whole set — an empty array clears every membership. */
+  async setMemberDepartments(userId: number, departmentIds: number[]): Promise<Department[]> {
+    const data = await bffJson<MemberDepartmentsResponse>(
+      `/api/business/departments/members/${userId}`,
+      { method: "PUT", body: JSON.stringify({ department_ids: departmentIds }) },
+    );
+    return data.departments ?? [];
+  },
+
+  // ─── Saved report views (Tier C) ─────────────────────────────────────────────
+
+  async getSavedReports(reportType = "learner-courses"): Promise<SavedReportView[]> {
+    const qs = buildQuery({ report_type: reportType });
+    const data = await bffJson<{ saved_reports?: SavedReportView[] }>(
+      `/api/business/reports/saved${qs}`,
+    );
+    return data.saved_reports ?? [];
+  },
+
+  async createSavedReport(payload: {
+    name: string;
+    filters: Record<string, string | number | undefined>;
+    report_type?: string;
+  }): Promise<SavedReportView> {
+    return bffJson<SavedReportView>("/api/business/reports/saved", {
+      method: "POST",
+      body: JSON.stringify({ report_type: "learner-courses", ...payload }),
+    });
+  },
+
+  async updateSavedReport(
+    id: number,
+    payload: { name?: string; filters?: Record<string, string | number | undefined> },
+  ): Promise<SavedReportView> {
+    return bffJson<SavedReportView>(`/api/business/reports/saved/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async deleteSavedReport(id: number): Promise<{ deleted: boolean }> {
+    return bffJson<{ deleted: boolean }>(`/api/business/reports/saved/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  // ─── Bulk import (Tier C) ────────────────────────────────────────────────────
+
+  /**
+   * Import up to 500 learners in one request.
+   *
+   * Replaces the per-row loop the CSV importer used. A row whose learner was
+   * created but whose course assignment failed comes back `added` with a
+   * `no_licence_available` code — the learner does exist, and reporting it as
+   * skipped would send a manager looking for someone already on the team.
+   */
+  async bulkImportLearners(members: BulkImportMember[]): Promise<BulkImportResult> {
+    return bffJson<BulkImportResult>("/api/business/team/bulk", {
+      method: "POST",
+      body: JSON.stringify({ members }),
+    });
+  },
+
   // ─── Settings (Tier B) ───────────────────────────────────────────────────────
 
   async getSettings(): Promise<BusinessSettings> {
@@ -474,6 +579,7 @@ export const businessDashboardService = {
       per_page: params.per_page,
       course_id: params.course_id,
       learner_id: params.learner_id,
+      department_id: params.department_id,
     });
     return bffJson<ActivityResponse>(`/api/business/activity${qs}`);
   },
@@ -493,6 +599,7 @@ export const businessDashboardService = {
       status: params.status,
       course_id: params.course_id,
       learner_id: params.learner_id,
+      department_id: params.department_id,
       pass_mark: params.pass_mark,
     });
     return bffJson<LearnerCoursesReport>(`/api/business/reports/learner-courses${qs}`);
@@ -502,6 +609,7 @@ export const businessDashboardService = {
     const qs = buildQuery({
       course_id: params.course_id,
       learner_id: params.learner_id,
+      department_id: params.department_id,
       pass_mark: params.pass_mark,
     });
     return bffJson<TrainingMatrix>(`/api/business/reports/matrix${qs}`);
@@ -589,6 +697,7 @@ export const businessDashboardService = {
       search: params.search,
       course_id: params.course_id,
       learner_id: params.learner_id,
+      department_id: params.department_id,
     });
     return bffJson<B2BPaginated<ReportCertificate>>(`/api/business/reports/certificates${qs}`);
   },
@@ -609,6 +718,7 @@ export const businessDashboardService = {
       learner_id: params.learner_id,
       date_from: params.date_from,
       date_to: params.date_to,
+      department_id: params.department_id,
     });
     const raw = await bffJson<{
       items?: BusinessCertificateWire[];
