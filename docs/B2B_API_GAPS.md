@@ -6,7 +6,10 @@
 (2026-09-04), and the frontend consumes every route. Kept as the record of what was specified,
 what was built, and where the implementation deliberately differs from the original proposal.
 
-Outstanding: **nothing has been verified against a live site** on either side.
+**Backend verified live** (`5639578`, 2026-09-04): contract 179/179, write suite clean, golden
+capture 39 routes all 200, the three Tier C tables created by activation, and departments / saved
+views / bulk import exercised end to end. Two defects only a live run could find were fixed there —
+see "Found by running it" below. The **frontend has still not been exercised against a real site**.
 
 ---
 
@@ -66,6 +69,29 @@ the legacy layer is cookie+nonce and assumes a browser inside wp-admin. Apply co
 For reference, the current machine-readable facade surface is
 `wp-lms-b2b-rest-api/tests/contract/contract-test.php:62-120`. Note that `ARCHITECTURE.md`
 ("42 routes") and `docs/api-migration-tracking.md` are both stale.
+
+---
+
+## Found by running it (2026-09-04)
+
+Three things a static check could not have caught, all fixed backend-side:
+
+- **`Certificate_Controller::require_business_scope()` was private** and collided with the public
+  method of the same name added to `Abstract_B2B_Controller` in Tier B — a PHP fatal on plugin
+  load. Every file lints clean alone; the conflict only exists once both are loaded. Renamed to
+  `require_certificate_scope()`.
+- **`GET /team/stats` returned all zeros on every site.** The query joined `wp_usermeta` and tested
+  `lm.meta_id`, but usermeta's primary key is `umeta_id` — `meta_id` belongs to postmeta and
+  termmeta. MySQL rejected it, `get_row()` returned null, and the service turned that into a
+  well-formed `{total: 0, …}`. A silent wrong answer rather than an error, and it rendered as
+  "0 enrolled · 0 unassigned · 0 pending" on the Overview.
+- **`POST /team/bulk` echoed the sanitised email** in an error row, so an invalid address came back
+  as `""` and the CSV importer could not tell the user which cell was wrong. It now echoes what the
+  client submitted.
+
+The second is the one worth remembering: a query that fails and a population that is genuinely
+empty produced identical output. Neither the contract test nor the golden capture would have
+flagged it, because the response shape was correct throughout.
 
 ---
 

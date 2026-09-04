@@ -185,7 +185,10 @@ Remaining, and not blocked on anything:
 - [ ] i18n: every business string is still hardcoded English despite the `[locale]` segment
 - [ ] Server-side route guard — `BusinessAccessGuard` is client-only and `proxy.ts` does not gate
       `/business-dashboard`
-- [ ] **Live verification of all three tiers.** Nothing has been run against a real site
+- [x] Assign-course modal shows subscription coverage before assigning
+      (`POST /business/check-learners-subscriptions`) — a covered learner spends no licence
+- [ ] **Live verification of the frontend.** The backend was verified live (contract 179/179,
+      golden 39 routes); nothing on this side has been exercised against a real site
 
 ---
 

@@ -263,6 +263,24 @@ export function useTeamStats() {
   });
 }
 
+/**
+ * Subscription coverage for a page of learners.
+ *
+ * Keyed on the ids so it refetches when the visible set changes, and disabled
+ * until there is both a business and at least one learner. The backend caps the
+ * batch at 100, which matches the modal's page size.
+ */
+export function useLearnerSubscriptionChecks(learnerIds: number[], businessId: number | null) {
+  const ids = [...learnerIds].sort((a, b) => a - b);
+
+  return useQuery({
+    queryKey: queryKeys.business.learnerSubscriptionChecks(ids),
+    queryFn: () => businessDashboardService.checkLearnersSubscriptions(ids, businessId as number),
+    enabled: businessId != null && ids.length > 0,
+    staleTime: LIST_STALE,
+  });
+}
+
 export function useSeatRoster(params: BusinessListParams = {}) {
   return useQuery({
     queryKey: queryKeys.business.seatRoster(params),

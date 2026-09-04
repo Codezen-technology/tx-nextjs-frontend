@@ -17,6 +17,8 @@ import { ApiError } from "@/lib/api/error";
 import {
   useAssignBusinessCourse,
   useBusinessAvailableLearners,
+  useBusinessProfile,
+  useLearnerSubscriptionChecks,
 } from "@/lib/hooks/useBusinessDashboard";
 import { cn } from "@/lib/utils/cn";
 
@@ -51,6 +53,30 @@ export function AssignCourseModal({
   const assign = useAssignBusinessCourse();
 
   const learners = useMemo(() => data?.items ?? [], [data?.items]);
+
+  const { data: business } = useBusinessProfile();
+
+  /**
+   * A subscription-covered learner does not spend a licence. Surfacing that
+   * before assignment lets a manager use the pool deliberately, rather than
+   * finding out via a 409 on submit.
+   */
+  const assignableIds = useMemo(
+    () => learners.filter((l) => l.is_available).map((l) => l.id),
+    [learners],
+  );
+  const { data: subscriptionChecks } = useLearnerSubscriptionChecks(
+    open ? assignableIds : [],
+    business?.user_id ?? null,
+  );
+
+  const coveredCount = useMemo(
+    () =>
+      Array.from(selected).filter(
+        (id) => subscriptionChecks?.results?.[String(id)]?.has_subscription,
+      ).length,
+    [selected, subscriptionChecks],
+  );
 
   useEffect(() => {
     if (!open) {
@@ -148,6 +174,13 @@ export function AssignCourseModal({
                         <span className="bg-neutral-20 shrink-0 rounded-full px-2 py-0.5 text-xs font-medium text-neutral-500">
                           {unavailableLabel(learner.assignment_status)}
                         </span>
+                      ) : subscriptionChecks?.results?.[String(learner.id)]?.has_subscription ? (
+                        <span
+                          title="Covered by a subscription seat — assigning will not use a licence"
+                          className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700"
+                        >
+                          Subscription
+                        </span>
                       ) : null}
                     </label>
                   </li>
@@ -156,6 +189,15 @@ export function AssignCourseModal({
             </ul>
           )}
         </div>
+
+        {selected.size > 0 ? (
+          <p className="text-sm text-neutral-300">
+            {selected.size} selected
+            {coveredCount > 0
+              ? ` · ${coveredCount} covered by a subscription, ${selected.size - coveredCount} will use a licence`
+              : " · each will use a licence"}
+          </p>
+        ) : null}
 
         {error ? (
           <div className="space-y-2">

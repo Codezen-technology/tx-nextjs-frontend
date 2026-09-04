@@ -30,6 +30,7 @@ import type {
   CoursesResponse,
   Learner,
   LearnerCoursesReport,
+  LearnerSubscriptionCheckResponse,
   LearnerCoursesResponse,
   LearnerQuizScoresResponse,
   LicenceBalanceResponse,
@@ -656,6 +657,22 @@ export const businessDashboardService = {
     return bffJson<RemindResult>("/api/business/courses/remind-behind", {
       method: "POST",
       body: JSON.stringify(filters),
+    });
+  },
+
+  /**
+   * Which of these learners already hold a subscription seat.
+   *
+   * Capped at 100 ids by the backend. `business_id` is the owner user id, the
+   * same value `Business.user_id` carries.
+   */
+  async checkLearnersSubscriptions(
+    learnerIds: number[],
+    businessId: number,
+  ): Promise<LearnerSubscriptionCheckResponse> {
+    return bffJson<LearnerSubscriptionCheckResponse>("/api/business/subscriptions/check-learners", {
+      method: "POST",
+      body: JSON.stringify({ learner_ids: learnerIds, business_id: businessId }),
     });
   },
 

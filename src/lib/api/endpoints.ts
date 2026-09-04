@@ -321,6 +321,7 @@ export const endpoints = {
     subscriptions: "/businesses/subscriptions",
     subscriptionActive: "/businesses/subscriptions/active",
     subscriptionSeatRoster: "/businesses/subscriptions/seat-roster",
+    checkLearnersSubscriptions: "/business/check-learners-subscriptions",
     subscriptionSummary: "/businesses/subscriptions/summary",
     subscriptionAssigned: "/businesses/subscriptions/assigned",
     subscriptionAssignUser: "/businesses/subscriptions/assign-user",

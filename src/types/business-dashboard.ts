@@ -88,6 +88,27 @@ export interface LearnerQuizScoresResponse {
   total_quizzes: number;
 }
 
+/**
+ * Which of a set of learners already hold a subscription seat.
+ *
+ * Matters when assigning: a subscription-covered learner does not consume a
+ * licence, so a manager can spend the pool deliberately rather than discovering
+ * it is empty on submit.
+ */
+export interface LearnerSubscriptionCheck {
+  has_subscription: boolean;
+  message?: string;
+  error?: string;
+}
+
+export interface LearnerSubscriptionCheckResponse {
+  success: boolean;
+  results: Record<string, LearnerSubscriptionCheck>;
+  total_checked: number;
+  valid_learners: number;
+  invalid_learners: number;
+}
+
 // ─── Departments (Tier C) ────────────────────────────────────────────────────────
 
 export interface Department {

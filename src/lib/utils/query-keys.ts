@@ -134,6 +134,8 @@ export const queryKeys = {
     departments: ["business", "departments"] as const,
     memberDepartments: (userId: number) => ["business", "member-departments", userId] as const,
     savedReports: (reportType: string) => ["business", "saved-reports", reportType] as const,
+    learnerSubscriptionChecks: (learnerIds: number[]) =>
+      ["business", "learner-subscription-checks", learnerIds.join(",")] as const,
     activity: (params: BusinessListParams = {}) => ["business", "activity", params] as const,
     learnerCoursesReport: (params: BusinessListParams = {}) =>
       ["business", "learner-courses-report", params] as const,
