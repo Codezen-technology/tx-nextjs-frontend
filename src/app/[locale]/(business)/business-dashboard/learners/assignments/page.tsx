@@ -6,8 +6,9 @@ import { BusinessPageHeader } from "@/components/business/business-page-header";
 import { AssignmentFundingBadge } from "@/components/business/assignment-funding-badge";
 import { StatusBadge } from "@/components/business/status-badge";
 import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useBusinessAssignments } from "@/lib/hooks/useBusinessDashboard";
+import { useBusinessAssignments, useRevokeLicence } from "@/lib/hooks/useBusinessDashboard";
 import type { CourseAssignment } from "@/types/business-dashboard";
 
 const PER_PAGE = 10;
@@ -24,6 +25,10 @@ export default function BusinessAssignmentHistoryPage() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
+  const [confirmingRevoke, setConfirmingRevoke] = useState<number | null>(null);
+  const [revokeError, setRevokeError] = useState("");
+
+  const revoke = useRevokeLicence();
 
   const { data, isLoading, isError } = useBusinessAssignments({
     page,
@@ -50,13 +55,62 @@ export default function BusinessAssignmentHistoryPage() {
     },
     { key: "status", header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
     { key: "date", header: "Assigned", cell: (row) => formatDate(row.created_at) },
+    {
+      key: "actions",
+      header: "",
+      className: "text-right",
+      // A licence spent on the wrong learner was unrecoverable through the UI
+      // until POST /licences/revoke existed. Only licence-funded, still-active
+      // assignments hold a seat worth reclaiming.
+      cell: (row) => {
+        if (row.assignment_type !== "licence" || row.status !== "active") return null;
+
+        if (confirmingRevoke === row.id) {
+          return (
+            <div className="flex justify-end gap-2">
+              <Button
+                size="sm"
+                variant="destructive"
+                disabled={revoke.isPending}
+                onClick={async () => {
+                  setRevokeError("");
+                  try {
+                    await revoke.mutateAsync(row.id);
+                  } catch {
+                    setRevokeError(`Could not revoke ${row.user_name}'s licence.`);
+                  } finally {
+                    setConfirmingRevoke(null);
+                  }
+                }}
+              >
+                Confirm
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setConfirmingRevoke(null)}>
+                Cancel
+              </Button>
+            </div>
+          );
+        }
+
+        return (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={revoke.isPending}
+            onClick={() => setConfirmingRevoke(row.id)}
+          >
+            Revoke
+          </Button>
+        );
+      },
+    },
   ];
 
   return (
     <div className="space-y-6">
       <BusinessPageHeader
         title="Assignment History"
-        description="A complete log of course assignments across your team."
+        description="A complete log of course assignments across your team. Revoking returns the licence to its pool."
       />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -84,6 +138,8 @@ export default function BusinessAssignmentHistoryPage() {
           ))}
         </select>
       </div>
+
+      {revokeError ? <p className="text-sm text-red-600">{revokeError}</p> : null}
 
       <BusinessDataTable<CourseAssignment>
         columns={columns}

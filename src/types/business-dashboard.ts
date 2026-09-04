@@ -14,6 +14,10 @@ export interface BusinessListParams {
   per_page?: number;
   search?: string;
   status?: string;
+  orderby?: string;
+  order?: "asc" | "desc";
+  /** `course-cat` term ids. Server-side filter on `GET /courses`. */
+  taxonomy?: number[];
 }
 
 /** Generic `{ items, total, pages }` envelope the B2B domain uses for lists. */
@@ -50,6 +54,36 @@ export interface Business {
 
 // ─── Overview / summary ─────────────────────────────────────────────────────────
 
+/** One quiz attempt row from `GET /courses/{id}/learner/{id}/quiz-scores`. */
+export interface LearnerQuizScore {
+  quiz_id: number;
+  quiz_name: string;
+  score: number;
+  max_score: number;
+  percentage: number;
+}
+
+/**
+ * Quiz detail for one learner on one course.
+ *
+ * There is deliberately no per-quiz `passed` or attempt date: WPLMS stores marks
+ * as post meta keyed by user id and records neither, so the backend does not
+ * invent them. Pass/fail is `percentage` against the business passing mark.
+ */
+export interface LearnerQuizScoresResponse {
+  quiz_scores: LearnerQuizScore[];
+  percentage: number;
+  score: number;
+  max_score: number;
+  total_quizzes: number;
+}
+
+/** Result of `POST /businesses/{business_id}/logo`. */
+export interface BusinessLogo {
+  logo_id: number;
+  logo_url: string;
+}
+
 export interface BusinessSummary {
   total_courses: number;
   total_members: number;
@@ -68,6 +102,9 @@ export interface Learner {
   display_name: string;
   role: "learner" | "manager";
   status: "active" | "inactive" | string;
+  /** Null until the learner first signs in — drives the "pending" display status. */
+  last_login?: string | null;
+  departments?: { id: number; name: string }[];
   is_available?: boolean;
   assignment_status?: "assigned" | "enrolled" | "available";
   progress?: number;
@@ -152,13 +189,37 @@ export interface AssignmentsResponse {
 
 // ─── Assigned courses summary ────────────────────────────────────────────────────
 
+export interface CourseCategoryRef {
+  id: number;
+  name: string;
+  slug?: string;
+}
+
+/** Item from `GET /course-categories` — exclusions already applied server-side. */
+export interface BusinessCourseCategory {
+  id: number;
+  name: string;
+  slug: string;
+  parent: number;
+  count: number;
+}
+
 export interface AssignedCourse {
   id: number;
   name: string;
   excerpt?: string;
+  description?: string;
   featured_image?: string;
   url?: string;
+  author?: string;
   total_lessons?: number;
+  /** Access period in seconds, not study time. 0 or absent means no expiry. */
+  duration?: number;
+  rating_count?: number;
+  average_rating?: number;
+  has_certificate?: boolean;
+  course_categories?: CourseCategoryRef[];
+  courseCat?: number[];
 }
 
 export interface CoursesResponse {
@@ -245,19 +306,33 @@ export interface LicenceBalanceResponse {
 
 // ─── Certificates ────────────────────────────────────────────────────────────────
 
+/**
+ * Wire shape of a row from `GET /certificates` — nested course and user
+ * objects. `businessDashboardService.getCertificates()` flattens it; only the
+ * service should ever see this type.
+ */
+export interface BusinessCertificateWire {
+  id: string | number;
+  course?: { id?: number; name?: string };
+  user?: { id?: number; name?: string; email?: string };
+  status?: string;
+  issued_date?: string | null;
+  expiry_date?: string | null;
+  certificate_url?: string | null;
+}
+
+/** Flattened certificate register row. */
 export interface BusinessCertificate {
   id: string | number;
-  course_id?: number;
+  course_id: number;
   course_name: string;
-  learner_name?: string;
-  learner_email?: string;
-  certificate_url?: string;
-  issue_date?: string | null;
-  status?: string;
-  total_learners?: number;
-  certificates_issued?: number;
-  first_assigned?: string;
-  last_assigned?: string;
+  user_id: number;
+  learner_name: string;
+  learner_email: string;
+  certificate_url: string | null;
+  issued_date: string | null;
+  expiry_date: string | null;
+  status: string;
 }
 
 export interface CertificatesResponse {
@@ -349,17 +424,6 @@ export interface BusinessOrdersResponse {
 }
 
 // ─── Pricing ───────────────────────────────────────────────────────────────────
-
-export interface LicencePricingTier {
-  min_quantity: number;
-  discount_percent: number;
-}
-
-export interface LicencePricing {
-  tiers?: LicencePricingTier[];
-  base_price?: number;
-  currency?: string;
-}
 
 // ─── Subscriptions ───────────────────────────────────────────────────────────────
 

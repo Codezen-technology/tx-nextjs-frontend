@@ -91,6 +91,10 @@ export const queryKeys = {
     products: ["admin", "products"] as const,
   },
   business: {
+    /** Broad invalidation root — every business key starts with it. */
+    root: ["business"] as const,
+    learnersRoot: ["business", "learners"] as const,
+    managersRoot: ["business", "managers"] as const,
     summary: ["business", "summary"] as const,
     profile: ["business", "profile"] as const,
     learners: (params: BusinessListParams = {}) => ["business", "learners", params] as const,
@@ -125,11 +129,19 @@ export const queryKeys = {
     subscriptionSummary: ["business", "subscription-summary"] as const,
     subscriptionAssigned: (params: BusinessListParams = {}) =>
       ["business", "subscription-assigned", params] as const,
+    courseCategories: ["business", "course-categories"] as const,
+    learnerQuizScores: (courseId: number, userId: number) =>
+      ["business", "quiz-scores", courseId, userId] as const,
     excludedCategories: ["business", "excluded-categories"] as const,
     managers: (businessId: number) => ["business", "managers", businessId] as const,
     reviewHas: ["business", "review-has"] as const,
     courseLicenceBalance: (courseId: number) =>
       ["business", "course-licence-balance", courseId] as const,
     pluginStatus: ["business", "plugin-status"] as const,
+    checkEmail: (email: string) => ["business", "check-email", email] as const,
+    subscription: (id: number) => ["business", "subscriptions", id] as const,
+    subscriptionSeats: (id: number) => ["business", "subscriptions", id, "seats"] as const,
+    managerCapabilities: (managerId: number) =>
+      ["business", "managers", "capabilities", managerId] as const,
   },
 } as const;

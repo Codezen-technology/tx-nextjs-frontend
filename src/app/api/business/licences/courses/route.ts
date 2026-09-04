@@ -1,8 +1,11 @@
 import { proxyToB2B } from "@/lib/api/bff";
+import { endpoints } from "@/lib/api/endpoints";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const qs = searchParams.toString();
-  const path = qs ? `/licences/courses?${qs}` : "/licences/courses";
+  const path = qs
+    ? `${endpoints.business.licenceCourses}?${qs}`
+    : endpoints.business.licenceCourses;
   return proxyToB2B(path);
 }

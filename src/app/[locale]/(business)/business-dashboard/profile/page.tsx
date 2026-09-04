@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Building2, CalendarDays, KeyRound, Pencil } from "lucide-react";
+import { BusinessLogo } from "@/components/business/business-logo";
 import { BusinessPageHeader } from "@/components/business/business-page-header";
 import { KpiCard } from "@/components/business/kpi-card";
 import { StatusBadge } from "@/components/business/status-badge";
@@ -64,7 +65,9 @@ export default function BusinessProfilePage() {
   const onSave = async () => {
     if (!business) return;
     await updateProfile.mutateAsync({
-      id: business.id,
+      // The route segment is the owner's user id, not the b2b_businesses row id
+      // this record's `id` holds — they are different id spaces.
+      ownerUserId: business.user_id,
       data: {
         phone,
         address,
@@ -127,6 +130,15 @@ export default function BusinessProfilePage() {
           )
         }
       />
+
+      <div className="border-neutral-30 rounded-xl border bg-white p-6 shadow-xs">
+        <h3 className="mb-4 text-lg font-semibold text-neutral-900">Company logo</h3>
+        <BusinessLogo
+          businessId={business.id}
+          logoUrl={business.logo_url}
+          companyName={business.company_name}
+        />
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <KpiCard label="Current Status" value={business.status} icon={Building2} tone="primary" />

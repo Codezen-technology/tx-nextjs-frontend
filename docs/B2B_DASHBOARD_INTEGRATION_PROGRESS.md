@@ -20,18 +20,32 @@ Keep feature IDs (B0–B7) in sync with the plan.
 
 ## Snapshot
 
-| Layer                                                   | State                                              |
-| ------------------------------------------------------- | -------------------------------------------------- |
-| BFF proxy routes (`/api/business/**`)                   | **42 routes** — all `proxyToB2B` → `lms-b2b/v1` ✅ |
-| Client service (`businessDashboardService`)             | **~50 methods**, 472 LOC ✅                        |
-| React Query hooks (`useBusinessDashboard.ts`)           | **~40 hooks**, 362 LOC ✅                          |
-| Types (`business-dashboard.ts` + `business-pricing.ts`) | present ✅                                         |
-| Pages (`(business)/business-dashboard/**`)              | **~14 route segments** scaffolded ✅               |
-| Auth (JWT Bearer + refresh, httpOnly cookies)           | wired in `bff.ts` ✅                               |
-| **End-to-end verification per surface**                 | **pending** ❓                                     |
+| Layer                                                   | State                                                |
+| ------------------------------------------------------- | ---------------------------------------------------- |
+| BFF proxy routes (`/api/business/**`)                   | **52 route files / 58 handlers** → `lms-b2b/v1` ✅   |
+| BFF paths sourced from `endpoints.business`             | **all routes** — no hardcoded path strings ✅        |
+| Client service (`businessDashboardService`)             | **58 methods** ✅                                    |
+| React Query hooks (`useBusinessDashboard.ts`)           | **45 hooks**, all on `queryKeys.business` ✅         |
+| Types (`business-dashboard.ts` + `business-pricing.ts`) | present ✅                                           |
+| Pages (`(business)/business-dashboard/**`)              | **18 route segments** ✅                             |
+| Auth (JWT Bearer + refresh, httpOnly cookies)           | wired in `bff.ts` ✅                                 |
+| Unit tests for business surfaces                        | `business-learners`, `business-csv` (17 cases) ✅    |
+| **Parity with the legacy WP dashboard**                 | **partial** — 7 clusters still blocked on backend ❗ |
+| **End-to-end verification per surface**                 | **pending** ❓                                       |
 
 Backend (`wp-lms-b2b-rest-api`) readiness: Phase 1 **8/10**, contract **117/117** standalone. Pending backend: CORS
 origins (deploy), Postman collection; 4 controllers still proxy-only. See `wp-lms-b2b-rest-api/PROGRESS.md`.
+
+### Parity gap with `wplms-business-dashboard`
+
+The legacy SPA calls 92 distinct endpoints. `lms-b2b/v1` served 55 of them; backend **Tier A**
+(2026-09-04) closed clusters 9, 10 and 12 outright and 8 and 11 in part, plus defects D1–D9. The
+rest are specified in **[`B2B_API_GAPS.md`](./B2B_API_GAPS.md)**.
+
+Blocked in this frontend until those land: `/settings`, the onboarding wizard, Departments,
+Training Matrix, Status Reports, Saved Views, the Overview activity feed, reminder actions
+(`remind` / `remind-behind`), learner invite + password-reset + name editing, the certificate
+register's course and date filters, the subscription seat-roster tab, and invoice download.
 
 ---
 
@@ -92,7 +106,10 @@ All mutation hooks exist; verify invalidation + error-toast + success UX:
 
 - [ ] Audit business strings → locale dictionary (no hardcoded copy)
 - [ ] `[locale]` switching verified inside dashboard
-- [ ] Nav / breadcrumbs / active-state pass
+- [x] Nav restructured to the legacy `NAV_TREE` (Courses / Reports / More groups, Reviews surfaced)
+- [x] Active-state resolution fixed — locale-stripped longest-prefix match, no `includes()` misfires
+- [x] Capability-shaped nav gating via `useBusinessCapabilities` (roles today; swaps to an API call
+      once the facade exposes a "my capabilities" route — `B2B_API_GAPS.md` cluster 6)
 - [ ] Skeleton + empty-state consistency with marketing surface
 
 ## B6 — Observability & errors
@@ -103,8 +120,50 @@ All mutation hooks exist; verify invalidation + error-toast + success UX:
 
 ## B7 — Tests
 
+- [x] `business-learners` — `deriveLearnerStatus` + `partitionLearners` (7 cases)
+- [x] `business-csv` — parser, header detection, column mapping, row projection (10 cases)
 - [ ] Flow tests: assign course, add learner, licence + subscription checkout
 - [ ] Contract fixtures mirroring `lms-b2b/v1` payloads (`src/__tests__/fixtures`)
+
+## B8 — Parity pass against the legacy WP dashboard
+
+Done with the endpoints the facade already serves:
+
+- [x] Overview: 4 legacy KPI cards, expandable per-course learner roster, assign-from-row
+- [x] Nav: legacy group structure + capability gating (see B5)
+- [x] Billing: WooCommerce status filter, billing-information and payment-method cards
+- [x] Learners: archived toggle, per-page selector, `deriveLearnerStatus` pills, Added column
+- [x] Learner profile: options rail (role, last login, convert role, archive/restore)
+- [x] Add learners: CSV import mode with column mapping + per-row results; assign-courses-on-create
+- [x] Certificates: real learner-level register off `GET /certificates` (was per-course rollup)
+- [x] Course catalogue: card grid with rating, access period, lesson count, certificate badge;
+      excluded categories applied client-side
+
+Landed after backend **Tier A** (2026-09-04):
+
+- [x] Business logo upload / remove on `/profile` (cluster 9)
+- [x] Catalogue sort + category filter, server-side exclusions (cluster 12) — the client-side
+      exclusion filter added in the first parity pass is gone
+- [x] Licence revoke on `/learners/assignments` (cluster 10) — a licence spent on the wrong learner
+      was previously unrecoverable through the UI
+- [x] Per-quiz score breakdown on `/certificates/[courseId]` (cluster 8, part)
+- [x] `GET /businesses/subscriptions/active` replaces the client-side sum over a capped
+      `?per_page=50` page (cluster 11, part)
+- [x] **Bug fix:** `PATCH /businesses/{owner_user_id}` was being sent `Business.id` (the row id)
+      instead of `Business.user_id`, so profile saves targeted the wrong record. Surfaced by the
+      backend's D6 rename.
+
+Still blocked — see [`B2B_API_GAPS.md`](./B2B_API_GAPS.md):
+
+- [!] `/settings` page and onboarding wizard (clusters 1–2)
+- [!] Departments and every `department_id` filter (cluster 3)
+- [!] Status Reports, Training Matrix, Saved Views, CSV exports (cluster 4)
+- [!] Overview activity feed (cluster 5)
+- [!] Learner invite / password reset / name editing; bulk import endpoint (cluster 6)
+- [!] Remind and remind-behind (cluster 7)
+- [!] Certificate course + date-range filters (cluster 8, rest)
+- [!] Subscription seat-roster tab (cluster 11, rest)
+- [!] Invoice download (cluster 13)
 
 ---
 

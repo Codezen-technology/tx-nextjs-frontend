@@ -7,6 +7,7 @@ import { BusinessPageHeader } from "@/components/business/business-page-header";
 import { StatusBadge } from "@/components/business/status-badge";
 import { UsageBar } from "@/components/business/usage-bar";
 import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
+import { QuizScoresDialog } from "@/components/business/quiz-scores-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,11 +24,12 @@ function formatDate(value?: string | null) {
   return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-GB");
 }
 
-function progressLabel(progress?: number): string {
+/** Wire-style status keys, so StatusBadge picks up the right colour and label. */
+function progressStatus(progress?: number): string {
   const p = progress ?? 0;
-  if (p >= 100) return "Passed";
-  if (p > 0) return "In Progress";
-  return "Not Started";
+  if (p >= 100) return "completed";
+  if (p > 0) return "in_progress";
+  return "not_started";
 }
 
 export default function BusinessCourseCertificatesPage({
@@ -40,6 +42,7 @@ export default function BusinessCourseCertificatesPage({
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [scoresFor, setScoresFor] = useState<{ userId: number; name: string } | null>(null);
 
   const { data, isLoading, isError, refetch } = useBusinessCourseLearners(id, {
     page,
@@ -72,7 +75,7 @@ export default function BusinessCourseCertificatesPage({
     {
       key: "status",
       header: "Status",
-      cell: (row) => <StatusBadge status={progressLabel(row.progress)} />,
+      cell: (row) => <StatusBadge status={progressStatus(row.progress)} />,
     },
     {
       key: "progress",
@@ -90,9 +93,19 @@ export default function BusinessCourseCertificatesPage({
     {
       key: "score",
       header: "Score",
+      // The listing carries an overall percentage; the per-quiz breakdown is a
+      // separate call, so it is fetched only when a row is opened.
       cell: (row) => {
         const pct = row.quiz_scores?.percentage;
-        return pct != null ? `${pct}%` : "—";
+        return (
+          <button
+            type="button"
+            className="text-sm font-medium text-[#3F576F] hover:underline"
+            onClick={() => setScoresFor({ userId: row.user_id, name: row.display_name })}
+          >
+            {pct != null ? `${pct}%` : "View"}
+          </button>
+        );
       },
     },
     {
@@ -166,6 +179,14 @@ export default function BusinessCourseCertificatesPage({
         page={page}
         totalPages={totalPages}
         onPageChange={setPage}
+      />
+
+      <QuizScoresDialog
+        courseId={id}
+        learner={scoresFor}
+        onOpenChange={(open) => {
+          if (!open) setScoresFor(null);
+        }}
       />
     </div>
   );

@@ -6,9 +6,16 @@ const swca = `/swca/v1`;
 const wcStore = `/wc/store/v1`;
 const wcRest = `/wc/v3`;
 
-/** REST namespace for the B2B business dashboard facade plugin. */
+/**
+ * REST namespace for the B2B business dashboard facade plugin.
+ * `proxyToB2B()` prepends it, so `endpoints.business` paths omit it.
+ */
 export const B2B_NAMESPACE = env.B2B_NAMESPACE;
-const b2b = `/${B2B_NAMESPACE}`;
+
+/** Route param accepted by the B2B path helpers — raw, encoded on the way in. */
+type B2BId = string | number;
+
+const seg = (value: B2BId) => `/${encodeURIComponent(String(value))}`;
 
 /** REST path segment for a course by numeric ID or post slug. */
 export function coursePath(idOrSlug: string | number, subpath?: string): string {
@@ -240,49 +247,89 @@ export const endpoints = {
   },
   subscriptionPlans: `${lms}/subscription-plans`,
   /**
-   * B2B business dashboard facade (`lms-b2b/v1`). Read-only Phase 1 surface.
-   * These are full WP REST paths; BFF routes call `proxyToB2B(path)`.
+   * B2B business dashboard facade (`lms-b2b/v1`).
+   *
+   * Unlike the rest of this file these are **namespace-relative** paths, because
+   * that is what `proxyToB2B()` takes — it prepends the namespace itself. The
+   * `id` helpers encode their segments, so callers pass raw route params.
    */
   business: {
-    status: `${b2b}/status`,
-    summary: `${b2b}/reports/summary`,
-    current: `${b2b}/businesses/current`,
-    team: `${b2b}/team`,
-    teamMember: (id: number) => `${b2b}/team/${id}`,
-    courses: `${b2b}/courses`,
-    assignments: `${b2b}/courses/assignments`,
-    courseLearners: (id: number) => `${b2b}/courses/${id}/learners`,
-    licenceCourses: `${b2b}/licences/courses`,
-    licenceBalance: `${b2b}/licences/balance`,
-    reportCourses: `${b2b}/reports/courses`,
-    reportMembers: `${b2b}/reports/members`,
-    reportCertificates: `${b2b}/reports/certificates`,
-    certificates: `${b2b}/certificates`,
-    assignmentList: `${b2b}/courses/assignment-list`,
-    learnerCourses: (id: number) => `${b2b}/courses/learner/${id}`,
-    availableLearners: (id: number) => `${b2b}/courses/${id}/available-learners`,
-    assignCourse: `${b2b}/courses/assign`,
-    orders: `${b2b}/businesses/orders`,
-    licencePricing: `${b2b}/licences/pricing`,
-    licenceCheckout: `${b2b}/licences/checkout`,
-    licencePricingCalculate: `${b2b}/licences/pricing/calculate`,
-    subscriptions: `${b2b}/businesses/subscriptions`,
-    subscriptionSummary: `${b2b}/businesses/subscriptions/summary`,
-    subscriptionAssigned: `${b2b}/businesses/subscriptions/assigned`,
-    excludedCategories: `${b2b}/course-categories/excluded`,
-    certificateGenerate: `${b2b}/certificate/generate`,
-    managers: `${b2b}/managers`,
-    managersForBusiness: (id: number) => `${b2b}/managers/business/${id}`,
-    manager: (id: number) => `${b2b}/managers/${id}`,
-    managerStatus: (id: number) => `${b2b}/managers/${id}/status`,
-    managerCheckEmail: `${b2b}/managers/check-email`,
-    managerCapabilities: `${b2b}/permissions/manager/capabilities`,
-    managerPermissions: (id: number) => `${b2b}/permissions/business/managers/${id}/permissions`,
-    reviewHas: `${b2b}/reviews/has`,
-    reviews: `${b2b}/reviews`,
-    teamCheckEmail: `${b2b}/team/check-email`,
-    teamConvertRole: (id: number) => `${b2b}/team/${id}/convert-role`,
-    licenceQuote: `${b2b}/licences/quote`,
+    // Utility
+    status: "/status",
+
+    // Business record
+    current: "/businesses/current",
+    /** `{owner_user_id}` — the owner's user id, not the `b2b_businesses` row id. */
+    businessById: (ownerUserId: B2BId) => `/businesses${seg(ownerUserId)}`,
+    /** `{business_id}` — the `b2b_businesses` row id, unlike `businessById`. */
+    businessLogo: (businessId: B2BId) => `/businesses${seg(businessId)}/logo`,
+    orders: "/businesses/orders",
+
+    // Team
+    team: "/team",
+    teamMember: (id: B2BId) => `/team${seg(id)}`,
+    teamCheckEmail: "/team/check-email",
+    teamConvertRole: (id: B2BId) => `/team${seg(id)}/convert-role`,
+
+    // Courses and assignments
+    courses: "/courses",
+    assignments: "/courses/assignments",
+    assignmentList: "/courses/assignment-list",
+    assignCourse: "/courses/assign",
+    courseLearners: (id: B2BId) => `/courses${seg(id)}/learners`,
+    availableLearners: (id: B2BId) => `/courses${seg(id)}/available-learners`,
+    learnerCourses: (id: B2BId) => `/courses/learner${seg(id)}`,
+    learnerQuizScores: (courseId: B2BId, userId: B2BId) =>
+      `/courses${seg(courseId)}/learner${seg(userId)}/quiz-scores`,
+    courseCategories: "/course-categories",
+    excludedCategories: "/course-categories/excluded",
+
+    // Licences
+    licenceCourses: "/licences/courses",
+    licenceBalance: "/licences/balance",
+    courseLicenceBalance: (courseId: B2BId) => `/licences/balance${seg(courseId)}`,
+    licencePricing: "/licences/pricing",
+    licencePricingCalculate: "/licences/pricing/calculate",
+    licenceCheckout: "/licences/checkout",
+    licenceSubscriptionCheckout: "/licences/subscription/checkout",
+    licenceQuote: "/licences/quote",
+    licenceAssign: "/licences/assign",
+    licenceRevoke: "/licences/revoke",
+
+    // Reports
+    summary: "/reports/summary",
+    reportCourses: "/reports/courses",
+    reportMembers: "/reports/members",
+    reportCertificates: "/reports/certificates",
+
+    // Certificates
+    certificates: "/certificates",
+    certificateGenerate: "/certificate/generate",
+
+    // Subscriptions
+    subscriptions: "/businesses/subscriptions",
+    subscriptionActive: "/businesses/subscriptions/active",
+    subscriptionSummary: "/businesses/subscriptions/summary",
+    subscriptionAssigned: "/businesses/subscriptions/assigned",
+    subscriptionAssignUser: "/businesses/subscriptions/assign-user",
+    subscription: (id: B2BId) => `/businesses/subscriptions${seg(id)}`,
+    subscriptionStatus: (id: B2BId) => `/businesses/subscriptions${seg(id)}/status`,
+    subscriptionSeats: (id: B2BId) => `/businesses/subscriptions${seg(id)}/seats`,
+    subscriptionSeat: (id: B2BId, seatId: B2BId) =>
+      `/businesses/subscriptions${seg(id)}/seats${seg(seatId)}`,
+
+    // Managers and permissions
+    managers: "/managers",
+    managersForBusiness: (id: B2BId) => `/managers/business${seg(id)}`,
+    manager: (id: B2BId) => `/managers${seg(id)}`,
+    managerStatus: (id: B2BId) => `/managers${seg(id)}/status`,
+    managerCheckEmail: "/managers/check-email",
+    managerCapabilities: "/permissions/manager/capabilities",
+    managerPermissions: (id: B2BId) => `/permissions/business/managers${seg(id)}/permissions`,
+
+    // Reviews
+    reviews: "/reviews",
+    reviewHas: "/reviews/has",
   },
   partners: {
     list: `${wp}/partner_logo`,

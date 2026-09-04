@@ -63,11 +63,15 @@ export interface BusinessSubscriptionItem {
   available_seats?: number;
 }
 
+/** `GET /businesses/subscriptions/active` — seats summed across active subscriptions. */
 export interface AggregatedActiveSubscription {
+  subscription_id?: number;
+  plan_type?: string;
+  status?: string;
   total_seats: number;
   assigned_seats: number;
   available_seats: number;
-  end_date?: string;
+  next_payment?: string | null;
 }
 
 export interface QuoteRequestPayload {

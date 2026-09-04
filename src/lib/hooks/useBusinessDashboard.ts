@@ -155,6 +155,20 @@ export function useBusinessLicencePricing() {
   });
 }
 
+/**
+ * The aggregated active subscription (seats + renewal date).
+ *
+ * Derived client-side from the subscription list until the facade exposes
+ * `GET /businesses/subscriptions/active` — see docs/B2B_API_GAPS.md cluster 11.
+ */
+export function useBusinessActiveSubscription() {
+  return useQuery({
+    queryKey: queryKeys.business.activeSubscription,
+    queryFn: () => businessDashboardService.getActiveSubscription(),
+    staleTime: LIST_STALE,
+  });
+}
+
 export function useBusinessSubscriptionSummary() {
   return useQuery({
     queryKey: queryKeys.business.subscriptionSummary,
@@ -166,6 +180,14 @@ export function useBusinessSubscriptionAssigned(params: BusinessListParams = {})
   return useQuery({
     queryKey: queryKeys.business.subscriptionAssigned(params),
     queryFn: () => businessDashboardService.getAssignedSubscriptions(params),
+  });
+}
+
+export function useBusinessCourseCategories() {
+  return useQuery({
+    queryKey: queryKeys.business.courseCategories,
+    queryFn: () => businessDashboardService.getCourseCategories(),
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -198,7 +220,7 @@ export function useCheckLearnerEmail(email: string, enabled: boolean) {
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(debounced);
 
   return useQuery({
-    queryKey: ["business", "check-email", debounced],
+    queryKey: queryKeys.business.checkEmail(debounced),
     queryFn: () => businessDashboardService.checkLearnerEmail(debounced),
     enabled: enabled && valid && debounced.length > 0,
     staleTime: 30_000,
@@ -210,7 +232,7 @@ export function useAddBusinessLearner() {
   return useMutation({
     mutationFn: (payload: AddLearnerPayload) => businessDashboardService.addLearner(payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business", "learners"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.learnersRoot });
     },
   });
 }
@@ -221,7 +243,7 @@ export function useUpdateBusinessLearner() {
     mutationFn: ({ id, status }: { id: number; status: string }) =>
       businessDashboardService.updateLearner(id, { status }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business", "learners"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.learnersRoot });
     },
   });
 }
@@ -232,7 +254,7 @@ export function useConvertBusinessLearnerRole() {
     mutationFn: ({ id, role }: { id: number; role: string }) =>
       businessDashboardService.convertLearnerRole(id, role),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business", "learners"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.learnersRoot });
     },
   });
 }
@@ -242,16 +264,59 @@ export function useAssignBusinessCourse() {
   return useMutation({
     mutationFn: (payload: AssignCoursePayload) => businessDashboardService.assignCourse(payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.root });
     },
+  });
+}
+
+export function useRevokeLicence() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (assignmentId: number) => businessDashboardService.revokeLicence(assignmentId),
+    onSuccess: () => {
+      // Revoking moves a seat back into the pool, so balances and every
+      // assignment listing are both stale.
+      qc.invalidateQueries({ queryKey: queryKeys.business.root });
+    },
+  });
+}
+
+export function useLearnerQuizScores(courseId: number | null, userId: number | null) {
+  return useQuery({
+    queryKey: queryKeys.business.learnerQuizScores(courseId ?? 0, userId ?? 0),
+    queryFn: () =>
+      businessDashboardService.getLearnerQuizScores(courseId as number, userId as number),
+    enabled: courseId != null && userId != null,
+    staleTime: LIST_STALE,
   });
 }
 
 export function useUpdateBusinessProfile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Record<string, unknown> }) =>
-      businessDashboardService.updateProfile(id, data),
+    mutationFn: ({ ownerUserId, data }: { ownerUserId: number; data: Record<string, unknown> }) =>
+      businessDashboardService.updateProfile(ownerUserId, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.business.profile });
+    },
+  });
+}
+
+export function useUploadBusinessLogo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ businessId, file }: { businessId: number; file: File }) =>
+      businessDashboardService.uploadLogo(businessId, file),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.business.profile });
+    },
+  });
+}
+
+export function useDeleteBusinessLogo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (businessId: number) => businessDashboardService.deleteLogo(businessId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.business.profile });
     },
@@ -264,7 +329,7 @@ export function useGenerateBusinessCertificate() {
     mutationFn: (payload: { user_id: number; course_id: number }) =>
       businessDashboardService.generateCertificate(payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.root });
     },
   });
 }
@@ -281,7 +346,7 @@ export function useSubmitBusinessReview() {
 
 export function useBusinessSubscription(id: number | null) {
   return useQuery({
-    queryKey: ["business", "subscriptions", id],
+    queryKey: queryKeys.business.subscription(id ?? 0),
     queryFn: () => businessDashboardService.getSubscription(id as number),
     enabled: typeof id === "number" && id > 0,
   });
@@ -290,14 +355,14 @@ export function useBusinessSubscription(id: number | null) {
 /** Seats for one subscription. Disabled until a subscription is selected. */
 export function useSubscriptionSeats(id: number | null) {
   return useQuery({
-    queryKey: ["business", "subscriptions", id, "seats"],
+    queryKey: queryKeys.business.subscriptionSeats(id ?? 0),
     queryFn: () => businessDashboardService.getSubscriptionSeats(id as number),
     enabled: typeof id === "number" && id > 0,
   });
 }
 
 function invalidateSubscriptions(qc: ReturnType<typeof useQueryClient>) {
-  qc.invalidateQueries({ queryKey: ["business", "subscriptions"] });
+  qc.invalidateQueries({ queryKey: queryKeys.business.subscriptions });
 }
 
 export function useSetSubscriptionStatus() {
@@ -337,7 +402,7 @@ export function useAddBusinessManager() {
       last_name: string;
     }) => businessDashboardService.addManager(payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business", "managers"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.managersRoot });
     },
   });
 }
@@ -348,7 +413,7 @@ export function useUpdateBusinessManager() {
     mutationFn: ({ id, ...payload }: { id: number; business_id: number; status?: string }) =>
       businessDashboardService.updateManager(id, payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business", "managers"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.managersRoot });
     },
   });
 }
@@ -359,7 +424,7 @@ export function useSetBusinessManagerStatus() {
     mutationFn: ({ id, status }: { id: number; status: string }) =>
       businessDashboardService.setManagerStatus(id, status),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business", "managers"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.managersRoot });
     },
   });
 }
@@ -369,7 +434,7 @@ export function useDeleteBusinessManager() {
   return useMutation({
     mutationFn: (id: number) => businessDashboardService.deleteManager(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business", "managers"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.managersRoot });
     },
   });
 }
@@ -377,7 +442,7 @@ export function useDeleteBusinessManager() {
 /** Manager capabilities. Disabled until a manager is selected. */
 export function useManagerCapabilities(managerId: number | null) {
   return useQuery({
-    queryKey: ["business", "managers", "capabilities", managerId],
+    queryKey: queryKeys.business.managerCapabilities(managerId ?? 0),
     queryFn: () => businessDashboardService.getManagerCapabilities(managerId as number),
     enabled: typeof managerId === "number" && managerId > 0,
   });
@@ -395,7 +460,7 @@ export function useUpdateManagerPermissions() {
     }) => businessDashboardService.updateManagerPermissions(managerId, permissions),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({
-        queryKey: ["business", "managers", "capabilities", variables.managerId],
+        queryKey: queryKeys.business.managerCapabilities(variables.managerId),
       });
     },
   });

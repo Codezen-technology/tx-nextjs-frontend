@@ -8,7 +8,9 @@ import { StatusBadge } from "@/components/business/status-badge";
 import { UsageBar } from "@/components/business/usage-bar";
 import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
 import { Button } from "@/components/ui/button";
+import { LearnerOptionsRail } from "@/components/business/learner-options-rail";
 import { useBusinessLearner, useBusinessLearnerCourses } from "@/lib/hooks/useBusinessDashboard";
+import { deriveLearnerStatus } from "@/lib/utils/business-learners";
 import type { LearnerCourseItem } from "@/types/business-dashboard";
 
 function formatDate(value?: string | null) {
@@ -17,11 +19,12 @@ function formatDate(value?: string | null) {
   return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-GB");
 }
 
-function progressLabel(progress?: number): string {
+/** Wire-style status keys, so StatusBadge picks up the right colour. */
+function progressStatus(progress?: number): string {
   const p = progress ?? 0;
-  if (p >= 100) return "Passed";
-  if (p > 0) return "In Progress";
-  return "Not Started";
+  if (p >= 100) return "completed";
+  if (p > 0) return "in_progress";
+  return "not_started";
 }
 
 export default function BusinessLearnerDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -37,7 +40,7 @@ export default function BusinessLearnerDetailPage({ params }: { params: Promise<
     {
       key: "status",
       header: "Status",
-      cell: (row) => <StatusBadge status={progressLabel(row.progress)} />,
+      cell: (row) => <StatusBadge status={progressStatus(row.progress)} />,
     },
     {
       key: "progress",
@@ -88,50 +91,40 @@ export default function BusinessLearnerDetailPage({ params }: { params: Promise<
           Could not load this learner.
         </div>
       ) : (
-        <div className="border-neutral-30 rounded-xl border bg-white p-6 shadow-xs">
-          <div className="flex items-center gap-4">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#3F576F]/10 text-xl font-bold text-[#3F576F]">
-              {(learner.display_name || "?").charAt(0).toUpperCase()}
-            </span>
-            <div>
-              <h2 className="text-xl font-bold text-neutral-900">{learner.display_name}</h2>
-              <p className="flex items-center gap-1.5 text-sm text-neutral-300">
-                <Mail className="h-4 w-4" />
-                {learner.email || learner.user_email || "—"}
-              </p>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
+          <div className="space-y-6">
+            <div className="border-neutral-30 rounded-xl border bg-white p-6 shadow-xs">
+              <div className="flex items-center gap-4">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#3F576F]/10 text-xl font-bold text-[#3F576F]">
+                  {(learner.display_name || "?").charAt(0).toUpperCase()}
+                </span>
+                <div>
+                  <h2 className="text-xl font-bold text-neutral-900">{learner.display_name}</h2>
+                  <p className="flex items-center gap-1.5 text-sm text-neutral-300">
+                    <Mail className="h-4 w-4" />
+                    {learner.email || learner.user_email || "—"}
+                  </p>
+                </div>
+                <StatusBadge status={deriveLearnerStatus(learner)} className="ml-auto" />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-neutral-900">Assigned courses</h3>
+              <BusinessDataTable<LearnerCourseItem>
+                columns={columns}
+                rows={courses}
+                rowKey={(row) => row.course_id}
+                isLoading={coursesLoading}
+                emptyTitle="No courses assigned"
+                emptyDescription="Courses assigned to this learner will appear here."
+              />
             </div>
           </div>
 
-          <dl className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="bg-neutral-10 rounded-lg p-4">
-              <dt className="text-xs font-medium tracking-wide text-neutral-300 uppercase">Role</dt>
-              <dd className="mt-1">
-                <StatusBadge status={learner.role} />
-              </dd>
-            </div>
-            <div className="bg-neutral-10 rounded-lg p-4">
-              <dt className="text-xs font-medium tracking-wide text-neutral-300 uppercase">
-                Status
-              </dt>
-              <dd className="mt-1">
-                <StatusBadge status={learner.status} />
-              </dd>
-            </div>
-          </dl>
+          <LearnerOptionsRail learner={learner} />
         </div>
       )}
-
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-neutral-900">Assigned Courses</h3>
-        <BusinessDataTable<LearnerCourseItem>
-          columns={columns}
-          rows={courses}
-          rowKey={(row) => row.course_id}
-          isLoading={coursesLoading}
-          emptyTitle="No courses assigned"
-          emptyDescription="Courses assigned to this learner will appear here."
-        />
-      </div>
     </div>
   );
 }

@@ -1,8 +1,11 @@
 import { proxyToB2B } from "@/lib/api/bff";
+import { endpoints } from "@/lib/api/endpoints";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const qs = searchParams.toString();
-  const path = qs ? `/team/check-email?${qs}` : "/team/check-email";
+  const path = qs
+    ? `${endpoints.business.teamCheckEmail}?${qs}`
+    : endpoints.business.teamCheckEmail;
   return proxyToB2B(path);
 }

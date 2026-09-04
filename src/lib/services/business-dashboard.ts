@@ -1,4 +1,5 @@
 import { bffJson } from "@/lib/api/bff-client";
+import { ApiError } from "@/lib/api/error";
 import type {
   AddLearnerPayload,
   AssignCoursePayload,
@@ -9,6 +10,9 @@ import type {
   B2BPluginStatus,
   Business,
   BusinessListParams,
+  BusinessCertificateWire,
+  BusinessCourseCategory,
+  BusinessLogo,
   BusinessManager,
   BusinessOrdersResponse,
   BusinessSummary,
@@ -18,6 +22,7 @@ import type {
   CoursesResponse,
   Learner,
   LearnerCoursesResponse,
+  LearnerQuizScoresResponse,
   LicenceBalanceResponse,
   LicenceCoursesResponse,
   ManagersResponse,
@@ -44,10 +49,19 @@ import type {
   QuoteRequestPayload,
 } from "@/types/business-pricing";
 
-function buildQuery(params: Record<string, string | number | boolean | undefined>): string {
+function buildQuery(
+  params: Record<string, string | number | boolean | number[] | undefined>,
+): string {
   const sp = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== "") sp.set(k, String(v));
+    if (v === undefined || v === "") continue;
+    // Arrays go out as repeated `key[]=` pairs, which is what WP's REST arg
+    // parser reads back into a PHP array.
+    if (Array.isArray(v)) {
+      for (const item of v) sp.append(`${k}[]`, String(item));
+      continue;
+    }
+    sp.set(k, String(v));
   }
   const qs = sp.toString();
   return qs ? `?${qs}` : "";
@@ -71,10 +85,53 @@ export const businessDashboardService = {
     return bffJson<Business>("/api/business/profile");
   },
 
-  async updateProfile(id: number, data: Partial<Business>): Promise<Business> {
-    return bffJson<Business>(`/api/business/profile/${id}`, {
+  /**
+   * `PATCH /businesses/{owner_user_id}` — the segment is the **owner's user id**,
+   * not the `b2b_businesses` row id returned as `Business.id`. The backend named
+   * the variable honestly in Tier A; passing `.id` here silently targeted the
+   * wrong business.
+   */
+  async updateProfile(ownerUserId: number, data: Partial<Business>): Promise<Business> {
+    return bffJson<Business>(`/api/business/profile/${ownerUserId}`, {
       method: "PATCH",
       body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Upload a business logo. `businessId` is the `b2b_businesses` row id
+   * (`Business.id`) — not the owner user id `updateProfile` takes.
+   *
+   * Sent as multipart under the field name `file`, which is what
+   * `media_handle_upload()` reads on the backend.
+   */
+  async uploadLogo(businessId: number, file: File): Promise<BusinessLogo> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(`/api/business/profile/${businessId}/logo`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    const payload = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      throw new ApiError({
+        status: res.status,
+        code: payload?.code ?? "logo_upload_failed",
+        message: payload?.error ?? payload?.message ?? "Could not upload the logo",
+        raw: payload,
+      });
+    }
+
+    return payload as BusinessLogo;
+  },
+
+  async deleteLogo(businessId: number): Promise<{ deleted: boolean }> {
+    return bffJson<{ deleted: boolean }>(`/api/business/profile/${businessId}/logo`, {
+      method: "DELETE",
     });
   },
 
@@ -139,14 +196,31 @@ export const businessDashboardService = {
     return bffJson<AssignmentListResponse>(`/api/business/courses/assignment-list${qs}`);
   },
 
+  /**
+   * The course catalogue.
+   *
+   * `orderby` is deliberately omitted when unset: the backend treats an absent
+   * value as `menu_order DESC, date DESC`, and sending a default would re-sort
+   * every caller that never asked for one.
+   */
   async getCourses(params: BusinessListParams = {}): Promise<CoursesResponse> {
     const qs = buildQuery({
       page: params.page,
       per_page: params.per_page,
       search: params.search,
       status: params.status,
+      orderby: params.orderby,
+      taxonomy: params.taxonomy?.length ? params.taxonomy : undefined,
     });
     return bffJson<CoursesResponse>(`/api/business/courses${qs}`);
+  },
+
+  /** Course categories with exclusions already applied server-side. */
+  async getCourseCategories(): Promise<BusinessCourseCategory[]> {
+    const data = await bffJson<{ categories?: BusinessCourseCategory[] }>(
+      "/api/business/course-categories",
+    );
+    return data.categories ?? [];
   },
 
   async getLearnerCourses(
@@ -192,6 +266,33 @@ export const businessDashboardService = {
       method: "POST",
       body: JSON.stringify(payload),
     });
+  },
+
+  /**
+   * Return a spent licence to its pool.
+   *
+   * `POST /courses/assign` consumes a licence implicitly; this is the only way
+   * back. `assignmentId` is `CourseAssignment.id`, not the learner or course id.
+   */
+  async revokeLicence(assignmentId: number): Promise<{ revoked: boolean; message?: string }> {
+    return bffJson<{ revoked: boolean; message?: string }>("/api/business/licences/revoke", {
+      method: "POST",
+      body: JSON.stringify({ assignment_id: assignmentId }),
+    });
+  },
+
+  /** Direct pool assignment, as opposed to `POST /courses/assign`. */
+  async assignLicence(payload: { course_id: number; user_ids: number[] }): Promise<unknown> {
+    return bffJson<unknown>("/api/business/licences/assign", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getLearnerQuizScores(courseId: number, userId: number): Promise<LearnerQuizScoresResponse> {
+    return bffJson<LearnerQuizScoresResponse>(
+      `/api/business/courses/${courseId}/learner/${userId}/quiz-scores`,
+    );
   },
 
   async getLicenceCourses(params: BusinessListParams = {}): Promise<LicenceCoursesResponse> {
@@ -306,27 +407,19 @@ export const businessDashboardService = {
     return bffJson<B2BPaginated<BusinessSubscriptionItem>>(`/api/business/subscriptions${qs}`);
   },
 
+  /**
+   * The aggregated active subscription, or null when there is none.
+   *
+   * Server-side since Tier A. This used to sum a `?per_page=50` page of rows
+   * client-side, which was silently wrong for any tenant with more than fifty
+   * subscriptions.
+   */
   async getActiveSubscription(): Promise<AggregatedActiveSubscription | null> {
     try {
-      const res = await this.getBusinessSubscriptions({ per_page: 50 });
-      const items = res.items ?? [];
-      const yearly = items.filter((s) => s.status === "active" && s.plan_type !== "lifetime");
-      if (!yearly.length) return null;
-      return yearly.reduce(
-        (acc, s) => ({
-          total_seats: acc.total_seats + (s.total_seats ?? 0),
-          assigned_seats: acc.assigned_seats + (s.assigned_seats ?? 0),
-          available_seats: acc.available_seats + (s.available_seats ?? 0),
-          end_date:
-            !acc.end_date || (s.end_date && s.end_date > acc.end_date) ? s.end_date : acc.end_date,
-        }),
-        {
-          total_seats: 0,
-          assigned_seats: 0,
-          available_seats: 0,
-          end_date: undefined as string | undefined,
-        },
+      const data = await bffJson<AggregatedActiveSubscription | null>(
+        "/api/business/subscriptions/active",
       );
+      return data ?? null;
     } catch {
       return null;
     }
@@ -362,14 +455,45 @@ export const businessDashboardService = {
     return bffJson<B2BPaginated<ReportCertificate>>(`/api/business/reports/certificates${qs}`);
   },
 
+  /**
+   * The certificate register. The facade nests course and user, so rows are
+   * flattened here — components should never reach into `row.course.name`.
+   */
   async getCertificates(params: BusinessListParams = {}): Promise<CertificatesResponse> {
     const qs = buildQuery({
       page: params.page,
       per_page: params.per_page,
       search: params.search,
       status: params.status,
+      orderby: params.orderby,
+      order: params.order,
     });
-    return bffJson<CertificatesResponse>(`/api/business/certificates${qs}`);
+    const raw = await bffJson<{
+      items?: BusinessCertificateWire[];
+      total?: number;
+      pages?: number;
+      page?: number;
+      per_page?: number;
+    }>(`/api/business/certificates${qs}`);
+
+    return {
+      items: (raw.items ?? []).map((row) => ({
+        id: row.id,
+        course_id: row.course?.id ?? 0,
+        course_name: row.course?.name ?? "",
+        user_id: row.user?.id ?? 0,
+        learner_name: row.user?.name ?? "",
+        learner_email: row.user?.email ?? "",
+        certificate_url: row.certificate_url ?? null,
+        issued_date: row.issued_date ?? null,
+        expiry_date: row.expiry_date ?? null,
+        status: row.status ?? "active",
+      })),
+      total: raw.total ?? 0,
+      pages: raw.pages,
+      page: raw.page,
+      per_page: raw.per_page,
+    };
   },
 
   async generateCertificate(payload: {

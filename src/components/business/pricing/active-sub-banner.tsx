@@ -20,10 +20,10 @@ export function ActiveSubBanner({ activeSub }: ActiveSubBannerProps) {
           <CheckCircle2 className="h-4 w-4 shrink-0" />
           Your plan is active — all courses unlocked for your team
         </div>
-        {activeSub.end_date && (
+        {activeSub.next_payment && (
           <span className="ml-3 shrink-0 text-xs text-[#3F576F]/70">
             Renews{" "}
-            {new Date(activeSub.end_date).toLocaleDateString("en-GB", {
+            {new Date(activeSub.next_payment).toLocaleDateString("en-GB", {
               day: "numeric",
               month: "short",
               year: "numeric",
