@@ -20,18 +20,18 @@ Keep feature IDs (B0–B7) in sync with the plan.
 
 ## Snapshot
 
-| Layer                                                   | State                                              |
-| ------------------------------------------------------- | -------------------------------------------------- |
-| BFF proxy routes (`/api/business/**`)                   | **71 route files / 83 handlers** → `lms-b2b/v1` ✅ |
-| BFF paths sourced from `endpoints.business`             | **all routes** — no hardcoded path strings ✅      |
-| Client service (`businessDashboardService`)             | **83 methods** ✅                                  |
-| React Query hooks (`useBusinessDashboard.ts`)           | **75 hooks**, all on `queryKeys.business` ✅       |
-| Types (`business-dashboard.ts` + `business-pricing.ts`) | present ✅                                         |
-| Pages (`(business)/business-dashboard/**`)              | **21 route segments** ✅                           |
-| Auth (JWT Bearer + refresh, httpOnly cookies)           | wired in `bff.ts` ✅                               |
-| Unit tests for business surfaces                        | `business-learners`, `business-csv` (14 cases) ✅  |
-| **Parity with the legacy WP dashboard**                 | **parity reached** — pending live verification ❗  |
-| **End-to-end verification per surface**                 | **pending** ❓                                     |
+| Layer                                                   | State                                                                  |
+| ------------------------------------------------------- | ---------------------------------------------------------------------- |
+| BFF proxy routes (`/api/business/**`)                   | **71 route files / 83 handlers** → `lms-b2b/v1` ✅                     |
+| BFF paths sourced from `endpoints.business`             | **all routes** — no hardcoded path strings ✅                          |
+| Client service (`businessDashboardService`)             | **83 methods** ✅                                                      |
+| React Query hooks (`useBusinessDashboard.ts`)           | **76 hooks**, all on `queryKeys.business` ✅                           |
+| Types (`business-dashboard.ts` + `business-pricing.ts`) | present ✅                                                             |
+| Pages (`(business)/business-dashboard/**`)              | **21 route segments** ✅                                               |
+| Auth (JWT Bearer + refresh, httpOnly cookies)           | wired in `bff.ts` ✅                                                   |
+| Unit tests for business surfaces                        | `business-learners`, `business-csv`, `business-licences` (20 cases) ✅ |
+| **Parity with the legacy WP dashboard**                 | **parity reached** — pending live verification ❗                      |
+| **End-to-end verification per surface**                 | **pending** ❓                                                         |
 
 Backend (`wp-lms-b2b-rest-api`) readiness: Phase 1 **8/10**, contract **117/117** standalone. Pending backend: CORS
 origins (deploy), Postman collection; 4 controllers still proxy-only. See `wp-lms-b2b-rest-api/PROGRESS.md`.
@@ -122,6 +122,42 @@ All mutation hooks exist; verify invalidation + error-toast + success UX:
 - [ ] Flow tests: assign course, add learner, licence + subscription checkout
 - [ ] Contract fixtures mirroring `lms-b2b/v1` payloads (`src/__tests__/fixtures`)
 
+## B9 — Live verification (2026-09-05)
+
+Swept every business BFF route against a real site with real data.
+
+**Bug found and fixed: licence figures were rendering as concatenated strings.** `$wpdb` returns
+every column as a string, so a pool arrived as `available: "2", quantity: "3", used: "1"`.
+`sumAvailableLicences` reduced with `+`, so one pool showed `"02"` and two pools of 2 and 5 showed
+`"025"` instead of `7`. The Overview's licence KPI read `"01 / 03"`. Separately, `course_id` arrived
+as `"0"` for universal pools, so `course_id === 0` never matched and neither
+`formatPoolCourseName` nor `isMigratedCreditPool` could identify one.
+
+Fixed by coercing in `normaliseLicencePool()` in the service — the only layer allowed to know about
+WP's shape — rather than at the call sites. Six regression tests added in
+`src/__tests__/business-licences.test.ts`.
+
+Worth noting the shape was valid throughout: `LicenceBalanceResponse` type-checks against a payload
+of strings, because TypeScript only describes the shape we _expect_. Neither typecheck nor the
+contract test could have caught this; only running it could.
+
+Confirmed working against live data: settings, departments (tree + flat, `member_count`),
+membership `PUT` (replaces the set), saved views (`filters` round-trips verbatim), activity,
+learner-courses, matrix, course options, team stats, seat roster, certificates, orders (with the
+Tier B `invoice_url` / `is_paid` / `billing_name`), quiz scores, and the summary's four Tier B
+fields.
+
+Two things the sweep clarified rather than broke:
+
+- `GET /team/{id}` takes the **team member row id**, not the user id. The learners table already
+  links with the row id and the rail uses `user_id` only for the department routes, which is
+  correct — but it is an easy one to get backwards.
+- `/api/business/status` is the only BFF route reachable unauthenticated; every other one
+  short-circuits to 401 in `proxyToWP` before calling WordPress. Unauthenticated sweeps therefore
+  cannot validate path construction.
+
+---
+
 ## B8 — Parity pass against the legacy WP dashboard
 
 Done with the endpoints the facade already serves:
@@ -183,12 +219,21 @@ Remaining, and not blocked on anything:
 
 - [ ] Learner name/email editing — `PATCH /team/{id}` accepts it, but no UI surfaces it yet
 - [ ] i18n: every business string is still hardcoded English despite the `[locale]` segment
-- [ ] Server-side route guard — `BusinessAccessGuard` is client-only and `proxy.ts` does not gate
-      `/business-dashboard`
+- [x] Server-side auth gate — `proxy.ts:9` has `/^\/business-dashboard/` in `PROTECTED` and
+      redirects to `/login?next=…`. Verified live (307). An earlier note here claiming it was
+      ungated was wrong.
+- [ ] Server-side **role** gate — authentication is enforced at the proxy, but the business-role
+      check is still client-side in `BusinessAccessGuard`. A logged-in learner reaches the shell
+      before the denial renders, though every API call 403s server-side
 - [x] Assign-course modal shows subscription coverage before assigning
       (`POST /business/check-learners-subscriptions`) — a covered learner spends no licence
-- [ ] **Live verification of the frontend.** The backend was verified live (contract 179/179,
-      golden 39 routes); nothing on this side has been exercised against a real site
+- [x] **Live verification of the frontend** (2026-09-05, against `tx-local-site` with the tier
+      plugin installed). Logged in through `/api/auth/login` as a `b2b_customer`, then swept all
+      33 parameterless GET routes plus the parameterised ones, and exercised the department,
+      membership and saved-view write paths end to end. Every route answered; test data removed
+      afterwards. One real bug found and fixed — see below.
+- [ ] Browser pass over the pages themselves (rendering, empty states, interaction). The sweep
+      covered the API contract, not the UI.
 
 ---
 

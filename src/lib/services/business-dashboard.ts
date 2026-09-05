@@ -34,6 +34,7 @@ import type {
   LearnerCoursesResponse,
   LearnerQuizScoresResponse,
   LicenceBalanceResponse,
+  LicencePool,
   LicenceCoursesResponse,
   MatrixCourse,
   MemberDepartmentsResponse,
@@ -83,6 +84,35 @@ function buildQuery(
   }
   const qs = sp.toString();
   return qs ? `?${qs}` : "";
+}
+
+/**
+ * Coerce a licence pool's numeric columns.
+ *
+ * `$wpdb` returns every column as a string, so `available` arrives as "2".
+ * Summing those concatenates rather than adds — two pools of 2 and 5 rendered
+ * as "025" — and `course_id === 0`, the universal-pool sentinel, never matched.
+ * Normalising here keeps the coercion in the one layer allowed to know about
+ * WP's shape.
+ */
+function normaliseLicencePool(pool: Record<string, unknown>): LicencePool {
+  const num = (value: unknown): number => {
+    const n = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  return {
+    ...(pool as unknown as LicencePool),
+    id: num(pool.id),
+    business_id: num(pool.business_id),
+    course_id: num(pool.course_id),
+    order_id: num(pool.order_id),
+    quantity: num(pool.quantity),
+    used: num(pool.used),
+    available: num(pool.available),
+    price_per_licence: num(pool.price_per_licence),
+    discount_percent: num(pool.discount_percent),
+  };
 }
 
 export const businessDashboardService = {
@@ -325,11 +355,17 @@ export const businessDashboardService = {
   },
 
   async getLicenceBalance(): Promise<LicenceBalanceResponse> {
-    return bffJson<LicenceBalanceResponse>("/api/business/licences/balance");
+    const raw = await bffJson<LicenceBalanceResponse & { pools?: Record<string, unknown>[] }>(
+      "/api/business/licences/balance",
+    );
+    return { ...raw, pools: (raw.pools ?? []).map(normaliseLicencePool) };
   },
 
   async getCourseLicenceBalance(courseId: number): Promise<LicenceBalanceResponse> {
-    return bffJson<LicenceBalanceResponse>(`/api/business/licences/balance/${courseId}`);
+    const raw = await bffJson<LicenceBalanceResponse & { pools?: Record<string, unknown>[] }>(
+      `/api/business/licences/balance/${courseId}`,
+    );
+    return { ...raw, pools: (raw.pools ?? []).map(normaliseLicencePool) };
   },
 
   async getLicencePricing(): Promise<LicencePricingConfig> {
