@@ -132,7 +132,10 @@ Backend decisions worth carrying forward:
 
 Frontend note: the CSV importer's `dept` column is live again — it was parsed but discarded while
 there was nowhere to send it. Department names are matched case-insensitively against the flat
-list, and an unmatched name is reported per row by the backend.
+list. Because the bulk route takes ids, the backend never sees an unmatched name — the importer
+reports those itself in the results panel, per name with a row count. General rule: when the
+client resolves human-entered values to ids before a bulk call, the client owns the not-found
+reporting; the backend can only ever validate ids.
 
 ---
 

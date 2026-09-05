@@ -27,6 +27,20 @@ describe("parseCsv", () => {
   it("returns no rows for empty input", () => {
     expect(parseCsv("")).toEqual([]);
   });
+
+  it("keeps a comma inside a quoted cell (Excel quotes such cells)", () => {
+    expect(parseCsv('"Smith, John",Carer,smith@example.test')).toEqual([
+      ["Smith, John", "Carer", "smith@example.test"],
+    ]);
+  });
+
+  it("unescapes doubled quotes inside a quoted cell", () => {
+    expect(parseCsv('"He said ""hi""",x')).toEqual([['He said "hi"', "x"]]);
+  });
+
+  it("handles a quoted cell after leading whitespace", () => {
+    expect(parseCsv(' "Care, Ltd" ,x')).toEqual([["Care, Ltd", "x"]]);
+  });
 });
 
 describe("detectHeaderRow", () => {

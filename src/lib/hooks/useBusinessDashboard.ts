@@ -159,10 +159,10 @@ export function useBusinessLicencePricing() {
 }
 
 /**
- * The aggregated active subscription (seats + renewal date).
- *
- * Derived client-side from the subscription list until the facade exposes
- * `GET /businesses/subscriptions/active` — see docs/B2B_API_GAPS.md cluster 11.
+ * The aggregated active subscription (seats + renewal date), from
+ * `GET /businesses/subscriptions/active`. The server sums across every
+ * active subscription, so the figure is right past the first page — the
+ * client-side sum this replaced was capped at one `?per_page=50` page.
  */
 export function useBusinessActiveSubscription() {
   return useQuery({
@@ -496,7 +496,7 @@ export function useSetMemberDepartments() {
 }
 
 function invalidateSavedReports(qc: ReturnType<typeof useQueryClient>) {
-  qc.invalidateQueries({ queryKey: ["business", "saved-reports"] });
+  qc.invalidateQueries({ queryKey: queryKeys.business.savedReportsRoot });
 }
 
 export function useCreateSavedReport() {
@@ -617,6 +617,14 @@ export function useSubscriptionSeats(id: number | null) {
 
 function invalidateSubscriptions(qc: ReturnType<typeof useQueryClient>) {
   qc.invalidateQueries({ queryKey: queryKeys.business.subscriptions });
+  // Seat changes also move surfaces keyed outside the subscriptions prefix:
+  // the cross-subscription roster on the same page, the Overview KPI, the
+  // assigned list, the summary and the assign-modal coverage badges.
+  qc.invalidateQueries({ queryKey: queryKeys.business.seatRosterRoot });
+  qc.invalidateQueries({ queryKey: queryKeys.business.subscriptionAssignedRoot });
+  qc.invalidateQueries({ queryKey: queryKeys.business.activeSubscription });
+  qc.invalidateQueries({ queryKey: queryKeys.business.subscriptionSummary });
+  qc.invalidateQueries({ queryKey: queryKeys.business.learnerSubscriptionChecksRoot });
 }
 
 export function useSetSubscriptionStatus() {

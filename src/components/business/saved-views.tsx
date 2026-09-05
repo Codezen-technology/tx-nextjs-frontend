@@ -42,6 +42,10 @@ export function SavedViews({
   const [name, setName] = useState("");
   const [renamingId, setRenamingId] = useState<number | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  // Views are shared across the business, so a delete is armed on the first
+  // click and only fires on the second — a mis-click must not wipe another
+  // manager's view.
+  const [confirmingId, setConfirmingId] = useState<number | null>(null);
   const [error, setError] = useState("");
 
   const run = async (action: () => Promise<unknown>, fallback: string) => {
@@ -116,16 +120,41 @@ export function SavedViews({
                 >
                   <Pencil className="h-3 w-3" />
                 </button>
-                <button
-                  type="button"
-                  aria-label={`Delete ${view.name}`}
-                  className="p-1 text-neutral-300 hover:text-red-600"
-                  onClick={() =>
-                    run(() => deleteView.mutateAsync(view.id), "Could not delete that view.")
-                  }
-                >
-                  <Trash2 className="h-3 w-3" />
-                </button>
+                {confirmingId === view.id ? (
+                  <>
+                    <button
+                      type="button"
+                      aria-label={`Confirm deleting ${view.name}`}
+                      className="p-1 text-xs font-medium text-red-600 hover:text-red-700"
+                      onClick={async () => {
+                        const ok = await run(
+                          () => deleteView.mutateAsync(view.id),
+                          "Could not delete that view.",
+                        );
+                        if (ok) setConfirmingId(null);
+                      }}
+                    >
+                      Delete?
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Keep ${view.name}`}
+                      className="p-1 text-neutral-300 hover:text-neutral-900"
+                      onClick={() => setConfirmingId(null)}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    aria-label={`Delete ${view.name}`}
+                    className="p-1 text-neutral-300 hover:text-red-600"
+                    onClick={() => setConfirmingId(view.id)}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                )}
               </span>
             ),
           )

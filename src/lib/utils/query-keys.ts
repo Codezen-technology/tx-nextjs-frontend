@@ -127,13 +127,16 @@ export const queryKeys = {
     activeSubscription: ["business", "active-subscription"] as const,
     subscriptions: ["business", "subscriptions"] as const,
     subscriptionSummary: ["business", "subscription-summary"] as const,
+    subscriptionAssignedRoot: ["business", "subscription-assigned"] as const,
     subscriptionAssigned: (params: BusinessListParams = {}) =>
       ["business", "subscription-assigned", params] as const,
     courseCategories: ["business", "course-categories"] as const,
     settings: ["business", "settings"] as const,
     departments: ["business", "departments"] as const,
     memberDepartments: (userId: number) => ["business", "member-departments", userId] as const,
+    savedReportsRoot: ["business", "saved-reports"] as const,
     savedReports: (reportType: string) => ["business", "saved-reports", reportType] as const,
+    learnerSubscriptionChecksRoot: ["business", "learner-subscription-checks"] as const,
     learnerSubscriptionChecks: (learnerIds: number[]) =>
       ["business", "learner-subscription-checks", learnerIds.join(",")] as const,
     activity: (params: BusinessListParams = {}) => ["business", "activity", params] as const,
@@ -143,6 +146,7 @@ export const queryKeys = {
       ["business", "training-matrix", params] as const,
     reportCourseOptions: ["business", "report-course-options"] as const,
     teamStats: ["business", "team-stats"] as const,
+    seatRosterRoot: ["business", "seat-roster"] as const,
     seatRoster: (params: BusinessListParams = {}) => ["business", "seat-roster", params] as const,
     learnerQuizScores: (courseId: number, userId: number) =>
       ["business", "quiz-scores", courseId, userId] as const,

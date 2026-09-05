@@ -117,7 +117,7 @@ All mutation hooks exist; verify invalidation + error-toast + success UX:
 
 ## B7 — Tests
 
-- [x] `business-learners` — `deriveLearnerStatus` + `partitionLearners` (7 cases)
+- [x] `business-learners` — `deriveLearnerStatus` (3 cases; `partitionLearners` deleted in Tier B, replaced by `GET /team/stats`)
 - [x] `business-csv` — parser, header detection, column mapping, row projection (10 cases)
 - [ ] Flow tests: assign course, add learner, licence + subscription checkout
 - [ ] Contract fixtures mirroring `lms-b2b/v1` payloads (`src/__tests__/fixtures`)

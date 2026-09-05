@@ -44,6 +44,10 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
   const [mapping, setMapping] = useState<ColumnRole[]>([]);
   const [mappingConfirmed, setMappingConfirmed] = useState(false);
   const [results, setResults] = useState<BulkImportRowResult[] | null>(null);
+  // Department names the spreadsheet used that match nothing in this business.
+  // The API takes ids, so the backend never sees the name — reporting these is
+  // the client's job, and staying silent would drop the column without a trace.
+  const [unmatchedDepts, setUnmatchedDepts] = useState<{ name: string; count: number }[]>([]);
   const [error, setError] = useState("");
 
   const bulkImport = useBulkImportLearners();
@@ -54,6 +58,7 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
     setMapping([]);
     setMappingConfirmed(false);
     setResults(null);
+    setUnmatchedDepts([]);
     setError("");
   };
 
@@ -86,14 +91,20 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
     const records = buildImportRows(dataRows, mapping);
 
     // Departments are matched by name, since a spreadsheet names them rather
-    // than knowing their ids. An unmatched name is left off and the backend
-    // reports it per row.
+    // than knowing their ids. The bulk API takes ids only, so an unmatched
+    // name never reaches the backend — it is collected here and reported in
+    // the results panel instead of being dropped silently.
     const byName = new Map(
       (departments?.flat ?? []).map((d) => [d.name.trim().toLowerCase(), d.id]),
     );
+    const unmatched = new Map<string, number>();
 
     const members: BulkImportMember[] = records.map((record) => {
-      const departmentId = record.dept ? byName.get(record.dept.trim().toLowerCase()) : undefined;
+      const deptName = record.dept?.trim() ?? "";
+      const departmentId = deptName ? byName.get(deptName.toLowerCase()) : undefined;
+      if (deptName && !departmentId) {
+        unmatched.set(deptName, (unmatched.get(deptName) ?? 0) + 1);
+      }
 
       return {
         email: record.email,
@@ -104,6 +115,7 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
     });
 
     setResults(null);
+    setUnmatchedDepts([...unmatched.entries()].map(([name, count]) => ({ name, count })));
     setError("");
 
     try {
@@ -256,6 +268,22 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
             Added {added} learner{added === 1 ? "" : "s"}
             {skipped.length > 0 ? `, skipped ${skipped.length}` : ""}.
           </p>
+
+          {unmatchedDepts.length > 0 ? (
+            <div className="rounded-lg bg-amber-50 p-3">
+              <p className="text-sm font-medium text-amber-900">
+                Some department names in the file match nothing in this business, so those learners
+                were imported without a department.
+              </p>
+              <ul className="mt-1 max-h-32 space-y-1 overflow-y-auto text-sm text-amber-900">
+                {unmatchedDepts.map(({ name, count }) => (
+                  <li key={name}>
+                    “{name}” — {count} row{count === 1 ? "" : "s"}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           {addedWithProblems.length > 0 ? (
             <div className="rounded-lg bg-amber-50 p-3">

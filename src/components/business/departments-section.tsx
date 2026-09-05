@@ -24,8 +24,8 @@ function DepartmentRow({
   node: DepartmentNode;
   depth: number;
   flat: Department[];
-  onRenamed: (id: number, name: string, parentId: number) => Promise<void>;
-  onDeleted: (id: number) => Promise<void>;
+  onRenamed: (id: number, name: string, parentId: number) => Promise<boolean>;
+  onDeleted: (id: number) => Promise<boolean>;
 }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(node.name);
@@ -170,12 +170,14 @@ export function DepartmentsSection() {
   const tree = data?.departments ?? [];
   const flat = data?.flat ?? [];
 
-  const run = async (action: () => Promise<unknown>, fallback: string) => {
+  const run = async (action: () => Promise<unknown>, fallback: string): Promise<boolean> => {
     setError("");
     try {
       await action();
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : fallback);
+      return false;
     }
   };
 
@@ -220,7 +222,7 @@ export function DepartmentsSection() {
         onSubmit={async (e) => {
           e.preventDefault();
           if (!newName.trim()) return;
-          await run(
+          const ok = await run(
             () =>
               createDepartment.mutateAsync({
                 name: newName.trim(),
@@ -228,8 +230,12 @@ export function DepartmentsSection() {
               }),
             "Could not add that department.",
           );
-          setNewName("");
-          setNewParent(ROOT);
+          // A failed create keeps what was typed — retyping it is the one
+          // thing the error message should not require.
+          if (ok) {
+            setNewName("");
+            setNewParent(ROOT);
+          }
         }}
       >
         <Input

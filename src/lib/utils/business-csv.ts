@@ -26,15 +26,51 @@ export interface ImportRow {
 }
 
 /**
- * Deliberately naive: splits on commas, so quoted cells containing commas are
- * not supported. The template we hand out never produces them.
+ * RFC 4180 fields: quoted cells may contain commas and doubled quotes
+ * (`"Smith, John"`, `"5'10"" tall"`). Excel quotes any cell containing a
+ * comma, and the drop-zone accepts arbitrary exports, so a naive
+ * split-on-comma silently shifted every later column right. Newlines inside
+ * quotes are still unsupported — a learner row has no business containing
+ * one, and rejecting the row beats mis-joining two learners.
  */
 export function parseCsv(text: string): string[][] {
   return text
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean)
-    .map((line) => line.split(",").map((cell) => cell.trim().replace(/^"|"$/g, "")));
+    .map(parseCsvLine);
+}
+
+function parseCsvLine(line: string): string[] {
+  const cells: string[] = [];
+  let cell = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (inQuotes) {
+      if (char === '"') {
+        if (line[i + 1] === '"') {
+          cell += '"'; // escaped quote
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        cell += char;
+      }
+    } else if (char === '"' && cell.trim() === "") {
+      inQuotes = true;
+      cell = ""; // drop any padding before the opening quote
+    } else if (char === ",") {
+      cells.push(cell.trim());
+      cell = "";
+    } else {
+      cell += char;
+    }
+  }
+  cells.push(cell.trim());
+  return cells;
 }
 
 const HEADER_ROLES: Record<string, ColumnRole> = {
