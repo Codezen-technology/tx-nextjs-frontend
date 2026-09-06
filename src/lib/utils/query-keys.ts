@@ -91,6 +91,10 @@ export const queryKeys = {
     products: ["admin", "products"] as const,
   },
   business: {
+    /** Broad invalidation root — every business key starts with it. */
+    root: ["business"] as const,
+    learnersRoot: ["business", "learners"] as const,
+    managersRoot: ["business", "managers"] as const,
     summary: ["business", "summary"] as const,
     profile: ["business", "profile"] as const,
     learners: (params: BusinessListParams = {}) => ["business", "learners", params] as const,
@@ -123,13 +127,40 @@ export const queryKeys = {
     activeSubscription: ["business", "active-subscription"] as const,
     subscriptions: ["business", "subscriptions"] as const,
     subscriptionSummary: ["business", "subscription-summary"] as const,
+    subscriptionAssignedRoot: ["business", "subscription-assigned"] as const,
     subscriptionAssigned: (params: BusinessListParams = {}) =>
       ["business", "subscription-assigned", params] as const,
+    courseCategories: ["business", "course-categories"] as const,
+    settings: ["business", "settings"] as const,
+    departments: ["business", "departments"] as const,
+    memberDepartments: (userId: number) => ["business", "member-departments", userId] as const,
+    savedReportsRoot: ["business", "saved-reports"] as const,
+    savedReports: (reportType: string) => ["business", "saved-reports", reportType] as const,
+    learnerSubscriptionChecksRoot: ["business", "learner-subscription-checks"] as const,
+    learnerSubscriptionChecks: (learnerIds: number[]) =>
+      ["business", "learner-subscription-checks", learnerIds.join(",")] as const,
+    activity: (params: BusinessListParams = {}) => ["business", "activity", params] as const,
+    learnerCoursesReport: (params: BusinessListParams = {}) =>
+      ["business", "learner-courses-report", params] as const,
+    trainingMatrix: (params: BusinessListParams = {}) =>
+      ["business", "training-matrix", params] as const,
+    reportCourseOptions: ["business", "report-course-options"] as const,
+    teamStats: (params: Record<string, unknown> = {}) =>
+      ["business", "team-stats", params] as const,
+    seatRosterRoot: ["business", "seat-roster"] as const,
+    seatRoster: (params: BusinessListParams = {}) => ["business", "seat-roster", params] as const,
+    learnerQuizScores: (courseId: number, userId: number) =>
+      ["business", "quiz-scores", courseId, userId] as const,
     excludedCategories: ["business", "excluded-categories"] as const,
     managers: (businessId: number) => ["business", "managers", businessId] as const,
     reviewHas: ["business", "review-has"] as const,
     courseLicenceBalance: (courseId: number) =>
       ["business", "course-licence-balance", courseId] as const,
     pluginStatus: ["business", "plugin-status"] as const,
+    checkEmail: (email: string) => ["business", "check-email", email] as const,
+    subscription: (id: number) => ["business", "subscriptions", id] as const,
+    subscriptionSeats: (id: number) => ["business", "subscriptions", id, "seats"] as const,
+    managerCapabilities: (managerId: number) =>
+      ["business", "managers", "capabilities", managerId] as const,
   },
 } as const;

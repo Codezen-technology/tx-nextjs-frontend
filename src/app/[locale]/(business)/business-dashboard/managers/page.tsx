@@ -50,7 +50,7 @@ export default function BusinessManagersPage() {
   const [emailNotice, setEmailNotice] = useState<string | null>(null);
   const [checkingEmail, setCheckingEmail] = useState(false);
 
-  const rows = data?.items ?? data?.managers ?? [];
+  const rows = data?.managers ?? [];
 
   const resetAddForm = () => {
     setEmail("");
@@ -97,8 +97,7 @@ export default function BusinessManagersPage() {
 
   const columns: Column<BusinessManager>[] = [
     { key: "name", header: "Name", cell: (r) => r.display_name },
-    // The API field is user_email; the older `email` key was never populated by it.
-    { key: "email", header: "Email", cell: (r) => r.user_email ?? r.email ?? "—" },
+    { key: "email", header: "Email", cell: (r) => r.user_email || "—" },
     { key: "role", header: "Role", cell: (r) => r.role ?? "manager" },
     { key: "status", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
     {

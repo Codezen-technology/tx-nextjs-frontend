@@ -2,14 +2,24 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Award, BookOpen, CheckCircle2, Clock, Search, UserPlus, Users } from "lucide-react";
+import {
+  Award,
+  BellRing,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  Search,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { AssignCourseModal } from "@/components/business/assign-course-modal";
 import { BusinessPageHeader } from "@/components/business/business-page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
 import { EmptyState } from "@/components/ui/empty-state";
-import { useBusinessAssignmentList } from "@/lib/hooks/useBusinessDashboard";
+import { ApiError } from "@/lib/api/error";
+import { useBusinessAssignmentList, useRemindCourse } from "@/lib/hooks/useBusinessDashboard";
 import type { AssignmentListCourse } from "@/types/business-dashboard";
 
 const PER_PAGE = 9;
@@ -22,6 +32,29 @@ function CourseCard({
   onAssign: (course: AssignmentListCourse) => void;
 }) {
   const stats = course.completion_stats;
+  const remind = useRemindCourse();
+  const [remindMessage, setRemindMessage] = useState("");
+
+  // Only worth offering when somebody on the course has not finished it.
+  const behind = Math.max(0, (course.total_learners ?? 0) - (stats?.completed ?? 0));
+
+  const onRemind = async () => {
+    setRemindMessage("");
+    try {
+      const result = await remind.mutateAsync(course.course_id);
+      setRemindMessage(
+        result.sent > 0
+          ? `Reminded ${result.sent} learner${result.sent === 1 ? "" : "s"}.`
+          : "Nobody needed a reminder.",
+      );
+    } catch (err) {
+      setRemindMessage(
+        err instanceof ApiError && err.status === 429
+          ? "Reminders were sent recently. Try again shortly."
+          : "Could not send reminders.",
+      );
+    }
+  };
   const items = [
     { label: "Learners", value: course.total_learners, icon: Users },
     { label: "In Progress", value: stats?.active, icon: Clock },
@@ -58,7 +91,20 @@ function CourseCard({
           <UserPlus className="mr-1.5 h-3.5 w-3.5" />
           Assign more
         </Button>
+        {behind > 0 ? (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8"
+            disabled={remind.isPending}
+            onClick={onRemind}
+          >
+            <BellRing className="mr-1.5 h-3.5 w-3.5" />
+            {remind.isPending ? "Sending…" : `Remind (${behind})`}
+          </Button>
+        ) : null}
       </div>
+      {remindMessage ? <p className="mt-2 text-xs text-[#3F576F]">{remindMessage}</p> : null}
     </div>
   );
 }
@@ -75,7 +121,7 @@ export default function BusinessAssignedCoursesPage() {
     search,
   });
 
-  const rows = data?.items ?? data?.courses ?? [];
+  const rows = data?.items ?? [];
   const totalPages = data?.pages ?? 1;
 
   const onSearch = (e: React.FormEvent) => {

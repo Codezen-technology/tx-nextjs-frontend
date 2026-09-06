@@ -8,6 +8,9 @@ import type {
   AddLearnerPayload,
   AssignCoursePayload,
   BusinessListParams,
+  BulkImportMember,
+  BusinessSettingsUpdate,
+  OnboardingPayload,
   SubmitReviewPayload,
 } from "@/types/business-dashboard";
 
@@ -155,6 +158,20 @@ export function useBusinessLicencePricing() {
   });
 }
 
+/**
+ * The aggregated active subscription (seats + renewal date), from
+ * `GET /businesses/subscriptions/active`. The server sums across every
+ * active subscription, so the figure is right past the first page — the
+ * client-side sum this replaced was capped at one `?per_page=50` page.
+ */
+export function useBusinessActiveSubscription() {
+  return useQuery({
+    queryKey: queryKeys.business.activeSubscription,
+    queryFn: () => businessDashboardService.getActiveSubscription(),
+    staleTime: LIST_STALE,
+  });
+}
+
 export function useBusinessSubscriptionSummary() {
   return useQuery({
     queryKey: queryKeys.business.subscriptionSummary,
@@ -166,6 +183,14 @@ export function useBusinessSubscriptionAssigned(params: BusinessListParams = {})
   return useQuery({
     queryKey: queryKeys.business.subscriptionAssigned(params),
     queryFn: () => businessDashboardService.getAssignedSubscriptions(params),
+  });
+}
+
+export function useBusinessCourseCategories() {
+  return useQuery({
+    queryKey: queryKeys.business.courseCategories,
+    queryFn: () => businessDashboardService.getCourseCategories(),
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -191,6 +216,101 @@ export function useBusinessReviewHas() {
   });
 }
 
+export function useBusinessSettings() {
+  return useQuery({
+    queryKey: queryKeys.business.settings,
+    queryFn: () => businessDashboardService.getSettings(),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useBusinessActivity(params: BusinessListParams = {}) {
+  return useQuery({
+    queryKey: queryKeys.business.activity(params),
+    queryFn: () => businessDashboardService.getActivity(params),
+    staleTime: LIST_STALE,
+  });
+}
+
+export function useLearnerCoursesReport(params: BusinessListParams = {}) {
+  return useQuery({
+    queryKey: queryKeys.business.learnerCoursesReport(params),
+    queryFn: () => businessDashboardService.getLearnerCoursesReport(params),
+  });
+}
+
+export function useTrainingMatrix(params: BusinessListParams = {}) {
+  return useQuery({
+    queryKey: queryKeys.business.trainingMatrix(params),
+    queryFn: () => businessDashboardService.getTrainingMatrix(params),
+  });
+}
+
+/** Course id + title only — much cheaper than pulling the whole matrix for a select. */
+export function useReportCourseOptions() {
+  return useQuery({
+    queryKey: queryKeys.business.reportCourseOptions,
+    queryFn: () => businessDashboardService.getReportCourseOptions(),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useTeamStats(params: { department_id?: number } = {}) {
+  return useQuery({
+    queryKey: queryKeys.business.teamStats(params),
+    queryFn: () => businessDashboardService.getTeamStats(params),
+    staleTime: LIST_STALE,
+  });
+}
+
+/**
+ * Subscription coverage for a page of learners.
+ *
+ * Keyed on the ids so it refetches when the visible set changes, and disabled
+ * until there is both a business and at least one learner. The backend caps the
+ * batch at 100, which matches the modal's page size.
+ */
+export function useLearnerSubscriptionChecks(learnerIds: number[], businessId: number | null) {
+  const ids = [...learnerIds].sort((a, b) => a - b);
+
+  return useQuery({
+    queryKey: queryKeys.business.learnerSubscriptionChecks(ids),
+    queryFn: () => businessDashboardService.checkLearnersSubscriptions(ids, businessId as number),
+    enabled: businessId != null && ids.length > 0,
+    staleTime: LIST_STALE,
+  });
+}
+
+export function useSeatRoster(params: BusinessListParams = {}) {
+  return useQuery({
+    queryKey: queryKeys.business.seatRoster(params),
+    queryFn: () => businessDashboardService.getSeatRoster(params),
+  });
+}
+
+export function useDepartments() {
+  return useQuery({
+    queryKey: queryKeys.business.departments,
+    queryFn: () => businessDashboardService.getDepartments(),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useMemberDepartments(userId: number | null) {
+  return useQuery({
+    queryKey: queryKeys.business.memberDepartments(userId ?? 0),
+    queryFn: () => businessDashboardService.getMemberDepartments(userId as number),
+    enabled: userId != null,
+  });
+}
+
+export function useSavedReports(reportType = "learner-courses") {
+  return useQuery({
+    queryKey: queryKeys.business.savedReports(reportType),
+    queryFn: () => businessDashboardService.getSavedReports(reportType),
+  });
+}
+
 // ─── Mutations ─────────────────────────────────────────────────────────────────
 
 export function useCheckLearnerEmail(email: string, enabled: boolean) {
@@ -198,7 +318,7 @@ export function useCheckLearnerEmail(email: string, enabled: boolean) {
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(debounced);
 
   return useQuery({
-    queryKey: ["business", "check-email", debounced],
+    queryKey: queryKeys.business.checkEmail(debounced),
     queryFn: () => businessDashboardService.checkLearnerEmail(debounced),
     enabled: enabled && valid && debounced.length > 0,
     staleTime: 30_000,
@@ -210,7 +330,7 @@ export function useAddBusinessLearner() {
   return useMutation({
     mutationFn: (payload: AddLearnerPayload) => businessDashboardService.addLearner(payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business", "learners"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.learnersRoot });
     },
   });
 }
@@ -221,7 +341,7 @@ export function useUpdateBusinessLearner() {
     mutationFn: ({ id, status }: { id: number; status: string }) =>
       businessDashboardService.updateLearner(id, { status }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business", "learners"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.learnersRoot });
     },
   });
 }
@@ -232,7 +352,7 @@ export function useConvertBusinessLearnerRole() {
     mutationFn: ({ id, role }: { id: number; role: string }) =>
       businessDashboardService.convertLearnerRole(id, role),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business", "learners"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.learnersRoot });
     },
   });
 }
@@ -242,7 +362,186 @@ export function useAssignBusinessCourse() {
   return useMutation({
     mutationFn: (payload: AssignCoursePayload) => businessDashboardService.assignCourse(payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.root });
+    },
+  });
+}
+
+export function useRevokeLicence() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (assignmentId: number) => businessDashboardService.revokeLicence(assignmentId),
+    onSuccess: () => {
+      // Revoking moves a seat back into the pool, so balances and every
+      // assignment listing are both stale.
+      qc.invalidateQueries({ queryKey: queryKeys.business.root });
+    },
+  });
+}
+
+export function useLearnerQuizScores(courseId: number | null, userId: number | null) {
+  return useQuery({
+    queryKey: queryKeys.business.learnerQuizScores(courseId ?? 0, userId ?? 0),
+    queryFn: () =>
+      businessDashboardService.getLearnerQuizScores(courseId as number, userId as number),
+    enabled: courseId != null && userId != null,
+    staleTime: LIST_STALE,
+  });
+}
+
+export function useUpdateBusinessSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: BusinessSettingsUpdate) =>
+      businessDashboardService.updateSettings(payload),
+    onSuccess: (data) => {
+      qc.setQueryData(queryKeys.business.settings, data);
+      // The passing mark changes what every report counts as passed.
+      qc.invalidateQueries({ queryKey: queryKeys.business.profile });
+    },
+  });
+}
+
+export function useCompleteOnboarding() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: OnboardingPayload) =>
+      businessDashboardService.completeOnboarding(payload),
+    onSuccess: (data) => {
+      qc.setQueryData(queryKeys.business.settings, data);
+      qc.invalidateQueries({ queryKey: queryKeys.business.root });
+    },
+  });
+}
+
+export function useResetSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => businessDashboardService.resetSettings(),
+    onSuccess: (data) => {
+      qc.setQueryData(queryKeys.business.settings, data);
+    },
+  });
+}
+
+export function useInviteLearner() {
+  return useMutation({
+    mutationFn: (id: number) => businessDashboardService.inviteLearner(id),
+  });
+}
+
+export function useSendPasswordReset() {
+  return useMutation({
+    mutationFn: (id: number) => businessDashboardService.sendPasswordReset(id),
+  });
+}
+
+export function useRemindCourse() {
+  return useMutation({
+    mutationFn: (courseId: number) => businessDashboardService.remindCourse(courseId),
+  });
+}
+
+export function useRemindBehind() {
+  return useMutation({
+    mutationFn: (
+      filters: { course_id?: number; department_id?: number; learner_id?: number } = {},
+    ) => businessDashboardService.remindBehind(filters),
+  });
+}
+
+/** Department writes all shift member counts, so the whole list is refetched. */
+function invalidateDepartments(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: queryKeys.business.departments });
+}
+
+export function useCreateDepartment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { name: string; parent_id?: number }) =>
+      businessDashboardService.createDepartment(payload),
+    onSuccess: () => invalidateDepartments(qc),
+  });
+}
+
+export function useUpdateDepartment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...payload }: { id: number; name?: string; parent_id?: number }) =>
+      businessDashboardService.updateDepartment(id, payload),
+    onSuccess: () => invalidateDepartments(qc),
+  });
+}
+
+export function useDeleteDepartment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => businessDashboardService.deleteDepartment(id),
+    onSuccess: () => invalidateDepartments(qc),
+  });
+}
+
+export function useSetMemberDepartments() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, departmentIds }: { userId: number; departmentIds: number[] }) =>
+      businessDashboardService.setMemberDepartments(userId, departmentIds),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({
+        queryKey: queryKeys.business.memberDepartments(variables.userId),
+      });
+      // Member counts on the department list move with every membership change.
+      invalidateDepartments(qc);
+    },
+  });
+}
+
+function invalidateSavedReports(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: queryKeys.business.savedReportsRoot });
+}
+
+export function useCreateSavedReport() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: {
+      name: string;
+      filters: Record<string, string | number | undefined>;
+      report_type?: string;
+    }) => businessDashboardService.createSavedReport(payload),
+    onSuccess: () => invalidateSavedReports(qc),
+  });
+}
+
+export function useUpdateSavedReport() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...payload
+    }: {
+      id: number;
+      name?: string;
+      filters?: Record<string, string | number | undefined>;
+    }) => businessDashboardService.updateSavedReport(id, payload),
+    onSuccess: () => invalidateSavedReports(qc),
+  });
+}
+
+export function useDeleteSavedReport() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => businessDashboardService.deleteSavedReport(id),
+    onSuccess: () => invalidateSavedReports(qc),
+  });
+}
+
+export function useBulkImportLearners() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (members: BulkImportMember[]) =>
+      businessDashboardService.bulkImportLearners(members),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.business.root });
     },
   });
 }
@@ -250,8 +549,29 @@ export function useAssignBusinessCourse() {
 export function useUpdateBusinessProfile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Record<string, unknown> }) =>
-      businessDashboardService.updateProfile(id, data),
+    mutationFn: ({ ownerUserId, data }: { ownerUserId: number; data: Record<string, unknown> }) =>
+      businessDashboardService.updateProfile(ownerUserId, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.business.profile });
+    },
+  });
+}
+
+export function useUploadBusinessLogo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ businessId, file }: { businessId: number; file: File }) =>
+      businessDashboardService.uploadLogo(businessId, file),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.business.profile });
+    },
+  });
+}
+
+export function useDeleteBusinessLogo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (businessId: number) => businessDashboardService.deleteLogo(businessId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.business.profile });
     },
@@ -264,7 +584,7 @@ export function useGenerateBusinessCertificate() {
     mutationFn: (payload: { user_id: number; course_id: number }) =>
       businessDashboardService.generateCertificate(payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.root });
     },
   });
 }
@@ -281,7 +601,7 @@ export function useSubmitBusinessReview() {
 
 export function useBusinessSubscription(id: number | null) {
   return useQuery({
-    queryKey: ["business", "subscriptions", id],
+    queryKey: queryKeys.business.subscription(id ?? 0),
     queryFn: () => businessDashboardService.getSubscription(id as number),
     enabled: typeof id === "number" && id > 0,
   });
@@ -290,14 +610,22 @@ export function useBusinessSubscription(id: number | null) {
 /** Seats for one subscription. Disabled until a subscription is selected. */
 export function useSubscriptionSeats(id: number | null) {
   return useQuery({
-    queryKey: ["business", "subscriptions", id, "seats"],
+    queryKey: queryKeys.business.subscriptionSeats(id ?? 0),
     queryFn: () => businessDashboardService.getSubscriptionSeats(id as number),
     enabled: typeof id === "number" && id > 0,
   });
 }
 
 function invalidateSubscriptions(qc: ReturnType<typeof useQueryClient>) {
-  qc.invalidateQueries({ queryKey: ["business", "subscriptions"] });
+  qc.invalidateQueries({ queryKey: queryKeys.business.subscriptions });
+  // Seat changes also move surfaces keyed outside the subscriptions prefix:
+  // the cross-subscription roster on the same page, the Overview KPI, the
+  // assigned list, the summary and the assign-modal coverage badges.
+  qc.invalidateQueries({ queryKey: queryKeys.business.seatRosterRoot });
+  qc.invalidateQueries({ queryKey: queryKeys.business.subscriptionAssignedRoot });
+  qc.invalidateQueries({ queryKey: queryKeys.business.activeSubscription });
+  qc.invalidateQueries({ queryKey: queryKeys.business.subscriptionSummary });
+  qc.invalidateQueries({ queryKey: queryKeys.business.learnerSubscriptionChecksRoot });
 }
 
 export function useSetSubscriptionStatus() {
@@ -337,7 +665,7 @@ export function useAddBusinessManager() {
       last_name: string;
     }) => businessDashboardService.addManager(payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business", "managers"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.managersRoot });
     },
   });
 }
@@ -348,7 +676,7 @@ export function useUpdateBusinessManager() {
     mutationFn: ({ id, ...payload }: { id: number; business_id: number; status?: string }) =>
       businessDashboardService.updateManager(id, payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business", "managers"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.managersRoot });
     },
   });
 }
@@ -359,7 +687,7 @@ export function useSetBusinessManagerStatus() {
     mutationFn: ({ id, status }: { id: number; status: string }) =>
       businessDashboardService.setManagerStatus(id, status),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business", "managers"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.managersRoot });
     },
   });
 }
@@ -369,7 +697,7 @@ export function useDeleteBusinessManager() {
   return useMutation({
     mutationFn: (id: number) => businessDashboardService.deleteManager(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["business", "managers"] });
+      qc.invalidateQueries({ queryKey: queryKeys.business.managersRoot });
     },
   });
 }
@@ -377,7 +705,7 @@ export function useDeleteBusinessManager() {
 /** Manager capabilities. Disabled until a manager is selected. */
 export function useManagerCapabilities(managerId: number | null) {
   return useQuery({
-    queryKey: ["business", "managers", "capabilities", managerId],
+    queryKey: queryKeys.business.managerCapabilities(managerId ?? 0),
     queryFn: () => businessDashboardService.getManagerCapabilities(managerId as number),
     enabled: typeof managerId === "number" && managerId > 0,
   });
@@ -395,7 +723,7 @@ export function useUpdateManagerPermissions() {
     }) => businessDashboardService.updateManagerPermissions(managerId, permissions),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({
-        queryKey: ["business", "managers", "capabilities", variables.managerId],
+        queryKey: queryKeys.business.managerCapabilities(variables.managerId),
       });
     },
   });

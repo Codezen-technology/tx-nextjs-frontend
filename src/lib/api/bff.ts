@@ -332,6 +332,22 @@ export async function proxyToB2B(
 }
 
 /**
+ * Proxy a B2B read, forwarding the caller's query string verbatim.
+ *
+ * Every list route needs the same "append `?…` only when there is one" dance;
+ * doing it here means a new filter reaches the backend as soon as the service
+ * sends it, with no route file to remember to update.
+ */
+export async function proxyToB2BQuery(
+  req: Request,
+  base: string,
+  options: Omit<ProxyOptions, "namespace"> = {},
+): Promise<NextResponse> {
+  const qs = new URL(req.url).searchParams.toString();
+  return proxyToB2B(qs ? `${base}?${qs}` : base, options);
+}
+
+/**
  * Proxy a multipart/form-data request (e.g. assignment file uploads) to the LMS
  * backend. Mirrors proxyToWP's auth (httpOnly access_token → Bearer, refresh on
  * 401) but streams the raw FormData instead of JSON. Content-Type is left unset

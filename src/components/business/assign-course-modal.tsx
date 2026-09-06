@@ -17,6 +17,9 @@ import { ApiError } from "@/lib/api/error";
 import {
   useAssignBusinessCourse,
   useBusinessAvailableLearners,
+  useBusinessProfile,
+  useDepartments,
+  useLearnerSubscriptionChecks,
 } from "@/lib/hooks/useBusinessDashboard";
 import { cn } from "@/lib/utils/cn";
 
@@ -40,22 +43,50 @@ export function AssignCourseModal({
   onOpenChange,
 }: AssignCourseModalProps) {
   const [search, setSearch] = useState("");
+  const [departmentId, setDepartmentId] = useState(0);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [error, setError] = useState("");
   const [noLicence, setNoLicence] = useState(false);
 
+  const { data: departments } = useDepartments();
   const { data, isLoading } = useBusinessAvailableLearners(open ? courseId : null, {
     search,
     per_page: 50,
+    ...(departmentId ? { department_id: departmentId } : {}),
   });
   const assign = useAssignBusinessCourse();
 
   const learners = useMemo(() => data?.items ?? [], [data?.items]);
 
+  const { data: business } = useBusinessProfile();
+
+  /**
+   * A subscription-covered learner does not spend a licence. Surfacing that
+   * before assignment lets a manager use the pool deliberately, rather than
+   * finding out via a 409 on submit.
+   */
+  const assignableIds = useMemo(
+    () => learners.filter((l) => l.is_available).map((l) => l.id),
+    [learners],
+  );
+  const { data: subscriptionChecks } = useLearnerSubscriptionChecks(
+    open ? assignableIds : [],
+    business?.user_id ?? null,
+  );
+
+  const coveredCount = useMemo(
+    () =>
+      Array.from(selected).filter(
+        (id) => subscriptionChecks?.results?.[String(id)]?.has_subscription,
+      ).length,
+    [selected, subscriptionChecks],
+  );
+
   useEffect(() => {
     if (!open) {
       setSelected(new Set());
       setSearch("");
+      setDepartmentId(0);
       setError("");
       setNoLicence(false);
     }
@@ -100,14 +131,32 @@ export function AssignCourseModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="relative">
-          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-300" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search learners..."
-            className="pl-9"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-300" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search learners..."
+              className="pl-9"
+            />
+          </div>
+
+          {departments?.flat.length ? (
+            <select
+              value={departmentId || ""}
+              onChange={(e) => setDepartmentId(Number(e.target.value) || 0)}
+              aria-label="Filter by department"
+              className="border-neutral-30 h-9 shrink-0 rounded-lg border bg-white px-2 text-sm text-neutral-900"
+            >
+              <option value="">All departments</option>
+              {departments.flat.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          ) : null}
         </div>
 
         <div className="border-neutral-30 max-h-64 overflow-y-auto rounded-lg border">
@@ -148,6 +197,13 @@ export function AssignCourseModal({
                         <span className="bg-neutral-20 shrink-0 rounded-full px-2 py-0.5 text-xs font-medium text-neutral-500">
                           {unavailableLabel(learner.assignment_status)}
                         </span>
+                      ) : subscriptionChecks?.results?.[String(learner.id)]?.has_subscription ? (
+                        <span
+                          title="Covered by a subscription seat — assigning will not use a licence"
+                          className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700"
+                        >
+                          Subscription
+                        </span>
                       ) : null}
                     </label>
                   </li>
@@ -156,6 +212,15 @@ export function AssignCourseModal({
             </ul>
           )}
         </div>
+
+        {selected.size > 0 ? (
+          <p className="text-sm text-neutral-300">
+            {selected.size} selected
+            {coveredCount > 0
+              ? ` · ${coveredCount} covered by a subscription, ${selected.size - coveredCount} will use a licence`
+              : " · each will use a licence"}
+          </p>
+        ) : null}
 
         {error ? (
           <div className="space-y-2">

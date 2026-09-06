@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, PauseCircle, PlayCircle, UserPlus, Users } from "lucide-react";
 import { BusinessPageHeader } from "@/components/business/business-page-header";
+import { SeatRosterTable } from "@/components/business/seat-roster-table";
 import { KpiCard } from "@/components/business/kpi-card";
 import { BusinessDataTable, type Column } from "@/components/business/business-data-table";
 import { StatusBadge } from "@/components/business/status-badge";
@@ -220,7 +221,7 @@ export default function BusinessSubscriptionsPage() {
               <option value="">Select a team member…</option>
               {learners.map((l) => (
                 <option key={l.user_id} value={String(l.user_id)}>
-                  {l.display_name} ({l.user_email ?? l.email})
+                  {l.display_name} ({l.email})
                 </option>
               ))}
             </select>
@@ -259,6 +260,12 @@ export default function BusinessSubscriptionsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold text-neutral-900">Assigned learners</h2>
+        <p className="text-sm text-neutral-300">Every seat across all of your subscriptions.</p>
+        <SeatRosterTable />
+      </div>
     </div>
   );
 }
