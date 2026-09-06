@@ -706,7 +706,6 @@ export const businessDashboardService = {
     });
   },
 
-  /** Restores defaults and reopens the wizard. Learners and assignments are untouched. */
   /**
    * The sector vocabulary, served rather than bundled.
    *
@@ -721,6 +720,7 @@ export const businessDashboardService = {
     return data.sectors ?? [];
   },
 
+  /** Restores defaults and reopens the wizard. Learners and assignments are untouched. */
   async resetSettings(): Promise<BusinessSettings> {
     return bffJson<BusinessSettings>("/api/business/settings/reset", { method: "POST" });
   },

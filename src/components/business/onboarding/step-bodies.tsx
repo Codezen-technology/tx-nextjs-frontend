@@ -6,11 +6,13 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils/cn";
 import { SectorCombobox } from "../sector-combobox";
 import {
+  NOTIFICATION_KEYS,
   NOTIFICATION_LABELS,
   PASSING_MARK_DEFAULT,
   PASSING_MARK_MAX,
   PASSING_MARK_MIN,
   PASSING_MARK_PRESETS,
+  PASSING_MARK_TICKS,
   SIZE_BANDS,
   sizeBandLabel,
   type Answers,
@@ -274,7 +276,7 @@ export function PassingStep({ answers, setAnswer }: StepProps) {
           className="w-full accent-[#3F576F]"
         />
         <div className="mt-1 flex justify-between text-xs text-neutral-300">
-          {[50, 60, 70, 80, 90, 100].map((tick) => (
+          {PASSING_MARK_TICKS.map((tick) => (
             <span key={tick}>{tick}%</span>
           ))}
         </div>
@@ -390,8 +392,6 @@ export function CertificatesStep({ answers, setAnswer }: StepProps) {
 
 // ─── 6. Communication preferences ────────────────────────────────────────────
 
-const PREFERENCE_KEYS = Object.keys(NOTIFICATION_LABELS) as (keyof NotificationPrefs)[];
-
 export function PreferencesStep({ answers, setAnswer }: StepProps) {
   return (
     <div>
@@ -400,7 +400,7 @@ export function PreferencesStep({ answers, setAnswer }: StepProps) {
       </p>
 
       <div className="flex flex-col gap-3">
-        {PREFERENCE_KEYS.map((key) => (
+        {NOTIFICATION_KEYS.map((key) => (
           <label
             key={key}
             htmlFor={key}
@@ -452,7 +452,7 @@ export function SummaryStep({ answers }: StepProps) {
     ["Team size", sizeBandLabel(answers.companySize) ?? UNSET],
     ["Passing mark", `${answers.passingMark}%`],
     ["Certificates", answers.selfDownload ? "Learner self-download" : "Manager only"],
-    ["Email alerts", `${on} of ${PREFERENCE_KEYS.length} on`],
+    ["Email alerts", `${on} of ${NOTIFICATION_KEYS.length} on`],
   ];
 
   return (

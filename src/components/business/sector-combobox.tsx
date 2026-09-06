@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils/cn";
@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils/cn";
 export function SectorCombobox({
   value,
   onChange,
+  onDraftChange,
   sectors,
   isLoading = false,
   isUnavailable = false,
@@ -27,6 +28,12 @@ export function SectorCombobox({
 }: {
   value: string;
   onChange: (sector: string) => void;
+  /**
+   * The raw text in the box, which is not the same as the answer.
+   * A caller that can save needs both: text with no committed value means
+   * "half-typed", which must not be read as "cleared".
+   */
+  onDraftChange?: (draft: string) => void;
   sectors: readonly string[];
   isLoading?: boolean;
   /** The vocabulary could not be fetched — say so rather than showing an empty list. */
@@ -37,6 +44,10 @@ export function SectorCombobox({
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(-1);
   const listRef = useRef<HTMLUListElement>(null);
+  const blurTimer = useRef<number | undefined>(undefined);
+
+  // The deferred close below outlives the component if it unmounts mid-blur.
+  useEffect(() => () => window.clearTimeout(blurTimer.current), []);
 
   const matches = useMemo(() => {
     const query = draft.trim().toLowerCase();
@@ -46,6 +57,7 @@ export function SectorCombobox({
 
   const commit = (sector: string) => {
     setDraft(sector);
+    onDraftChange?.(sector);
     setOpen(false);
     setHighlighted(-1);
     onChange(sector);
@@ -74,6 +86,13 @@ export function SectorCombobox({
       commit(matches[highlighted]);
       return;
     }
+    if (event.key === "Home" || event.key === "End") {
+      if (!open || !matches.length) return;
+      event.preventDefault();
+      move(event.key === "Home" ? -matches.length : matches.length);
+      return;
+    }
+
     if (event.key === "Escape") {
       setOpen(false);
       setHighlighted(-1);
@@ -88,20 +107,26 @@ export function SectorCombobox({
         id={id}
         type="text"
         role="combobox"
-        aria-expanded={open}
+        aria-expanded={open && !isLoading && !isUnavailable}
         aria-controls={listId}
         aria-autocomplete="list"
         aria-activedescendant={open && highlighted >= 0 ? `${listId}-${highlighted}` : undefined}
         aria-busy={isLoading || undefined}
         aria-describedby={isUnavailable ? `${id}-unavailable` : undefined}
         autoComplete="off"
-        disabled={isLoading || isUnavailable}
+        // readOnly rather than disabled: a disabled input leaves the tab order,
+        // which would put the only explanation of why it is unusable out of
+        // reach of the people most likely to need it.
+        readOnly={isUnavailable}
+        aria-disabled={isUnavailable || undefined}
+        disabled={isLoading}
         placeholder={
           isLoading ? "Loading sectors…" : isUnavailable ? "Unavailable" : "Select or type a sector"
         }
         value={draft}
         onChange={(e) => {
           setDraft(e.target.value);
+          onDraftChange?.(e.target.value);
           setOpen(true);
           setHighlighted(-1);
           // Typing over a chosen sector un-chooses it: the field now shows
@@ -110,7 +135,9 @@ export function SectorCombobox({
         }}
         onFocus={() => setOpen(true)}
         // Deferred so a click on an option lands before the list closes.
-        onBlur={() => window.setTimeout(() => setOpen(false), 120)}
+        onBlur={() => {
+          blurTimer.current = window.setTimeout(() => setOpen(false), 120);
+        }}
         onKeyDown={onKeyDown}
       />
 
@@ -154,7 +181,9 @@ export function SectorCombobox({
               </li>
             ))
           ) : (
-            <li className="px-3.5 py-2.5 text-sm text-neutral-300">No matches</li>
+            <li role="presentation" className="px-3.5 py-2.5 text-sm text-neutral-300">
+              No matches
+            </li>
           )}
         </ul>
       ) : null}

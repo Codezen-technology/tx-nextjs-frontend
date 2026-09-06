@@ -26,16 +26,17 @@ const ICONS: Record<StepId, typeof User> = {
  * do is carry someone over a step whose answers have since been emptied, which
  * is what `canVisit` re-checks.
  *
- * `stepIndex` indexes STEPS, where 0 is the welcome — hence rows numbering
- * from 1.
+ * `navPosition` is the position within the six navigable steps: 1 is the
+ * first row, and 0 means the welcome, which has no row. It coincides with the
+ * STEPS index only because the welcome happens to be STEPS[0].
  */
 export function StepNav({
-  stepIndex,
+  navPosition,
   furthest,
   canVisit,
   onSelect,
 }: {
-  stepIndex: number;
+  navPosition: number;
   furthest: number;
   canVisit: (index: number) => boolean;
   onSelect: (index: number) => void;
@@ -43,13 +44,13 @@ export function StepNav({
   return (
     <nav className="flex flex-1 flex-col justify-center" aria-label="Setup steps">
       <p className="mb-4 text-xs font-semibold tracking-[0.06em] text-white/60 uppercase">
-        Step {stepIndex} of {NAV_STEPS.length}
+        Step {navPosition} of {NAV_STEPS.length}
       </p>
 
       <ol className="space-y-1">
         {NAV_STEPS.map((step, position) => {
           const index = position + 1;
-          const isCurrent = index === stepIndex;
+          const isCurrent = index === navPosition;
           const isDone = !isCurrent && index <= furthest;
           const isReachable = isDone && canVisit(index);
           const Icon = ICONS[step.id];

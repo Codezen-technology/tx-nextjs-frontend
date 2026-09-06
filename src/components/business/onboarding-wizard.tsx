@@ -8,7 +8,7 @@ import { useAuthStore } from "@/lib/stores/auth.store";
 import { ApiError } from "@/lib/api/error";
 import { cn } from "@/lib/utils/cn";
 import { initialAnswers, toCompletionPayload, type Answers } from "./onboarding/answers";
-import { LAST_STEP, NAV_STEPS, STEPS } from "./onboarding/steps";
+import { LAST_STEP, STEPS, type StepId } from "./onboarding/steps";
 import { StepNav } from "./onboarding/step-nav";
 import {
   CertificatesStep,
@@ -22,7 +22,7 @@ import {
 } from "./onboarding/step-bodies";
 import type { BusinessSettings } from "@/types/business-dashboard";
 
-const BODIES: Record<string, (props: StepProps) => React.ReactElement> = {
+const BODIES: Record<Exclude<StepId, "welcome">, (props: StepProps) => React.ReactElement> = {
   manager: ManagerStep,
   organisation: OrganisationStep,
   passing: PassingStep,
@@ -98,7 +98,7 @@ export function OnboardingWizard({ settings }: { settings: BusinessSettings }) {
         (err.code === "b2b_email_taken" || err.code === "b2b_invalid_email")
       ) {
         setFieldErrors({ email: err.message || "That email address cannot be used." });
-        setStep(1);
+        setStep(STEPS.findIndex((s) => s.id === "manager"));
         return;
       }
       setError(err instanceof Error ? err.message : "Could not finish setup. Please try again.");
@@ -161,7 +161,10 @@ export function OnboardingWizard({ settings }: { settings: BusinessSettings }) {
 
   // ── Every other step: rail plus form panel ────────────────────────────────
 
-  const Body = BODIES[current.id];
+  // Narrowed rather than cast: the welcome is the one step with no body, and
+  // the branch above has already returned for it. TypeScript cannot see that
+  // through `standalone`, so the id is what proves it here.
+  const Body = current.id === "welcome" ? null : BODIES[current.id];
 
   return (
     <div className="bg-neutral-20 flex min-h-screen items-center justify-center px-4 py-10">
@@ -172,39 +175,44 @@ export function OnboardingWizard({ settings }: { settings: BusinessSettings }) {
         />
 
         <div className="flex w-full shrink-0 flex-col bg-[#3F576F] px-6 pt-7 pb-5 md:w-[280px] md:pt-8 md:pb-6">
-          <StepNav stepIndex={step} furthest={furthest} canVisit={canVisit} onSelect={setStep} />
+          <StepNav navPosition={step} furthest={furthest} canVisit={canVisit} onSelect={setStep} />
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col bg-white px-6 pt-8 pb-6 md:px-11 md:pt-10 md:pb-7">
-          {/* aria-live so moving between steps is announced, not just repainted. */}
-          <div className="flex-1" aria-live="polite">
-            <h1 className="mb-1.5 text-2xl font-bold tracking-tight text-neutral-900">
-              {current.title}
-            </h1>
-            {current.subtitle ? (
-              <p className="mb-6 text-sm leading-relaxed text-neutral-300">{current.subtitle}</p>
-            ) : (
-              <div className="mb-5" />
-            )}
+          <div className="flex-1">
+            {/*
+              The live region covers the heading only. Wrapping the body as
+              well meant every tick of the pass-mark slider re-announced the
+              whole form, because the percentage and its explanation live
+              inside it.
+            */}
+            <div aria-live="polite">
+              <h1 className="mb-1.5 text-2xl font-bold tracking-tight text-neutral-900">
+                {current.title}
+              </h1>
+              {current.subtitle ? (
+                <p className="mb-6 text-sm leading-relaxed text-neutral-300">{current.subtitle}</p>
+              ) : (
+                <div className="mb-5" />
+              )}
+            </div>
 
             {/*
-              Said in text as well as shown in the rail: the rail is a list of
-              coloured rows, and "how much is left" should not depend on
-              reading colour.
+              The rail already states "Step N of 6" in visible text, so there
+              is no sr-only copy here — it was announcing the position twice.
             */}
-            <p className="sr-only">
-              Step {step} of {NAV_STEPS.length}
-            </p>
 
-            <Body
-              answers={answers}
-              setAnswer={setAnswer}
-              onSubmit={next}
-              fieldErrors={fieldErrors}
-              sectors={vocabulary}
-              sectorsLoading={sectorsLoading}
-              sectorsUnavailable={sectorsFailed}
-            />
+            {Body ? (
+              <Body
+                answers={answers}
+                setAnswer={setAnswer}
+                onSubmit={next}
+                fieldErrors={fieldErrors}
+                sectors={vocabulary}
+                sectorsLoading={sectorsLoading}
+                sectorsUnavailable={sectorsFailed}
+              />
+            ) : null}
           </div>
 
           {error ? (

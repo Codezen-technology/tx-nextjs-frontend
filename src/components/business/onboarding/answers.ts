@@ -31,6 +31,8 @@ export const PASSING_MARK_MIN = 50;
 export const PASSING_MARK_MAX = 100;
 export const PASSING_MARK_DEFAULT = 80;
 export const PASSING_MARK_PRESETS = [60, 70, 75, 80, 85, 90, 100];
+/** Labels under the slider, from the permitted range rather than by hand. */
+export const PASSING_MARK_TICKS = [50, 60, 70, 80, 90, 100];
 
 /**
  * Team-size bands, each carrying the integer stored on the business row.
@@ -61,7 +63,7 @@ export const NOTIFICATION_DEFAULTS: NotificationPrefs = {
   notify_course_assigned: false,
 };
 
-const NOTIFICATION_KEYS = Object.keys(NOTIFICATION_DEFAULTS) as (keyof NotificationPrefs)[];
+export const NOTIFICATION_KEYS = Object.keys(NOTIFICATION_DEFAULTS) as (keyof NotificationPrefs)[];
 
 export const NOTIFICATION_LABELS: Record<keyof NotificationPrefs, string> = {
   notify_course_completed: "A learner completes a course",
@@ -120,7 +122,10 @@ export function toCompletionPayload(answers: Answers): OnboardingPayload {
     job_title: answers.jobTitle.trim(),
     company_name: answers.companyName.trim(),
     company_size: answers.companySize ?? undefined,
-    company_sector: answers.companySector.trim(),
+    // Omitted when empty — which happens only when the vocabulary could not be
+    // fetched. The API accepts '' and would clear a sector the business already
+    // has, so sending it would wipe a value this wizard never asked about.
+    ...(answers.companySector.trim() ? { company_sector: answers.companySector.trim() } : {}),
     passing_mark: answers.passingMark,
     certificate_self_download: answers.selfDownload,
     ...answers.notifications,

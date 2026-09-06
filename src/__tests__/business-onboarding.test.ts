@@ -194,6 +194,14 @@ describe("toCompletionPayload", () => {
     });
   });
 
+  it("omits an empty sector rather than clearing the stored one", () => {
+    // Only reachable when the vocabulary could not be fetched. The API accepts
+    // '' and would wipe a sector this wizard never got to ask about.
+    const payload = toCompletionPayload(answered({ companySector: "" }));
+
+    expect("company_sector" in payload).toBe(false);
+  });
+
   it("omits an optional name and email rather than sending empty strings", () => {
     const payload = toCompletionPayload(answered({ fullName: "   ", email: "" }));
 
