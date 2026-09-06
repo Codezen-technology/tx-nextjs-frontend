@@ -210,7 +210,41 @@ export interface BusinessSettings {
   integration_genai: boolean;
   company_name: string;
   company_size: number;
+  /**
+   * The organisation's sector, one of the values `GET /settings/sectors`
+   * serves. Stored in the business row's long-standing `industry` column,
+   * which is what the admin reports group on — so the API rejects anything
+   * outside that vocabulary rather than storing near-duplicate spellings.
+   */
+  company_sector: string;
+  /**
+   * The signed-in manager's own contact details — user meta, not business
+   * fields, because a business can have more than one manager.
+   */
+  phone: string;
+  job_title: string;
+  /**
+   * Communication preferences. Stored but inert: nothing consults them yet,
+   * and the wizard says as much rather than implying they are wired.
+   */
+  notify_course_completed: boolean;
+  notify_certificate_issued: boolean;
+  notify_course_not_started: boolean;
+  notify_course_not_completed: boolean;
+  notify_new_user: boolean;
+  notify_course_assigned: boolean;
 }
+
+/** The six inert email preferences, as a type of their own. */
+export type NotificationPrefs = Pick<
+  BusinessSettings,
+  | "notify_course_completed"
+  | "notify_certificate_issued"
+  | "notify_course_not_started"
+  | "notify_course_not_completed"
+  | "notify_new_user"
+  | "notify_course_assigned"
+>;
 
 export type BusinessSettingsUpdate = Partial<
   Pick<
@@ -225,11 +259,25 @@ export type BusinessSettingsUpdate = Partial<
     | "integration_genai"
     | "company_name"
     | "company_size"
-  >
+    | "company_sector"
+    | "phone"
+    | "job_title"
+  > &
+    NotificationPrefs
 >;
 
 export interface OnboardingPayload extends BusinessSettingsUpdate {
   display_name?: string;
+  /**
+   * Applied to the manager's WordPress account. Rejected with a 400 naming
+   * `email` when another account already has it.
+   */
+  email?: string;
+}
+
+/** `GET /settings/sectors` — the vocabulary the sector field accepts. */
+export interface SectorsResponse {
+  sectors: string[];
 }
 
 // ─── Activity feed (Tier B) ──────────────────────────────────────────────────────

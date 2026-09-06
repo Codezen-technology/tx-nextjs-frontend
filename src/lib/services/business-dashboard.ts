@@ -23,6 +23,7 @@ import type {
   BusinessOrdersResponse,
   BusinessSettings,
   BusinessSettingsUpdate,
+  SectorsResponse,
   BusinessSummary,
   CertificatesResponse,
   CheckEmailResponse,
@@ -706,6 +707,20 @@ export const businessDashboardService = {
   },
 
   /** Restores defaults and reopens the wizard. Learners and assignments are untouched. */
+  /**
+   * The sector vocabulary, served rather than bundled.
+   *
+   * The list is generated into the backend from the WP dashboard's TypeScript
+   * source, which this repository cannot read — copying it here would be a
+   * third hand-maintained list that drifts into offering sectors the API then
+   * rejects. The response is cacheable for a day; TanStack keeps it for the
+   * session on top of that.
+   */
+  async getSectors(): Promise<string[]> {
+    const data = await bffJson<SectorsResponse>("/api/business/settings/sectors");
+    return data.sectors ?? [];
+  },
+
   async resetSettings(): Promise<BusinessSettings> {
     return bffJson<BusinessSettings>("/api/business/settings/reset", { method: "POST" });
   },

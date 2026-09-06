@@ -106,6 +106,7 @@ export const queryKeys = {
     licenceCourses: (params: BusinessListParams = {}) =>
       ["business", "licence-courses", params] as const,
     licenceBalance: ["business", "licence-balance"] as const,
+    sectors: ["business", "sectors"] as const,
     reportCourses: (params: BusinessListParams = {}) =>
       ["business", "report-courses", params] as const,
     reportMembers: (params: BusinessListParams = {}) =>

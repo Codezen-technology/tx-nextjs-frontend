@@ -224,6 +224,19 @@ export function useBusinessSettings() {
   });
 }
 
+/**
+ * The sector vocabulary. Effectively static — it changes only when the backend
+ * is redeployed — so it is fetched once and kept for the session.
+ */
+export function useSectors() {
+  return useQuery({
+    queryKey: queryKeys.business.sectors,
+    queryFn: () => businessDashboardService.getSectors(),
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+}
+
 export function useBusinessActivity(params: BusinessListParams = {}) {
   return useQuery({
     queryKey: queryKeys.business.activity(params),

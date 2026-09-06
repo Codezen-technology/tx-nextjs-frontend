@@ -9,9 +9,11 @@ import { SettingsSection, ToggleRow } from "@/components/business/settings-secti
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SectorCombobox } from "@/components/business/sector-combobox";
 import {
   useBusinessSettings,
   useResetSettings,
+  useSectors,
   useUpdateBusinessSettings,
 } from "@/lib/hooks/useBusinessDashboard";
 
@@ -23,7 +25,10 @@ export default function BusinessSettingsPage() {
   const update = useUpdateBusinessSettings();
   const reset = useResetSettings();
 
+  const { data: sectors, isLoading: sectorsLoading } = useSectors();
+
   const [companyName, setCompanyName] = useState("");
+  const [sector, setSector] = useState("");
   const [subdomain, setSubdomain] = useState("");
   const [passMark, setPassMark] = useState(80);
   const [confirmingReset, setConfirmingReset] = useState(false);
@@ -39,13 +44,14 @@ export default function BusinessSettingsPage() {
    * which does change them — re-seeds.
    */
   const serverValues = settings
-    ? `${settings.company_name ?? ""}|${settings.platform_subdomain ?? ""}|${settings.passing_mark}`
+    ? `${settings.company_name ?? ""}|${settings.company_sector ?? ""}|${settings.platform_subdomain ?? ""}|${settings.passing_mark}`
     : null;
   const [seededFrom, setSeededFrom] = useState<string | null>(null);
 
   if (settings && serverValues !== seededFrom) {
     setSeededFrom(serverValues);
     setCompanyName(settings.company_name ?? "");
+    setSector(settings.company_sector ?? "");
     setSubdomain(settings.platform_subdomain ?? "");
     setPassMark(settings.passing_mark ?? 80);
   }
@@ -86,7 +92,15 @@ export default function BusinessSettingsPage() {
 
   const appearanceDirty =
     companyName !== (settings.company_name ?? "") ||
+    sector !== (settings.company_sector ?? "") ||
     subdomain !== (settings.platform_subdomain ?? "");
+
+  /*
+   * A sector is only saveable when the vocabulary recognises it — the same
+   * rule the API enforces, applied here so a half-typed sector disables the
+   * button rather than coming back as a 400.
+   */
+  const sectorUsable = sector === "" || (sectors ?? []).includes(sector);
   const passMarkDirty = passMark !== settings.passing_mark;
 
   return (
@@ -106,9 +120,13 @@ export default function BusinessSettingsPage() {
         footer={
           <Button
             className="bg-[#3F576F] hover:bg-[#33485d]"
-            disabled={!appearanceDirty || update.isPending}
+            disabled={!appearanceDirty || !sectorUsable || update.isPending}
             onClick={() =>
-              save({ company_name: companyName.trim(), platform_subdomain: subdomain.trim() })
+              save({
+                company_name: companyName.trim(),
+                company_sector: sector.trim(),
+                platform_subdomain: subdomain.trim(),
+              })
             }
           >
             {update.isPending ? "Saving…" : "Save changes"}
@@ -123,6 +141,18 @@ export default function BusinessSettingsPage() {
             onChange={(e) => setCompanyName(e.target.value)}
             className="mt-1 max-w-md"
           />
+        </div>
+        <div>
+          <Label htmlFor="settings-sector">Sector</Label>
+          <div className="mt-1 max-w-md">
+            <SectorCombobox
+              id="settings-sector"
+              value={sector}
+              onChange={setSector}
+              sectors={sectors ?? []}
+              isLoading={sectorsLoading}
+            />
+          </div>
         </div>
         <div>
           <Label htmlFor="subdomain">Platform subdomain</Label>
