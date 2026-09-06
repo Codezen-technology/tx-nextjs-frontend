@@ -7,7 +7,7 @@ import {
   toCompletionPayload,
   type Answers,
 } from "@/components/business/onboarding/answers";
-import { NAV_STEPS, STEPS } from "@/components/business/onboarding/steps";
+import { NAV_STEPS, STEPS, type StepContext } from "@/components/business/onboarding/steps";
 import type { BusinessSettings } from "@/types/business-dashboard";
 import type { AuthUser } from "@/types/user";
 
@@ -36,6 +36,13 @@ const settings = (over: Partial<BusinessSettings> = {}): BusinessSettings =>
 const user: AuthUser = { email: "sal@sunrise.test", displayName: "Salvador", nicename: "sal" };
 
 const SECTORS = ["Adult Social Care", "Construction"];
+
+/** Gate context: the vocabulary loaded fine unless a test says otherwise. */
+const ctx = (over: Partial<StepContext> = {}): StepContext => ({
+  sectors: SECTORS,
+  sectorsUnavailable: false,
+  ...over,
+});
 
 const answered = (over: Partial<Answers> = {}): Answers => ({
   fullName: "Salvador",
@@ -97,30 +104,45 @@ describe("step gates", () => {
   it("requires a name, a job title and an email-shaped address", () => {
     const manager = step("manager");
 
-    expect(manager.isValid(answered(), SECTORS)).toBe(true);
-    expect(manager.isValid(answered({ fullName: "  " }), SECTORS)).toBe(false);
-    expect(manager.isValid(answered({ jobTitle: "" }), SECTORS)).toBe(false);
-    expect(manager.isValid(answered({ email: "not-an-address" }), SECTORS)).toBe(false);
+    expect(manager.isValid(answered(), ctx())).toBe(true);
+    expect(manager.isValid(answered({ fullName: "  " }), ctx())).toBe(false);
+    expect(manager.isValid(answered({ jobTitle: "" }), ctx())).toBe(false);
+    expect(manager.isValid(answered({ email: "not-an-address" }), ctx())).toBe(false);
   });
 
   it("does not require a phone number", () => {
-    expect(step("manager").isValid(answered({ phone: "" }), SECTORS)).toBe(true);
+    expect(step("manager").isValid(answered({ phone: "" }), ctx())).toBe(true);
   });
 
   it("accepts only a sector the backend's vocabulary recognises", () => {
     const org = step("organisation");
 
-    expect(org.isValid(answered(), SECTORS)).toBe(true);
-    expect(org.isValid(answered({ companySector: "Underwater Basket Weaving" }), SECTORS)).toBe(
+    expect(org.isValid(answered(), ctx())).toBe(true);
+    expect(org.isValid(answered({ companySector: "Underwater Basket Weaving" }), ctx())).toBe(
       false,
     );
     // While the vocabulary is still loading there is nothing to match, so the
     // gate holds rather than letting through a value the API would reject.
-    expect(org.isValid(answered(), [])).toBe(false);
+    expect(org.isValid(answered(), ctx({ sectors: [] }))).toBe(false);
+  });
+
+  it("stops requiring a sector when the vocabulary could not be fetched", () => {
+    const org = step("organisation");
+    const unavailable = ctx({ sectors: [], sectorsUnavailable: true });
+
+    // An empty sector is a value the API accepts, and Settings can set it
+    // later — better than stranding the tenant on a step they cannot answer.
+    expect(org.isValid(answered({ companySector: "" }), unavailable)).toBe(true);
+
+    // The rest of the step is still required.
+    expect(org.isValid(answered({ companySector: "", companyName: "" }), unavailable)).toBe(false);
+    expect(org.isValid(answered({ companySector: "", companySize: null }), unavailable)).toBe(
+      false,
+    );
   });
 
   it("requires a chosen team size", () => {
-    expect(step("organisation").isValid(answered({ companySize: null }), SECTORS)).toBe(false);
+    expect(step("organisation").isValid(answered({ companySize: null }), ctx())).toBe(false);
   });
 
   it("always lets the preferences step advance, even with every preference off", () => {
@@ -128,7 +150,7 @@ describe("step gates", () => {
       Object.keys(NOTIFICATION_DEFAULTS).map((k) => [k, false]),
     ) as Answers["notifications"];
 
-    expect(step("preferences").isValid(answered({ notifications: off }), SECTORS)).toBe(true);
+    expect(step("preferences").isValid(answered({ notifications: off }), ctx())).toBe(true);
   });
 });
 

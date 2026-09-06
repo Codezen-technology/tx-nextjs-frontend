@@ -33,6 +33,7 @@ export interface StepProps {
   fieldErrors: Partial<Record<"email", string>>;
   sectors: readonly string[];
   sectorsLoading: boolean;
+  sectorsUnavailable: boolean;
 }
 
 const enterSubmits = (onSubmit: () => void) => (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -181,6 +182,7 @@ export function OrganisationStep({
   onSubmit,
   sectors,
   sectorsLoading,
+  sectorsUnavailable,
 }: StepProps) {
   return (
     <div className="flex flex-col gap-4">
@@ -202,7 +204,7 @@ export function OrganisationStep({
       <div>
         <Label htmlFor="company-sector">
           Organisation sector
-          <Required />
+          {sectorsUnavailable ? null : <Required />}
         </Label>
         <div className="mt-1">
           <SectorCombobox
@@ -210,6 +212,7 @@ export function OrganisationStep({
             onChange={(sector) => setAnswer("companySector", sector)}
             sectors={sectors}
             isLoading={sectorsLoading}
+            isUnavailable={sectorsUnavailable}
           />
         </div>
       </div>

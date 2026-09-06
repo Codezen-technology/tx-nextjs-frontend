@@ -25,7 +25,7 @@ export default function BusinessSettingsPage() {
   const update = useUpdateBusinessSettings();
   const reset = useResetSettings();
 
-  const { data: sectors, isLoading: sectorsLoading } = useSectors();
+  const { data: sectors, isLoading: sectorsLoading, isError: sectorsFailed } = useSectors();
 
   const [companyName, setCompanyName] = useState("");
   const [sector, setSector] = useState("");
@@ -100,7 +100,7 @@ export default function BusinessSettingsPage() {
    * rule the API enforces, applied here so a half-typed sector disables the
    * button rather than coming back as a 400.
    */
-  const sectorUsable = sector === "" || (sectors ?? []).includes(sector);
+  const sectorUsable = sectorsFailed || sector === "" || (sectors ?? []).includes(sector);
   const passMarkDirty = passMark !== settings.passing_mark;
 
   return (
@@ -151,6 +151,7 @@ export default function BusinessSettingsPage() {
               onChange={setSector}
               sectors={sectors ?? []}
               isLoading={sectorsLoading}
+              isUnavailable={sectorsFailed}
             />
           </div>
         </div>

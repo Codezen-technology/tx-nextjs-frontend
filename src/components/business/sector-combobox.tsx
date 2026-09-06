@@ -22,12 +22,15 @@ export function SectorCombobox({
   onChange,
   sectors,
   isLoading = false,
+  isUnavailable = false,
   id = "company-sector",
 }: {
   value: string;
   onChange: (sector: string) => void;
   sectors: readonly string[];
   isLoading?: boolean;
+  /** The vocabulary could not be fetched — say so rather than showing an empty list. */
+  isUnavailable?: boolean;
   id?: string;
 }) {
   const [draft, setDraft] = useState(value);
@@ -90,9 +93,12 @@ export function SectorCombobox({
         aria-autocomplete="list"
         aria-activedescendant={open && highlighted >= 0 ? `${listId}-${highlighted}` : undefined}
         aria-busy={isLoading || undefined}
+        aria-describedby={isUnavailable ? `${id}-unavailable` : undefined}
         autoComplete="off"
-        disabled={isLoading}
-        placeholder={isLoading ? "Loading sectors…" : "Select or type a sector"}
+        disabled={isLoading || isUnavailable}
+        placeholder={
+          isLoading ? "Loading sectors…" : isUnavailable ? "Unavailable" : "Select or type a sector"
+        }
         value={draft}
         onChange={(e) => {
           setDraft(e.target.value);
@@ -115,7 +121,14 @@ export function SectorCombobox({
         />
       ) : null}
 
-      {open && !isLoading ? (
+      {isUnavailable ? (
+        <p id={`${id}-unavailable`} className="mt-1.5 text-xs text-neutral-300">
+          The sector list could not be loaded, so this can be left blank for now and set later in
+          Settings.
+        </p>
+      ) : null}
+
+      {open && !isLoading && !isUnavailable ? (
         <ul
           id={listId}
           ref={listRef}

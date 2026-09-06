@@ -50,7 +50,7 @@ const BODIES: Record<string, (props: StepProps) => React.ReactElement> = {
 export function OnboardingWizard({ settings }: { settings: BusinessSettings }) {
   const user = useAuthStore((s) => s.user);
   const complete = useCompleteOnboarding();
-  const { data: sectors, isLoading: sectorsLoading } = useSectors();
+  const { data: sectors, isLoading: sectorsLoading, isError: sectorsFailed } = useSectors();
 
   const [step, setStep] = useState(0);
   // The high-water mark, not the current step: pressing Back does not
@@ -61,6 +61,9 @@ export function OnboardingWizard({ settings }: { settings: BusinessSettings }) {
   const [fieldErrors, setFieldErrors] = useState<StepProps["fieldErrors"]>({});
 
   const vocabulary = sectors ?? [];
+  // Distinct from "empty": a failed fetch means the sector cannot be answered,
+  // which the organisation gate treats as "not required" rather than "invalid".
+  const stepContext = { sectors: vocabulary, sectorsUnavailable: sectorsFailed };
 
   const setAnswer = <K extends keyof Answers>(key: K, value: Answers[K]) => {
     setAnswers((current) => ({ ...current, [key]: value }));
@@ -71,7 +74,7 @@ export function OnboardingWizard({ settings }: { settings: BusinessSettings }) {
   };
 
   const current = STEPS[step];
-  const canAdvance = current.isValid(answers, vocabulary);
+  const canAdvance = current.isValid(answers, stepContext);
   const isWelcome = Boolean(current.standalone);
   const isLast = step === LAST_STEP;
 
@@ -81,7 +84,7 @@ export function OnboardingWizard({ settings }: { settings: BusinessSettings }) {
    * offering a shortcut over the step that field belongs to.
    */
   const canVisit = (index: number) =>
-    STEPS.slice(0, index).every((candidate) => candidate.isValid(answers, vocabulary));
+    STEPS.slice(0, index).every((candidate) => candidate.isValid(answers, stepContext));
 
   const finish = async () => {
     setError("");
@@ -200,6 +203,7 @@ export function OnboardingWizard({ settings }: { settings: BusinessSettings }) {
               fieldErrors={fieldErrors}
               sectors={vocabulary}
               sectorsLoading={sectorsLoading}
+              sectorsUnavailable={sectorsFailed}
             />
           </div>
 

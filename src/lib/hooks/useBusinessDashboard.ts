@@ -234,6 +234,10 @@ export function useSectors() {
     queryFn: () => businessDashboardService.getSectors(),
     staleTime: Infinity,
     gcTime: Infinity,
+    // One retry, then give up and let the caller degrade: the wizard treats an
+    // unreachable vocabulary as "sector not answerable" rather than hanging on
+    // a list it will never get.
+    retry: 1,
   });
 }
 

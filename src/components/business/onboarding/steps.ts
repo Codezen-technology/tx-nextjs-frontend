@@ -9,6 +9,20 @@ export type StepId =
   | "preferences"
   | "summary";
 
+/**
+ * What a gate needs to know beyond the answers themselves.
+ *
+ * The sector vocabulary is served by the backend, so "is this sector valid"
+ * has a third state besides yes and no: we could not ask. A gate that treated
+ * that as "no" would leave the manager on a step they cannot complete and
+ * cannot explain.
+ */
+export interface StepContext {
+  sectors: readonly string[];
+  /** The vocabulary request failed — the field cannot be answered at all. */
+  sectorsUnavailable: boolean;
+}
+
 export interface StepDefinition {
   id: StepId;
   /** Label in the step navigation. Absent on the welcome, which has no row. */
@@ -21,7 +35,7 @@ export interface StepDefinition {
    */
   standalone?: boolean;
   /** Whether the manager may leave this step. */
-  isValid: (answers: Answers, sectors: readonly string[]) => boolean;
+  isValid: (answers: Answers, context: StepContext) => boolean;
 }
 
 /**
@@ -51,13 +65,20 @@ export const STEPS: StepDefinition[] = [
     id: "organisation",
     navLabel: "Organisation",
     title: "Enter your organisation details",
-    // The sector must be one the backend recognises. While the vocabulary is
-    // still loading there is nothing to match against, so the gate holds
-    // rather than letting through a value the API would reject.
-    isValid: (a, sectors) =>
+    /*
+     * The sector must be one the backend recognises — anything else comes
+     * back as a 400, so the gate holds while the vocabulary is still loading.
+     *
+     * If that request *failed*, the field cannot be answered at all, and the
+     * sector stops being required: an empty sector is a value the API accepts,
+     * and the Settings page can set it properly once the endpoint is reachable.
+     * Blocking setup on a list we could not fetch would strand the tenant on
+     * this step with nothing they could do about it.
+     */
+    isValid: (a, { sectors, sectorsUnavailable }) =>
       a.companyName.trim().length > 0 &&
-      sectors.includes(a.companySector.trim()) &&
-      a.companySize !== null,
+      a.companySize !== null &&
+      (sectorsUnavailable || sectors.includes(a.companySector.trim())),
   },
   {
     id: "passing",
