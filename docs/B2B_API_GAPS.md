@@ -167,8 +167,16 @@ Backend decisions worth carrying forward:
   this document asked. The BFF needs no header special-casing.
 - **`learners` in the reminder result counts the population selected**, not the successes, so
   `learners: 0` means nobody was behind — distinct from every mail failing. The Overview branches on
-  exactly that. The sweep is rate limited to one run per business per five minutes, surfaced as a
-  429 the client renders as "try again in a few minutes".
+  exactly that. Rate limiting is per action, not per business: the sweep allows one run per business
+  per five minutes, and the per-course Remind button one run per course per five minutes. Both
+  surface as a 429 the client renders as "try again in a few minutes". (They shared one key at
+  first, which made reminding course A 429 course B.)
+- **"Behind" is wider than the legacy rule, deliberately.** This document described legacy as
+  _assigned, not completed, and either no progress or past an expected-pace threshold_. The
+  implementation is **assigned and not completed** — no pace threshold. A course with no due date
+  has no pace to be behind on, and inventing one would send mail nobody could act on. The practical
+  consequence, which the Overview copy should reflect: **"Remind all behind" mails every learner who
+  has not completed**, including one who started yesterday.
 - **`/reports/summary` adds `enrolments_completed` rather than overwriting `total_completed`.** The
   two count different things — the shipped field reads the stored status column and is not pass-mark
   aware. The Reports landing uses the new one; nothing that consumed the old one changed meaning.
@@ -304,6 +312,14 @@ Response `data`:
 `certificate_self_download` is a **one-way switch**: once disabled it can never be re-enabled, and
 the payload must expose `certificate_self_download_locked` so the UI can render the "Locked" chip
 instead of an editable toggle. The legacy service enforces this; the facade must not weaken it.
+
+To be precise about what throws the switch, because the first implementation got this backwards:
+the lock is keyed on the **value**, not on `onboarding_complete`. `locked` is true once the value is
+`false`. A tenant that finished onboarding with self-download still enabled can disable it later,
+once; a tenant that has disabled it cannot re-enable it. Site administrators (`manage_options`) are
+exempt — the decision is permanent for the tenant, not for the platform owner. Inside the onboarding
+wizard the field is freely writable in both directions, since nothing is committed until the wizard
+finishes.
 
 ### `PATCH /lms-b2b/v1/settings`
 
@@ -678,6 +694,10 @@ Definitions, matching the legacy `deriveLearnerStatus` rule: `archived` = `statu
 `pending` = active with no `last_login`; `enrolled` = active with ≥1 course assignment;
 `unassigned` = active, has logged in, no assignment. Args: `business_id`, `department_id`.
 
+`department_id` was missed on the first pass and landed 2026-09-06. Without it the KPI card
+described a different population than the department-filtered table beside it — the contradiction
+cluster 5 warns about.
+
 ---
 
 ## 7 — Reminders
@@ -759,6 +779,10 @@ field on some rows and not others — worth confirming which is authoritative.
 
 The facade currently mixes `/certificates` (plural, list) with `/certificate/generate` (singular).
 Move generate to `POST /certificates/generate` and keep the old path as an alias for one release.
+
+**Landed 2026-09-06.** `POST /lms-b2b/v1/certificates/generate` is the canonical path;
+`/certificate/generate` is registered as an alias against the same callback and the same arg
+schema, and should be dropped one release after the frontend stops calling it.
 
 ---
 
