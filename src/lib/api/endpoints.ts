@@ -353,6 +353,7 @@ export const endpoints = {
     // Settings
     settings: "/settings",
     settingsOnboarding: "/settings/onboarding",
+    settingsSectors: "/settings/sectors",
     settingsReset: "/settings/reset",
 
     // Activity
