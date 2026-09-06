@@ -22,19 +22,21 @@ Keep feature IDs (B0–B7) in sync with the plan.
 
 | Layer                                                   | State                                                                  |
 | ------------------------------------------------------- | ---------------------------------------------------------------------- |
-| BFF proxy routes (`/api/business/**`)                   | **71 route files / 83 handlers** → `lms-b2b/v1` ✅                     |
+| BFF proxy routes (`/api/business/**`)                   | **72 route files / 84 handlers** → `lms-b2b/v1` ✅                     |
 | BFF paths sourced from `endpoints.business`             | **all routes** — no hardcoded path strings ✅                          |
-| Client service (`businessDashboardService`)             | **83 methods** ✅                                                      |
+| Client service (`businessDashboardService`)             | **84 methods** ✅                                                      |
 | React Query hooks (`useBusinessDashboard.ts`)           | **76 hooks**, all on `queryKeys.business` ✅                           |
 | Types (`business-dashboard.ts` + `business-pricing.ts`) | present ✅                                                             |
 | Pages (`(business)/business-dashboard/**`)              | **21 route segments** ✅                                               |
 | Auth (JWT Bearer + refresh, httpOnly cookies)           | wired in `bff.ts` ✅                                                   |
-| Unit tests for business surfaces                        | `business-learners`, `business-csv`, `business-licences` (20 cases) ✅ |
+| Unit tests for business surfaces                        | `business-learners`, `business-csv`, `business-licences` (27 cases) ✅ |
 | **Parity with the legacy WP dashboard**                 | **parity reached** — pending live verification ❗                      |
 | **End-to-end verification per surface**                 | **pending** ❓                                                         |
 
-Backend (`wp-lms-b2b-rest-api`) readiness: Phase 1 **8/10**, contract **117/117** standalone. Pending backend: CORS
-origins (deploy), Postman collection; 4 controllers still proxy-only. See `wp-lms-b2b-rest-api/PROGRESS.md`.
+Backend (`wp-lms-b2b-rest-api`) readiness: contract **179/179**, all tiers (A, B, C) closed — see
+`docs/B2B_API_GAPS.md`. Pending backend: CORS origins (deploy), Postman collection. The controller
+table below still records which routes reach the backend via a legacy alias rather than directly;
+that is a routing detail, not an outstanding gap. See `wp-lms-b2b-rest-api/PROGRESS.md`.
 
 ### Parity gap with `wplms-business-dashboard`
 

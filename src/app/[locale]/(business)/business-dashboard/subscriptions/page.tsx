@@ -221,7 +221,7 @@ export default function BusinessSubscriptionsPage() {
               <option value="">Select a team member…</option>
               {learners.map((l) => (
                 <option key={l.user_id} value={String(l.user_id)}>
-                  {l.display_name} ({l.user_email ?? l.email})
+                  {l.display_name} ({l.email})
                 </option>
               ))}
             </select>

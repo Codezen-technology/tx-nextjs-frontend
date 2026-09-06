@@ -23,14 +23,9 @@ import {
 } from "@/lib/hooks/useBusinessDashboard";
 import { deriveLearnerStatus } from "@/lib/utils/business-learners";
 import type { Learner } from "@/types/business-dashboard";
+import { formatBusinessDate } from "@/lib/utils/business-dates";
 
 const PER_PAGE_OPTIONS = [10, 25, 50];
-
-function formatDate(value?: string | null) {
-  if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-GB");
-}
 
 export default function BusinessLearnersPage() {
   const [page, setPage] = useState(1);
@@ -74,14 +69,14 @@ export default function BusinessLearnersPage() {
         </Link>
       ),
     },
-    { key: "email", header: "Email", cell: (row) => row.email || row.user_email || "—" },
+    { key: "email", header: "Email", cell: (row) => row.email || "—" },
     { key: "role", header: "Role", cell: (row) => <StatusBadge status={row.role} /> },
     {
       key: "status",
       header: "Status",
       cell: (row) => <StatusBadge status={deriveLearnerStatus(row)} />,
     },
-    { key: "created", header: "Added", cell: (row) => formatDate(row.created_at) },
+    { key: "created", header: "Added", cell: (row) => formatBusinessDate(row.created_at) },
     {
       key: "actions",
       header: "",

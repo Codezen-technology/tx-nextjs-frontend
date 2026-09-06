@@ -18,6 +18,7 @@ import {
 } from "@/lib/hooks/useBusinessDashboard";
 import { downloadCsv } from "@/lib/utils/business-csv";
 import type { LearnerCourseRecord, ReportStatus } from "@/types/business-dashboard";
+import { formatBusinessDate } from "@/lib/utils/business-dates";
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
@@ -31,12 +32,6 @@ const VIEWS: Record<ReportStatus, { title: string; subtitle: string }> = {
 
 function isReportStatus(value: string | null): value is ReportStatus {
   return value != null && value in VIEWS;
-}
-
-function formatDate(value?: string | null) {
-  if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-GB");
 }
 
 function StatusReport() {
@@ -108,8 +103,8 @@ function StatusReport() {
         r.status,
         `${r.progress}%`,
         r.score == null ? "" : String(r.score),
-        formatDate(r.completion_date),
-        formatDate(r.enrolled_at),
+        formatBusinessDate(r.completion_date),
+        formatBusinessDate(r.enrolled_at),
       ]),
     );
   };
@@ -139,9 +134,9 @@ function StatusReport() {
       ),
     },
     { key: "score", header: "Score", cell: (r) => (r.score == null ? "—" : `${r.score}%`) },
-    { key: "completed", header: "Completed", cell: (r) => formatDate(r.completion_date) },
-    { key: "enrolled", header: "Enrolled", cell: (r) => formatDate(r.enrolled_at) },
-    { key: "accessed", header: "Last accessed", cell: (r) => formatDate(r.last_accessed) },
+    { key: "completed", header: "Completed", cell: (r) => formatBusinessDate(r.completion_date) },
+    { key: "enrolled", header: "Enrolled", cell: (r) => formatBusinessDate(r.enrolled_at) },
+    { key: "accessed", header: "Last accessed", cell: (r) => formatBusinessDate(r.last_accessed) },
   ];
 
   return (

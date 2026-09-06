@@ -1,4 +1,5 @@
 import { bffJson } from "@/lib/api/bff-client";
+import { decodeEntities } from "@/lib/api/parsers";
 import { ApiError } from "@/lib/api/error";
 import type {
   AddLearnerPayload,
@@ -6,6 +7,7 @@ import type {
   ActivityResponse,
   AssignCoursePayload,
   AssignmentListResponse,
+  AssignmentListWire,
   AssignmentsResponse,
   AssignedSubscription,
   AvailableLearnersResponse,
@@ -25,6 +27,7 @@ import type {
   CertificatesResponse,
   CheckEmailResponse,
   CourseLearnersResponse,
+  CourseLearnersWire,
   Department,
   DepartmentsResponse,
   CoursesResponse,
@@ -39,6 +42,7 @@ import type {
   MatrixCourse,
   MemberDepartmentsResponse,
   ManagersResponse,
+  ManagersWire,
   ManagerEmailCheck,
   ManagerCapabilitiesResponse,
   ManagerPermissions,
@@ -112,6 +116,31 @@ function normaliseLicencePool(pool: Record<string, unknown>): LicencePool {
     available: num(pool.available),
     price_per_licence: num(pool.price_per_licence),
     discount_percent: num(pool.discount_percent),
+  };
+}
+
+/**
+ * Decode a WP `rendered` string.
+ *
+ * Course and learner names reach us straight off `post_title`, which WPLMS
+ * stores entity-encoded — "Fire &amp; Rescue", "Learner&#8217;s Guide". Every
+ * business surface renders these as plain text, so the decode belongs here,
+ * in the one layer allowed to know about WP's shape.
+ */
+function text(value: unknown): string {
+  return typeof value === "string" ? decodeEntities(value) : "";
+}
+
+/** As `text()`, but preserves `undefined` for optional fields. */
+function optionalText(value: string | undefined | null): string | undefined {
+  return value == null ? undefined : decodeEntities(value);
+}
+
+function decodeLearner(row: Learner): Learner {
+  return {
+    ...row,
+    display_name: text(row.display_name),
+    departments: row.departments?.map((d) => ({ ...d, name: text(d.name) })),
   };
 }
 
@@ -192,7 +221,15 @@ export const businessDashboardService = {
       role: params.role,
       department_id: params.department_id,
     });
-    return bffJson<TeamResponse>(`/api/business/team${qs}`);
+    const raw = await bffJson<TeamResponse>(`/api/business/team${qs}`);
+
+    return {
+      ...raw,
+      members: (raw.members ?? []).map((row) => ({
+        ...decodeLearner(row),
+        email: row.email || row.user_email || "",
+      })),
+    };
   },
 
   async getLearner(id: number): Promise<Learner> {
@@ -236,6 +273,12 @@ export const businessDashboardService = {
     return bffJson<AssignmentsResponse>(`/api/business/courses/assignments${qs}`);
   },
 
+  /**
+   * The per-course assignment roll-up.
+   *
+   * Older builds return the list as `courses`, newer ones as `items`. Both are
+   * collapsed to `items` here so no component has to know which it got.
+   */
   async getAssignmentList(params: BusinessListParams = {}): Promise<AssignmentListResponse> {
     const qs = buildQuery({
       page: params.page,
@@ -243,7 +286,15 @@ export const businessDashboardService = {
       search: params.search,
       status: params.status,
     });
-    return bffJson<AssignmentListResponse>(`/api/business/courses/assignment-list${qs}`);
+    const raw = await bffJson<AssignmentListWire>(`/api/business/courses/assignment-list${qs}`);
+
+    return {
+      ...raw,
+      items: (raw.items ?? raw.courses ?? []).map((course) => ({
+        ...course,
+        course_name: text(course.course_name),
+      })),
+    };
   },
 
   /**
@@ -262,7 +313,19 @@ export const businessDashboardService = {
       orderby: params.orderby,
       taxonomy: params.taxonomy?.length ? params.taxonomy : undefined,
     });
-    return bffJson<CoursesResponse>(`/api/business/courses${qs}`);
+    const raw = await bffJson<CoursesResponse>(`/api/business/courses${qs}`);
+
+    return {
+      ...raw,
+      courses: (raw.courses ?? []).map((course) => ({
+        ...course,
+        name: text(course.name),
+        excerpt: optionalText(course.excerpt),
+        description: optionalText(course.description),
+        author: optionalText(course.author),
+        course_categories: course.course_categories?.map((c) => ({ ...c, name: text(c.name) })),
+      })),
+    };
   },
 
   /** Course categories with exclusions already applied server-side. */
@@ -270,7 +333,7 @@ export const businessDashboardService = {
     const data = await bffJson<{ categories?: BusinessCourseCategory[] }>(
       "/api/business/course-categories",
     );
-    return data.categories ?? [];
+    return (data.categories ?? []).map((c) => ({ ...c, name: text(c.name) }));
   },
 
   async getLearnerCourses(
@@ -282,9 +345,26 @@ export const businessDashboardService = {
       per_page: params.per_page,
       search: params.search,
     });
-    return bffJson<LearnerCoursesResponse>(`/api/business/courses/learner/${learnerId}${qs}`);
+    const raw = await bffJson<LearnerCoursesResponse>(
+      `/api/business/courses/learner/${learnerId}${qs}`,
+    );
+
+    return {
+      ...raw,
+      items: (raw.items ?? raw.courses ?? []).map((course) => ({
+        ...course,
+        course_name: text(course.course_name),
+      })),
+    };
   },
 
+  /**
+   * Learners on one course.
+   *
+   * The list arrives as `items`, `learners` or `members` depending on backend
+   * version; all three collapse to `items` here. `email` is likewise the
+   * canonical field — older builds send `user_email`.
+   */
   async getCourseLearners(
     courseId: number,
     params: BusinessListParams = {},
@@ -293,8 +373,24 @@ export const businessDashboardService = {
       page: params.page,
       per_page: params.per_page,
       search: params.search,
+      department_id: params.department_id,
     });
-    return bffJson<CourseLearnersResponse>(`/api/business/courses/${courseId}/learners${qs}`);
+    const raw = await bffJson<CourseLearnersWire>(
+      `/api/business/courses/${courseId}/learners${qs}`,
+    );
+
+    return {
+      ...raw,
+      items: (raw.items ?? raw.learners ?? raw.members ?? []).map((row) => ({
+        ...decodeLearner(row),
+        id: row.id ?? row.user_id,
+        user_id: row.user_id ?? row.id,
+        email: row.email || row.user_email || "",
+      })),
+      course_info: raw.course_info
+        ? { ...raw.course_info, post_title: optionalText(raw.course_info.post_title) }
+        : undefined,
+    };
   },
 
   async getAvailableLearners(
@@ -305,10 +401,16 @@ export const businessDashboardService = {
       page: params.page,
       per_page: params.per_page,
       search: params.search,
+      department_id: params.department_id,
     });
-    return bffJson<AvailableLearnersResponse>(
+    const raw = await bffJson<AvailableLearnersResponse>(
       `/api/business/courses/${courseId}/available-learners${qs}`,
     );
+
+    return {
+      ...raw,
+      items: (raw.items ?? []).map((row) => ({ ...row, display_name: text(row.display_name) })),
+    };
   },
 
   async assignCourse(payload: AssignCoursePayload): Promise<unknown> {
@@ -660,8 +762,14 @@ export const businessDashboardService = {
     return data.courses ?? [];
   },
 
-  async getTeamStats(): Promise<TeamStats> {
-    return bffJson<TeamStats>("/api/business/team/stats");
+  /**
+   * The Overview KPI partition. Takes `department_id` so the card counts the
+   * same population as the department-filtered table beside it — without it the
+   * two contradict each other.
+   */
+  async getTeamStats(params: { department_id?: number } = {}): Promise<TeamStats> {
+    const qs = buildQuery({ department_id: params.department_id });
+    return bffJson<TeamStats>(`/api/business/team/stats${qs}`);
   },
 
   // ─── Learner account actions (Tier B) ────────────────────────────────────────
@@ -688,7 +796,7 @@ export const businessDashboardService = {
    * mail having failed.
    */
   async remindBehind(
-    filters: { course_id?: number; learner_id?: number } = {},
+    filters: { course_id?: number; department_id?: number; learner_id?: number } = {},
   ): Promise<RemindResult> {
     return bffJson<RemindResult>("/api/business/courses/remind-behind", {
       method: "POST",
@@ -719,7 +827,15 @@ export const businessDashboardService = {
       search: params.search,
       status: params.status,
     });
-    return bffJson<SeatRosterResponse>(`/api/business/subscriptions/seat-roster${qs}`);
+    const raw = await bffJson<SeatRosterResponse>(`/api/business/subscriptions/seat-roster${qs}`);
+
+    return {
+      ...raw,
+      items: (raw.items ?? []).map((row) => ({
+        ...row,
+        user_name: optionalText(row.user_name) ?? null,
+      })),
+    };
   },
 
   async getReportCourses(params: BusinessListParams = {}): Promise<B2BPaginated<ReportCourse>> {
@@ -751,6 +867,8 @@ export const businessDashboardService = {
       course_id: params.course_id,
       learner_id: params.learner_id,
       department_id: params.department_id,
+      date_from: params.date_from,
+      date_to: params.date_to,
     });
     return bffJson<B2BPaginated<ReportCertificate>>(`/api/business/reports/certificates${qs}`);
   },
@@ -785,9 +903,9 @@ export const businessDashboardService = {
       items: (raw.items ?? []).map((row) => ({
         id: row.id,
         course_id: row.course?.id ?? 0,
-        course_name: row.course?.name ?? "",
+        course_name: text(row.course?.name),
         user_id: row.user?.id ?? 0,
-        learner_name: row.user?.name ?? "",
+        learner_name: text(row.user?.name),
         learner_email: row.user?.email ?? "",
         certificate_url: row.certificate_url ?? null,
         issued_date: row.issued_date ?? null,
@@ -874,7 +992,16 @@ export const businessDashboardService = {
   },
 
   async getManagers(businessId: number): Promise<ManagersResponse> {
-    return bffJson<ManagersResponse>(`/api/business/managers?business_id=${businessId}`);
+    const raw = await bffJson<ManagersWire>(`/api/business/managers?business_id=${businessId}`);
+
+    return {
+      total: raw.total,
+      managers: (raw.items ?? raw.managers ?? []).map((m) => ({
+        ...m,
+        display_name: text(m.display_name),
+        user_email: m.user_email || m.email || "",
+      })),
+    };
   },
 
   async addManager(payload: {

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { useBusinessOrders, useBusinessProfile } from "@/lib/hooks/useBusinessDashboard";
 import type { BusinessOrder } from "@/types/business-dashboard";
+import { formatBusinessDate } from "@/lib/utils/business-dates";
 
 const PER_PAGE = 10;
 
@@ -28,12 +29,6 @@ const STATUS_OPTIONS = [
   { value: "cancelled", label: "Cancelled" },
   { value: "refunded", label: "Refunded" },
 ];
-
-function formatDate(value?: string | null) {
-  if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-GB");
-}
 
 function formatMoney(total: string | number, currency?: string) {
   const n = typeof total === "string" ? parseFloat(total) : total;
@@ -110,7 +105,7 @@ export default function BusinessOrdersPage() {
         ),
     },
     { key: "name", header: "Name", cell: (row) => row.billing_name || "—" },
-    { key: "date", header: "Date", cell: (row) => formatDate(row.date) },
+    { key: "date", header: "Date", cell: (row) => formatBusinessDate(row.date) },
     {
       key: "status",
       header: "Status",
@@ -223,7 +218,7 @@ export default function BusinessOrdersPage() {
           {latestOrder ? (
             <>
               <Row label="Method" value={latestOrder.payment_method} />
-              <Row label="Last used" value={formatDate(latestOrder.date)} />
+              <Row label="Last used" value={formatBusinessDate(latestOrder.date)} />
               <Row
                 label="Last charge"
                 value={formatMoney(latestOrder.total, latestOrder.currency)}

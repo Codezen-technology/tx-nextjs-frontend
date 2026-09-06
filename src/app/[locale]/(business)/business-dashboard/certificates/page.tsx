@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/business/status-badge";
 import { Input } from "@/components/ui/input";
 import { useBusinessCertificates, useReportCourseOptions } from "@/lib/hooks/useBusinessDashboard";
 import type { BusinessCertificate } from "@/types/business-dashboard";
+import { formatBusinessDate } from "@/lib/utils/business-dates";
 
 const PER_PAGE_OPTIONS = [10, 25, 50];
 
@@ -18,12 +19,6 @@ const STATUS_OPTIONS = [
   { value: "expired", label: "Expired" },
   { value: "revoked", label: "Revoked" },
 ];
-
-function formatDate(value?: string | null) {
-  if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-GB");
-}
 
 export default function BusinessCertificatesPage() {
   const [page, setPage] = useState(1);
@@ -81,8 +76,8 @@ export default function BusinessCertificatesPage() {
           row.course_name || "—"
         ),
     },
-    { key: "issued", header: "Issued", cell: (row) => formatDate(row.issued_date) },
-    { key: "expires", header: "Expires", cell: (row) => formatDate(row.expiry_date) },
+    { key: "issued", header: "Issued", cell: (row) => formatBusinessDate(row.issued_date) },
+    { key: "expires", header: "Expires", cell: (row) => formatBusinessDate(row.expiry_date) },
     { key: "status", header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
     {
       key: "actions",

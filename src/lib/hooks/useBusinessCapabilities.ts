@@ -49,9 +49,10 @@ function emptyMap(): BusinessCapabilityMap {
  *
  * Derived from WP roles rather than read from the API: `lms-b2b/v1` exposes
  * `GET /permissions/manager/capabilities?manager_id=` for reading *another*
- * manager's grants, but has no "my capabilities" route — see
- * docs/B2B_API_GAPS.md cluster 6. When that lands, swap the body of this hook
- * for the query and every caller keeps working.
+ * manager's grants, but has no "my capabilities" route, and none is specified
+ * in docs/B2B_API_GAPS.md. Gating the nav on roles is a stopgap for that gap,
+ * not something the spec asked for. When a self-capabilities route exists,
+ * swap the body of this hook for the query and every caller keeps working.
  *
  * Owners hold every capability. Managers hold the non-owner set; per-manager
  * revocations are not visible to the client until the endpoint exists, so this

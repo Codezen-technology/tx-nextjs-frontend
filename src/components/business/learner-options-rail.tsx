@@ -16,12 +16,7 @@ import {
 import { useBusinessCapabilities } from "@/lib/hooks/useBusinessCapabilities";
 import { deriveLearnerStatus } from "@/lib/utils/business-learners";
 import type { Learner } from "@/types/business-dashboard";
-
-function formatDateTime(value?: string | null) {
-  if (!value) return "Never";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "Never" : d.toLocaleString("en-GB");
-}
+import { formatBusinessDateTime } from "@/lib/utils/business-dates";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -93,7 +88,7 @@ export function LearnerOptionsRail({ learner }: { learner: Learner }) {
         <Field label="Status">
           <StatusBadge status={displayStatus} />
         </Field>
-        <Field label="Last login">{formatDateTime(learner.last_login)}</Field>
+        <Field label="Last login">{formatBusinessDateTime(learner.last_login)}</Field>
       </div>
 
       {departments?.flat.length ? (

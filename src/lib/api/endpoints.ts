@@ -315,7 +315,12 @@ export const endpoints = {
 
     // Certificates
     certificates: "/certificates",
-    certificateGenerate: "/certificate/generate",
+    /**
+     * Canonical since 2026-09-06. `/certificate/generate` is still registered
+     * as an alias against the same callback, and is due to be dropped one
+     * release after this — so nothing here may call it.
+     */
+    certificateGenerate: "/certificates/generate",
 
     // Subscriptions
     subscriptions: "/businesses/subscriptions",

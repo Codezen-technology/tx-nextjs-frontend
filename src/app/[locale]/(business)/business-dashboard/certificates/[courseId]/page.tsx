@@ -11,18 +11,18 @@ import { QuizScoresDialog } from "@/components/business/quiz-scores-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  useBusinessSettings,
   useGenerateBusinessCertificate,
   useBusinessCourseLearners,
 } from "@/lib/hooks/useBusinessDashboard";
+import {
+  canGenerateCertificate,
+  certificateBlockedReason,
+} from "@/lib/utils/business-certificates";
 import type { Learner } from "@/types/business-dashboard";
+import { formatBusinessDate } from "@/lib/utils/business-dates";
 
 const PER_PAGE = 10;
-
-function formatDate(value?: string | null) {
-  if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-GB");
-}
 
 /** Wire-style status keys, so StatusBadge picks up the right colour and label. */
 function progressStatus(progress?: number): string {
@@ -50,8 +50,10 @@ export default function BusinessCourseCertificatesPage({
     search,
   });
   const generateCert = useGenerateBusinessCertificate();
+  const { data: settings } = useBusinessSettings();
+  const passMark = settings?.passing_mark ?? 80;
 
-  const rows = data?.items ?? data?.learners ?? data?.members ?? [];
+  const rows = data?.items ?? [];
   const totalPages = data?.pages ?? 1;
   const courseName = data?.course_info?.post_title ?? "Course";
 
@@ -68,7 +70,7 @@ export default function BusinessCourseCertificatesPage({
       cell: (row) => (
         <div className="min-w-0">
           <p className="truncate font-medium text-neutral-900">{row.display_name}</p>
-          <p className="truncate text-xs text-neutral-300">{row.email || row.user_email}</p>
+          <p className="truncate text-xs text-neutral-300">{row.email}</p>
         </div>
       ),
     },
@@ -88,8 +90,12 @@ export default function BusinessCourseCertificatesPage({
         </div>
       ),
     },
-    { key: "start", header: "Start Date", cell: (row) => formatDate(row.start_date) },
-    { key: "completion", header: "Completion", cell: (row) => formatDate(row.completion_date) },
+    { key: "start", header: "Start Date", cell: (row) => formatBusinessDate(row.start_date) },
+    {
+      key: "completion",
+      header: "Completion",
+      cell: (row) => formatBusinessDate(row.completion_date),
+    },
     {
       key: "score",
       header: "Score",
@@ -122,7 +128,7 @@ export default function BusinessCourseCertificatesPage({
             Download
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
-        ) : (row.progress ?? 0) >= 100 ? (
+        ) : canGenerateCertificate(row, passMark) ? (
           <button
             type="button"
             className="text-sm font-medium text-[#3F576F] hover:underline"
@@ -137,6 +143,10 @@ export default function BusinessCourseCertificatesPage({
           >
             Generate
           </button>
+        ) : (row.progress ?? 0) >= 100 ? (
+          <span className="text-xs text-neutral-300">
+            {certificateBlockedReason(row, passMark)}
+          </span>
         ) : (
           <span className="text-neutral-300">—</span>
         ),

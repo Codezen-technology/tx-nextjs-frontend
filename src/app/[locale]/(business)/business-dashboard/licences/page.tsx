@@ -11,14 +11,9 @@ import { Input } from "@/components/ui/input";
 import { useBusinessLicenceBalance } from "@/lib/hooks/useBusinessDashboard";
 import { formatPoolCourseName, isMigratedCreditPool } from "@/lib/utils/business-licences";
 import type { LicencePool } from "@/types/business-dashboard";
+import { formatBusinessDate } from "@/lib/utils/business-dates";
 
 const STATUS_OPTIONS = ["all", "active", "inactive"] as const;
-
-function formatDate(value?: string) {
-  if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-GB");
-}
 
 function formatCurrency(value?: number) {
   if (value == null) return "—";
@@ -77,7 +72,7 @@ export default function BusinessLicenceHistoryPage() {
       header: "Order",
       cell: (row) => (row.order_id ? `#${row.order_id}` : "—"),
     },
-    { key: "date", header: "Date", cell: (row) => formatDate(row.created_at) },
+    { key: "date", header: "Date", cell: (row) => formatBusinessDate(row.created_at) },
     { key: "qty", header: "Qty", cell: (row) => row.quantity },
     {
       key: "usage",

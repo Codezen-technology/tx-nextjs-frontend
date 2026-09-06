@@ -14,6 +14,7 @@ import {
   useUpdateBusinessProfile,
 } from "@/lib/hooks/useBusinessDashboard";
 import { sumAvailableLicences } from "@/lib/utils/business-licences";
+import { formatBusinessDateLong } from "@/lib/utils/business-dates";
 
 const INDUSTRY_LABELS: Record<string, string> = {
   technology: "Technology",
@@ -25,14 +26,6 @@ const INDUSTRY_LABELS: Record<string, string> = {
   services: "Services",
   other: "Other",
 };
-
-function formatDate(value?: string) {
-  if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime())
-    ? "—"
-    : d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
-}
 
 function ProfileField({ label, value }: { label: string; value?: string | number | null }) {
   return (
@@ -150,7 +143,7 @@ export default function BusinessProfilePage() {
         />
         <KpiCard
           label="Member Since"
-          value={formatDate(business.created_at)}
+          value={formatBusinessDateLong(business.created_at)}
           icon={CalendarDays}
           tone="success"
         />

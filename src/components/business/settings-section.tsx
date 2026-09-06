@@ -30,9 +30,9 @@ export function SettingsSection({
  * A labelled toggle.
  *
  * `locked` renders a chip instead of the control — used for the certificate
- * download setting, which the backend makes permanent once onboarding
- * completes. `comingSoon` marks settings that are stored but inert, so the UI
- * is honest about what they do rather than implying an effect.
+ * download setting, which the backend locks once it has been set to `false`.
+ * `comingSoon` marks settings that are stored but inert, so the UI is honest
+ * about what they do rather than implying an effect.
  */
 export function ToggleRow({
   label,

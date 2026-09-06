@@ -255,10 +255,10 @@ export function useReportCourseOptions() {
   });
 }
 
-export function useTeamStats() {
+export function useTeamStats(params: { department_id?: number } = {}) {
   return useQuery({
-    queryKey: queryKeys.business.teamStats,
-    queryFn: () => businessDashboardService.getTeamStats(),
+    queryKey: queryKeys.business.teamStats(params),
+    queryFn: () => businessDashboardService.getTeamStats(params),
     staleTime: LIST_STALE,
   });
 }
@@ -444,8 +444,9 @@ export function useRemindCourse() {
 
 export function useRemindBehind() {
   return useMutation({
-    mutationFn: (filters: { course_id?: number; learner_id?: number } = {}) =>
-      businessDashboardService.remindBehind(filters),
+    mutationFn: (
+      filters: { course_id?: number; department_id?: number; learner_id?: number } = {},
+    ) => businessDashboardService.remindBehind(filters),
   });
 }
 

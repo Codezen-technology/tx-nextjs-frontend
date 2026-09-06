@@ -12,12 +12,7 @@ import { LearnerOptionsRail } from "@/components/business/learner-options-rail";
 import { useBusinessLearner, useBusinessLearnerCourses } from "@/lib/hooks/useBusinessDashboard";
 import { deriveLearnerStatus } from "@/lib/utils/business-learners";
 import type { LearnerCourseItem } from "@/types/business-dashboard";
-
-function formatDate(value?: string | null) {
-  if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-GB");
-}
+import { formatBusinessDate } from "@/lib/utils/business-dates";
 
 /** Wire-style status keys, so StatusBadge picks up the right colour. */
 function progressStatus(progress?: number): string {
@@ -33,7 +28,7 @@ export default function BusinessLearnerDetailPage({ params }: { params: Promise<
   const { data: learner, isLoading, isError } = useBusinessLearner(learnerId);
   const { data: coursesData, isLoading: coursesLoading } = useBusinessLearnerCourses(learnerId);
 
-  const courses = coursesData?.courses ?? coursesData?.items ?? [];
+  const courses = coursesData?.items ?? [];
 
   const columns: Column<LearnerCourseItem>[] = [
     { key: "course", header: "Course", cell: (row) => row.course_name },
@@ -48,8 +43,12 @@ export default function BusinessLearnerDetailPage({ params }: { params: Promise<
       className: "min-w-[120px]",
       cell: (row) => <UsageBar used={row.progress ?? 0} total={100} color="bg-[#3F576F]" />,
     },
-    { key: "start", header: "Start", cell: (row) => formatDate(row.start_date) },
-    { key: "completion", header: "Completed", cell: (row) => formatDate(row.completion_date) },
+    { key: "start", header: "Start", cell: (row) => formatBusinessDate(row.start_date) },
+    {
+      key: "completion",
+      header: "Completed",
+      cell: (row) => formatBusinessDate(row.completion_date),
+    },
     {
       key: "cert",
       header: "Certificate",
@@ -102,7 +101,7 @@ export default function BusinessLearnerDetailPage({ params }: { params: Promise<
                   <h2 className="text-xl font-bold text-neutral-900">{learner.display_name}</h2>
                   <p className="flex items-center gap-1.5 text-sm text-neutral-300">
                     <Mail className="h-4 w-4" />
-                    {learner.email || learner.user_email || "—"}
+                    {learner.email || "—"}
                   </p>
                 </div>
                 <StatusBadge status={deriveLearnerStatus(learner)} className="ml-auto" />

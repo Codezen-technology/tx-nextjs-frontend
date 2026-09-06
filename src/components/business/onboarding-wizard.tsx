@@ -43,9 +43,12 @@ function StepShell({
  *
  * Nothing is written until "Launch dashboard" fires a single
  * `POST /settings/onboarding`, so abandoning the wizard leaves the tenant
- * exactly as it was. That is also why the certificate download control is
- * editable here and permanent afterwards — the lock engages with the
- * onboarding flag, in the same request.
+ * exactly as it was.
+ *
+ * The certificate download control is freely editable in both directions here.
+ * The lock is keyed on the *value*, not on completing onboarding: it engages
+ * once the setting is `false`, whenever that happens. Finishing setup with
+ * downloads still enabled leaves the tenant free to disable it later — once.
  */
 export function OnboardingWizard({ settings }: { settings: BusinessSettings }) {
   const [step, setStep] = useState(0);
@@ -177,7 +180,7 @@ export function OnboardingWizard({ settings }: { settings: BusinessSettings }) {
         {step === 4 ? (
           <StepShell
             title="Certificate downloads"
-            description="This one is permanent. Once setup finishes it cannot be changed."
+            description="Turning this off is a one-way door — it can never be turned back on. Leaving it on now keeps the choice open."
           >
             <div role="radiogroup" aria-label="Certificate downloads" className="space-y-2">
               {[

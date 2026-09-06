@@ -18,6 +18,7 @@ import {
   useAssignBusinessCourse,
   useBusinessAvailableLearners,
   useBusinessProfile,
+  useDepartments,
   useLearnerSubscriptionChecks,
 } from "@/lib/hooks/useBusinessDashboard";
 import { cn } from "@/lib/utils/cn";
@@ -42,13 +43,16 @@ export function AssignCourseModal({
   onOpenChange,
 }: AssignCourseModalProps) {
   const [search, setSearch] = useState("");
+  const [departmentId, setDepartmentId] = useState(0);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [error, setError] = useState("");
   const [noLicence, setNoLicence] = useState(false);
 
+  const { data: departments } = useDepartments();
   const { data, isLoading } = useBusinessAvailableLearners(open ? courseId : null, {
     search,
     per_page: 50,
+    ...(departmentId ? { department_id: departmentId } : {}),
   });
   const assign = useAssignBusinessCourse();
 
@@ -82,6 +86,7 @@ export function AssignCourseModal({
     if (!open) {
       setSelected(new Set());
       setSearch("");
+      setDepartmentId(0);
       setError("");
       setNoLicence(false);
     }
@@ -126,14 +131,32 @@ export function AssignCourseModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="relative">
-          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-300" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search learners..."
-            className="pl-9"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-300" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search learners..."
+              className="pl-9"
+            />
+          </div>
+
+          {departments?.flat.length ? (
+            <select
+              value={departmentId || ""}
+              onChange={(e) => setDepartmentId(Number(e.target.value) || 0)}
+              aria-label="Filter by department"
+              className="border-neutral-30 h-9 shrink-0 rounded-lg border bg-white px-2 text-sm text-neutral-900"
+            >
+              <option value="">All departments</option>
+              {departments.flat.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          ) : null}
         </div>
 
         <div className="border-neutral-30 max-h-64 overflow-y-auto rounded-lg border">

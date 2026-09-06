@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/business/status-badge";
 import { Input } from "@/components/ui/input";
 import { useSeatRoster } from "@/lib/hooks/useBusinessDashboard";
 import type { SeatRosterRow } from "@/types/business-dashboard";
+import { formatBusinessDate } from "@/lib/utils/business-dates";
 
 const PER_PAGE = 10;
 
@@ -17,12 +18,6 @@ const STATUS_OPTIONS = [
   { value: "suspended", label: "Suspended" },
   { value: "revoked", label: "Revoked" },
 ];
-
-function formatDate(value?: string | null) {
-  if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-GB");
-}
 
 /**
  * Every seated learner across all of the business's subscriptions.
@@ -59,7 +54,7 @@ export function SeatRosterTable() {
     },
     { key: "plan", header: "Plan", cell: (row) => row.plan_type ?? "—" },
     { key: "status", header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
-    { key: "assigned", header: "Assigned", cell: (row) => formatDate(row.assigned_at) },
+    { key: "assigned", header: "Assigned", cell: (row) => formatBusinessDate(row.assigned_at) },
     { key: "subscription", header: "Subscription", cell: (row) => `#${row.subscription_id}` },
   ];
 

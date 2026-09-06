@@ -128,7 +128,18 @@ export function downloadCsv(filename: string, headers: string[], rows: string[][
 
   const csv = [headers, ...rows].map((row) => row.map(escape).join(",")).join("\r\n");
 
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  // The BOM is what makes Excel read the file as UTF-8 rather than Latin-1.
+  downloadTextAsCsv(filename, "\uFEFF" + csv);
+}
+
+/**
+ * Save a string to disk as a CSV download.
+ *
+ * The object URL must be revoked or the blob leaks for the life of the
+ * document — the one detail that is easy to drop when this is re-written inline.
+ */
+export function downloadTextAsCsv(filename: string, contents: string): void {
+  const blob = new Blob([contents], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;

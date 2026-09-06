@@ -12,15 +12,15 @@ All counts below are provisional. The triage pass in Phase 1 is what makes them 
 
 ## 1. Decisions
 
-| #      | Decision                                                                                        |
-| ------ | ----------------------------------------------------------------------------------------------- |
-| **D1** | Write the plan first, then execute. The QA doc is not directly executable — see §2.              |
-| **D2** | Triage on **deployed** → fix and verify on **local** → QA re-tests on **deployed** after merge.   |
-| **D3** | Figma-vs-live comparison is the engine, not the QA screenshots. Divergent Figma sets resolved **per page**. |
-| **D4** | Five classes, three tracks: **A+B+C ship**, **D scoped then split out**, **E routed to design**.  |
-| **D5** | OpenSpec change per track, plus `.context/qa-tracker.md` as the working grid. IDs `QA-<PAGE>-<NN>`. |
-| **D6** | Rebase onto `main`; cut `fix/qa-report-round-1`. ~6 PRs sequenced by risk. Header lands early.    |
-| **D7** | Tiered verification — tests for Classes B and C, screenshot comparison for Class A.              |
+| #      | Decision                                                                                                       |
+| ------ | -------------------------------------------------------------------------------------------------------------- |
+| **D1** | Write the plan first, then execute. The QA doc is not directly executable — see §2.                            |
+| **D2** | Triage on **deployed** → fix and verify on **local** → QA re-tests on **deployed** after merge.                |
+| **D3** | Figma-vs-live comparison is the engine, not the QA screenshots. Divergent Figma sets resolved **per page**.    |
+| **D4** | Five classes, three tracks: **A+B+C ship**, **D scoped then split out**, **E routed to design**.               |
+| **D5** | OpenSpec change per track, plus `.context/qa-tracker.md` as the working grid. IDs `QA-<PAGE>-<NN>`.            |
+| **D6** | Rebase onto `main`; cut `fix/qa-report-round-1`. ~6 PRs sequenced by risk. Header lands early.                 |
+| **D7** | Tiered verification — tests for Classes B and C, screenshot comparison for Class A.                            |
 | **D8** | Resolve token/contrast/Figma-measurable items directly; escalate 7 to design; blocked ⇒ untouched and flagged. |
 
 ---
@@ -47,14 +47,14 @@ None of the doc's 13 Figma node IDs appear on canvas `20:356` ("Pages"). Verifie
 
 The two sets **duplicate each other**:
 
-| Page        | QA doc links                                       | Canvas `Pages` has                     |
-| ----------- | -------------------------------------------------- | -------------------------------------- |
-| Homepage    | `4571:10560` — frame "Homepage - Redesigned", 1920×**7150** | `6013:89909` — "Homepage - Redesigned", 1920×**7055** |
-| Blog        | `4900:75788`, in section "Blog Page responsive" on canvas `3844:4263` | `6015:127034` "Blog page"            |
-| Blog single | `4040:11134`                                        | `6015:127141`                          |
-| All Courses | `3306:50109`                                        | `6015:96163` "All Course Pages **v2**" |
-| Category    | `3294:42427`                                        | `6015:108699`                          |
-| About Us    | `6239:102399`                                       | `6015:129608`                          |
+| Page        | QA doc links                                                          | Canvas `Pages` has                                    |
+| ----------- | --------------------------------------------------------------------- | ----------------------------------------------------- |
+| Homepage    | `4571:10560` — frame "Homepage - Redesigned", 1920×**7150**           | `6013:89909` — "Homepage - Redesigned", 1920×**7055** |
+| Blog        | `4900:75788`, in section "Blog Page responsive" on canvas `3844:4263` | `6015:127034` "Blog page"                             |
+| Blog single | `4040:11134`                                                          | `6015:127141`                                         |
+| All Courses | `3306:50109`                                                          | `6015:96163` "All Course Pages **v2**"                |
+| Category    | `3294:42427`                                                          | `6015:108699`                                         |
+| About Us    | `6239:102399`                                                         | `6015:129608`                                         |
 
 Figma node IDs increase monotonically with creation. For Homepage, All Courses, Category, Blog and Blog-single the doc links the **lower-numbered, older** node — suggesting parts of this QA pass measured against superseded designs. But About Us goes the other way (`6239` > `6015`), so the pattern is **mixed**. Hence per-page resolution rather than picking one set wholesale.
 
@@ -71,7 +71,7 @@ Figma node IDs increase monotonically with creation. For Homepage, All Courses, 
 
 ### 2.6 Design intent contradicts itself
 
-About Us says *"No need of breadcrumbs."* The Certificate Verification desktop frame contains a `Breadcrumb` instance (`6239:110995`). Needs one ruling applied site-wide.
+About Us says _"No need of breadcrumbs."_ The Certificate Verification desktop frame contains a `Breadcrumb` instance (`6239:110995`). Needs one ruling applied site-wide.
 
 ---
 
@@ -107,13 +107,13 @@ That OpenSpec change is **0/20 tasks** — proposed, unstarted. It touches the h
 
 ## 4. Issue classification
 
-| Class | What                    | Count | Blocker         | Track                    |
-| ----- | ----------------------- | ----- | --------------- | ------------------------ |
-| **A** | CSS / token fixes       | ~30   | none            | Ships — PRs 5, 6         |
-| **B** | Functional bugs         | 6     | none            | Ships — PR 2 (+ PR 3)    |
-| **C** | Missing images          | ~8    | none            | Ships — PR 4             |
-| **D** | Net-new builds          | ~8    | needs sizing    | Split out, not round 1   |
-| **E** | Needs a human decision  | 7     | design/product  | Escalated                |
+| Class | What                   | Count | Blocker        | Track                  |
+| ----- | ---------------------- | ----- | -------------- | ---------------------- |
+| **A** | CSS / token fixes      | ~30   | none           | Ships — PRs 5, 6       |
+| **B** | Functional bugs        | 6     | none           | Ships — PR 2 (+ PR 3)  |
+| **C** | Missing images         | ~8    | none           | Ships — PR 4           |
+| **D** | Net-new builds         | ~8    | needs sizing   | Split out, not round 1 |
+| **E** | Needs a human decision | 7     | design/product | Escalated              |
 
 ### Class A — CSS / token fixes (~30)
 
@@ -156,15 +156,15 @@ Not QA defects. Each becomes its own OpenSpec change, proposed but unstarted:
 
 **Genuinely blocked** — escalated as a single numbered list with PR 1:
 
-| #   | Issue                        | What's needed                                              |
-| --- | ---------------------------- | ---------------------------------------------------------- |
-| 1   | Homepage search button       | "shape and color needs to be fixed" — no target given       |
-| 2   | Homepage section spacing     | "took too much space… more standard and middle align" — no target |
-| 3   | Pricing — same bg colours    | Which two sections move where                               |
-| 4   | Pricing — "remove section"   | **Product call, not design.** Routed separately — see §7     |
-| 5   | Cart mobile                  | Doc offers two options and picks neither. Pick one          |
-| 6   | FAQ/Help hero                | `Solution(Dev):` blank                                      |
-| 7   | Single Course mobile "Rating"| `Solution(Dev):` blank                                      |
+| #   | Issue                         | What's needed                                                     |
+| --- | ----------------------------- | ----------------------------------------------------------------- |
+| 1   | Homepage search button        | "shape and color needs to be fixed" — no target given             |
+| 2   | Homepage section spacing      | "took too much space… more standard and middle align" — no target |
+| 3   | Pricing — same bg colours     | Which two sections move where                                     |
+| 4   | Pricing — "remove section"    | **Product call, not design.** Routed separately — see §7          |
+| 5   | Cart mobile                   | Doc offers two options and picks neither. Pick one                |
+| 6   | FAQ/Help hero                 | `Solution(Dev):` blank                                            |
+| 7   | Single Course mobile "Rating" | `Solution(Dev):` blank                                            |
 
 Unanswered at ship time ⇒ **code left untouched**, tracker row `BLOCKED-DESIGN`, called out in the PR description. Nothing gets guessed.
 
@@ -184,16 +184,16 @@ QA-SUPPORT-01 …   QA-TEAM-01        (Team Training — page absent)
 
 Each tracker row carries:
 
-| Field       | Contents                                            |
-| ----------- | --------------------------------------------------- |
-| `QA-ID`     | stable identifier                                   |
-| Quote       | verbatim from the doc                               |
-| Breakpoint  | 1920 / 1280 / 440                                   |
-| Class       | A–E                                                 |
-| Figma node  | resolved per §2.3                                   |
-| Target      | file / component                                    |
-| Status      | `STILL-BROKEN` · `FIXED` · `CANT-REPRODUCE` · `BLOCKED-DESIGN` · `CONTENT-GAP` |
-| Evidence    | test name, or before/after screenshot               |
+| Field      | Contents                                                                       |
+| ---------- | ------------------------------------------------------------------------------ |
+| `QA-ID`    | stable identifier                                                              |
+| Quote      | verbatim from the doc                                                          |
+| Breakpoint | 1920 / 1280 / 440                                                              |
+| Class      | A–E                                                                            |
+| Figma node | resolved per §2.3                                                              |
+| Target     | file / component                                                               |
+| Status     | `STILL-BROKEN` · `FIXED` · `CANT-REPRODUCE` · `BLOCKED-DESIGN` · `CONTENT-GAP` |
+| Evidence   | test name, or before/after screenshot                                          |
 
 **Location:** `.context/qa-tracker.md` — gitignored working state. The full 80-row grid with screenshots is not spec material. The distilled actionable list goes into the OpenSpec change's `tasks.md`.
 
@@ -217,13 +217,13 @@ Each tracker row carries:
 
 Branch `fix/qa-report-round-1` off `main`.
 
-| PR    | Contents                                                                 | Verification                              |
-| ----- | ------------------------------------------------------------------------ | ----------------------------------------- |
+| PR    | Contents                                                                                                                        | Verification                                            |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | **2** | **Class B — functional bugs.** Quantity×price; CTA `/checkout`→`/cart`; ToC anchors; month short-form; certificate + transcript | Vitest (pure logic) + Playwright (routing, interaction) |
-| **3** | **Header / navbar** — dropdown on hover, mega menu. Lands before `header-acf-content` starts | Playwright                                |
-| **4** | **Class C — images**, component-bug subset only                          | Playwright: resolves + non-zero layout box |
-| **5** | **Class A — marketing pages**                                            | Screenshots ×3 widths vs Figma            |
-| **6** | **Class A — shop + account pages**                                       | Screenshots ×3 widths vs Figma            |
+| **3** | **Header / navbar** — dropdown on hover, mega menu. Lands before `header-acf-content` starts                                    | Playwright                                              |
+| **4** | **Class C — images**, component-bug subset only                                                                                 | Playwright: resolves + non-zero layout box              |
+| **5** | **Class A — marketing pages**                                                                                                   | Screenshots ×3 widths vs Figma                          |
+| **6** | **Class A — shop + account pages**                                                                                              | Screenshots ×3 widths vs Figma                          |
 
 Early in Phase 2, before PR 2 merges: **add 1920 and 440 viewport projects to `playwright.config.ts`** (§3.4).
 
@@ -233,11 +233,11 @@ Early in Phase 2, before PR 2 merges: **add 1920 and 440 viewport projects to `p
 
 ### Verification tiers (D7)
 
-| Class | Approach                                                    | Rationale                                      |
-| ----- | ----------------------------------------------------------- | ---------------------------------------------- |
-| **B** | Vitest + Playwright                                         | Assertable logic; these regress silently        |
-| **C** | Playwright — image resolves, non-zero box                   | Catches the real failure without pinning pixels |
-| **A** | Screenshot vs Figma at the issue's breakpoint, in tracker    | Asserting `line-height: 150%` tests the stylesheet against itself |
+| Class | Approach                                                  | Rationale                                                         |
+| ----- | --------------------------------------------------------- | ----------------------------------------------------------------- |
+| **B** | Vitest + Playwright                                       | Assertable logic; these regress silently                          |
+| **C** | Playwright — image resolves, non-zero box                 | Catches the real failure without pinning pixels                   |
+| **A** | Screenshot vs Figma at the issue's breakpoint, in tracker | Asserting `line-height: 150%` tests the stylesheet against itself |
 
 Full visual-regression across 17 pages × 3 widths is deliberately rejected: it fails on every legitimate design change and gets `--update-snapshots`'d into meaninglessness within a month.
 
@@ -253,10 +253,10 @@ Full visual-regression across 17 pages × 3 widths is deliberately rejected: it 
 
 ## 8. Risks
 
-| Risk                                                                                                   | Handling                                                        |
-| ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
-| **Phase 1 step 3 blocks Phase 2.** The 6 Figma decisions belong to the team, and Homepage (~21 issues) is one of them | Front-loaded as the first triage action                          |
-| **"All Courses mobile done properly"** is one doc line and may be a full day                            | Sized in Phase 1; not committed to before then                    |
-| **Class C may resolve to content gaps** for several issues                                              | That work leaves this repo; recorded as `CONTENT-GAP` and handed off |
-| **Parts of the QA pass may have measured against stale designs** (§2.3)                                 | Per-page Figma resolution before any fix is written               |
-| **Cancellations, Priority Support and Privacy Policy have no valid design reference** (§2.4)            | Escalate for correct Figma links, or fix against live behaviour only |
+| Risk                                                                                                                  | Handling                                                             |
+| --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| **Phase 1 step 3 blocks Phase 2.** The 6 Figma decisions belong to the team, and Homepage (~21 issues) is one of them | Front-loaded as the first triage action                              |
+| **"All Courses mobile done properly"** is one doc line and may be a full day                                          | Sized in Phase 1; not committed to before then                       |
+| **Class C may resolve to content gaps** for several issues                                                            | That work leaves this repo; recorded as `CONTENT-GAP` and handed off |
+| **Parts of the QA pass may have measured against stale designs** (§2.3)                                               | Per-page Figma resolution before any fix is written                  |
+| **Cancellations, Priority Support and Privacy Policy have no valid design reference** (§2.4)                          | Escalate for correct Figma links, or fix against live behaviour only |

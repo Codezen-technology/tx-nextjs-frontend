@@ -115,7 +115,12 @@ export interface Department {
   id: number;
   parent_id: number;
   name: string;
-  member_count: number;
+  /**
+   * Only the flat list is documented to carry this — the tree nodes in
+   * `departments` omit it. Optional so a node cannot silently render
+   * "undefined members".
+   */
+  member_count?: number;
 }
 
 /** A department with its subtree. The list endpoint returns both shapes. */
@@ -372,6 +377,10 @@ export interface Learner {
   id: number;
   user_id: number;
   email: string;
+  /**
+   * Wire-only. Older builds send the address here instead of `email`; the
+   * service collapses the two, so components read `email`.
+   */
   user_email?: string;
   display_name: string;
   role: "learner" | "manager";
@@ -394,11 +403,27 @@ export interface Learner {
   };
 }
 
-/** Response from GET /courses/{id}/learners */
-export interface CourseLearnersResponse {
+/**
+ * Wire shape of `GET /courses/{id}/learners` — the list arrives under one of
+ * three keys depending on backend version. Only the service should see this;
+ * `getCourseLearners()` normalises it to `CourseLearnersResponse`.
+ */
+export interface CourseLearnersWire {
   items?: Learner[];
   learners?: Learner[];
   members?: Learner[];
+  total?: number;
+  pages?: number;
+  page?: number;
+  per_page?: number;
+  course_info?: {
+    post_title?: string;
+    ID?: number;
+  };
+}
+
+export interface CourseLearnersResponse {
+  items: Learner[];
   total?: number;
   pages?: number;
   page?: number;
@@ -492,7 +517,13 @@ export interface AssignedCourse {
   rating_count?: number;
   average_rating?: number;
   has_certificate?: boolean;
+  /**
+   * Authoritative for rendering — the resolved `course-cat` terms.
+   * `courseCat` below is the raw term-id array WPLMS stores on the post and is
+   * kept only so the client can filter without a second lookup.
+   */
   course_categories?: CourseCategoryRef[];
+  /** Raw `course-cat` term ids. Never render these; use `course_categories`. */
   courseCat?: number[];
 }
 
@@ -638,9 +669,21 @@ export interface AssignmentListCourse {
   status?: string[];
 }
 
-export interface AssignmentListResponse {
+/**
+ * Wire shape of `GET /courses/assignment-list` — `items` on newer builds,
+ * `courses` on older ones. `getAssignmentList()` normalises it.
+ */
+export interface AssignmentListWire {
   items?: AssignmentListCourse[];
   courses?: AssignmentListCourse[];
+  total: number;
+  pages?: number;
+  page?: number;
+  per_page?: number;
+}
+
+export interface AssignmentListResponse {
+  items: AssignmentListCourse[];
   total: number;
   pages?: number;
   page?: number;
@@ -800,9 +843,15 @@ export interface ManagerEmailCheck {
   };
 }
 
-export interface ManagersResponse {
+/** Wire shape of `GET /managers` — `items` or `managers` by build. */
+export interface ManagersWire {
   items?: BusinessManager[];
   managers?: BusinessManager[];
+  total?: number;
+}
+
+export interface ManagersResponse {
+  managers: BusinessManager[];
   total?: number;
 }
 

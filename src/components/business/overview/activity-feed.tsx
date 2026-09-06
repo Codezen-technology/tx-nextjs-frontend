@@ -22,9 +22,13 @@ function relativeTime(value: string): string {
   return then.toLocaleDateString("en-GB");
 }
 
-export function ActivityFeed() {
+export function ActivityFeed({ departmentId = 0 }: { departmentId?: number }) {
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError } = useBusinessActivity({ page, per_page: PER_PAGE });
+  const { data, isLoading, isError } = useBusinessActivity({
+    page,
+    per_page: PER_PAGE,
+    ...(departmentId ? { department_id: departmentId } : {}),
+  });
 
   const items = data?.items ?? [];
 

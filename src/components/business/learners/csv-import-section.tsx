@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { Download, FileUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useBulkImportLearners, useDepartments } from "@/lib/hooks/useBusinessDashboard";
+import {
+  useBulkImportLearners,
+  useDepartments,
+  useReportCourseOptions,
+} from "@/lib/hooks/useBusinessDashboard";
 import {
   COLUMN_ROLES,
   COLUMN_ROLE_LABELS,
@@ -11,6 +15,7 @@ import {
   buildImportRows,
   defaultMapping,
   detectHeaderRow,
+  downloadTextAsCsv,
   mappingFromHeader,
   parseCsv,
   type ColumnRole,
@@ -52,6 +57,11 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
 
   const bulkImport = useBulkImportLearners();
   const { data: departments } = useDepartments();
+  const { data: courseOptions } = useReportCourseOptions();
+  // Assigning on import is what makes the per-row `no_licence_available` outcome
+  // reachable from a spreadsheet — without a course, every row is just a
+  // learner record and the licence check never runs.
+  const [courseIds, setCourseIds] = useState<number[]>([]);
 
   const reset = () => {
     setFile(null);
@@ -59,6 +69,7 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
     setMappingConfirmed(false);
     setResults(null);
     setUnmatchedDepts([]);
+    setCourseIds([]);
     setError("");
   };
 
@@ -111,6 +122,7 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
         first_name: record.first,
         last_name: record.last,
         department_ids: departmentId ? [departmentId] : undefined,
+        course_ids: courseIds.length ? courseIds : undefined,
       };
     });
 
@@ -129,15 +141,7 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
     }
   };
 
-  const downloadTemplate = () => {
-    const blob = new Blob([TEMPLATE_CSV], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "learner-import-template.csv";
-    anchor.click();
-    URL.revokeObjectURL(url);
-  };
+  const downloadTemplate = () => downloadTextAsCsv("learner-import-template.csv", TEMPLATE_CSV);
 
   const added = results?.filter((r) => r.status === "added").length ?? 0;
   const skipped = results?.filter((r) => r.status === "skipped") ?? [];
@@ -182,6 +186,39 @@ export function CsvImportSection({ onDone }: { onDone?: () => void }) {
       ) : null}
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+      {file && !results && courseOptions?.length ? (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-neutral-900">Assign a course (optional)</p>
+          <p className="text-xs text-neutral-300">
+            Every imported learner is assigned to the courses you pick here, spending one licence
+            each. A learner with no licence available is still created — the results below say so
+            row by row.
+          </p>
+          <div className="border-neutral-30 max-h-40 space-y-1 overflow-y-auto rounded-lg border p-2">
+            {courseOptions.map((course) => (
+              <label
+                key={course.course_id}
+                className="hover:bg-neutral-10 flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  className="border-neutral-40 h-4 w-4 rounded"
+                  checked={courseIds.includes(course.course_id)}
+                  onChange={(e) =>
+                    setCourseIds((prev) =>
+                      e.target.checked
+                        ? [...prev, course.course_id]
+                        : prev.filter((id) => id !== course.course_id),
+                    )
+                  }
+                />
+                <span className="truncate text-neutral-900">{course.title}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {file && !results ? (
         <>

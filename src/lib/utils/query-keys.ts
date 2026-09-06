@@ -145,7 +145,8 @@ export const queryKeys = {
     trainingMatrix: (params: BusinessListParams = {}) =>
       ["business", "training-matrix", params] as const,
     reportCourseOptions: ["business", "report-course-options"] as const,
-    teamStats: ["business", "team-stats"] as const,
+    teamStats: (params: Record<string, unknown> = {}) =>
+      ["business", "team-stats", params] as const,
     seatRosterRoot: ["business", "seat-roster"] as const,
     seatRoster: (params: BusinessListParams = {}) => ["business", "seat-roster", params] as const,
     learnerQuizScores: (courseId: number, userId: number) =>

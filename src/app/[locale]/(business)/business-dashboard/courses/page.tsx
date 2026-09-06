@@ -121,7 +121,7 @@ export default function BusinessAssignedCoursesPage() {
     search,
   });
 
-  const rows = data?.items ?? data?.courses ?? [];
+  const rows = data?.items ?? [];
   const totalPages = data?.pages ?? 1;
 
   const onSearch = (e: React.FormEvent) => {

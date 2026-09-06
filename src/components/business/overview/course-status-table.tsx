@@ -10,14 +10,9 @@ import { UsageBar } from "@/components/business/usage-bar";
 import { useBusinessCourseLearners } from "@/lib/hooks/useBusinessDashboard";
 import { cn } from "@/lib/utils/cn";
 import type { AssignmentListCourse } from "@/types/business-dashboard";
+import { formatBusinessDate } from "@/lib/utils/business-dates";
 
 const ROSTER_PER_PAGE = 10;
-
-function formatDate(value?: string | null) {
-  if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-GB");
-}
 
 /**
  * The learner roster for one course, loaded only once the row is expanded.
@@ -32,7 +27,7 @@ function CourseRoster({ courseId }: { courseId: number }) {
     per_page: ROSTER_PER_PAGE,
   });
 
-  const learners = data?.items ?? data?.learners ?? [];
+  const learners = data?.items ?? [];
   const totalPages = data?.pages ?? 1;
 
   if (isLoading) {
@@ -73,9 +68,9 @@ function CourseRoster({ courseId }: { courseId: number }) {
             const completed = progress >= 100 || !!learner.completion_date;
 
             return (
-              <tr key={learner.id ?? learner.user_id}>
+              <tr key={learner.id}>
                 <td className="py-2 font-medium text-neutral-900">{learner.display_name}</td>
-                <td className="py-2 text-neutral-700">{learner.user_email ?? learner.email}</td>
+                <td className="py-2 text-neutral-700">{learner.email}</td>
                 <td className="py-2">
                   <div className="flex items-center gap-2">
                     <UsageBar used={progress} total={100} className="w-24" />
@@ -87,7 +82,9 @@ function CourseRoster({ courseId }: { courseId: number }) {
                     status={completed ? "completed" : progress > 0 ? "in_progress" : "not_started"}
                   />
                 </td>
-                <td className="py-2 text-neutral-700">{formatDate(learner.completion_date)}</td>
+                <td className="py-2 text-neutral-700">
+                  {formatBusinessDate(learner.completion_date)}
+                </td>
               </tr>
             );
           })}

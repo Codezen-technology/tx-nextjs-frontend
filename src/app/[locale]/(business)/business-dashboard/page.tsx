@@ -20,29 +20,29 @@ import {
   useBusinessAssignments,
   useBusinessLicenceBalance,
   useBusinessSummary,
+  useDepartments,
   useRemindBehind,
   useTeamStats,
 } from "@/lib/hooks/useBusinessDashboard";
 import { sumAvailableLicences, sumLicenceTotals } from "@/lib/utils/business-licences";
 import type { AssignmentListCourse, CourseAssignment } from "@/types/business-dashboard";
+import { formatBusinessDate } from "@/lib/utils/business-dates";
 
 const COURSE_PAGE_SIZE = 10;
-
-function formatDate(value?: string | null) {
-  if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-GB");
-}
 
 export default function BusinessOverviewPage() {
   const [coursePage, setCoursePage] = useState(1);
   const [assignTarget, setAssignTarget] = useState<AssignmentListCourse | null>(null);
+  // 0 = the whole organisation. Scopes the team KPI, the activity feed and the
+  // reminder sweep together, so the card and the sweep describe one population.
+  const [departmentId, setDepartmentId] = useState(0);
 
   const { data: summary } = useBusinessSummary();
   const { data: licenceBalance } = useBusinessLicenceBalance();
   const { data: activeSubscription } = useBusinessActiveSubscription();
   const recent = useBusinessAssignments({ page: 1, per_page: 5 });
-  const { data: teamStats } = useTeamStats();
+  const { data: departments } = useDepartments();
+  const { data: teamStats } = useTeamStats(departmentId ? { department_id: departmentId } : {});
   const remindBehind = useRemindBehind();
   const courseList = useBusinessAssignmentList({ page: coursePage, per_page: COURSE_PAGE_SIZE });
 
@@ -55,12 +55,20 @@ export default function BusinessOverviewPage() {
   const assignmentTotal = active + completed;
   const completionRate = assignmentTotal > 0 ? Math.round((completed / assignmentTotal) * 100) : 0;
 
-  const courses = useMemo(
-    () => courseList.data?.items ?? courseList.data?.courses ?? [],
-    [courseList.data],
-  );
+  const courses = useMemo(() => courseList.data?.items ?? [], [courseList.data]);
 
   const [remindMessage, setRemindMessage] = useState("");
+
+  const departmentName = departments?.flat.find((d) => d.id === departmentId)?.name;
+
+  /**
+   * "Behind" is assigned-and-not-completed — there is no pace threshold, because
+   * a course with no due date has no pace to be behind on. Say so, or a manager
+   * reasonably expects it to skip the learner who started yesterday.
+   */
+  const remindTitle = `Emails every learner who has not completed an assigned course${
+    departmentName ? ` in ${departmentName}` : ""
+  }, including anyone who only started recently.`;
 
   /**
    * Fire the server-side sweep and report honestly.
@@ -72,7 +80,9 @@ export default function BusinessOverviewPage() {
   const onRemindAll = async () => {
     setRemindMessage("");
     try {
-      const result = await remindBehind.mutateAsync({});
+      const result = await remindBehind.mutateAsync(
+        departmentId ? { department_id: departmentId } : {},
+      );
 
       if (result.learners === 0) {
         setRemindMessage("Nobody is behind right now — no reminders sent.");
@@ -115,7 +125,7 @@ export default function BusinessOverviewPage() {
       cell: (row) => <AssignmentFundingBadge assignmentType={row.assignment_type} />,
     },
     { key: "status", header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
-    { key: "date", header: "Date", cell: (row) => formatDate(row.created_at) },
+    { key: "date", header: "Date", cell: (row) => formatBusinessDate(row.created_at) },
   ];
 
   return (
@@ -125,6 +135,21 @@ export default function BusinessOverviewPage() {
         description="An overview of your team's learning activity."
         actions={
           <>
+            {departments?.flat.length ? (
+              <select
+                value={departmentId || ""}
+                onChange={(e) => setDepartmentId(Number(e.target.value) || 0)}
+                aria-label="Filter by department"
+                className="border-neutral-30 h-9 rounded-lg border bg-white px-2 text-sm text-neutral-900"
+              >
+                <option value="">All departments</option>
+                {departments.flat.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            ) : null}
             <Button asChild size="sm" variant="outline">
               <Link href="/business-dashboard/pricing">Need more licences</Link>
             </Button>
@@ -133,6 +158,7 @@ export default function BusinessOverviewPage() {
               variant="outline"
               disabled={remindBehind.isPending}
               onClick={onRemindAll}
+              title={remindTitle}
             >
               <BellRing className="mr-2 h-4 w-4" />
               {remindBehind.isPending ? "Sending…" : "Remind all behind"}
@@ -143,6 +169,8 @@ export default function BusinessOverviewPage() {
           </>
         }
       />
+
+      <p className="text-xs text-neutral-300">{remindTitle}</p>
 
       {remindMessage ? (
         <p className="rounded-lg bg-[#3F576F]/5 px-4 py-3 text-sm text-[#3F576F]">
@@ -183,7 +211,7 @@ export default function BusinessOverviewPage() {
           tone="amber"
           hint={
             activeSubscription?.next_payment
-              ? `Renews ${formatDate(activeSubscription.next_payment)}`
+              ? `Renews ${formatBusinessDate(activeSubscription.next_payment)}`
               : `${availableLicences} available`
           }
         />
@@ -263,7 +291,7 @@ export default function BusinessOverviewPage() {
             See all
           </Link>
         </div>
-        <ActivityFeed />
+        <ActivityFeed departmentId={departmentId} />
       </div>
 
       <div className="space-y-3">

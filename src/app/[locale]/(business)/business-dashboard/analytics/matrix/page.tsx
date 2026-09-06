@@ -10,6 +10,7 @@ import { useTrainingMatrix } from "@/lib/hooks/useBusinessDashboard";
 import { downloadCsv } from "@/lib/utils/business-csv";
 import { cn } from "@/lib/utils/cn";
 import type { LearnerCourseRecord } from "@/types/business-dashboard";
+import { formatBusinessDateBlank } from "@/lib/utils/business-dates";
 
 type CellStatus = LearnerCourseRecord["status"] | "not_enrolled";
 
@@ -28,12 +29,6 @@ const CELL_CLASSES: Record<CellStatus, string> = {
   not_started: "bg-amber-50 text-amber-800",
   not_enrolled: "bg-white text-neutral-200",
 };
-
-function formatDate(value?: string | null) {
-  if (!value) return "";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-GB");
-}
 
 export default function TrainingMatrixPage() {
   const [colourView, setColourView] = useState(false);
@@ -70,7 +65,7 @@ export default function TrainingMatrixPage() {
           if (!cell) return CELL_LABELS.not_enrolled;
           const detail =
             cell.status === "completed" || cell.status === "failed"
-              ? formatDate(cell.completion_date)
+              ? formatBusinessDateBlank(cell.completion_date)
               : `${cell.progress}%`;
           return detail ? `${CELL_LABELS[cell.status]} (${detail})` : CELL_LABELS[cell.status];
         }),
@@ -202,7 +197,7 @@ export default function TrainingMatrixPage() {
                     const cellStatus: CellStatus = cell ? cell.status : "not_enrolled";
                     const detail = cell
                       ? cell.status === "completed" || cell.status === "failed"
-                        ? formatDate(cell.completion_date)
+                        ? formatBusinessDateBlank(cell.completion_date)
                         : `${cell.progress}%`
                       : "";
 

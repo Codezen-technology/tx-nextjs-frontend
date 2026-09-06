@@ -14,14 +14,9 @@ import {
   useBusinessSummary,
 } from "@/lib/hooks/useBusinessDashboard";
 import type { ReportCertificate, ReportCourse, ReportMember } from "@/types/business-dashboard";
+import { formatBusinessDate } from "@/lib/utils/business-dates";
 
 const PER_PAGE = 10;
-
-function formatDate(value?: string | null) {
-  if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString();
-}
 
 function CourseReports() {
   const [page, setPage] = useState(1);
@@ -97,7 +92,7 @@ function CertificateReports() {
   const columns: Column<ReportCertificate>[] = [
     { key: "course", header: "Course", cell: (r) => r.course_name },
     { key: "learner", header: "Learner", cell: (r) => r.learner_name },
-    { key: "date", header: "Completion Date", cell: (r) => formatDate(r.completion_date) },
+    { key: "date", header: "Completion Date", cell: (r) => formatBusinessDate(r.completion_date) },
     {
       key: "actions",
       header: "Certificate",

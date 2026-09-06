@@ -10,15 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useBusinessAssignments, useRevokeLicence } from "@/lib/hooks/useBusinessDashboard";
 import type { CourseAssignment } from "@/types/business-dashboard";
+import { formatBusinessDate } from "@/lib/utils/business-dates";
 
 const PER_PAGE = 10;
 const STATUS_OPTIONS = ["all", "active", "completed", "expired"] as const;
-
-function formatDate(value?: string) {
-  if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString();
-}
 
 export default function BusinessAssignmentHistoryPage() {
   const [page, setPage] = useState(1);
@@ -54,7 +49,7 @@ export default function BusinessAssignmentHistoryPage() {
       cell: (row) => <AssignmentFundingBadge assignmentType={row.assignment_type} />,
     },
     { key: "status", header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
-    { key: "date", header: "Assigned", cell: (row) => formatDate(row.created_at) },
+    { key: "date", header: "Assigned", cell: (row) => formatBusinessDate(row.created_at) },
     {
       key: "actions",
       header: "",
