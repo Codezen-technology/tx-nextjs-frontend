@@ -90,17 +90,26 @@ export default function BusinessSettingsPage() {
     }
   };
 
+  const sectorDirty = sector !== (settings.company_sector ?? "");
+
   const appearanceDirty =
     companyName !== (settings.company_name ?? "") ||
-    sector !== (settings.company_sector ?? "") ||
+    sectorDirty ||
     subdomain !== (settings.platform_subdomain ?? "");
 
   /*
-   * A sector is only saveable when the vocabulary recognises it — the same
-   * rule the API enforces, applied here so a half-typed sector disables the
-   * button rather than coming back as a 400.
+   * A changed sector must be one the vocabulary recognises — the same rule the
+   * API enforces, applied here so a half-typed sector disables the button
+   * rather than coming back as a 400.
+   *
+   * Only a *changed* one, though. Businesses registered before this vocabulary
+   * existed hold free text ("technology"), which the API would now reject; if
+   * an untouched legacy value gated this button, those tenants could never save
+   * their company name either. An unchanged sector is left alone entirely —
+   * see the payload below, which omits it.
    */
-  const sectorUsable = sectorsFailed || sector === "" || (sectors ?? []).includes(sector);
+  const sectorUsable =
+    !sectorDirty || sectorsFailed || sector === "" || (sectors ?? []).includes(sector);
   const passMarkDirty = passMark !== settings.passing_mark;
 
   return (
@@ -124,8 +133,10 @@ export default function BusinessSettingsPage() {
             onClick={() =>
               save({
                 company_name: companyName.trim(),
-                company_sector: sector.trim(),
                 platform_subdomain: subdomain.trim(),
+                // Omitted unless it changed, so a legacy value outside the
+                // vocabulary is preserved rather than sent back and rejected.
+                ...(sectorDirty ? { company_sector: sector.trim() } : {}),
               })
             }
           >

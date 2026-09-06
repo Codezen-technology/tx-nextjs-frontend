@@ -86,7 +86,14 @@ export function initialAnswers(settings: BusinessSettings, user: AuthUser | null
     phone: settings.phone ?? "",
     jobTitle: settings.job_title ?? "",
     companyName: settings.company_name ?? "",
-    companySector: settings.company_sector ?? "",
+    /*
+     * Deliberately not seeded from the stored value. Businesses registered
+     * before the vocabulary existed hold free text ("technology"), which is
+     * not a member of it — prefilling that would show a field that looks
+     * answered while Continue stays disabled, with nothing on screen saying
+     * why. The step asks the question fresh instead.
+     */
+    companySector: "",
     companySize:
       stored && stored > 0 ? (SIZE_BANDS.find((b) => stored <= b.value)?.value ?? 250) : null,
     passingMark: settings.passing_mark ?? PASSING_MARK_DEFAULT,

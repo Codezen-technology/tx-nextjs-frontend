@@ -91,6 +91,15 @@ describe("initialAnswers", () => {
     expect(initialAnswers(settings({ company_size: 0 }), user).companySize).toBeNull();
   });
 
+  it("does not prefill a sector, even when the business has one stored", () => {
+    // Businesses registered before the vocabulary existed hold free text that
+    // is not a member of it. Prefilling that would show a field that looks
+    // answered while the gate refuses to open.
+    const a = initialAnswers(settings({ company_sector: "technology" }), user);
+
+    expect(a.companySector).toBe("");
+  });
+
   it("falls back to the documented preference defaults", () => {
     const a = initialAnswers(settings(), null);
 
