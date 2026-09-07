@@ -61,18 +61,52 @@ const nextConfig = {
   },
   turbopack: { root: __dirname },
   async redirects() {
-    return [
-      {
-        source: "/business-dashboard/credits/transactions",
-        destination: "/business-dashboard/licences",
-        permanent: true,
-      },
-      {
-        source: "/:locale/business-dashboard/credits/transactions",
-        destination: "/:locale/business-dashboard/licences",
-        permanent: true,
-      },
-    ];
+    // Legacy WordPress URLs retired by the headless cutover. Sourced from the live
+    // sitemap_index.xml audit — see .migration/URL_MAP.md for the full inventory and
+    // the evidence behind each mapping. Every entry is emitted twice: once bare and
+    // once under /:locale, because localePrefix is "as-needed" (src/i18n/routing.ts).
+    const legacy = {
+      // Duplicate content — two WP pages for the same thing.
+      "/cancellations-and-refunds": "/cancellations",
+      "/help-and-faqs": "/help",
+      "/policies-and-terms-of-use": "/terms-and-conditions",
+      "/registration": "/register",
+
+      // BuddyPress leftovers with no headless equivalent.
+      "/lostpassword": "/forgot-password",
+      "/activate-2": "/login",
+      "/activity": "/dashboard",
+      "/members-directory": "/dashboard",
+
+      // WooCommerce / legacy LMS surfaces replaced by Next routes.
+      "/my-account": "/dashboard",
+      "/student-portal": "/dashboard",
+      "/course-player": "/dashboard/my-learning",
+      "/shop": "/all-courses",
+      "/thank-you-for-ordering-certificate": "/certificate",
+      "/hardcopy-certificate": "/certificate",
+
+      // Elementor pages that render only global header/footer chrome — zero unique
+      // body content on the live site (verified: 12-token diff between them, all title).
+      "/force-for-good": "/about-us",
+      "/resources": "/help",
+      "/training-teams": "/business-dashboard",
+      "/write-for-us": "/contact-us",
+
+      // Superseded business-dashboard route.
+      "/business-dashboard/credits/transactions": "/business-dashboard/licences",
+    };
+
+    // TODO before cutover — these have real content, so a redirect loses it.
+    // Decide build-vs-redirect once GSC impressions are checked:
+    //   /sitemap/                                (132,588 chars)
+    //   /course-selector-page/                   (24,364 chars)
+    //   /blog/contributed-expert/hasibul-kabir/  (contributed-expert CPT)
+
+    return Object.entries(legacy).flatMap(([source, destination]) => [
+      { source, destination, permanent: true },
+      { source: `/:locale${source}`, destination: `/:locale${destination}`, permanent: true },
+    ]);
   },
 };
 
