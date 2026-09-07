@@ -18,6 +18,7 @@ import { BlogTocDrawer } from "@/components/blog/blog-toc-drawer";
 import { BlogShareCard } from "@/components/blog/blog-share-card";
 import { CourseCard } from "@/components/courses/course-card";
 import { CourseFaq } from "@/components/courses/course-faq";
+import { isStaticParamsPlaceholder, withStaticParamsPlaceholder } from "@/lib/utils/static-params";
 import { parseToc } from "@/lib/utils/toc";
 import { parseFaq } from "@/lib/utils/faq";
 import { cn } from "@/lib/utils/cn";
@@ -52,15 +53,17 @@ function formatDate(dateStr: string): string {
 export async function generateStaticParams() {
   try {
     const { posts } = await fetchBlogPage(1, 500);
-    const params = (posts ?? []).flatMap((p) => (p.slug ? [{ slug: p.slug }] : []));
-    return params.length > 0 ? params : [{ slug: "__lms_static_params_placeholder__" }];
+    return withStaticParamsPlaceholder(
+      (posts ?? []).flatMap((p) => (p.slug ? [{ slug: p.slug }] : [])),
+    );
   } catch {
-    return [{ slug: "__lms_static_params_placeholder__" }];
+    return withStaticParamsPlaceholder([]);
   }
 }
 
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
+  if (isStaticParamsPlaceholder(slug)) return { title: "Post not found" };
   setRequestLocale(await getLocale());
   try {
     const [post, seo] = await Promise.all([
@@ -84,6 +87,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
+  if (isStaticParamsPlaceholder(slug)) notFound();
   const [pR, sR, rR, catsR, coursesR] = await Promise.allSettled([
     fetchBlogPost(slug),
     fetchRankMathSeo(wpPath.blogPost(slug)),
