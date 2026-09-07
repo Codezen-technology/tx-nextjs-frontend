@@ -176,7 +176,11 @@ export default async function CourseDetailPage({ params }: PageProps) {
     : [buildCourseSchema(course, courseUrl), buildBreadcrumbSchema(course, siteUrl)];
 
   return (
-    <div className="min-h-screen bg-white">
+    // `overflow-x-clip` (not `hidden` — that would break `position: sticky`) contains the
+    // hero's full-bleed 100vw backdrop when a vertical scrollbar is present. Both this and
+    // the backdrop are a documented exception to the globals.css page-grid rule; see the
+    // comment in course-banner.tsx and openspec/changes/course-page-grid-compliance.
+    <div className="min-h-screen overflow-x-clip bg-white">
       {jsonLd.map((schema, i) => (
         <script
           key={i}
@@ -190,134 +194,136 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
       {course.announcement ? <CourseAnnouncement message={course.announcement} /> : null}
 
-      <CourseBanner src={course.featuredImage} alt={course.title} course={course} />
+      {/* Desktop layout is a 2-column grid whose right column spans both rows, so the purchase
+          card starts at the top of the hero (Figma 6239:163263) and overlaps down into the body
+          while staying sticky over the full page height. The hero itself spans both columns. */}
+      <div className="mx-auto max-w-[1296px] px-4 pb-20 lg:grid lg:grid-cols-[minmax(0,1fr)_307px] lg:gap-x-6">
+        <div className="lg:col-span-2 lg:col-start-1 lg:row-start-1">
+          <CourseBanner src={course.featuredImage} alt={course.title} course={course} />
+        </div>
 
-      <div className="mx-auto max-w-[1296px] px-4 pb-20">
-        {/* Two-column layout: 966px main + 307px sticky sidebar */}
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-          {/* ── Main column ── */}
-          <div className="min-w-0 flex-1 lg:max-w-[966px]">
-            {/* Purchase card — mobile only */}
-            <div className="mt-6 lg:hidden">
-              <CoursePurchaseCard course={course} />
-            </div>
+        {/* ── Desktop sticky purchase card — hero top-right, overlapping the hero row ── */}
+        <aside className="hidden lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:block lg:pt-14">
+          <div className="sticky top-24 z-20">
+            <CoursePurchaseCard course={course} />
+          </div>
+        </aside>
 
-            {/* ── What you'll learn + About ── */}
-            {whatYouLearn || sections?.at_a_glance ? (
-              <div id="course-content" className="mt-10 space-y-10">
-                {whatYouLearn ? <CourseWhatYouLearn html={whatYouLearn} /> : null}
-                {sections?.at_a_glance ? (
-                  <CourseAbout heading={sections.description_heading} html={sections.at_a_glance} />
-                ) : null}
-              </div>
-            ) : null}
-
-            {/* ── Sticky anchor tabs ── */}
-            <CourseTabNav
-              accreditations={accreditations}
-              curriculum={curriculum}
-              hasCourseContent={Boolean(whatYouLearn || sections?.at_a_glance)}
-              hasScreenshots={screenshots.length > 0}
-              hasReviews={!!course.ratingCount}
-              sections={sections}
-              courseId={course.id}
-            />
-
-            {/* ── Accreditations ── */}
-            {accreditations.length > 0 ? (
-              <section id="accreditations" className="mt-12 scroll-mt-28">
-                <CourseAccreditations accreditations={accreditations} />
-              </section>
-            ) : null}
-
-            {/* ── Sneak Peek (screenshots) ── */}
-            {screenshots.length > 0 ? (
-              <section id="sneak-peek" className="mt-16 scroll-mt-28">
-                <CourseScreenshots screenshots={screenshots} caption={sections?.sneak_peek_text} />
-              </section>
-            ) : null}
-
-            {/* ── Empower and Engage (experts) ── */}
-            {experts.length > 0 ? (
-              <section className="mt-16">
-                <CourseExperts experts={experts} />
-              </section>
-            ) : null}
-
-            {/* ── Curriculum ── */}
-            {curriculum.length > 0 ? (
-              <section id="curriculum" className="mt-16 scroll-mt-28">
-                <CourseFlatCurriculum items={curriculum} />
-              </section>
-            ) : null}
-
-            {/* ── Why take ── */}
-            {sections?.why_take ? (
-              <div className="mt-16">
-                <CourseWhyTake html={sections.why_take} />
-              </div>
-            ) : null}
-
-            {/* ── Requirements ── */}
-            {sections?.requirements ? (
-              <div className="mt-16">
-                <CourseRequirements html={sections.requirements} />
-              </div>
-            ) : null}
-
-            {/* ── Assessment ── */}
-            {sections?.assessment ? (
-              <div className="mt-16">
-                <CourseAssessment html={sections.assessment} />
-              </div>
-            ) : null}
-
-            {/* ── Suitable for ── */}
-            {sections?.who_should_take?.items?.length ? (
-              <section id="suitable-for" className="mt-16 scroll-mt-28">
-                <CourseSuitableFor
-                  heading={sections.who_should_take.summary}
-                  items={sections.who_should_take.items}
-                />
-              </section>
-            ) : null}
-
-            {/* ── Job Opportunities ── */}
-            {sections?.job_opportunities?.items?.length ? (
-              <section id="job-opportunities" className="mt-16 scroll-mt-28">
-                <CourseJobOpportunities
-                  heading={sections.job_opportunities.heading}
-                  items={sections.job_opportunities.items}
-                />
-              </section>
-            ) : null}
-
-            {/* ── FAQ ── */}
-            {sections?.faq?.length ? (
-              <section id="faq" className="mt-16 scroll-mt-28">
-                <CourseFaq heading={sections.faq_heading} items={sections.faq} />
-              </section>
-            ) : null}
-
-            {/* ── Reviews ── */}
-            {course.ratingCount ? (
-              <section id="reviews" className="mt-16 scroll-mt-28">
-                <CourseReviews courseId={course.id} />
-              </section>
-            ) : null}
-
-            {/* ── Related courses ── */}
-            <div className="mt-16">
-              <CourseRelated courseId={course.id} />
-            </div>
+        {/* ── Main column ── */}
+        <div className="min-w-0 lg:col-start-1 lg:row-start-2">
+          {/* Purchase card — mobile only */}
+          <div className="mt-6 lg:hidden">
+            <CoursePurchaseCard course={course} />
           </div>
 
-          {/* ── Desktop sticky sidebar ── */}
-          <aside className="hidden shrink-0 lg:block lg:self-stretch">
-            <div className="sticky top-24 z-20">
-              <CoursePurchaseCard course={course} />
+          {/* ── What you'll learn + About ── */}
+          {whatYouLearn || sections?.at_a_glance ? (
+            <div id="course-content" className="mt-10 space-y-10">
+              {whatYouLearn ? <CourseWhatYouLearn html={whatYouLearn} /> : null}
+              {sections?.at_a_glance ? (
+                <CourseAbout heading={sections.description_heading} html={sections.at_a_glance} />
+              ) : null}
             </div>
-          </aside>
+          ) : null}
+
+          {/* ── Sticky anchor tabs ── */}
+          <CourseTabNav
+            accreditations={accreditations}
+            curriculum={curriculum}
+            hasCourseContent={Boolean(whatYouLearn || sections?.at_a_glance)}
+            hasScreenshots={screenshots.length > 0}
+            hasReviews={!!course.ratingCount}
+            sections={sections}
+            courseId={course.id}
+          />
+
+          {/* ── Accreditations ── */}
+          {accreditations.length > 0 ? (
+            <section id="accreditations" className="mt-12 scroll-mt-28">
+              <CourseAccreditations accreditations={accreditations} />
+            </section>
+          ) : null}
+
+          {/* ── Sneak Peek (screenshots) ── */}
+          {screenshots.length > 0 ? (
+            <section id="sneak-peek" className="mt-16 scroll-mt-28">
+              <CourseScreenshots screenshots={screenshots} caption={sections?.sneak_peek_text} />
+            </section>
+          ) : null}
+
+          {/* ── Empower and Engage (experts) ── */}
+          {experts.length > 0 ? (
+            <section className="mt-16">
+              <CourseExperts experts={experts} />
+            </section>
+          ) : null}
+
+          {/* ── Curriculum ── */}
+          {curriculum.length > 0 ? (
+            <section id="curriculum" className="mt-16 scroll-mt-28">
+              <CourseFlatCurriculum items={curriculum} />
+            </section>
+          ) : null}
+
+          {/* ── Why take ── */}
+          {sections?.why_take ? (
+            <div className="mt-16">
+              <CourseWhyTake html={sections.why_take} />
+            </div>
+          ) : null}
+
+          {/* ── Requirements ── */}
+          {sections?.requirements ? (
+            <div className="mt-16">
+              <CourseRequirements html={sections.requirements} />
+            </div>
+          ) : null}
+
+          {/* ── Assessment ── */}
+          {sections?.assessment ? (
+            <div className="mt-16">
+              <CourseAssessment html={sections.assessment} />
+            </div>
+          ) : null}
+
+          {/* ── Suitable for ── */}
+          {sections?.who_should_take?.items?.length ? (
+            <section id="suitable-for" className="mt-16 scroll-mt-28">
+              <CourseSuitableFor
+                heading={sections.who_should_take.summary}
+                items={sections.who_should_take.items}
+              />
+            </section>
+          ) : null}
+
+          {/* ── Job Opportunities ── */}
+          {sections?.job_opportunities?.items?.length ? (
+            <section id="job-opportunities" className="mt-16 scroll-mt-28">
+              <CourseJobOpportunities
+                heading={sections.job_opportunities.heading}
+                items={sections.job_opportunities.items}
+              />
+            </section>
+          ) : null}
+
+          {/* ── FAQ ── */}
+          {sections?.faq?.length ? (
+            <section id="faq" className="mt-16 scroll-mt-28">
+              <CourseFaq heading={sections.faq_heading} items={sections.faq} />
+            </section>
+          ) : null}
+
+          {/* ── Reviews ── */}
+          {course.ratingCount ? (
+            <section id="reviews" className="mt-16 scroll-mt-28">
+              <CourseReviews courseId={course.id} />
+            </section>
+          ) : null}
+
+          {/* ── Related courses ── */}
+          <div className="mt-16">
+            <CourseRelated courseId={course.id} />
+          </div>
         </div>
       </div>
     </div>
