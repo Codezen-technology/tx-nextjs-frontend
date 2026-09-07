@@ -57,11 +57,18 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
   const wcProductId = resolveCourseProductId(course);
   const canPurchase = wcProductId != null;
 
-  /** Single rule: the priced quantity is clamped, and more than one licence means "For teams". */
+  /**
+   * Single rule: the priced quantity is clamped, and the tab follows it in both
+   * directions — more than one licence means "For teams", exactly one means "For me".
+   *
+   * Every quantity control funnels through here (steppers, typing, blur) so the tab can
+   * never claim a team purchase of a single licence. Only a quantity *commit* moves the
+   * tab; clicking a tab stays the buyer's own choice, handled in `selectTab`.
+   */
   const commitQuantity = (value: number) => {
     const next = clampQuantity(value);
     setQty(next);
-    if (next > 1) setTab("teams");
+    setTab(next > 1 ? "teams" : "me");
     return next;
   };
 
@@ -151,12 +158,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
             <div className="mt-2 flex w-fit items-center rounded-lg border border-neutral-50">
               <button
                 type="button"
-                onClick={() => {
-                  const next = clampQuantity(qty - 1);
-                  setQty(next);
-                  setQtyText(String(next));
-                  if (next === 1) setTab("me");
-                }}
+                onClick={() => applyQuantity(qty - 1)}
                 aria-label="Decrease quantity"
                 disabled={qty <= 1}
                 className="hover:bg-neutral-10 flex h-10 w-10 items-center justify-center rounded-lg p-1 text-neutral-700 transition-colors disabled:opacity-40"
@@ -192,7 +194,11 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
 
           {/* Bulk discount tiers — teams tab only */}
           {tab === "teams" && pricing && (
-            <BulkDiscountTable unitPrice={pricing.price} currency={pricing.currency} />
+            <BulkDiscountTable
+              unitPrice={pricing.price}
+              quantity={qty}
+              currency={pricing.currency}
+            />
           )}
 
           {/* CTA buttons */}

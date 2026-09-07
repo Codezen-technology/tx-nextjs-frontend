@@ -65,6 +65,39 @@ describe("decoding WP rendered strings", () => {
     expect(result.courses[0].course_categories?.[0].name).toBe("Health & Safety");
   });
 
+  // Live `GET /courses` returns `author` as a WP user ID and categories as raw
+  // WP_Term rows. Decoding the number threw, which failed the whole query and
+  // rendered "Could not load courses" over a 200 response.
+  it("survives the raw WP shapes the catalogue actually returns", async () => {
+    fetchMock.mockReturnValueOnce(
+      res({
+        status: 1,
+        courses: [
+          {
+            id: 132601,
+            name: "PAT Testing &amp; Safety",
+            author: 182,
+            course_categories: [
+              { term_id: 1566, name: "Business Essentials", slug: "business-essentials" },
+            ],
+          },
+        ],
+        total: 255,
+      }),
+    );
+
+    const result = await businessDashboardService.getCourses();
+
+    expect(result.total).toBe(255);
+    expect(result.courses[0].name).toBe("PAT Testing & Safety");
+    expect(result.courses[0].author).toBe("182");
+    expect(result.courses[0].course_categories?.[0]).toEqual({
+      id: 1566,
+      name: "Business Essentials",
+      slug: "business-essentials",
+    });
+  });
+
   it("leaves an absent optional field absent rather than turning it into an empty string", async () => {
     fetchMock.mockReturnValueOnce(res({ courses: [{ id: 9, name: "Fire" }], total: 1 }));
 

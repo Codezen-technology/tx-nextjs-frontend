@@ -54,20 +54,40 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
 
   return (
     <section
-      className={cn("relative w-full overflow-hidden", !course && "h-70 sm:h-95 lg:h-120")}
+      className={cn("relative w-full", !course && "h-70 sm:h-95 lg:h-120")}
       aria-label="Course banner"
     >
-      {/* Brand tint — Figma 256:11794 */}
-      <div
-        className="absolute inset-0"
-        style={{ background: BANNER_OVERLAY_GRADIENT }}
-        aria-hidden
-      />
+      {/*
+        Full-bleed backdrop. The banner sits inside the centred page grid (the purchase
+        card overlays its top-right, Figma 6239:163263), so the navy tint and wave have to
+        break out of the container to reach the viewport edges.
 
-      {/* Course overview — Figma 256:11832 */}
+        KNOWN EXCEPTION to the page-grid rule in globals.css, which rejects `100vw`
+        because it includes the scrollbar and `container`'s centring does not. A box that
+        is viewport-wide *and* exactly one row of a centred grid tall cannot be expressed
+        without a viewport unit — removing this means restructuring the page onto a
+        full-width grid, which is openspec/changes/course-page-grid-compliance.
+
+        The half-scrollbar overhang that rule warns about is contained by `overflow-x-clip`
+        on the page root — `clip`, not `hidden`, which would break the card's sticky.
+      */}
+      <div
+        className="absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden"
+        aria-hidden
+      >
+        {/* Brand tint — Figma 256:11794 */}
+        <div className="absolute inset-0" style={{ background: BANNER_OVERLAY_GRADIENT }} />
+
+        {/* Decorative wave + pattern — Figma 256:11795–11797 */}
+        <HeroWave />
+      </div>
+
+      {/* Course overview — Figma 256:11832.
+          `lg:pr-*` reserves the 307px purchase-card column + 24px gap that the page grid
+          overlays on top of this row (Figma 6239:163263 sits at the hero's top-right). */}
       {course && (
-        <div className="relative z-10 mx-auto max-w-324 px-4 pt-10 pb-20 lg:pt-14 lg:pb-24">
-          <div className="flex flex-col gap-6 lg:max-w-241.5 lg:flex-row lg:gap-6">
+        <div className="relative z-10 pt-10 pb-20 lg:pt-14 lg:pr-[331px] lg:pb-24">
+          <div className="flex flex-col gap-6 lg:flex-row lg:gap-6">
             {/* Left col: thumbnail + trust — desktop only */}
             <div className="hidden w-76.5 shrink-0 space-y-4 lg:block">
               <div className="overflow-hidden border border-white/20 bg-white p-2">
@@ -184,9 +204,6 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
           </div>
         </div>
       )}
-
-      {/* Decorative wave + pattern — Figma 256:11795–11797 */}
-      <HeroWave />
     </section>
   );
 }

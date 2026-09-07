@@ -11,6 +11,22 @@ export const env = {
   B2B_NAMESPACE: process.env.NEXT_PUBLIC_B2B_NAMESPACE ?? "lms-b2b/v1",
   CDN_URL: process.env.NEXT_PUBLIC_CDN_URL ?? "",
 
+  /**
+   * Live-chat widget bundle URL (Codezen Custom Live Chat).
+   *
+   * Empty means chat is off — no script tag, no request to any chat origin.
+   * That is deliberately the default: this script reaches a real agent inbox,
+   * so CI, Playwright runs and preview deploys must opt *in* rather than
+   * remember to opt out. Production sets
+   * `https://chat-widget.easychat.org.uk/widget.js`; a local chat stack sets
+   * whatever it serves the bundle from.
+   *
+   * The bundle carries its own chat API and gateway origins, so the URL is the
+   * whole configuration. Which brand a chat is attributed to is decided by the
+   * chat platform from this site's own hostname — nothing here encodes it.
+   */
+  LIVE_CHAT_WIDGET_URL: process.env.NEXT_PUBLIC_LIVE_CHAT_WIDGET_URL ?? "",
+
   // Firebase (client-side social sign-in — see wp-lms-backend-rest-api's
   // docs/FIREBASE_PROJECT_SETUP.md for how the project ID is wired server-side)
   FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
