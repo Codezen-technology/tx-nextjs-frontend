@@ -50,6 +50,14 @@ Optional overrides (all defined in `src/lib/env.ts`):
 - `WP_API_URL` — server-only override for `NEXT_PUBLIC_WP_API_URL` (skips browser-public value in BFF)
 - `NEXT_PUBLIC_FEATURE_*` — boolean feature flags; default `true` except `FEATURE_BADGES` (false)
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SENTRY_DSN`, `WP_REVALIDATE_SECRET`
+- `NEXT_PUBLIC_LIVE_CHAT_WIDGET_URL` — live-chat widget bundle (production:
+  `https://chat-widget.easychat.org.uk/widget.js`). **Unset means chat is off** —
+  no script tag and no request to any chat origin, which is the right default for
+  CI, Playwright and preview deploys, since the widget reaches a real agent inbox.
+  One prerequisite lives in the chat admin rather than this repo: a brand whose
+  `domain` is this site's hostname (hostname only — no scheme, no port), or chats
+  arrive untagged. Where the widget appears is a chat-platform page rule, not
+  route logic here.
 
 ## Architecture
 

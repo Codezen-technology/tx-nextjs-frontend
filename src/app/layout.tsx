@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Open_Sans, SUSE } from "next/font/google";
 import { Providers } from "./providers";
 import { SiteSettingsProvider } from "@/components/providers/site-settings-provider";
+import { LiveChatWidget } from "@/components/live-chat/live-chat-widget";
 import { fetchSettings } from "@/lib/services/settings.server";
 import { hexToHslChannels } from "@/lib/utils/color";
 import { env } from "@/lib/env";
@@ -86,6 +87,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Providers>
           <SiteSettingsProvider settings={settings}>{children}</SiteSettingsProvider>
         </Providers>
+        {/* Every locale and every route group, from one place — see the
+            component for why it is a gate rather than a plain script tag. */}
+        <LiveChatWidget />
       </body>
     </html>
   );
