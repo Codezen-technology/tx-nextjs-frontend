@@ -172,7 +172,9 @@ export function BundleDetail({ bundle }: { bundle: BundleDetail }) {
                   <p className="font-suse mb-2 text-sm font-semibold text-neutral-700">
                     Buying for a team?
                   </p>
-                  <BulkDiscountTable unitPrice={pricing.price} currency="£" />
+                  {/* No quantity stepper on a bundle — this is a rate card, so no tier
+                      is "reached" and none is highlighted. */}
+                  <BulkDiscountTable unitPrice={pricing.price} quantity={1} currency="£" />
                 </div>
               )}
 

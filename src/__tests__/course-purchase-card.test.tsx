@@ -19,19 +19,37 @@ vi.mock("@/lib/hooks/useCart", () => ({
 }));
 
 // Bulk tiers come from TanStack Query; the card renders outside a QueryClientProvider here.
-vi.mock("@/lib/hooks/useBulkTiers", () => ({
-  useBulkTiers: () => ({
-    data: [
-      { min: 10, max: 19, percentage: 10 },
-      { min: 20, max: 0, percentage: 20 },
-    ],
-    isLoading: false,
-  }),
+// Held in a hoisted box so a test can swap the tier set before rendering, and so the card
+// and the table read the *same* array — the highlight matches a tier by identity.
+const DEFAULT_TIERS = [
+  { min: 10, max: 19, percentage: 10 },
+  { min: 20, max: 0, percentage: 20 },
+];
+const tierState = vi.hoisted(() => ({
+  tiers: [
+    { min: 10, max: 19, percentage: 10 },
+    { min: 20, max: 0, percentage: 20 },
+  ] as { min: number; max: number; percentage: number }[],
 }));
+
+vi.mock("@/lib/hooks/useBulkTiers", () => ({
+  useBulkTiers: () => ({ data: tierState.tiers, isLoading: false }),
+}));
+
+/** The tier table renders on the teams tab only, so it is the observable tab marker. */
+const teamsTabShown = () => screen.queryByText(/per person/i) !== null;
+
+/** Tier rows carry `aria-current` only when the quantity has reached them. */
+const activeTierLabels = (container: HTMLElement) =>
+  Array.from(container.querySelectorAll('[aria-current="true"]')).map((row) =>
+    // Spans in document order: marker slot, band label (which holds the SR phrase), …
+    (row.querySelectorAll("span")[1]?.textContent ?? "").replace("— your current tier", "").trim(),
+  );
 
 beforeEach(() => {
   mockPush.mockReset();
   mockMutate.mockClear();
+  tierState.tiers = DEFAULT_TIERS;
 });
 
 describe("CoursePurchaseCard", () => {
@@ -120,6 +138,94 @@ describe("CoursePurchaseCard", () => {
     fireEvent.click(screen.getByRole("button", { name: /for teams/i }));
     // Teams tab: quantity stepper appears
     expect(screen.getByLabelText(/increase quantity/i)).toBeInTheDocument();
+  });
+
+  // ── The tab is derived from the quantity, from every control that commits one ──
+
+  it("returns to the 'For me' tab when 1 is typed into the quantity field", () => {
+    render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
+    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "5" } });
+    expect(teamsTabShown()).toBe(true);
+
+    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "1" } });
+    expect(teamsTabShown()).toBe(false);
+  });
+
+  it("returns to the 'For me' tab when the stepper goes back down to 1", () => {
+    render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
+    fireEvent.click(screen.getByLabelText(/increase quantity/i));
+    expect(teamsTabShown()).toBe(true);
+
+    fireEvent.click(screen.getByLabelText(/decrease quantity/i));
+    expect(screen.getByDisplayValue("1")).toBeInTheDocument();
+    expect(teamsTabShown()).toBe(false);
+  });
+
+  it("returns to the 'For me' tab when a cleared field is blurred back to 1", () => {
+    render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
+    const input = screen.getByRole("spinbutton");
+    fireEvent.change(input, { target: { value: "5" } });
+    expect(teamsTabShown()).toBe(true);
+
+    fireEvent.change(input, { target: { value: "" } });
+    fireEvent.blur(input);
+    expect(screen.getByDisplayValue("1")).toBeInTheDocument();
+    expect(teamsTabShown()).toBe(false);
+  });
+
+  it("moves to the 'For teams' tab from any control that raises the quantity", () => {
+    const { unmount } = render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
+    fireEvent.click(screen.getByLabelText(/increase quantity/i));
+    expect(teamsTabShown()).toBe(true);
+    unmount();
+
+    render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
+    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "2" } });
+    expect(teamsTabShown()).toBe(true);
+  });
+
+  // ── The tier table marks the band the quantity has reached ──
+
+  it("marks the tier the current quantity falls in, and only that one", () => {
+    tierState.tiers = [
+      { min: 10, max: 19, percentage: 10 },
+      { min: 20, max: 49, percentage: 25 },
+      { min: 50, max: 100, percentage: 50 },
+    ];
+    const { container } = render(
+      <CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />,
+    );
+    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "21" } });
+
+    expect(activeTierLabels(container)).toEqual(["20 - 49 users"]);
+  });
+
+  it("marks nothing while the quantity is below every tier", () => {
+    const { container } = render(
+      <CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />,
+    );
+    // Reach the teams tab so the table is on screen, then drop back under the first tier.
+    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "10" } });
+    expect(activeTierLabels(container)).toEqual(["10 - 19 users"]);
+
+    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "9" } });
+    expect(activeTierLabels(container)).toEqual([]);
+  });
+
+  it("marks the tier that produced the header price when tiers overlap", () => {
+    // Both bands cover 21; the larger discount wins the price, so it must win the row.
+    tierState.tiers = [
+      { min: 10, max: 100, percentage: 10 },
+      { min: 20, max: 49, percentage: 25 },
+    ];
+    const { container } = render(
+      <CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />,
+    );
+    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "21" } });
+
+    // 21 × £99 at 25% off = £1,559.25
+    expect(screen.getByText(/£1,559\.25/)).toBeInTheDocument();
+    expect(activeTierLabels(container)).toEqual(["20 - 49 users"]);
   });
 
   it("shows CPD points when set", () => {
