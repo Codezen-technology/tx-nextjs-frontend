@@ -542,6 +542,17 @@ export interface CourseCategoryRef {
   slug?: string;
 }
 
+/**
+ * As returned by `GET /courses` — raw `WP_Term` rows, so the id is `term_id`.
+ * `businessDashboardService.getCourses()` maps these to `CourseCategoryRef`.
+ */
+export interface CourseCategoryRefWire {
+  id?: number;
+  term_id?: number;
+  name?: string;
+  slug?: string;
+}
+
 /** Item from `GET /course-categories` — exclusions already applied server-side. */
 export interface BusinessCourseCategory {
   id: number;
@@ -582,6 +593,17 @@ export interface CoursesResponse {
   pages?: number;
   page?: number;
   per_page?: number;
+}
+
+/** `GET /courses` before normalization — raw WP shapes for author and categories. */
+export interface AssignedCourseWire extends Omit<AssignedCourse, "author" | "course_categories"> {
+  /** WP author user ID, not a display name. */
+  author?: string | number;
+  course_categories?: CourseCategoryRefWire[];
+}
+
+export interface CoursesWire extends Omit<CoursesResponse, "courses"> {
+  courses: AssignedCourseWire[];
 }
 
 // ─── Reports ─────────────────────────────────────────────────────────────────────

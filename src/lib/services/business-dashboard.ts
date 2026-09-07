@@ -32,6 +32,7 @@ import type {
   Department,
   DepartmentsResponse,
   CoursesResponse,
+  CoursesWire,
   Learner,
   LearnerCoursesReport,
   LearnerSubscriptionCheckResponse,
@@ -132,9 +133,18 @@ function text(value: unknown): string {
   return typeof value === "string" ? decodeEntities(value) : "";
 }
 
-/** As `text()`, but preserves `undefined` for optional fields. */
-function optionalText(value: string | undefined | null): string | undefined {
-  return value == null ? undefined : decodeEntities(value);
+/**
+ * As `text()`, but preserves `undefined` for optional fields.
+ *
+ * Accepts `unknown` on purpose: the B2B endpoints hand back raw WP columns, so a
+ * field the contract types as a string can arrive as a number (`author` is a user
+ * ID on `GET /courses`). Decoding one used to throw and blank the whole list.
+ */
+function optionalText(value: unknown): string | undefined {
+  if (value == null) return undefined;
+  if (typeof value === "string") return decodeEntities(value);
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return undefined;
 }
 
 function decodeLearner(row: Learner): Learner {
@@ -314,7 +324,7 @@ export const businessDashboardService = {
       orderby: params.orderby,
       taxonomy: params.taxonomy?.length ? params.taxonomy : undefined,
     });
-    const raw = await bffJson<CoursesResponse>(`/api/business/courses${qs}`);
+    const raw = await bffJson<CoursesWire>(`/api/business/courses${qs}`);
 
     return {
       ...raw,
@@ -324,7 +334,15 @@ export const businessDashboardService = {
         excerpt: optionalText(course.excerpt),
         description: optionalText(course.description),
         author: optionalText(course.author),
-        course_categories: course.course_categories?.map((c) => ({ ...c, name: text(c.name) })),
+        // Raw WP_Term rows — the id lives on `term_id`, and the field is absent
+        // (not an empty array) for courses with no `course-cat` terms.
+        course_categories: Array.isArray(course.course_categories)
+          ? course.course_categories.map((c) => ({
+              id: c.id ?? c.term_id ?? 0,
+              name: text(c.name),
+              slug: c.slug,
+            }))
+          : undefined,
       })),
     };
   },
