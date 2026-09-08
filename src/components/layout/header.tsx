@@ -22,12 +22,6 @@ import { MiniCart } from "@/components/cart/MiniCart";
 import { ProfileMenu, ProfileNavLinks } from "./profile-menu";
 import type { CourseCategory } from "@/types/course";
 
-// QA-HOME-A12 (R-HOME-1920-18): Help Centre and About Us came out — both already
-// sit in the utility row above, so the dropdown was listing them twice. That
-// leaves one entry; whether a one-item dropdown should become a plain link is a
-// design call recorded on the QA row, not one to make here.
-const resourcesLinks = [{ href: "/blog", label: "Blog" }];
-
 /**
  * Hover intent for the desktop nav.
  *
@@ -67,68 +61,6 @@ function useHoverIntent(setOpen: (open: boolean) => void) {
   }, [cancel, setOpen]);
 
   return { onMouseEnter, onMouseLeave };
-}
-
-function NavDropdown({
-  label,
-  links,
-}: {
-  label: string;
-  links: { href: string; label: string }[];
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const hover = useHoverIntent(setOpen);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  return (
-    <div
-      ref={ref}
-      className="relative"
-      onMouseEnter={hover.onMouseEnter}
-      onMouseLeave={hover.onMouseLeave}
-      onFocus={() => setOpen(true)}
-      onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
-      }}
-    >
-      <button
-        onClick={() => setOpen(!open)}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") setOpen(false);
-        }}
-        aria-expanded={open}
-        aria-haspopup="menu"
-        className="font-open-sans text-neutral-30 hover:text-primary-300 flex items-center gap-1 text-[14px] leading-[1.2] font-medium transition-colors"
-      >
-        {label}
-        <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
-      </button>
-      {open && (
-        // Flush against the trigger (no mt gap) so the pointer never crosses
-        // dead space on its way into the panel and closes it.
-        <div className="absolute top-full left-0 z-50 min-w-[180px] rounded-sm border border-neutral-600 bg-neutral-800 py-1 shadow-lg">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setOpen(false)}
-              className="font-open-sans text-neutral-30 hover:text-primary-300 block px-4 py-2 text-[13px] transition-colors hover:bg-neutral-700"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 interface Suggestion {
@@ -474,7 +406,6 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
             >
               Pricing
             </Link>
-            <NavDropdown label="Resources" links={resourcesLinks} />
             {/* No Contact us here — QA-HOME-A11. The footer keeps the link and
                 /contact-us keeps its route. */}
 
@@ -573,13 +504,6 @@ export function SiteHeader({ categories = [] }: { categories?: CourseCategory[] 
               className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
             >
               Pricing
-            </Link>
-            <Link
-              href="/blog"
-              onClick={() => setMobileOpen(false)}
-              className="font-open-sans text-neutral-30 hover:text-primary-300 py-2 text-[15px] font-medium"
-            >
-              Resources
             </Link>
             <div className="my-2 border-t border-neutral-600" />
             <Link
