@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { env, getServerWpJsonBase } from "@/lib/env";
+import { DEFAULT_CERT_PRODUCT, isCertProductSlug } from "@/types/certificate";
 
 /**
  * Stripe webhook — authoritative certificate fulfilment (Option C).
@@ -77,7 +78,18 @@ export async function POST(req: Request) {
 
   const pi = event.data.object;
 
-  const res = await fetch(`${getServerWpJsonBase()}/lms-backend/v1/certificate/record`, {
+  // Same rule as /api/certificate/confirm: the product slug travels in the PI
+  // metadata Stripe signed for, so both recording paths resolve the offer that was
+  // charged. The plugin re-reads `cert_product` from the forwarded metadata too.
+  const product = isCertProductSlug(pi.metadata?.cert_product)
+    ? pi.metadata.cert_product
+    : DEFAULT_CERT_PRODUCT;
+  const recordPath =
+    product === DEFAULT_CERT_PRODUCT
+      ? "certificate/record"
+      : `certificate/${encodeURIComponent(product)}/record`;
+
+  const res = await fetch(`${getServerWpJsonBase()}/lms-backend/v1/${recordPath}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -1,3 +1,8 @@
+import {
+  DEFAULT_CERT_PRODUCT,
+  type CertProductSlug,
+  type CertSelection,
+} from "@/types/certificate";
 import type { CourseListFilters } from "@/types/course";
 import type { CertificatesParams, StudentCoursesParams } from "@/types/student-dashboard";
 import type { BusinessListParams } from "@/types/business-dashboard";
@@ -60,6 +65,17 @@ export const queryKeys = {
   },
   cartRules: {
     bulkTiers: ["cart-rules", "bulk-tiers"] as const,
+  },
+  certificate: {
+    /**
+     * Scoped by product slug: `/certificate` and `/hardcopy-certificate` share one
+     * form component but describe different Gravity Forms with colliding field
+     * ids, so an unscoped key would serve one page the other's prices from cache.
+     */
+    config: (product: CertProductSlug = DEFAULT_CERT_PRODUCT) =>
+      ["certificate", "config", product] as const,
+    quote: (product: CertProductSlug, selection: CertSelection) =>
+      ["certificate", "quote", product, selection] as const,
   },
   cart: {
     detail: ["cart"] as const,

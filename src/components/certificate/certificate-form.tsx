@@ -23,7 +23,14 @@ import {
   LABEL_CLASS,
   SECTION_CLASS,
 } from "@/components/gf-fields";
-import type { CertProduct, CertSelection } from "@/types/certificate";
+import { queryKeys } from "@/lib/utils/query-keys";
+import {
+  DEFAULT_CERT_PRODUCT,
+  type CertConfig,
+  type CertProduct,
+  type CertProductSlug,
+  type CertSelection,
+} from "@/types/certificate";
 
 const STRIPE_ELEMENT_OPTIONS = {
   style: {
@@ -45,7 +52,17 @@ function money(currency: string, amount: number) {
 /** GF field types that render no input (display/structure only). */
 const NON_INPUT_TYPES = new Set(["html", "section", "page"]);
 
-export function CertificateForm() {
+export interface CertificateFormProps {
+  /**
+   * Which certificate offer to sell — the plugin's product slug. Route-level
+   * constant, never user input: each page passes its own literal. Drives the
+   * config/quote/intent requests, so it must match the page's copy or the visitor
+   * is charged for another offer.
+   */
+  product?: CertProductSlug;
+}
+
+export function CertificateForm({ product = DEFAULT_CERT_PRODUCT }: CertificateFormProps = {}) {
   if (!stripePromise) {
     return (
       <p className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800">
@@ -55,12 +72,12 @@ export function CertificateForm() {
   }
   return (
     <Elements stripe={stripePromise}>
-      <CertificateFormInner />
+      <CertificateFormInner product={product} />
     </Elements>
   );
 }
 
-function CertificateFormInner() {
+function CertificateFormInner({ product }: { product: CertProductSlug }) {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -69,8 +86,8 @@ function CertificateFormInner() {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["certificate", "config"],
-    queryFn: () => certificateService.getConfig(),
+    queryKey: queryKeys.certificate.config(product),
+    queryFn: () => certificateService.getConfig(product),
     staleTime: 5 * 60_000,
   });
 
@@ -83,16 +100,26 @@ function CertificateFormInner() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Both GF products are required (each has an "I don't need" £0 option). Default
-  // every product to its £0 choice so the required fields are always satisfied at
-  // record time; the user upgrades from there. Derived (not stored in state) to
-  // avoid setState-in-effect — `choices` only holds the user's overrides.
+  // Default each product to its £0 "I don't need…" option so the GF-required
+  // product fields are satisfied at record time; the user upgrades from there.
+  //
+  // A product with no £0 option is genuinely required and is left UNSELECTED —
+  // never defaulted to a priced choice. `/hardcopy-certificate`'s hardcopy field
+  // is exactly this: defaulting would silently pre-add £19.99 to the order.
+  // Derived (not stored in state) to avoid setState-in-effect — `choices` only
+  // holds the user's overrides.
   const effectiveChoices = useMemo(() => {
     const out: Record<string, { choice: string; qty: number }> = {};
     if (!config) return out;
-    for (const product of config.products) {
-      const zero = product.choices.find((c) => c.price === 0) ?? product.choices.at(-1);
-      out[product.fieldId] = choices[product.fieldId] ?? { choice: zero?.value ?? "", qty: 1 };
+    // `group`, not `product` — `product` is the offer slug this form is selling.
+    for (const group of config.products) {
+      const zero = group.choices.find((c) => c.price === 0);
+      const override = choices[group.fieldId];
+      if (override) {
+        out[group.fieldId] = override;
+      } else if (!groupIsRequired(group) && zero) {
+        out[group.fieldId] = { choice: zero.value, qty: 1 };
+      }
     }
     return out;
   }, [config, choices]);
@@ -102,10 +129,22 @@ function CertificateFormInner() {
     [effectiveChoices, shipping],
   );
 
+  // A selection missing a required group is unpriceable, and the backend says so
+  // with a 400 (`lms_cert_invalid_selection`). On `/hardcopy-certificate` that is
+  // the *initial* state — the hardcopy group has no £0 option to default to — so
+  // quoting eagerly would fire a known-invalid request on mount and on every
+  // keystroke until the visitor picks one. Wait until it can be answered.
+  const selectionIsPriceable = useMemo(() => {
+    if (!config) return false;
+    return config.products.every(
+      (g) => !groupIsRequired(g) || Boolean(effectiveChoices[g.fieldId]?.choice),
+    );
+  }, [config, effectiveChoices]);
+
   const { data: quote } = useQuery({
-    queryKey: ["certificate", "quote", JSON.stringify(selection)],
-    queryFn: () => certificateService.getQuote(selection),
-    enabled: Boolean(config),
+    queryKey: queryKeys.certificate.quote(product, selection),
+    queryFn: () => certificateService.getQuote(product, selection),
+    enabled: selectionIsPriceable,
     staleTime: 0,
   });
 
@@ -126,6 +165,12 @@ function CertificateFormInner() {
 
   function firstMissingRequired(): string | null {
     if (!config) return null;
+    // Product groups with no £0 opt-out are required and are not pre-selected.
+    for (const group of config.products) {
+      if (groupIsRequired(group) && !effectiveChoices[group.fieldId]?.choice) {
+        return `${group.label || "This option"} is required.`;
+      }
+    }
     for (const f of config.fields) {
       if (!f.isRequired || NON_INPUT_TYPES.has(f.type) || f.inputs?.length) continue;
       if (!(fieldValues[f.name] ?? "").trim()) return `${f.label || "This field"} is required.`;
@@ -172,6 +217,7 @@ function CertificateFormInner() {
     setSubmitting(true);
     try {
       const intent = await certificateService.createIntent({
+        product,
         selection,
         fields: fieldValues,
         contact: { email: contactEmail, name: contactName },
@@ -214,6 +260,9 @@ function CertificateFormInner() {
       </div>
     );
   }
+  // Fails closed by construction: a non-default product is addressed by path
+  // (`/certificate/hardcopy/config`), so a plugin that does not serve it answers
+  // 404 and lands here rather than returning the other offer's prices.
   if (isError || !config) {
     return (
       <p className="rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-700">
@@ -234,7 +283,7 @@ function CertificateFormInner() {
     );
   }
 
-  const hardcopy = config.products[1];
+  const shippableIds = shippableProductIds(config);
 
   return (
     <div className="space-y-8">
@@ -254,7 +303,7 @@ function CertificateFormInner() {
           />
         ))}
 
-        {config.shipping && hardcopyChosen(hardcopy, effectiveChoices) && (
+        {config.shipping && shippableChosen(config, shippableIds, effectiveChoices) && (
           <fieldset className="space-y-2">
             <legend className={cn("text-sm font-medium", LABEL_CLASS)}>
               {config.shipping.label}
@@ -384,12 +433,49 @@ function ProductGroup({
   );
 }
 
-/** Hardcopy chosen with a priced (non-"I don't need") option → show shipping. */
-function hardcopyChosen(
-  hardcopy: CertProduct | undefined,
+/**
+ * Whether a product group demands a choice.
+ *
+ * The plugin computes this ("required when the group offers no zero-priced choice")
+ * and sends it as `required`; the local derivation is the same rule, kept only for
+ * plugin builds that predate the field.
+ */
+function groupIsRequired(group: CertProduct): boolean {
+  return group.required ?? !group.choices.some((c) => c.price === 0);
+}
+
+/** Product labels that denote physical goods, used only as a backend fallback. */
+const PHYSICAL_LABEL = /hard\s*copy|printed/i;
+
+/**
+ * Which products make shipping applicable.
+ *
+ * Prefers the backend's `shipping.appliesTo` (mirrors the Gravity Form's own
+ * conditional logic). Falls back to matching the product label, because array
+ * position is not a reliable signal: the hardcopy product is `products[1]` on
+ * form 23 but `products[0]` on form 22. The final positional fallback preserves
+ * the pre-product behaviour for any form that matches neither.
+ */
+export function shippableProductIds(config: CertConfig): number[] {
+  if (config.shipping?.appliesTo?.length) return config.shipping.appliesTo;
+
+  const byLabel = config.products.filter((p) => PHYSICAL_LABEL.test(p.label));
+  if (byLabel.length > 0) return byLabel.map((p) => p.fieldId);
+
+  const positional = config.products[1];
+  return positional ? [positional.fieldId] : [];
+}
+
+/** A shippable product chosen with a priced (non-"I don't need") option. */
+export function shippableChosen(
+  config: CertConfig,
+  shippableIds: number[],
   choices: Record<string, { choice: string; qty: number }>,
 ): boolean {
-  if (!hardcopy) return false;
-  const sel = choices[hardcopy.fieldId]?.choice;
-  return Boolean(hardcopy.choices.find((c) => c.value === sel && c.price > 0));
+  return shippableIds.some((id) => {
+    const product = config.products.find((p) => p.fieldId === id);
+    if (!product) return false;
+    const sel = choices[id]?.choice;
+    return product.choices.some((c) => c.value === sel && c.price > 0);
+  });
 }

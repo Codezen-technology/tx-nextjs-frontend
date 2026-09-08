@@ -11,15 +11,23 @@ import { certificateService } from "@/lib/services/certificate";
 
 export const revalidate = 3600;
 
+/**
+ * Hardcopy-led certificate funnel — the printed certificate is the required
+ * purchase and the digital transcript an optional add-on, the inverse of
+ * `/certificate`. Both are the same Gravity Form fields with different choices,
+ * so the ordering semantics come from the backend config, not from here.
+ */
+
 /** Static copy used per-field wherever the CMS has nothing configured. */
 const DEFAULTS: CertificatePageDefaults = {
-  heroHeading: "Power Your Professional Growth with CPD Certification & Transcript",
+  heroHeading: "Order Hardcopy Certificate",
+  heroText: "Power Your Professional Growth with CPD Certification & Transcript",
   benefits: [
     "Showcase Your Professional Growth",
     "Strengthen Your CV & Career Opportunities",
     "Meet CPD & Professional Requirements",
   ],
-  orderHeading: "Order Your New Certificate",
+  orderHeading: "Order Your Hardcopy Certificate",
   promoLabel: "Promotional Banner",
   heroImages: [
     {
@@ -39,19 +47,19 @@ const DEFAULTS: CertificatePageDefaults = {
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
-  const seo = await fetchRankMathSeo(wpPath.page("certificate"));
+  const seo = await fetchRankMathSeo(wpPath.page("hardcopy-certificate"));
   return buildPageMetadata(seo, {
-    title: "Order Your Certificate",
+    title: "Order Hardcopy Certificate",
     description:
-      "Order your official CPD-accredited certificate and transcript. Digital and printed copies available — showcase your professional growth.",
-    canonical: `${env.SITE_URL.replace(/\/$/, "")}/certificate`,
+      "Order your officially printed CPD-accredited certificate and transcript, posted to you. UK and international delivery available.",
+    canonical: `${env.SITE_URL.replace(/\/$/, "")}/hardcopy-certificate`,
   });
 }
 
-export default async function CertificatePage() {
+export default async function HardcopyCertificatePage() {
   setRequestLocale(await getLocale());
 
-  const content = await certificateService.getPage("default").catch(() => null);
+  const content = await certificateService.getPage("hardcopy").catch(() => null);
 
-  return <CertificatePageShell product="default" content={content} defaults={DEFAULTS} />;
+  return <CertificatePageShell product="hardcopy" content={content} defaults={DEFAULTS} />;
 }
