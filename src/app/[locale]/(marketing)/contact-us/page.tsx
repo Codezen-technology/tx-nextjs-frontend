@@ -9,7 +9,7 @@ import { GravityFormLoader } from "@/components/forms/gravity-form-loader";
 import { ContactForm } from "@/components/contact/contact-form";
 import type { ContactCard } from "@/types/contact";
 
-export const revalidate = 3600;
+export const revalidate = 1;
 
 export async function generateMetadata(): Promise<Metadata> {
   setRequestLocale(await getLocale());
@@ -32,7 +32,7 @@ function CardIcon({ icon }: { icon: string }) {
 export default async function ContactPage() {
   setRequestLocale(await getLocale());
   const content = await fetchContactPage();
-
+  // console.log(content.cards);
   const contactSchema = {
     "@context": "https://schema.org",
     "@type": "ContactPage",

@@ -6,5 +6,5 @@ export async function POST(req: Request) {
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
-  return proxyToWP("/contact", { method: "POST", body });
+  return proxyToWP("/contact", { method: "POST", body, requiresAuth: false });
 }
