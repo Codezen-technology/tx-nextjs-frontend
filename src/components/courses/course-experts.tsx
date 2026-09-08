@@ -6,6 +6,7 @@ import { isRenderableImageSrc } from "@/lib/utils/image";
 import Link from "next/link";
 import { Linkedin } from "lucide-react";
 import type { CourseExpert } from "@/types/course";
+import { ParsedHtml } from "@/components/ui/parsed-html";
 
 interface CourseExpertsProps {
   experts: CourseExpert[];
@@ -48,9 +49,10 @@ function ExpertCard({ expert }: { expert: CourseExpert }) {
       </div>
       {expert.bio ? (
         <div className="mt-4">
-          <div
+          <ParsedHtml
+            as="div"
             className={`prose prose-sm prose-neutral max-w-none overflow-hidden text-neutral-600 transition-all duration-300 ${expanded ? "" : "line-clamp-3"}`}
-            dangerouslySetInnerHTML={{ __html: expert.bio }}
+            content={expert.bio}
           />
           <button
             onClick={() => setExpanded((v) => !v)}

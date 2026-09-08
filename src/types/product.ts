@@ -57,7 +57,7 @@ export interface Product {
   name: string;
   /** Frontend-relative permalink (rewritten off the WP backend origin). */
   permalink: string;
-  /** Raw HTML — render with dangerouslySetInnerHTML. */
+  /** Raw HTML — render with `<ParsedHtml>`. */
   description: string;
   shortDescription: string;
   sku: string;
