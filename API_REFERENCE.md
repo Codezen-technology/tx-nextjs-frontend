@@ -1252,6 +1252,28 @@ These endpoints are documented in `LMS_API_PLAN.md` but not yet built:
 
 ## Certificates
 
+### Certificate ordering — product-scoped routes
+
+Certificate ordering is scoped to a **product slug**: `default` → Gravity Form 23
+(`/certificate`), `hardcopy` → Gravity Form 22 (`/hardcopy-certificate`).
+
+```
+GET  /certificate/{product}/config
+POST /certificate/{product}/quote
+POST /certificate/{product}/record
+```
+
+The unscoped `/certificate/config|quote|record` routes remain aliases for `default`, so
+`/certificate` is unchanged. An unknown slug is a **404** — never a fallback to another
+product's prices. The frontend stamps the resolved slug into the Stripe PaymentIntent as
+`cert_product`, which the plugin treats as authoritative over the request path.
+
+Implemented in the plugin's `add-hardcopy-certificate-api` change (**not yet deployed**),
+and verified against it on `tx-local-site.test`. Four remaining gaps — a
+`{product}`-scoped `page` route, `shipping.appliesTo`, the `hardcopy` record form, and
+stripping form 22's field 63 — are tracked in
+[`docs/HARDCOPY_CERTIFICATE_API.md`](docs/HARDCOPY_CERTIFICATE_API.md).
+
 ### POST `/certificates/verify` (also GET)
 
 Public. Verifies a certificate code in the live-site format `{PREFIX}-{course_id}-{user_id}`.

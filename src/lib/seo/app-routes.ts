@@ -49,6 +49,7 @@ export const APP_ROUTES: readonly AppRoute[] = [
   { path: "/pricing", indexable: true, changeFrequency: "weekly", priority: 0.7 },
   { path: "/reviews", indexable: true, changeFrequency: "weekly", priority: 0.7 },
   { path: "/certificate", indexable: true, changeFrequency: "monthly", priority: 0.6 },
+  { path: "/hardcopy-certificate", indexable: true, changeFrequency: "monthly", priority: 0.6 },
   { path: "/help", indexable: true, changeFrequency: "monthly", priority: 0.6 },
   { path: "/about-us", indexable: true, changeFrequency: "monthly", priority: 0.6 },
   { path: "/contact-us", indexable: true, changeFrequency: "monthly", priority: 0.5 },

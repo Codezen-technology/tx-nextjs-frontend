@@ -44,6 +44,12 @@ export interface ConditionalLogic {
   actionType: "show" | "hide";
   logicType: "all" | "any";
   rules: ConditionalRule[];
+  /**
+   * Gravity Forms' own on/off switch for the rule set — the API sends it, and a
+   * disabled block still carries its rules. Optional because not every field
+   * serialises it. Observed on certificate form 22's shipping field.
+   */
+  enabled?: boolean;
 }
 
 export interface GravityField {

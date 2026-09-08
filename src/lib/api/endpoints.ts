@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { DEFAULT_CERT_PRODUCT, type CertProductSlug } from "@/types/certificate";
 
 const lms = `/${env.LMS_NAMESPACE}`;
 const wp = `/wp/v2`;
@@ -27,6 +28,25 @@ export function coursePath(idOrSlug: string | number, subpath?: string): string 
   return subpath ? `${base}/${subpath.replace(/^\//, "")}` : base;
 }
 
+/**
+ * Certificate ordering path for a product slug.
+ *
+ * The plugin serves `/certificate/{product}/…` and keeps the unscoped
+ * `/certificate/…` routes as aliases for `default`. Emitting the unscoped form for
+ * `default` keeps `/certificate` byte-identical to before products existed, and
+ * keeps it working against plugin builds that predate the scoped routes.
+ *
+ * For any other slug the scoped path is the only correct one — and an older plugin
+ * answers it with a 404, which surfaces as "ordering unavailable" rather than
+ * another product's prices. That 404 is what makes the response trustworthy
+ * without the plugin having to echo the slug back.
+ */
+function certPath(suffix: string, product: CertProductSlug = DEFAULT_CERT_PRODUCT): string {
+  return product === DEFAULT_CERT_PRODUCT
+    ? `${lms}/certificate/${suffix}`
+    : `${lms}/certificate/${encodeURIComponent(product)}/${suffix}`;
+}
+
 /** REST path for a course by post slug only — use on `/course/[slug]` pages. */
 export function courseSlugPath(slug: string, subpath?: string): string {
   const base = `${lms}/courses/slug/${encodeURIComponent(slug)}`;
@@ -40,9 +60,10 @@ export const endpoints = {
     submit: (id: number | string) => `${lms}/forms/${encodeURIComponent(String(id))}/submissions`,
   },
   certificate: {
-    page: `${lms}/certificate/page`,
-    config: `${lms}/certificate/config`,
-    quote: `${lms}/certificate/quote`,
+    page: (product?: CertProductSlug) => certPath("page", product),
+    config: (product?: CertProductSlug) => certPath("config", product),
+    quote: (product?: CertProductSlug) => certPath("quote", product),
+    record: (product?: CertProductSlug) => certPath("record", product),
   },
   auth: {
     login: `${lms}/auth/login`,

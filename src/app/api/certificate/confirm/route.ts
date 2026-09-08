@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { env, getServerWpJsonBase } from "@/lib/env";
+import { DEFAULT_CERT_PRODUCT, isCertProductSlug } from "@/types/certificate";
 
 /**
  * Certificate confirm — client-triggered, SERVER-verified recording.
@@ -55,7 +56,18 @@ export async function POST(req: Request) {
     );
   }
 
-  const res = await fetch(`${getServerWpJsonBase()}/lms-backend/v1/certificate/record`, {
+  // From Stripe's copy of the PI, not the caller's body — see the note above. The
+  // plugin also reads `cert_product` out of the forwarded metadata and treats it as
+  // authoritative over the path, so both sides agree even if this path were wrong.
+  const product = isCertProductSlug(pi.metadata?.cert_product)
+    ? pi.metadata.cert_product
+    : DEFAULT_CERT_PRODUCT;
+  const recordPath =
+    product === DEFAULT_CERT_PRODUCT
+      ? "certificate/record"
+      : `certificate/${encodeURIComponent(product)}/record`;
+
+  const res = await fetch(`${getServerWpJsonBase()}/lms-backend/v1/${recordPath}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

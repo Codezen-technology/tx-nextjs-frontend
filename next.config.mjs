@@ -84,7 +84,10 @@ const nextConfig = {
       "/course-player": "/dashboard/my-learning",
       "/shop": "/all-courses",
       "/thank-you-for-ordering-certificate": "/certificate",
-      "/hardcopy-certificate": "/certificate",
+      // NOTE: `/hardcopy-certificate` is NOT redirected — it is its own page. The
+      // live WP site sells a separate hardcopy-led offer there (different Gravity
+      // Form, hardcopy required, digital optional), so pointing it at /certificate
+      // landed every inbound link on the wrong offer.
 
       // Elementor pages that render only global header/footer chrome — zero unique
       // body content on the live site (verified: 12-token diff between them, all title).
