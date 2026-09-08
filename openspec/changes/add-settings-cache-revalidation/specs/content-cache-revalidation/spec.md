@@ -125,6 +125,8 @@ Cached site settings — the payload carrying site identity, feature flags, and 
 
 WordPress SHALL notify the frontend when content the frontend caches is saved. The call SHALL be non-blocking with respect to the editor's save, and its failure SHALL NOT surface as a save failure.
 
+> **Ownership:** this requirement binds the `wp-lms-backend-rest-api` plugin (handed over as `wp-hook-spec.md` in the originating change), not this repository. It is recorded here because it is the other half of the purge endpoint's contract; this repo can neither implement nor test it, and its scenarios are verified on the backend side.
+
 #### Scenario: Editor saves a watched option
 
 - **WHEN** an administrator saves a WordPress option the frontend caches, such as the floating-bar or site-settings options

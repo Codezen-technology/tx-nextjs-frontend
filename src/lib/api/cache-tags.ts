@@ -11,9 +11,11 @@
  * missing on production.
  *
  * So the route validates against this registry rather than passing strings
- * through, and `server.ts` imports from here rather than repeating literals.
- * The registry being the definition, not a copy of it, is the point: a tag
- * can't be renamed at a fetch site without the purge side following.
+ * through. Static tags are imported from here at every fetch site; the
+ * per-entity tags are template literals at their fetch sites whose shapes the
+ * `DYNAMIC_TAG_PATTERNS` below define — `src/__tests__/cache-tags.test.ts`
+ * walks the tagged source files to keep both sides in agreement, so a tag
+ * can't change shape at a fetch site without the purge side following.
  */
 
 /**
@@ -63,11 +65,14 @@ const STATIC_TAG_SET: ReadonlySet<string> = new Set(STATIC_TAGS);
  * One path segment of a per-entity tag: a WordPress slug or a numeric ID.
  *
  * Unicode letters and numbers are in because `sanitize_title()` keeps them, and
- * `%` because a slug can arrive percent-encoded. `:` and `/` are out, which is
- * the part that matters — without that exclusion `course:<slug>` would match
- * `course:anything:at:all` and the families below would stop being distinct.
+ * `%` because a slug can arrive percent-encoded — including as its first
+ * character (`%C3%A9quipe`), so `%` must be legal there too. Only `-` is barred
+ * from leading, since `sanitize_title()` trims edge hyphens. `:` and `/` are
+ * out everywhere, which is the part that matters — without that exclusion
+ * `course:<slug>` would match `course:anything:at:all` and the families below
+ * would stop being distinct.
  */
-const SEGMENT = String.raw`[\p{L}\p{N}][\p{L}\p{N}_%-]*`;
+const SEGMENT = String.raw`[\p{L}\p{N}_%][\p{L}\p{N}_%-]*`;
 
 /**
  * Tag families whose last segment names a single entity. Purgeable by pattern
@@ -93,13 +98,24 @@ export const DYNAMIC_TAG_PATTERNS: readonly RegExp[] = [
 ];
 
 /**
+ * Next.js's hard ceiling on a cache tag. `fetch()` silently drops any tag
+ * longer than this at cache time and `revalidateTag()` refuses it, so nothing
+ * can ever be cached under an oversized tag — which makes one "unknown" by
+ * definition, however well its prefix matches a family below.
+ */
+export const MAX_TAG_LENGTH = 256;
+
+/**
  * Whether this frontend has anything cached under `tag` — i.e. whether purging
  * it could do something.
  *
  * `blog:posts` is a static tag and `blog:<slug>` a dynamic one, so the static
- * check runs first; nothing else overlaps.
+ * check runs first; nothing else overlaps. The length gate runs before the
+ * patterns because `SEGMENT` is unbounded: without it a megabyte slug would
+ * validate and reach `revalidateTag`.
  */
 export function isKnownTag(tag: string): boolean {
+  if (tag.length > MAX_TAG_LENGTH) return false;
   if (STATIC_TAG_SET.has(tag)) return true;
   return DYNAMIC_TAG_PATTERNS.some((pattern) => pattern.test(tag));
 }

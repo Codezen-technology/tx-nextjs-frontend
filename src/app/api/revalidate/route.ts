@@ -78,12 +78,12 @@ interface RevalidateBody {
 export async function POST(req: Request): Promise<NextResponse> {
   if (!isAuthorized(req)) return unauthorized();
 
-  const body = (await req.json().catch(() => null)) as RevalidateBody | null;
+  const body: unknown = await req.json().catch(() => null);
   if (!body || typeof body !== "object") {
     return badRequest("Expected a JSON body");
   }
 
-  const { tags } = body;
+  const { tags } = body as RevalidateBody;
   if (!Array.isArray(tags) || tags.length === 0) {
     return badRequest("Expected a non-empty `tags` array");
   }
@@ -136,3 +136,7 @@ export const GET = methodNotAllowed;
 export const PUT = methodNotAllowed;
 export const PATCH = methodNotAllowed;
 export const DELETE = methodNotAllowed;
+// Without this Next auto-answers OPTIONS with 204, and the spec says every
+// non-POST method is a 405. Nothing legitimate preflights here — the caller is
+// WordPress server-side.
+export const OPTIONS = methodNotAllowed;

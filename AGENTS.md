@@ -138,18 +138,19 @@ All Axios errors are converted to `ApiError` (`src/lib/api/error.ts`) by the res
 
 ## Key files
 
-| File                           | Purpose                                              |
-| ------------------------------ | ---------------------------------------------------- |
-| `src/lib/api/endpoints.ts`     | All WP endpoint URLs                                 |
-| `src/lib/api/bff.ts`           | `proxyToWP()` — server-side proxy with token refresh |
-| `src/lib/api/bff-client.ts`    | `bffJson()` — client helper for BFF route calls      |
-| `src/lib/api/client.ts`        | Axios singleton (direct-to-WP, public reads)         |
-| `src/lib/api/parsers.ts`       | `paginate()` + `decodeEntities()`                    |
-| `src/lib/api/server.ts`        | Server Component fetch utilities                     |
-| `src/lib/env.ts`               | All env var definitions and `getServerWpJsonBase()`  |
-| `src/lib/utils/query-keys.ts`  | Centralized TanStack Query keys                      |
-| `src/lib/stores/auth.store.ts` | Zustand auth store (user display data only)          |
-| `src/proxy.ts`                 | Route guards + next-intl integration (Next 16 proxy) |
+| File                           | Purpose                                                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `src/lib/api/endpoints.ts`     | All WP endpoint URLs                                                                                    |
+| `src/lib/api/cache-tags.ts`    | Cache-tag registry — the tags `serverFetch` uses and `POST /api/revalidate` (WP purge endpoint) accepts |
+| `src/lib/api/bff.ts`           | `proxyToWP()` — server-side proxy with token refresh                                                    |
+| `src/lib/api/bff-client.ts`    | `bffJson()` — client helper for BFF route calls                                                         |
+| `src/lib/api/client.ts`        | Axios singleton (direct-to-WP, public reads)                                                            |
+| `src/lib/api/parsers.ts`       | `paginate()` + `decodeEntities()`                                                                       |
+| `src/lib/api/server.ts`        | Server Component fetch utilities                                                                        |
+| `src/lib/env.ts`               | All env var definitions and `getServerWpJsonBase()`                                                     |
+| `src/lib/utils/query-keys.ts`  | Centralized TanStack Query keys                                                                         |
+| `src/lib/stores/auth.store.ts` | Zustand auth store (user display data only)                                                             |
+| `src/proxy.ts`                 | Route guards + next-intl integration (Next 16 proxy)                                                    |
 
 ## Conventions
 

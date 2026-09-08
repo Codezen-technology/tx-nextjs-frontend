@@ -3,6 +3,8 @@
 > **Source:** Extracted from the `lms-backend-rest-api` WordPress plugin
 > **Namespace:** `lms-backend/v1`
 > **Base URL:** `https://<your-domain>/wp-json/lms-backend/v1`
+> **Exception:** the [Cache Revalidation](#cache-revalidation-frontend-endpoint--wordpress-is-the-caller)
+> section documents the one endpoint this frontend serves and WordPress calls.
 
 ---
 
@@ -1283,7 +1285,9 @@ save instead of hiding behind a `200` while its content silently goes stale.
 `:related`), `course:<id>:reviews`, `blog:<slug>`, `blog:category:<slug>`,
 `page:<slug>`, `bundle:<slug>`, `product:<slug>`, `form:<id>`,
 `certificate-page-<product>`. The list is defined in
-`src/lib/api/cache-tags.ts`; anything else is a `400`.
+`src/lib/api/cache-tags.ts`; anything else is a `400`, including any tag longer
+than 256 characters (Next.js's cache-tag ceiling — nothing can be cached under
+a longer one).
 
 ### What WordPress must send
 

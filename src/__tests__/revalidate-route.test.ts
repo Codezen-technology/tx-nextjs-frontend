@@ -10,7 +10,7 @@ vi.mock("next/cache", () => ({
 const mockEnv = { WP_REVALIDATE_SECRET: "" };
 vi.mock("@/lib/env", () => ({ env: mockEnv }));
 
-const { POST, GET } = await import("@/app/api/revalidate/route");
+const { POST, GET, OPTIONS } = await import("@/app/api/revalidate/route");
 
 const SECRET = "s3cret-value-for-tests";
 
@@ -182,6 +182,16 @@ describe("POST /api/revalidate — request validation", () => {
 describe("/api/revalidate — method handling", () => {
   it("answers GET with 405 rather than purging or 404ing", async () => {
     const res = GET();
+
+    expect(res.status).toBe(405);
+    expect(res.headers.get("allow")).toBe("POST");
+    expect(revalidateTag).not.toHaveBeenCalled();
+  });
+
+  it("answers OPTIONS with 405 rather than Next's automatic 204", async () => {
+    // The spec says *every* non-POST method is a 405; without an explicit
+    // export Next would auto-answer OPTIONS itself.
+    const res = OPTIONS();
 
     expect(res.status).toBe(405);
     expect(res.headers.get("allow")).toBe("POST");
