@@ -9,6 +9,7 @@
  */
 
 import { coursePath, courseSlugPath, endpoints } from "@/lib/api/endpoints";
+import { fetchWithTimeout, FetchTimeoutError } from "@/lib/api/fetch-timeout";
 import { getServerWpJsonBase, env } from "@/lib/env";
 import type { WCStoreProduct } from "@/types/product";
 import type { FooterData } from "@/types/settings";
@@ -349,13 +350,29 @@ function unwrapEnvelope<T>(body: unknown): T {
  */
 export async function serverFetch<T>(path: string, opts: FetchOptions = {}): Promise<T> {
   const url = resolveUrl(path);
-  const res = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(opts.headers ?? {}),
-    },
-    next: buildNextCache(opts),
-  });
+
+  // A stalled upstream is reported as a ServerFetchError like any other
+  // failure, so every existing caller's degradation path already covers it.
+  // See fetch-timeout.ts for why an unbounded wait here fails the build.
+  let res: Response;
+  try {
+    res = await fetchWithTimeout(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(opts.headers ?? {}),
+      },
+      next: buildNextCache(opts),
+    });
+  } catch (error) {
+    if (error instanceof FetchTimeoutError) {
+      throw new ServerFetchError(504, "fetch_timeout", error.message);
+    }
+    throw new ServerFetchError(
+      502,
+      "fetch_network_error",
+      `Network error fetching ${path}: ${(error as Error)?.message ?? "unknown"}`,
+    );
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -597,7 +614,10 @@ export const serverApi = {
       if (!base) return null;
       try {
         const url = `${base}/rankmath/v1/getHead?url=${encodeURIComponent(wpPageUrl)}`;
-        const res = await fetch(url, {
+        // Bounded: every page's generateMetadata calls this, and the sitemap
+        // probes it once per catch-all candidate. One stall here would hang a
+        // page render outright — the `catch` below degrades it to no SEO data.
+        const res = await fetchWithTimeout(url, {
           next: { revalidate: 3600, tags: ["rankmath:head"] },
         });
         if (!res.ok) return null;

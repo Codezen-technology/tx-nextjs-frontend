@@ -3,7 +3,27 @@
  * which the envelope-unwrapping `serverFetch` cannot surface.
  */
 import { getServerWpJsonBase } from "@/lib/env";
+import { fetchWithTimeout } from "@/lib/api/fetch-timeout";
 import type { BlogPost, WPCategory } from "@/types/blog";
+
+/**
+ * Bounded GET that folds a timeout or transport failure into the same "no
+ * usable response" signal a non-2xx already produces in this module, so every
+ * fetcher below keeps its existing degrade-to-empty contract.
+ *
+ * Without the bound, a stalled `wp/v2/posts` request hangs a static blog page
+ * or the sitemap past its build budget and fails the deploy — see
+ * `src/lib/api/fetch-timeout.ts`.
+ */
+async function getJsonResponse(url: string, next: RequestInit["next"]): Promise<Response | null> {
+  try {
+    const res = await fetchWithTimeout(url, { next });
+    return res.ok ? res : null;
+  } catch (error) {
+    console.warn(`[blog] ${url} failed:`, (error as Error)?.message ?? error);
+    return null;
+  }
+}
 
 export interface BlogPage {
   posts: BlogPost[];
@@ -29,9 +49,9 @@ export async function fetchBlogPage(page = 1, perPage = 12): Promise<BlogPage> {
 
   const bounded = Math.min(Math.max(1, Math.trunc(perPage)), WP_MAX_PER_PAGE);
   const url = `${base}/wp/v2/posts?per_page=${bounded}&page=${page}&_embed=wp:featuredmedia,author`;
-  const res = await fetch(url, { next: { revalidate: 300, tags: ["blog:posts"] } });
+  const res = await getJsonResponse(url, { revalidate: 300, tags: ["blog:posts"] });
 
-  if (!res.ok) return { posts: [], total: 0, totalPages: 0 };
+  if (!res) return { posts: [], total: 0, totalPages: 0 };
 
   const posts = (await res.json()) as BlogPost[];
   return {
@@ -46,9 +66,9 @@ export async function fetchBlogPost(slug: string): Promise<BlogPost | null> {
   if (!base) return null;
 
   const url = `${base}/wp/v2/posts?slug=${encodeURIComponent(slug)}&_embed=wp:featuredmedia,author`;
-  const res = await fetch(url, { next: { revalidate: 300, tags: [`blog:${slug}`] } });
+  const res = await getJsonResponse(url, { revalidate: 300, tags: [`blog:${slug}`] });
 
-  if (!res.ok) return null;
+  if (!res) return null;
 
   const posts = (await res.json()) as BlogPost[];
   return Array.isArray(posts) && posts.length ? posts[0] : null;
@@ -59,9 +79,9 @@ export async function fetchCategories(): Promise<WPCategory[]> {
   if (!base) return [];
 
   const url = `${base}/wp/v2/categories?per_page=100&hide_empty=true&orderby=count&order=desc`;
-  const res = await fetch(url, { next: { revalidate: 300, tags: ["blog:categories"] } });
+  const res = await getJsonResponse(url, { revalidate: 300, tags: ["blog:categories"] });
 
-  if (!res.ok) return [];
+  if (!res) return [];
 
   const data = (await res.json()) as WPCategory[];
   return Array.isArray(data) ? data : [];
@@ -76,9 +96,9 @@ export async function fetchTrending(count = TRENDING_COUNT): Promise<BlogPost[]>
   if (!base) return [];
 
   const url = `${base}/wp/v2/posts?per_page=${count}&_embed=wp:featuredmedia,author`;
-  const res = await fetch(url, { next: { revalidate: 300, tags: ["blog:posts"] } });
+  const res = await getJsonResponse(url, { revalidate: 300, tags: ["blog:posts"] });
 
-  if (!res.ok) return [];
+  if (!res) return [];
 
   const posts = (await res.json()) as BlogPost[];
   return Array.isArray(posts) ? posts.filter(Boolean) : [];
@@ -104,11 +124,12 @@ export async function fetchPostsByCategory(
   if (!category) return null;
 
   const url = `${base}/wp/v2/posts?categories=${category.id}&page=${page}&per_page=${perPage}&_embed=wp:featuredmedia,author`;
-  const res = await fetch(url, {
-    next: { revalidate: 300, tags: ["blog:posts", `blog:category:${categorySlug}`] },
+  const res = await getJsonResponse(url, {
+    revalidate: 300,
+    tags: ["blog:posts", `blog:category:${categorySlug}`],
   });
 
-  if (!res.ok) return { category, posts: [], total: 0, totalPages: 0 };
+  if (!res) return { category, posts: [], total: 0, totalPages: 0 };
 
   const posts = (await res.json()) as BlogPost[];
   return {
@@ -129,13 +150,14 @@ export async function fetchBlogPageGrouped(perPage = 40): Promise<{
   if (!base) return { trending: [], mostRecent: [], categorySections: [], allPosts: [] };
 
   const [postsRes, cats] = await Promise.all([
-    fetch(`${base}/wp/v2/posts?per_page=${perPage}&_embed=wp:featuredmedia,author`, {
-      next: { revalidate: 300, tags: ["blog:posts"] },
+    getJsonResponse(`${base}/wp/v2/posts?per_page=${perPage}&_embed=wp:featuredmedia,author`, {
+      revalidate: 300,
+      tags: ["blog:posts"],
     }),
     fetchCategories(),
   ]);
 
-  if (!postsRes.ok) return { trending: [], mostRecent: [], categorySections: [], allPosts: [] };
+  if (!postsRes) return { trending: [], mostRecent: [], categorySections: [], allPosts: [] };
 
   const allPosts = ((await postsRes.json()) as BlogPost[]).filter(Boolean);
 
