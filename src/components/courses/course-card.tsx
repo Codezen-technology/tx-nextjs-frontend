@@ -163,7 +163,6 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
                 ) : null}
                 <span className="font-open-sans font-bold text-neutral-900">
                   <span className="text-[1.313rem]">£{course.price}</span>
-                  <span className="text-xs font-normal"> +VAT</span>
                 </span>
               </>
             ) : null}
