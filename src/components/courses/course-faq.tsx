@@ -2,6 +2,7 @@
 
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { Minus, Plus } from "lucide-react";
+import { ParsedHtml } from "@/components/ui/parsed-html";
 
 interface FaqItem {
   question: string;
@@ -86,9 +87,10 @@ export function CourseFaq({ heading, items }: CourseFaqProps) {
             <AccordionPrimitive.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">
               <div className="px-6 pb-6">
                 <div className="bg-secondary-50 px-6 py-6">
-                  <div
+                  <ParsedHtml
+                    as="div"
                     className="prose prose-neutral font-open-sans max-w-none text-[14px] leading-[1.5] text-neutral-500"
-                    dangerouslySetInnerHTML={{ __html: faq.answer }}
+                    content={faq.answer}
                   />
                 </div>
               </div>

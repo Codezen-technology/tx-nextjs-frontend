@@ -99,3 +99,68 @@ export function replaceWpOrigin(s: string): string {
   if (!s || !WP_ORIGIN || !SITE_ORIGIN) return s;
   return s.split(WP_ORIGIN).join(SITE_ORIGIN);
 }
+
+/**
+ * Path prefixes and filenames that only WordPress can serve. A URL matching one
+ * of these must keep the backend origin: rewriting it produces a frontend URL
+ * that 404s, which is strictly worse than sending the visitor to the backend.
+ */
+const FUNCTIONAL_WP_PATHS = [
+  "/wp-content/",
+  "/wp-includes/",
+  "/wp-json/",
+  "/wp-admin",
+  "/wp-login.php",
+  "/wp-cron.php",
+  "/admin-ajax.php",
+];
+
+/** WooCommerce endpoints that carry transactional state, not content. */
+const WOO_TRANSACTIONAL_PATHS = ["/checkout/order-pay", "/checkout/order-received"];
+const WOO_TRANSACTIONAL_PARAMS = ["add-to-cart", "wc-ajax", "remove_item", "undo_item"];
+
+/**
+ * True when `url` is a backend URL the headless frontend cannot serve —
+ * uploads and other wp-* endpoints, or a WooCommerce transactional URL.
+ *
+ * A bare `/cart` or `/checkout` permalink is deliberately NOT functional: the
+ * frontend serves its own, so those rewrite like any other content link. Only
+ * URLs carrying order state (`order-pay`, `order-received`, a `wc_order_*` key)
+ * or a cart-mutating query parameter stay on the backend.
+ */
+export function isFunctionalWpUrl(url: string | null | undefined): boolean {
+  if (!isWpBackendUrl(url)) return false;
+  const parsed = parseAbsolute(url!);
+  if (!parsed) return false;
+
+  const path = parsed.pathname;
+  if (FUNCTIONAL_WP_PATHS.some((prefix) => path.startsWith(prefix))) return true;
+  if (WOO_TRANSACTIONAL_PATHS.some((prefix) => path.startsWith(prefix))) return true;
+  if (WOO_TRANSACTIONAL_PARAMS.some((param) => parsed.searchParams.has(param))) return true;
+  return (parsed.searchParams.get("key") ?? "").startsWith("wc_order_");
+}
+
+/**
+ * Rewrite one `href` found inside WordPress-authored HTML content.
+ *
+ * Content permalinks on the backend origin become root-relative frontend paths.
+ * Everything else is returned byte-identical: relative and fragment-only hrefs,
+ * non-HTTP schemes (`mailto:`, `tel:`), frontend-origin URLs, third-party URLs,
+ * and the functional backend URLs {@link isFunctionalWpUrl} identifies.
+ *
+ * A no-op when the two origins are equal or either is unconfigured, so local
+ * dev, CI and preview render exactly what WordPress authored.
+ */
+export function rewriteContentHref(href: string): string {
+  if (!href || !WP_ORIGIN || !SITE_ORIGIN || WP_ORIGIN === SITE_ORIGIN) return href;
+
+  // `//host/path` inherits the page's scheme; resolve it against the backend so
+  // a protocol-relative backend link is still recognised as one.
+  const candidate = href.startsWith("//") ? `${new URL(WP_ORIGIN).protocol}${href}` : href;
+  const parsed = parseAbsolute(candidate);
+  if (!parsed || (parsed.protocol !== "http:" && parsed.protocol !== "https:")) return href;
+  if (parsed.origin !== WP_ORIGIN) return href;
+  if (isFunctionalWpUrl(parsed.href)) return href;
+
+  return toFrontendPath(parsed.href);
+}

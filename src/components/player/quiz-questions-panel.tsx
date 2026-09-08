@@ -117,9 +117,10 @@ export function QuizQuestionsPanel({
                   >
                     {selected ? <span className="h-1.5 w-1.5 rounded-full bg-white" /> : null}
                   </span>
-                  <span
+                  <ParsedHtml
+                    as="span"
                     className={cn("min-w-0 flex-1", selected && "text-white")}
-                    dangerouslySetInnerHTML={{ __html: opt }}
+                    content={opt}
                   />
                 </button>
               </li>

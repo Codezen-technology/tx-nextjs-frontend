@@ -1,8 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   isExternalUrl,
+  isFunctionalWpUrl,
   isWpBackendUrl,
   replaceWpOrigin,
+  rewriteContentHref,
   toFrontendPath,
   toFrontendUrl,
 } from "@/lib/utils/url";
@@ -84,5 +86,112 @@ describe("replaceWpOrigin", () => {
   it("returns the input unchanged when there is nothing to swap", () => {
     expect(replaceWpOrigin("no urls here")).toBe("no urls here");
     expect(replaceWpOrigin("")).toBe("");
+  });
+});
+
+describe("isFunctionalWpUrl", () => {
+  it("true for wp-* paths the frontend cannot serve", () => {
+    expect(isFunctionalWpUrl(`${WP}/wp-content/uploads/2026/07/handbook.pdf`)).toBe(true);
+    expect(isFunctionalWpUrl(`${WP}/wp-includes/js/x.js`)).toBe(true);
+    expect(isFunctionalWpUrl(`${WP}/wp-json/wp/v2/posts`)).toBe(true);
+    expect(isFunctionalWpUrl(`${WP}/wp-admin/edit.php`)).toBe(true);
+    expect(isFunctionalWpUrl(`${WP}/wp-login.php?redirect_to=/x`)).toBe(true);
+    expect(isFunctionalWpUrl(`${WP}/wp-admin/admin-ajax.php?action=x`)).toBe(true);
+  });
+  it("true for WooCommerce transactional URLs", () => {
+    expect(isFunctionalWpUrl(`${WP}/?add-to-cart=69664`)).toBe(true);
+    expect(isFunctionalWpUrl(`${WP}/checkout/order-pay/123/?pay_for_order=true`)).toBe(true);
+    expect(isFunctionalWpUrl(`${WP}/checkout/order-received/123/`)).toBe(true);
+    expect(isFunctionalWpUrl(`${WP}/checkout/?key=wc_order_abc123`)).toBe(true);
+    expect(isFunctionalWpUrl(`${WP}/cart/?remove_item=abc`)).toBe(true);
+  });
+  it("false for bare cart and checkout permalinks the frontend serves", () => {
+    expect(isFunctionalWpUrl(`${WP}/cart/`)).toBe(false);
+    expect(isFunctionalWpUrl(`${WP}/checkout/`)).toBe(false);
+  });
+  it("false for content, frontend, external, relative, and empty", () => {
+    expect(isFunctionalWpUrl(`${WP}/course/first-aid/`)).toBe(false);
+    expect(isFunctionalWpUrl(`${SITE}/wp-content/uploads/x.pdf`)).toBe(false);
+    expect(isFunctionalWpUrl("https://stripe.com/wp-admin")).toBe(false);
+    expect(isFunctionalWpUrl("/wp-content/uploads/x.pdf")).toBe(false);
+    expect(isFunctionalWpUrl(null)).toBe(false);
+  });
+});
+
+describe("rewriteContentHref", () => {
+  it("rewrites a backend content permalink to a root-relative frontend path", () => {
+    expect(rewriteContentHref(`${WP}/course/first-aid/`)).toBe("/course/first-aid/");
+  });
+  it("preserves query and fragment while rewriting", () => {
+    expect(rewriteContentHref(`${WP}/blog/x/?utm=1#section`)).toBe("/blog/x/?utm=1#section");
+  });
+  it("rewrites a protocol-relative backend link", () => {
+    expect(rewriteContentHref("//localhost/course/first-aid/")).toBe("/course/first-aid/");
+  });
+  it("rewrites a bare backend cart permalink", () => {
+    expect(rewriteContentHref(`${WP}/cart/`)).toBe("/cart/");
+  });
+  it("leaves relative, fragment-only, and empty hrefs untouched", () => {
+    expect(rewriteContentHref("/courses")).toBe("/courses");
+    expect(rewriteContentHref("about-us")).toBe("about-us");
+    expect(rewriteContentHref("#section-2")).toBe("#section-2");
+    expect(rewriteContentHref("")).toBe("");
+  });
+  it("leaves non-HTTP schemes untouched", () => {
+    expect(rewriteContentHref("mailto:hi@trainingexcellence.org.uk")).toBe(
+      "mailto:hi@trainingexcellence.org.uk",
+    );
+    expect(rewriteContentHref("tel:+441943605050")).toBe("tel:+441943605050");
+  });
+  it("leaves functional backend URLs on the backend", () => {
+    const pdf = `${WP}/wp-content/uploads/2026/07/handbook.pdf`;
+    expect(rewriteContentHref(pdf)).toBe(pdf);
+    const addToCart = `${WP}/?add-to-cart=69664`;
+    expect(rewriteContentHref(addToCart)).toBe(addToCart);
+    const orderPay = `${WP}/checkout/order-pay/123/?key=wc_order_abc`;
+    expect(rewriteContentHref(orderPay)).toBe(orderPay);
+  });
+  it("leaves frontend and third-party URLs untouched", () => {
+    expect(rewriteContentHref(`${SITE}/course/x`)).toBe(`${SITE}/course/x`);
+    expect(rewriteContentHref("https://stripe.com/pay")).toBe("https://stripe.com/pay");
+  });
+});
+
+/**
+ * The origins are module-scope constants read from env, so these cases need a
+ * fresh module instance per configuration rather than a runtime override.
+ */
+async function loadUrlModuleWith(wp: string, site: string) {
+  vi.resetModules();
+  vi.doMock("@/lib/env", () => ({ env: { WP_API_URL: wp, SITE_URL: site } }));
+  const mod = await import("@/lib/utils/url");
+  vi.doUnmock("@/lib/env");
+  return mod;
+}
+
+describe("rewriteContentHref origin configuration", () => {
+  it("is a no-op when backend and frontend share an origin", async () => {
+    const { rewriteContentHref: rewrite } = await loadUrlModuleWith(
+      "https://example.test",
+      "https://example.test",
+    );
+    expect(rewrite("https://example.test/course/x/")).toBe("https://example.test/course/x/");
+  });
+
+  it("is a no-op when an origin is unset", async () => {
+    const { rewriteContentHref: rewrite } = await loadUrlModuleWith("", "https://example.test");
+    expect(rewrite("https://cms.example.test/course/x/")).toBe(
+      "https://cms.example.test/course/x/",
+    );
+  });
+
+  it("is a no-op when an origin is not a parseable URL", async () => {
+    const { rewriteContentHref: rewrite } = await loadUrlModuleWith(
+      "cms.example.test",
+      "https://example.test",
+    );
+    expect(rewrite("https://cms.example.test/course/x/")).toBe(
+      "https://cms.example.test/course/x/",
+    );
   });
 });

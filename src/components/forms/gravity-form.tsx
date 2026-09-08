@@ -20,6 +20,7 @@ import type {
 
 import { MARKETING_FIELD_CLASS, MARKETING_LABEL_CLASS } from "@/components/ui/form-field";
 import { growToFit } from "@/lib/utils/auto-grow-textarea";
+import { ParsedHtml } from "@/components/ui/parsed-html";
 
 const FIELD_CLASS = MARKETING_FIELD_CLASS;
 const LABEL_CLASS = MARKETING_LABEL_CLASS;
@@ -347,13 +348,14 @@ export function GravityForm({
 
   if (confirmation !== null) {
     return (
-      <div
+      // Confirmation HTML is authored in GF admin (trusted).
+      <ParsedHtml
+        as="div"
         className={cn(
           "font-open-sans rounded-lg border border-green-200 bg-green-50 p-8 text-center text-sm text-neutral-700",
           className,
         )}
-        // Confirmation HTML is authored in GF admin (trusted).
-        dangerouslySetInnerHTML={{ __html: confirmation }}
+        content={confirmation}
       />
     );
   }
@@ -584,7 +586,7 @@ function FieldRow({
   isCancellations = false,
 }: FieldRowProps) {
   if (field.type === "html") {
-    return <div dangerouslySetInnerHTML={{ __html: field.content ?? "" }} />;
+    return <ParsedHtml as="div" content={field.content ?? ""} />;
   }
 
   if (field.type === "section") {

@@ -4,6 +4,7 @@ import { memo, useEffect, useRef } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { findVimeoIframe } from "@/lib/player/vimeo-ended";
 import { useUnitContent } from "@/lib/hooks/usePlayer";
+import { ParsedHtml } from "@/components/ui/parsed-html";
 
 interface UnitContentDisplayProps {
   courseId: number;
@@ -98,10 +99,11 @@ function UnitContentDisplayInner({
       </header>
 
       {displayHtml ? (
-        <div
+        <ParsedHtml
+          as="div"
           ref={containerRef}
           className="unit-course-player bg-black"
-          dangerouslySetInnerHTML={{ __html: displayHtml }}
+          content={displayHtml}
         />
       ) : (
         <div className="flex flex-1 items-center justify-center p-8 text-gray-400">
