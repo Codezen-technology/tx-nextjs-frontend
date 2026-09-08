@@ -620,7 +620,7 @@ function FieldRow({
             {...register(field.name, { required })}
           />
           <span>
-            {field.choices?.[0]?.text ?? field.label}
+            <ParsedHtml content={field.choices?.[0]?.text ?? field.label} className="inline" />
             {field.isRequired && <span className="ml-0.5 text-red-500">*</span>}
           </span>
         </label>

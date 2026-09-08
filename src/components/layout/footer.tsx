@@ -89,7 +89,6 @@ export async function SiteFooter() {
   const social = footerData?.social ?? {};
   const contact = footerData?.contact ?? {};
   const badges = footerData?.compliance?.badges ?? [];
-
   const socialLinks = (Object.entries(social) as [string, string | null | undefined][])
     .filter((entry): entry is [string, string] => !!entry[1])
     .map(([platform, href]) => ({
