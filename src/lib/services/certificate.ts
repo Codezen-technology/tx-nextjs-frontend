@@ -12,13 +12,16 @@ import {
   type CertSelection,
   type CertProductSlug,
 } from "@/types/certificate";
+import { TAGS } from "@/lib/api/cache-tags";
 
 /**
  * Cache tag for a product's page content. Scoped so revalidating one offer's
  * content does not bust the other's.
  */
 function pageTag(product: CertProductSlug): string {
-  return product === DEFAULT_CERT_PRODUCT ? "certificate-page" : `certificate-page-${product}`;
+  return product === DEFAULT_CERT_PRODUCT
+    ? TAGS.certificatePage
+    : `${TAGS.certificatePage}-${product}`;
 }
 
 /** `?product=` for the BFF, omitted for the default so existing URLs are unchanged. */

@@ -3,6 +3,8 @@
 > **Source:** Extracted from the `lms-backend-rest-api` WordPress plugin
 > **Namespace:** `lms-backend/v1`
 > **Base URL:** `https://<your-domain>/wp-json/lms-backend/v1`
+> **Exception:** the [Cache Revalidation](#cache-revalidation-frontend-endpoint--wordpress-is-the-caller)
+> section documents the one endpoint this frontend serves and WordPress calls.
 
 ---
 
@@ -1226,6 +1228,87 @@ the response stays publicly cacheable.
 per-brand seed file, and the deploy step all live in `docs/SETTINGS_API.md`. There
 is no wp-admin screen. Note that the stored `enabled` flag never reaches this
 frontend: the backend resolves it and serves `null`.
+
+---
+
+## Cache Revalidation (frontend endpoint — WordPress is the caller)
+
+Reverse direction from everything else in this file: this endpoint lives in the
+Next.js app, and **WordPress calls it**. It is how a saved option reaches
+visitors immediately instead of waiting out a cache TTL.
+
+Every server-side WordPress read here is cached by tag for 5–60 minutes. Without
+a purge, an edit is invisible for up to that long — which is how a floating-bar
+notice switched on in WP Admin stayed missing from production for an hour.
+
+### POST `/api/revalidate`
+
+**Auth:** shared secret in the `x-wp-revalidate-secret` header, matching
+`WP_REVALIDATE_SECRET` on the frontend deployment. Constant-time comparison.
+**With the secret unset the endpoint rejects everything** — an unconfigured
+deployment is inert, never open.
+
+**Request:**
+
+```http
+POST /api/revalidate
+x-wp-revalidate-secret: <shared secret>
+Content-Type: application/json
+
+{ "tags": ["settings"] }
+```
+
+**Response (200):**
+
+```json
+{ "revalidated": true, "tags": ["settings"], "now": 1788873000000 }
+```
+
+| Status | When                                                                                                                       |
+| ------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `200`  | All tags recognised and purged. Idempotent — repeat freely.                                                                |
+| `400`  | Body is not JSON, `tags` missing/empty/not all strings, more than 20 tags, or **any** tag unrecognised. Nothing is purged. |
+| `401`  | Wrong secret, missing header, or `WP_REVALIDATE_SECRET` unset on the frontend. Identical body in every case.               |
+| `405`  | Any method other than `POST`.                                                                                              |
+
+**All-or-nothing on purpose.** One unknown tag fails the whole request rather
+than purging the rest, so a mis-mapped tag on the WP side is loud on the first
+save instead of hiding behind a `200` while its content silently goes stale.
+
+**Purgeable tags.** Fixed: `settings`, `footer`, `home`, `home:testimonials`,
+`pricing`, `about`, `courses:list`, `courses:featured`, `courses:popular`,
+`courses:free`, `bundles:list`, `bundles:featured`, `pages:list`,
+`products:list`, `taxonomy:categories`, `taxonomy:levels`, `taxonomy:tags`,
+`reviews:list`, `blog:posts`, `blog:categories`, `cancellations-page`,
+`contact-page`, `certificate-page`, `partners`, `testimonials`,
+`rankmath:head`. Per-entity: `course:<slug>` (plus `:curriculum`, `:sections`,
+`:related`), `course:<id>:reviews`, `blog:<slug>`, `blog:category:<slug>`,
+`page:<slug>`, `bundle:<slug>`, `product:<slug>`, `form:<id>`,
+`certificate-page-<product>`. The list is defined in
+`src/lib/api/cache-tags.ts`; anything else is a `400`, including any tag longer
+than 256 characters (Next.js's cache-tag ceiling — nothing can be cached under
+a longer one).
+
+### What WordPress must send
+
+| WP option saved                      | Tags to purge |
+| ------------------------------------ | ------------- |
+| Floating bar / any `/settings` field | `settings`    |
+| Footer content                       | `footer`      |
+| Home page content                    | `home`        |
+
+Requirements on the caller:
+
+- **Non-blocking.** `wp_remote_post( $url, [ 'blocking' => false, 'timeout' => 2 ] )`,
+  or send it on `shutdown`. An editor's save must never wait on the frontend.
+- **Never fails the save.** A timeout, a 4xx, or an unreachable frontend is
+  logged and dropped; the cache then refreshes on its TTL, which is today's
+  behaviour.
+- **Skip no-op writes.** `updated_option` only fires on a real change; don't
+  send on `update_option` calls that stored the same value.
+
+If `WP_REVALIDATE_SECRET` is not configured on the frontend, don't send the
+call — every content edit still lands within its TTL.
 
 ---
 

@@ -50,7 +50,14 @@ Optional overrides (all defined in `src/lib/env.ts`):
 - `WP_API_URL` — server-only override for `NEXT_PUBLIC_WP_API_URL` (skips browser-public value in BFF)
 - `WP_FETCH_TIMEOUT_MS` — server-only per-request ceiling on every WordPress fetch (default `15000`). Bounds `next build`: an unbounded upstream stall burns a page's whole `staticPageGenerationTimeout` budget and fails the deploy
 - `NEXT_PUBLIC_FEATURE_*` — boolean feature flags; default `true` except `FEATURE_BADGES` (false)
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SENTRY_DSN`, `WP_REVALIDATE_SECRET`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SENTRY_DSN`
+- `WP_REVALIDATE_SECRET` — server-only shared secret for `POST /api/revalidate`, the
+  endpoint WordPress calls to purge a cache tag the moment an editor saves. Must match
+  the value configured in the WP plugin. **Unset is a valid configuration and locks the
+  endpoint** — every request is rejected and content refreshes on its own TTL instead;
+  it never means "no check". Preview deployments sharing a WordPress instance receive
+  the same purge calls, which is harmless: each purges only its own cache. Contract in
+  `API_REFERENCE.md`
 - `NEXT_PUBLIC_LIVE_CHAT_WIDGET_URL` — live-chat widget bundle (production:
   `https://chat-widget.easychat.org.uk/widget.js`). **Unset means chat is off** —
   no script tag and no request to any chat origin, which is the right default for
@@ -135,18 +142,19 @@ All Axios errors are converted to `ApiError` (`src/lib/api/error.ts`) by the res
 
 ## Key files
 
-| File                           | Purpose                                              |
-| ------------------------------ | ---------------------------------------------------- |
-| `src/lib/api/endpoints.ts`     | All WP endpoint URLs                                 |
-| `src/lib/api/bff.ts`           | `proxyToWP()` — server-side proxy with token refresh |
-| `src/lib/api/bff-client.ts`    | `bffJson()` — client helper for BFF route calls      |
-| `src/lib/api/client.ts`        | Axios singleton (direct-to-WP, public reads)         |
-| `src/lib/api/parsers.ts`       | `paginate()` + `decodeEntities()`                    |
-| `src/lib/api/server.ts`        | Server Component fetch utilities                     |
-| `src/lib/env.ts`               | All env var definitions and `getServerWpJsonBase()`  |
-| `src/lib/utils/query-keys.ts`  | Centralized TanStack Query keys                      |
-| `src/lib/stores/auth.store.ts` | Zustand auth store (user display data only)          |
-| `src/proxy.ts`                 | Route guards + next-intl integration (Next 16 proxy) |
+| File                           | Purpose                                                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `src/lib/api/endpoints.ts`     | All WP endpoint URLs                                                                                    |
+| `src/lib/api/cache-tags.ts`    | Cache-tag registry — the tags `serverFetch` uses and `POST /api/revalidate` (WP purge endpoint) accepts |
+| `src/lib/api/bff.ts`           | `proxyToWP()` — server-side proxy with token refresh                                                    |
+| `src/lib/api/bff-client.ts`    | `bffJson()` — client helper for BFF route calls                                                         |
+| `src/lib/api/client.ts`        | Axios singleton (direct-to-WP, public reads)                                                            |
+| `src/lib/api/parsers.ts`       | `paginate()` + `decodeEntities()`                                                                       |
+| `src/lib/api/server.ts`        | Server Component fetch utilities                                                                        |
+| `src/lib/env.ts`               | All env var definitions and `getServerWpJsonBase()`                                                     |
+| `src/lib/utils/query-keys.ts`  | Centralized TanStack Query keys                                                                         |
+| `src/lib/stores/auth.store.ts` | Zustand auth store (user display data only)                                                             |
+| `src/proxy.ts`                 | Route guards + next-intl integration (Next 16 proxy)                                                    |
 
 ## Conventions
 
