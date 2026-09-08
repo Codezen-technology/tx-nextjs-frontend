@@ -1,4 +1,4 @@
-import { api } from "@/lib/api/client";
+import { bffJson } from "@/lib/api/bff-client";
 import { endpoints } from "@/lib/api/endpoints";
 import { serverFetch } from "@/lib/api/server";
 import type {
@@ -23,16 +23,23 @@ export const certificateService = {
     });
   },
 
-  /** Pricing schema (products/choices/prices/quantities/shipping) from GF form. */
+  /**
+   * Pricing schema (products/choices/prices/quantities/shipping) from GF form.
+   *
+   * Goes through the BFF, not browser-direct to WP: the WP host serves a
+   * SiteGround anti-bot captcha (HTML, HTTP 202, no CORS headers) to browser
+   * XHR, which fails as a CORS error on the live domain.
+   */
   async getConfig(): Promise<CertConfig> {
-    const { data } = await api.get<CertConfig>(endpoints.certificate.config);
-    return data;
+    return bffJson<CertConfig>("/api/certificate/config");
   },
 
-  /** Authoritative server-priced quote for a selection. */
+  /** Authoritative server-priced quote for a selection (BFF, see `getConfig`). */
   async getQuote(selection: CertSelection): Promise<CertQuote> {
-    const { data } = await api.post<CertQuote>(endpoints.certificate.quote, selection);
-    return data;
+    return bffJson<CertQuote>("/api/certificate/quote", {
+      method: "POST",
+      body: JSON.stringify(selection),
+    });
   },
 
   /**
