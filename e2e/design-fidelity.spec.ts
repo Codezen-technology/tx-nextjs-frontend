@@ -2077,6 +2077,99 @@ test.describe("Class A — FAQ section", () => {
   test("blog: the FAQ is operable and announced correctly", async ({ page }) => {
     await assertFaqSemantics(page, BLOG_ROUTE);
   });
+
+  /**
+   * QA-BLOGS-A9, second half — the same defect `QA-PRIVACY-A2` closed on the
+   * legal pages, on the two link surfaces of a blog post.
+   *
+   * `prose-wp` types anchors `text-primary` (#00bbf0, **2.14:1** on the
+   * article's ground), and the FAQ answers carried `prose prose-neutral`, which
+   * generates nothing without `@tailwindcss/typography` — so those anchors got
+   * Preflight's `color: inherit; text-decoration: inherit` and were not
+   * distinguishable from body text at all. `prose-wp-light` now covers both.
+   *
+   * A probe anchor is injected when a surface has no real link: the assertion is
+   * about the stylesheet, and whether this particular post happens to link out
+   * is not something the fix controls.
+   */
+  test("blog: article and FAQ-answer links are readable and identifiable", async ({ page }) => {
+    await page.goto(BLOG_ROUTE.path);
+    await settleImages(page);
+
+    const measured = await page.evaluate(() => {
+      const lum = (c: number[]) => {
+        const s = c.map((v) => {
+          const n = v / 255;
+          return n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * s[0] + 0.7152 * s[1] + 0.0722 * s[2];
+      };
+      const parse = (v: string) => (v.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
+      const bgOf = (el: Element) => {
+        let n: Element | null = el;
+        while (n && getComputedStyle(n).backgroundColor === "rgba(0, 0, 0, 0)") n = n.parentElement;
+        return n ? getComputedStyle(n).backgroundColor : "rgb(255, 255, 255)";
+      };
+      const read = (a: Element, surface: string) => {
+        const cs = getComputedStyle(a);
+        const bg = bgOf(a);
+        const [hi, lo] = [lum(parse(cs.color)), lum(parse(bg))].sort((x, y) => y - x);
+        return {
+          surface,
+          text: (a.textContent || "").trim().slice(0, 34),
+          colour: cs.color,
+          bg,
+          ratio: Number(((hi + 0.05) / (lo + 0.05)).toFixed(2)),
+          decoration: cs.textDecorationLine,
+          weight: cs.fontWeight,
+        };
+      };
+
+      const out: ReturnType<typeof read>[] = [];
+      const surfaces: [string, Element | null][] = [
+        ["article body", document.querySelector("article .prose-wp")],
+        ["FAQ answer", document.querySelector('article [role="region"] .prose-wp')],
+      ];
+
+      for (const [surface, root] of surfaces) {
+        if (!root) continue;
+        const real = [...root.querySelectorAll("a")];
+        if (real.length) {
+          out.push(...real.map((a) => read(a, surface)));
+          continue;
+        }
+        const probe = document.createElement("a");
+        probe.href = "https://example.com";
+        probe.textContent = "probe";
+        root.appendChild(probe);
+        out.push(read(probe, surface));
+        probe.remove();
+      }
+      return out;
+    });
+
+    expect(
+      measured.map((m) => m.surface),
+      "neither the article body nor an open FAQ answer rendered — nothing to measure",
+    ).toEqual(expect.arrayContaining(["article body", "FAQ answer"]));
+
+    const lowContrast = measured.filter((m) => m.ratio < 4.5);
+    expect(
+      lowContrast,
+      `these blog links fail WCAG AA (4.5:1): ${lowContrast
+        .map((m) => `[${m.surface}] "${m.text}" ${m.colour} on ${m.bg} = ${m.ratio}:1`)
+        .join(", ")}`,
+    ).toEqual([]);
+
+    // Colour alone is not enough — WCAG 1.4.1.
+    const colourOnly = measured.filter((m) => m.decoration === "none" && m.weight === "400");
+    expect(
+      colourOnly,
+      `these blog links are distinguished from body text by colour alone: ${colourOnly
+        .map((m) => `[${m.surface}] "${m.text}"`)
+        .join(", ")}`,
+    ).toEqual([]);
+  });
 });
 
 /**

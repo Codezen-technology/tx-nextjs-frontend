@@ -31,11 +31,19 @@ function findBalancedDiv(html: string, openTagEnd: number): { innerEnd: number; 
  * Extracts a Rank Math FAQ block (`#rank-math-faq`) from WP post HTML, if present.
  *
  * The heading that precedes the block (e.g. `<h2 id="faq">FAQ</h2>`, with the id
- * injected by `parseToc`) is replaced with an empty same-id anchor so Table of
- * Contents scroll-to links keep working, while its text is returned separately
- * for use as the rendered FAQ component's heading.
+ * injected by `parseToc`) is removed along with the block; its text and its id
+ * come back as `heading` / `headingId` so the caller can re-render them on the
+ * FAQ component's own `<h2>`. That heading then *is* the Table-of-Contents
+ * target: an id parked on an empty `<span>` instead is zero-height, so it gets
+ * none of `prose-wp`'s `scroll-mt` and is effectively invisible to the
+ * IntersectionObserver that drives the ToC's active row.
  */
-export function parseFaq(html: string): { faq: FaqItem[]; heading?: string; content: string } {
+export function parseFaq(html: string): {
+  faq: FaqItem[];
+  heading?: string;
+  headingId?: string;
+  content: string;
+} {
   const startMatch = /<div[^>]*id="rank-math-faq"[^>]*>/i.exec(html);
   if (!startMatch) return { faq: [], content: html };
 
@@ -48,14 +56,26 @@ export function parseFaq(html: string): { faq: FaqItem[]; heading?: string; cont
 
   let replaceFrom = faqDivStart;
   let heading: string | undefined;
-  let anchor = "";
-  const precedingHeadingRe = /<h[23][^>]*>([\s\S]*?)<\/h[23]>\s*$/i;
+  let headingId: string | undefined;
+  // Anchored at the end of everything before the block, so it can only match the
+  // heading that immediately precedes it. The inner lookahead is what keeps it
+  // there: a plain `([\s\S]*?)` still starts at the FIRST h2 in the post and
+  // spans every later heading to reach the `$`, which collapsed the whole
+  // article into one FAQ heading (QA-BLOGS-A9).
+  //
+  // The attribute list is quote-aware rather than `[^>]*`: a `>` inside an
+  // attribute value (`<h2 title="a > b">`) ended the opening tag early and put
+  // the tail of that value into the heading text. Capturing the attributes
+  // separately also keeps the id lookup off the heading's *content* — scanning
+  // the whole match returned the id of any nested element, e.g. `FAQ <span
+  // id="inner">`, which is the wrong ToC target.
+  const precedingHeadingRe =
+    /<h([23])((?:\s(?:"[^"]*"|'[^']*'|[^>"'])*)?)>((?:(?!<\/h[23]\s*>)[\s\S])*)<\/h\1\s*>\s*$/i;
   const headingMatch = precedingHeadingRe.exec(html.slice(0, faqDivStart));
   if (headingMatch) {
-    heading = stripTags(headingMatch[1]);
+    heading = stripTags(headingMatch[3]);
     replaceFrom = faqDivStart - headingMatch[0].length;
-    const id = /\bid="([^"]+)"/.exec(headingMatch[0])?.[1];
-    if (id) anchor = `<span id="${id}"></span>`;
+    headingId = /\bid=["']([^"']+)["']/.exec(headingMatch[2])?.[1];
   }
 
   const faq: FaqItem[] = [];
@@ -83,6 +103,11 @@ export function parseFaq(html: string): { faq: FaqItem[]; heading?: string; cont
     if (question && answer) faq.push({ question, answer });
   }
 
-  const content = html.slice(0, replaceFrom) + anchor + html.slice(blockOuterEnd);
-  return { faq, heading, content };
+  // Nothing was recognised inside the block, so there is no FAQ component to
+  // render in its place. Cutting it out anyway would delete the heading and
+  // leave the Table of Contents pointing at an id that is no longer in the DOM.
+  if (!faq.length) return { faq: [], content: html };
+
+  const content = html.slice(0, replaceFrom) + html.slice(blockOuterEnd);
+  return { faq, heading, headingId, content };
 }

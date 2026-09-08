@@ -10,6 +10,9 @@ interface FaqItem {
 
 interface CourseFaqProps {
   heading?: string | null;
+  /** Anchor id for the heading, when this FAQ replaces a heading that a Table
+      of Contents links to. `scroll-mt` is already on the heading below. */
+  headingId?: string;
   items: FaqItem[];
 }
 
@@ -37,14 +40,17 @@ interface CourseFaqProps {
  * it was shipped by `QA-COURSE-A4` and is preserved here so a restyle does not
  * silently reopen a closed row.
  */
-export function CourseFaq({ heading, items }: CourseFaqProps) {
+export function CourseFaq({ heading, headingId, items }: CourseFaqProps) {
   if (!items.length) {
     return <p className="font-open-sans text-sm text-neutral-500">No FAQs available.</p>;
   }
 
   return (
     <div className="space-y-8">
-      <h2 className="font-suse text-2xl leading-[1.2] font-bold text-neutral-900 md:text-[32px]">
+      <h2
+        id={headingId}
+        className="font-suse scroll-mt-24 text-2xl leading-[1.2] font-bold text-neutral-900 md:text-[32px]"
+      >
         {heading ?? "Frequently Asked Questions"}
       </h2>
 
@@ -86,8 +92,17 @@ export function CourseFaq({ heading, items }: CourseFaqProps) {
             <AccordionPrimitive.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">
               <div className="px-6 pb-6">
                 <div className="bg-secondary-50 px-6 py-6">
+                  {/* Answers are WP-rendered HTML, so they get the site's own
+                      `prose-wp` typography. They previously carried `prose
+                      prose-neutral`, which generates nothing —
+                      `@tailwindcss/typography` is not a dependency — so anchors
+                      inside an answer fell through to Preflight's `color:
+                      inherit; text-decoration: inherit` and were invisible as
+                      links (WCAG 1.4.1), and lists lost their markers.
+                      `prose-wp-light` pins the AA link colour, measured 5.62:1
+                      on this panel's `secondary-50`. */}
                   <div
-                    className="prose prose-neutral font-open-sans max-w-none text-[14px] leading-[1.5] text-neutral-500"
+                    className="prose-wp prose-wp-light font-open-sans text-[14px] leading-[1.5] text-neutral-500 [&>*:last-child]:mb-0"
                     dangerouslySetInnerHTML={{ __html: faq.answer }}
                   />
                 </div>

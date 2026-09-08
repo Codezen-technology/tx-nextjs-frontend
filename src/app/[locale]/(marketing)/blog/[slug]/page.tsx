@@ -128,7 +128,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const rawContent = post.content?.rendered ?? "";
   const { toc, content: contentWithToc } = parseToc(rawContent);
-  const { faq, heading: faqHeading, content: contentWithIds } = parseFaq(contentWithToc);
+  const {
+    faq,
+    heading: faqHeading,
+    headingId: faqHeadingId,
+    content: contentWithIds,
+  } = parseFaq(contentWithToc);
 
   const hasSidebar = toc.length > 0;
 
@@ -252,12 +257,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   opens with text. Images inside the post body are unaffected. */}
               <ParsedHtml
                 as="div"
-                className="prose-wp prose-wp-article font-open-sans text-neutral-500"
+                className="prose-wp prose-wp-article prose-wp-light font-open-sans text-neutral-500"
                 content={contentWithIds}
               />
               {faq.length > 0 && (
                 <div className="mt-12">
-                  <CourseFaq heading={faqHeading} items={faq} />
+                  <CourseFaq heading={faqHeading} headingId={faqHeadingId} items={faq} />
                 </div>
               )}
             </article>
