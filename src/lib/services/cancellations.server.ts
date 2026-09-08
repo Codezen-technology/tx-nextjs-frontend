@@ -2,6 +2,7 @@
 import { serverFetch } from "@/lib/api/server";
 import { env } from "@/lib/env";
 import type { CancellationsPageContent } from "@/types/cancellations";
+import { TAGS } from "@/lib/api/cache-tags";
 
 const lms = `/${env.LMS_NAMESPACE}`;
 
@@ -35,7 +36,7 @@ export async function fetchCancellationsPage(): Promise<CancellationsPageContent
   try {
     data = await serverFetch<CancellationsPageContent>(`${lms}/cancellations/page`, {
       revalidate: 3600,
-      tags: ["cancellations-page"],
+      tags: [TAGS.cancellationsPage],
     });
   } catch {
     return CANCELLATIONS_FALLBACK;

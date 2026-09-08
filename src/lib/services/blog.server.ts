@@ -5,6 +5,7 @@
 import { getServerWpJsonBase } from "@/lib/env";
 import { fetchWithTimeout } from "@/lib/api/fetch-timeout";
 import type { BlogPost, WPCategory } from "@/types/blog";
+import { TAGS } from "@/lib/api/cache-tags";
 
 /**
  * Bounded GET that folds a timeout or transport failure into the same "no
@@ -49,7 +50,7 @@ export async function fetchBlogPage(page = 1, perPage = 12): Promise<BlogPage> {
 
   const bounded = Math.min(Math.max(1, Math.trunc(perPage)), WP_MAX_PER_PAGE);
   const url = `${base}/wp/v2/posts?per_page=${bounded}&page=${page}&_embed=wp:featuredmedia,author`;
-  const res = await getJsonResponse(url, { revalidate: 300, tags: ["blog:posts"] });
+  const res = await getJsonResponse(url, { revalidate: 300, tags: [TAGS.blogPosts] });
 
   if (!res) return { posts: [], total: 0, totalPages: 0 };
 
@@ -79,7 +80,7 @@ export async function fetchCategories(): Promise<WPCategory[]> {
   if (!base) return [];
 
   const url = `${base}/wp/v2/categories?per_page=100&hide_empty=true&orderby=count&order=desc`;
-  const res = await getJsonResponse(url, { revalidate: 300, tags: ["blog:categories"] });
+  const res = await getJsonResponse(url, { revalidate: 300, tags: [TAGS.blogCategories] });
 
   if (!res) return [];
 
@@ -96,7 +97,7 @@ export async function fetchTrending(count = TRENDING_COUNT): Promise<BlogPost[]>
   if (!base) return [];
 
   const url = `${base}/wp/v2/posts?per_page=${count}&_embed=wp:featuredmedia,author`;
-  const res = await getJsonResponse(url, { revalidate: 300, tags: ["blog:posts"] });
+  const res = await getJsonResponse(url, { revalidate: 300, tags: [TAGS.blogPosts] });
 
   if (!res) return [];
 
@@ -126,7 +127,7 @@ export async function fetchPostsByCategory(
   const url = `${base}/wp/v2/posts?categories=${category.id}&page=${page}&per_page=${perPage}&_embed=wp:featuredmedia,author`;
   const res = await getJsonResponse(url, {
     revalidate: 300,
-    tags: ["blog:posts", `blog:category:${categorySlug}`],
+    tags: [TAGS.blogPosts, `blog:category:${categorySlug}`],
   });
 
   if (!res) return { category, posts: [], total: 0, totalPages: 0 };
@@ -152,7 +153,7 @@ export async function fetchBlogPageGrouped(perPage = 40): Promise<{
   const [postsRes, cats] = await Promise.all([
     getJsonResponse(`${base}/wp/v2/posts?per_page=${perPage}&_embed=wp:featuredmedia,author`, {
       revalidate: 300,
-      tags: ["blog:posts"],
+      tags: [TAGS.blogPosts],
     }),
     fetchCategories(),
   ]);

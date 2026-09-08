@@ -9,6 +9,7 @@
  */
 
 import { coursePath, courseSlugPath, endpoints } from "@/lib/api/endpoints";
+import { TAGS } from "@/lib/api/cache-tags";
 import { fetchWithTimeout, FetchTimeoutError } from "@/lib/api/fetch-timeout";
 import { getServerWpJsonBase, env } from "@/lib/env";
 import type { WCStoreProduct } from "@/types/product";
@@ -401,13 +402,13 @@ export const serverApi = {
     list: (params?: Record<string, string | number>) =>
       serverFetch<ApiPaginated<ApiCourse>>(`${lms}/courses${qs(params)}`, {
         revalidate: 300,
-        tags: ["courses:list"],
+        tags: [TAGS.coursesList],
       }),
 
     detail: (slug: string) =>
       serverFetch<ApiCourse>(courseSlugPath(slug), {
         revalidate: 600,
-        tags: [`course:${slug}`, "courses:list"],
+        tags: [`course:${slug}`, TAGS.coursesList],
       }),
 
     curriculum: (slug: string) =>
@@ -419,7 +420,7 @@ export const serverApi = {
     richDetail: (slug: string) =>
       serverFetch<Record<string, unknown>>(courseSlugPath(slug), {
         revalidate: 600,
-        tags: [`course:${slug}`, "courses:list"],
+        tags: [`course:${slug}`, TAGS.coursesList],
       }),
 
     sections: (slug: string) =>
@@ -437,19 +438,19 @@ export const serverApi = {
     featured: (perPage?: number) =>
       serverFetch<ApiPaginated<ApiCourse>>(
         `${lms}/courses/featured${qs(perPage ? { per_page: perPage } : undefined)}`,
-        { revalidate: 300, tags: ["courses:featured"] },
+        { revalidate: 300, tags: [TAGS.coursesFeatured] },
       ),
 
     popular: (perPage?: number) =>
       serverFetch<ApiPaginated<ApiCourse>>(
         `${lms}/courses/popular${qs(perPage ? { per_page: perPage } : undefined)}`,
-        { revalidate: 300, tags: ["courses:popular"] },
+        { revalidate: 300, tags: [TAGS.coursesPopular] },
       ),
 
     free: (params?: Record<string, string | number>) =>
       serverFetch<ApiPaginated<ApiCourse>>(`${lms}/courses/free${qs(params)}`, {
         revalidate: 300,
-        tags: ["courses:free"],
+        tags: [TAGS.coursesFree],
       }),
   },
 
@@ -457,19 +458,19 @@ export const serverApi = {
     list: (params?: Record<string, string | number>) =>
       serverFetch<ApiPaginated<RawBundle>>(`${lms}/bundles${qs(params)}`, {
         revalidate: 300,
-        tags: ["bundles:list"],
+        tags: [TAGS.bundlesList],
       }),
 
     featured: (limit = 4) =>
       serverFetch<{ items: RawBundle[] }>(`${lms}/bundles/featured${qs({ limit })}`, {
         revalidate: 300,
-        tags: ["bundles:featured"],
+        tags: [TAGS.bundlesFeatured],
       }),
 
     bySlug: (slug: string) =>
       serverFetch<RawBundle>(`${lms}/bundles/slug/${encodeURIComponent(slug)}`, {
         revalidate: 600,
-        tags: [`bundle:${slug}`, "bundles:list"],
+        tags: [`bundle:${slug}`, TAGS.bundlesList],
       }),
   },
 
@@ -477,13 +478,13 @@ export const serverApi = {
     list: (template?: string) =>
       serverFetch<{ items: PageListItem[] }>(
         `${lms}/pages${template ? `?template=${encodeURIComponent(template)}` : ""}`,
-        { revalidate: 600, tags: ["pages:list"] },
+        { revalidate: 600, tags: [TAGS.pagesList] },
       ),
 
     detail: (slug: string) =>
       serverFetch<RawPage>(`${lms}/pages/${encodeURIComponent(slug)}`, {
         revalidate: 300,
-        tags: [`page:${slug}`, "pages:list"],
+        tags: [`page:${slug}`, TAGS.pagesList],
       }),
   },
 
@@ -492,14 +493,14 @@ export const serverApi = {
     bySlug: (slug: string) =>
       serverFetch<WCStoreProduct[]>(endpoints.products.bySlug(slug), {
         revalidate: 300,
-        tags: [`product:${slug}`, "products:list"],
+        tags: [`product:${slug}`, TAGS.productsList],
       }),
 
     /** WooCommerce Store API — published products. Used by the sitemap and prerender. */
     list: (params?: Record<string, string | number>) =>
       serverFetch<WCStoreProduct[]>(`${endpoints.products.list}${qs(params)}`, {
         revalidate: 300,
-        tags: ["products:list"],
+        tags: [TAGS.productsList],
       }),
   },
 
@@ -507,19 +508,19 @@ export const serverApi = {
     categories: (params?: Record<string, string | number>) =>
       serverFetch<ApiPaginated<ApiCategory>>(`${lms}/course-categories${qs(params)}`, {
         revalidate: 600,
-        tags: ["taxonomy:categories"],
+        tags: [TAGS.taxonomyCategories],
       }),
 
     levels: (params?: Record<string, string | number>) =>
       serverFetch<ApiPaginated<ApiTerm>>(`${lms}/levels${qs(params)}`, {
         revalidate: 600,
-        tags: ["taxonomy:levels"],
+        tags: [TAGS.taxonomyLevels],
       }),
 
     tags: (params?: Record<string, string | number>) =>
       serverFetch<ApiPaginated<ApiTerm>>(`${lms}/tags${qs(params)}`, {
         revalidate: 600,
-        tags: ["taxonomy:tags"],
+        tags: [TAGS.taxonomyTags],
       }),
   },
 
@@ -533,7 +534,7 @@ export const serverApi = {
     list: (params?: Record<string, string | number>) =>
       serverFetch<ApiPaginated<ApiReview>>(`${lms}/reviews${qs(params)}`, {
         revalidate: 300,
-        tags: ["reviews:list"],
+        tags: [TAGS.reviewsList],
       }),
   },
 
@@ -541,7 +542,7 @@ export const serverApi = {
     posts: (params?: Record<string, string | number>) =>
       serverFetch<unknown[]>(`/wp/v2/posts${qs(params)}`, {
         revalidate: 300,
-        tags: ["blog:posts"],
+        tags: [TAGS.blogPosts],
       }),
 
     post: (slug: string) =>
@@ -552,10 +553,16 @@ export const serverApi = {
   },
 
   settings: {
+    /**
+     * 300s rather than an hour: this payload carries the sitewide floating bar
+     * and the feature flags, so it is the one an editor changes when something
+     * is urgent. `/api/revalidate` is the mechanism that makes a save instant;
+     * this TTL is what bounds the damage on the day the WP hook stops firing.
+     */
     get: () =>
       serverFetch<ApiSettings>(`${lms}/settings`, {
-        revalidate: 3600,
-        tags: ["settings"],
+        revalidate: 300,
+        tags: [TAGS.settings],
       }),
   },
 
@@ -563,7 +570,7 @@ export const serverApi = {
     get: () =>
       serverFetch<FooterData>(`${lms}/footer`, {
         revalidate: 3600,
-        tags: ["footer"],
+        tags: [TAGS.footer],
       }),
   },
 
@@ -571,13 +578,13 @@ export const serverApi = {
     get: () =>
       serverFetch<HomePageData>(`${lms}/home`, {
         revalidate: 300,
-        tags: ["home"],
+        tags: [TAGS.home],
       }),
 
     testimonials: (limit = 6) =>
       serverFetch<HomePageData["testimonials"]>(`${lms}/home/testimonials${qs({ limit })}`, {
         revalidate: 300,
-        tags: ["home:testimonials"],
+        tags: [TAGS.homeTestimonials],
       }),
   },
 
@@ -585,7 +592,7 @@ export const serverApi = {
     get: () =>
       serverFetch<PricingPageData>(`${lms}/pricing`, {
         revalidate: 300,
-        tags: ["pricing"],
+        tags: [TAGS.pricing],
       }),
   },
 
@@ -593,15 +600,15 @@ export const serverApi = {
     get: () =>
       serverFetch<AboutPageData>(`${lms}/about/page`, {
         revalidate: 300,
-        tags: ["about"],
+        tags: [TAGS.about],
       }),
   },
 
   partners: () =>
-    serverFetch<unknown[]>("/wp/v2/partner_logo", { revalidate: 3600, tags: ["partners"] }),
+    serverFetch<unknown[]>("/wp/v2/partner_logo", { revalidate: 3600, tags: [TAGS.partners] }),
 
   testimonials: () =>
-    serverFetch<unknown[]>("/wp/v2/testimonial", { revalidate: 3600, tags: ["testimonials"] }),
+    serverFetch<unknown[]>("/wp/v2/testimonial", { revalidate: 3600, tags: [TAGS.testimonials] }),
 
   rankmath: {
     /**
@@ -618,7 +625,7 @@ export const serverApi = {
         // probes it once per catch-all candidate. One stall here would hang a
         // page render outright — the `catch` below degrades it to no SEO data.
         const res = await fetchWithTimeout(url, {
-          next: { revalidate: 3600, tags: ["rankmath:head"] },
+          next: { revalidate: 3600, tags: [TAGS.rankmathHead] },
         });
         if (!res.ok) return null;
         const body = (await res.json()) as { success?: boolean; head?: string };

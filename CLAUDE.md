@@ -50,7 +50,14 @@ Optional overrides (all defined in `src/lib/env.ts`):
 - `WP_API_URL` — server-only override for `NEXT_PUBLIC_WP_API_URL` (skips browser-public value in BFF)
 - `WP_FETCH_TIMEOUT_MS` — server-only per-request ceiling on every WordPress fetch (default `15000`). Bounds `next build`: an unbounded upstream stall burns a page's whole `staticPageGenerationTimeout` budget and fails the deploy
 - `NEXT_PUBLIC_FEATURE_*` — boolean feature flags; default `true` except `FEATURE_BADGES` (false)
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SENTRY_DSN`, `WP_REVALIDATE_SECRET`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SENTRY_DSN`
+- `WP_REVALIDATE_SECRET` — server-only shared secret for `POST /api/revalidate`, the
+  endpoint WordPress calls to purge a cache tag the moment an editor saves. Must match
+  the value configured in the WP plugin. **Unset is a valid configuration and locks the
+  endpoint** — every request is rejected and content refreshes on its own TTL instead;
+  it never means "no check". Preview deployments sharing a WordPress instance receive
+  the same purge calls, which is harmless: each purges only its own cache. Contract in
+  `API_REFERENCE.md`
 - `NEXT_PUBLIC_LIVE_CHAT_WIDGET_URL` — live-chat widget bundle (production:
   `https://chat-widget.easychat.org.uk/widget.js`). **Unset means chat is off** —
   no script tag and no request to any chat origin, which is the right default for

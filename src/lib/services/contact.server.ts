@@ -2,6 +2,7 @@
 import { serverFetch } from "@/lib/api/server";
 import { env } from "@/lib/env";
 import type { ContactPageContent } from "@/types/contact";
+import { TAGS } from "@/lib/api/cache-tags";
 
 const lms = `/${env.LMS_NAMESPACE}`;
 
@@ -49,7 +50,7 @@ export async function fetchContactPage(): Promise<ContactPageContent> {
   try {
     data = await serverFetch<ContactPageContent>(`${lms}/contact/page`, {
       revalidate: 3600,
-      tags: ["contact-page"],
+      tags: [TAGS.contactPage],
     });
   } catch {
     return CONTACT_FALLBACK;
