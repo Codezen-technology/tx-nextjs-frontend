@@ -40,6 +40,11 @@ export function PricingCta({ plan, quantity = 1, className, style }: PricingCtaP
   return (
     <button
       type="button"
+      data-testid="plan-cta"
+      // `product` decides whether this adds to the cart or merely navigates, and that
+      // difference is invisible in the rendered markup — the spec's load-bearing clause.
+      // Expose it so the parity test can compare purchasability, not just the label.
+      data-plan-purchasable={plan.product ? "true" : "false"}
       onClick={handleAddToCart}
       disabled={isPending}
       className={cn(className, "disabled:cursor-not-allowed disabled:opacity-70")}

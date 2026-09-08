@@ -152,6 +152,12 @@ export interface HomePageData {
 
 /** Dedicated /pricing page payload (decoupled from home). */
 export interface PricingPageData {
+  /**
+   * Returned by the endpoint but no longer read by the app. It is a second, stale copy of
+   * the homepage's pricing block — retired prices, `product: null` — so `/pricing` renders
+   * `HomePageData["pricing"]` instead and the two pages cannot drift. Do not rewire the
+   * pricing section to this field. See openspec `unify-pricing-section-source`.
+   */
   pricing: HomePricingSection;
   faq: HomeFaqItem[];
 }
