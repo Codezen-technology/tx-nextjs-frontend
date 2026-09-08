@@ -68,23 +68,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="bg-neutral-10 min-h-screen">
-      {/* Breadcrumb */}
-      <div className="bg-neutral-900 py-2.5">
-        <div className="container">
-          <p className="text-sm text-white">
-            <Link href="/" className="font-bold underline">
-              Home
-            </Link>
-            <span className="mx-1">›</span>
-            <Link href="/cart" className="underline">
-              Cart
-            </Link>
-            <span className="mx-1">›</span>
-            <span>Checkout</span>
-          </p>
-        </div>
-      </div>
-
       <div className="container py-10">
         <div className="mx-auto max-w-[856px] space-y-8">
           {/* Page title */}
