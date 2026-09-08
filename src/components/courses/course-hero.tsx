@@ -1,6 +1,5 @@
 import { SafeImage } from "@/components/ui/safe-image";
 import { isRenderableImageSrc } from "@/lib/utils/image";
-import Link from "next/link";
 import { Clock, Star, Users } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import type { CourseRichData } from "@/types/course";
@@ -39,30 +38,6 @@ export function CourseHero({ course }: CourseHeroProps) {
         className="relative container flex flex-col justify-end py-12 lg:py-16"
         style={{ minHeight: 420 }}
       >
-        {/* Breadcrumb */}
-        {course.breadcrumb?.length ? (
-          <nav className="mb-4 flex flex-wrap items-center gap-1.5 text-sm text-neutral-300">
-            <Link href="/courses" className="transition-colors hover:text-white">
-              Courses
-            </Link>
-            {course.breadcrumb.map((crumb) => (
-              <span key={crumb.id} className="flex items-center gap-1.5">
-                <span>/</span>
-                <Link
-                  href={`/courses?category=${crumb.slug}`}
-                  className="transition-colors hover:text-white"
-                >
-                  {crumb.name}
-                </Link>
-              </span>
-            ))}
-            <span className="flex items-center gap-1.5">
-              <span>/</span>
-              <span className="text-white">{course.title}</span>
-            </span>
-          </nav>
-        ) : null}
-
         {/* Badges */}
         {course.badges?.length ? (
           <div className="mb-3 flex flex-wrap gap-2">

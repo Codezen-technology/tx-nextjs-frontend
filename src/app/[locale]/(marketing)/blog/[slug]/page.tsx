@@ -163,33 +163,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         }}
       >
         <div className="relative container">
-          <nav
-            aria-label="Breadcrumb"
-            className="font-open-sans flex items-center gap-1 text-sm text-white/60"
-          >
-            <Link href="/" className="transition-colors hover:text-white">
-              Home
-            </Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/blog" className="transition-colors hover:text-white">
-              Blog
-            </Link>
-            {postCategory && (
-              <>
-                <ChevronRight className="h-3.5 w-3.5" />
-                <Link
-                  href={`/blog/category/${postCategory.slug}`}
-                  className="transition-colors hover:text-white"
-                >
-                  {postCategoryName}
-                </Link>
-              </>
-            )}
-            <ChevronRight className="h-3.5 w-3.5" />
-            <span className="line-clamp-1 text-white/90">{title}</span>
-          </nav>
-
-          <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
             <div className="lg:max-w-xl">
               <h1 className="font-suse text-3xl leading-tight font-bold text-white sm:text-4xl lg:text-[40px]">
                 {title}

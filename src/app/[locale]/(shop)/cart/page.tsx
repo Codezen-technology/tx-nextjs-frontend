@@ -17,19 +17,6 @@ export default function CartPage() {
 
   return (
     <div className="bg-neutral-10 min-h-screen">
-      {/* Breadcrumb */}
-      <div className="bg-neutral-900 py-2.5">
-        <div className="container">
-          <p className="text-sm text-white">
-            <Link href="/" className="font-bold underline">
-              Home
-            </Link>
-            <span className="mx-1">›</span>
-            <span>Cart</span>
-          </p>
-        </div>
-      </div>
-
       <div className="container py-10">
         <h1 className="font-suse mb-8 text-3xl font-medium text-neutral-900">Cart</h1>
 
