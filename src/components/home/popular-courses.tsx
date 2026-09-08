@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { serverApi } from "@/lib/api/server";
-import { normalizeCourse } from "@/lib/services/courses";
+import { normalizeCourseList } from "@/lib/services/courses";
 import { CourseCard } from "@/components/courses/course-card";
 import { ChevronRight } from "lucide-react";
 import type { HomePopularCoursesHeader } from "@/types/home";
@@ -23,9 +23,7 @@ export async function PopularCourses({ limit = 8, header }: PopularCoursesProps)
 
   if (!data?.items?.length) return null;
 
-  const courses = data.items.map((raw) =>
-    normalizeCourse(raw as Parameters<typeof normalizeCourse>[0]),
-  );
+  const courses = normalizeCourseList(data.items);
   return (
     <section>
       <div className="container">

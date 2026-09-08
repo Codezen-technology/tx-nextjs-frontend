@@ -220,6 +220,19 @@ export function normalizeCourse(raw: RawCourse): Course {
 }
 
 /**
+ * Normalize a raw course list from any server-side courses endpoint.
+ *
+ * `serverApi` returns the transport-level `ApiCourse` shape, which overlaps `RawCourse`
+ * but is declared separately. Callers used to bridge that with a
+ * `normalizeCourse(raw as Parameters<typeof normalizeCourse>[0])` cast at each call site,
+ * which put raw-shape knowledge in components — the one thing this service layer exists to
+ * prevent. Keep the cast here, once.
+ */
+export function normalizeCourseList(items: readonly unknown[]): Course[] {
+  return items.map((raw) => normalizeCourse(raw as RawCourse));
+}
+
+/**
  * `/courses/{id}/curriculum` reports section and unit durations in whole minutes,
  * while the UI formats seconds — convert here so no component re-interprets the unit.
  */

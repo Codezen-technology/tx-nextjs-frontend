@@ -14,6 +14,18 @@ interface HeroCarouselProps {
 //   behind-left x=0   y=+20  scale=0.905  z=20  (peeks from left)
 //   FRONT       x=177 y=0    scale=1.0    z=40  (hero card, full shadow)
 //   right-1     x=383 y=+20  scale=0.905  z=30
+//
+// `x` stays in Figma pixels because the snap-vs-glide check below compares raw
+// offsets; layout divides them by DESIGN_SPAN so the stack is a fraction of
+// whatever width the strip actually gets, not a hard 660px that only fits at
+// >=1440 viewports.
+//
+// Those fractions are applied as `left`, not as a percentage `translateX`: a percentage
+// in `translateX` resolves against the element's OWN width, so 26.8% of a card is 82px,
+// not the 177px the composition means. `left` resolves against the containing block.
+// `scale` stays in the transform, where percentages are not involved.
+const DESIGN_SPAN = 660; // 383 + 306 * 0.905 — right edge of the widest slot
+const DESIGN_CARD_W = 306; // Figma card width (w-76.5)
 const CARD_OFFSETS = [
   { x: 0, y: 20, scale: 0.905, z: 20, shadow: "" },
   {
@@ -25,6 +37,9 @@ const CARD_OFFSETS = [
   },
   { x: 383, y: 20, scale: 0.905, z: 30, shadow: "" },
 ] as const;
+
+/** A Figma-pixel offset expressed as a fraction of the design span. */
+const spanPct = (px: number) => `${(px / DESIGN_SPAN) * 100}%`;
 
 export function HeroCarousel({ courses }: HeroCarouselProps) {
   const [active, setActive] = useState(0);
@@ -67,22 +82,27 @@ export function HeroCarousel({ courses }: HeroCarouselProps) {
   if (total === 0) return null;
 
   return (
-    <div className="relative hidden gap-8 lg:flex lg:flex-1 lg:flex-col">
-      {/* Stacked cards — anchored at behind-left card origin */}
-      <div className="relative h-130 w-full overflow-visible">
+    <div className="relative hidden min-w-0 gap-8 xl:flex xl:flex-1 xl:flex-col">
+      {/* Stacked cards — anchored at behind-left card origin. `max-w-165` is DESIGN_SPAN
+          (660px), so cards never render larger than Figma on wide screens; below that the
+          stack scales down with the strip instead of spilling into the section's clip. */}
+      <div className="relative h-130 w-full max-w-165 overflow-visible">
         {courses.map((course, ci) => {
           const offset = CARD_OFFSETS[slotOf(ci)];
           if (!offset) return null;
           return (
             <div
               key={course.id}
+              data-testid="hero-carousel-card"
               className={cn(
-                "absolute w-76.5",
+                "absolute",
                 snap.has(course.id) ? "transition-none" : "transition-all duration-500",
                 offset.shadow,
               )}
               style={{
-                transform: `translateX(${offset.x}px) translateY(${offset.y}px) scale(${offset.scale})`,
+                left: spanPct(offset.x),
+                width: spanPct(DESIGN_CARD_W),
+                transform: `translateY(${offset.y}px) scale(${offset.scale})`,
                 zIndex: offset.z,
                 transformOrigin: "top left",
               }}
