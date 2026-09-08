@@ -277,28 +277,53 @@
 }
 
 /*
- * Link treatment for long-form legal copy — privacy policy, terms, cancellations.
+ * Light-ground pin for WP prose — QA-PRIVACY-A2 and its second site, the blog.
  *
- * QA-PRIVACY-A2: on `/privacy-policy` the `mailto:`/`tel:` links measured
- * **2.14:1** against WCAG AA's 4.5:1, with `text-decoration: none` — failing
- * both 1.4.3 (contrast) and 1.4.1 (colour as the only cue distinguishing a link
- * from body text). `primary-800` measures **6.19:1** on this page's `N10` ground
- * and keeps the link hue; the underline is permanent, so colour is not doing the
- * work alone.
+ * Two of `prose-wp`'s colours come from runtime-swappable tokens, and both are
+ * wrong on a light page:
+ *
+ *   `& :where(a)` is `text-primary` = `hsl(var(--primary))`, 193 100% 47%
+ *   (#00bbf0). On `/privacy-policy` the `mailto:`/`tel:` links measured
+ *   **2.14:1** against WCAG AA 1.4.3's 4.5:1 floor, with `text-decoration:
+ *   none` — also failing 1.4.1, colour as the only cue separating a link from
+ *   body text. The same links are live on every blog post and inside every FAQ
+ *   answer. `primary-800` (#006784) measures **6.19:1** on the article's N10
+ *   ground and **5.62:1** on the FAQ panel's `secondary-50`; the underline is
+ *   permanent, so colour is not doing the work alone.
+ *
+ *   `& :where(code, pre)` is `bg-muted`. `ThemeProvider` runs
+ *   `attribute="class" defaultTheme="system" enableSystem`
+ *   (`src/app/providers.tsx`), so `.dark` lands on `<html>` for any reader whose
+ *   OS is dark, and `.dark` repoints `--muted` at navy `215 50% 22%` — a dark
+ *   block inside a light article. Marketing pages have no force-light provider;
+ *   only the dashboard and business trees strip the class.
+ *
+ * Fixed tokens, not the CSS variables: `@theme` resolves `--color-primary-800`
+ * and `--color-neutral-20` on `:root`, so neither `<body style="--primary: …">`
+ * (the WP `primary_color` setting) nor `.dark` can move them.
  *
  * Scoped as a modifier, not applied to `prose-wp` itself. `prose-wp` has
- * thirteen consumers, including `assignment-player`, which renders it as
- * `prose-wp prose-invert` inside a `text-white` panel — a dark surface where
- * `primary-800` reads *worse* than the cyan it replaced. The measurement that
- * justifies this colour was taken against a light ground and only holds there.
+ * thirteen consumers, one of which — `assignment-player` — renders it
+ * `prose-wp prose-invert` inside a `text-white` panel, a dark surface where
+ * `primary-800` reads *worse* than the cyan it replaces. The measurements above
+ * were taken against light grounds and only hold there.
  *
- * Same specificity note as `prose-wp-article`: a plain descendant selector,
- * because `prose-wp` types its anchors through `:where()` and a second
- * zero-specificity rule would be decided by source order.
+ * One utility, three call sites (blog article, `LegalPage`, `CourseFaq`
+ * answers): the rule was duplicated per surface before, which is how the FAQ
+ * answers — the one surface that never had it — went unnoticed.
+ *
+ * Not `:where()`: `prose-wp` types these through `:where()`, which contributes
+ * no specificity, so a second zero-specificity rule would be decided by source
+ * order. A plain descendant selector wins outright.
  */
-@utility prose-wp-legal {
+@utility prose-wp-light {
   & a {
     @apply text-primary-800 underline underline-offset-4 hover:no-underline;
+  }
+
+  & code,
+  & pre {
+    @apply bg-neutral-20;
   }
 }
 
@@ -696,7 +721,7 @@
     --secondary: 35 65% 37%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 215 20% 94%; /* neutral-20 #f5f6f8 */
+    --muted: 215 20% 94%; /* #edeff3 — near, but NOT equal to, neutral-20 #f5f6f8 */
     --muted-foreground: 215 20% 55%; /* neutral-200 #667992 */
 
     --accent: 193 100% 94%; /* primary-50 #e6f8fe */
@@ -715,7 +740,7 @@
   .dark {
     /* Backgrounds — deep navy from neutral palette */
     --background: 215 100% 15%; /* neutral-900 #00204a */
-    --foreground: 215 20% 94%; /* neutral-20 #f5f6f8 */
+    --foreground: 215 20% 94%; /* #edeff3 — see the light-mode note above */
 
     --card: 215 80% 20%; /* neutral-800 #0d2b53 */
     --card-foreground: 215 20% 94%;

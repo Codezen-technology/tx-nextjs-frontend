@@ -1,24 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { QuantitySelector } from "@/components/home/quantity-selector";
-import type { HomePricingPlan } from "@/types/home";
+import { makePlan, monthlyProduct } from "./fixtures/pricing-plans";
 
 const mockMutate = vi.fn();
 vi.mock("@/lib/hooks/useCart", () => ({
   useAddToCart: () => ({ mutate: mockMutate, isPending: false }),
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
-
-function makePlan(overrides: Partial<HomePricingPlan> = {}): HomePricingPlan {
-  return {
-    name: "Monthly Access",
-    price: "£29",
-    ctaLabel: "Get started",
-    variant: "default",
-    features: [],
-    ...overrides,
-  };
-}
 
 const increase = () => fireEvent.click(screen.getByRole("button", { name: /increase quantity/i }));
 const decrease = () => fireEvent.click(screen.getByRole("button", { name: /decrease quantity/i }));
@@ -28,7 +17,7 @@ describe("QuantitySelector — displayed amount tracks quantity", () => {
   beforeEach(() => mockMutate.mockClear());
 
   it("scales the formatted price string when the plan has no product (production shape)", () => {
-    render(<QuantitySelector plan={makePlan()} />);
+    render(<QuantitySelector plan={makePlan({ price: "£29" })} />);
     expect(price()).toBe("£29");
     increase();
     expect(price()).toBe("£58");
@@ -39,19 +28,7 @@ describe("QuantitySelector — displayed amount tracks quantity", () => {
   it("scales from the numeric product price when one is wired up", () => {
     const plan = makePlan({
       price: "£49.00",
-      product: {
-        id: 69664,
-        name: "Monthly Access",
-        price: 49,
-        priceFormatted: "£49.00",
-        regularPrice: 199,
-        regularPriceFormatted: "£199.00",
-        salePrice: 49,
-        isOnSale: true,
-        currency: "GBP",
-        permalink: "https://example.test/product/monthly",
-        addToCartUrl: "https://example.test/?add-to-cart=69664",
-      },
+      product: monthlyProduct,
     });
     render(<QuantitySelector plan={plan} />);
     increase();
@@ -65,7 +42,7 @@ describe("QuantitySelector — displayed amount tracks quantity", () => {
   });
 
   it("returns to the unit price when the quantity comes back down", () => {
-    render(<QuantitySelector plan={makePlan()} />);
+    render(<QuantitySelector plan={makePlan({ price: "£29" })} />);
     increase();
     decrease();
     expect(price()).toBe("£29");

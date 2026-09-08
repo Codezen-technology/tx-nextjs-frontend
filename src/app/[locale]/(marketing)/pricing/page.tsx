@@ -40,7 +40,15 @@ export default async function PricingPage() {
 
       <PricingHero />
 
-      <PricingSection data={pricing?.pricing} />
+      {/* Sourced from the home payload, not `pricing.pricing`. Two editor-managed field
+          groups fed this one section and only the home one is maintained: it carries
+          `product`, so the CTAs add to cart, and the current sale prices. The `/pricing`
+          block still quoted a retired price with `product: null`, which left the stepper
+          decorative and the CTA a plain link — on the page the homepage's own "View more
+          details" link leads to. `home` is already fetched above, so this adds no request.
+          Header CTA off: its target is `/pricing`. See openspec change
+          `unify-pricing-section-source` (the rule lands in `pricing-page-layout` on sync). */}
+      <PricingSection data={home?.pricing} showHeaderCta={false} />
 
       <Accreditations />
 

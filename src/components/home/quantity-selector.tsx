@@ -38,7 +38,10 @@ export function QuantitySelector({ plan }: QuantitySelectorProps) {
       <div className="flex flex-row justify-between gap-2">
         <div className="flex items-baseline gap-2">
           {displayOriginalPrice && (
-            <span className="text-xl font-bold text-[#dc3545] line-through">
+            <span
+              data-testid="plan-original-price"
+              className="text-xl font-bold text-[#dc3545] line-through"
+            >
               {displayOriginalPrice}
             </span>
           )}
@@ -48,7 +51,11 @@ export function QuantitySelector({ plan }: QuantitySelectorProps) {
             <span className="text-2xl" data-testid="plan-price">
               {displayPrice}
             </span>
-            {plan.priceUnit && <span className="text-base">{plan.priceUnit}</span>}
+            {plan.priceUnit && (
+              <span data-testid="plan-price-unit" className="text-base">
+                {plan.priceUnit}
+              </span>
+            )}
           </span>
         </div>
         {plan.variant !== "navy" && (

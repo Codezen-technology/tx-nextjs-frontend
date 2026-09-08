@@ -100,6 +100,52 @@ export interface PromoBanner {
   button_url: string | null;
 }
 
+/**
+ * Sitewide floating notice bar, as served on `GET /settings`.
+ *
+ * Generic chrome by design — an intake deadline, a promotion, a service notice.
+ * The WP → Next.js migration notice is one thing to put in it, not what it is.
+ * Owned by `wp-lms-backend-rest-api`; `docs/SETTINGS_API.md` in that repo is the
+ * binding contract, so check it before changing anything here.
+ *
+ * The backend has already decided whether to show a bar by the time we see it:
+ * unconfigured, switched off, or an empty message all arrive as `null`, and the
+ * key is present on every response. So there is no `enabled` flag to read — the
+ * value being non-null IS the flag.
+ *
+ * This is the RAW shape. `mergeSettings()` narrows it into {@link FloatingBar}.
+ */
+export interface RawFloatingBar {
+  /** Plain text. The backend strips markup rather than escaping it. */
+  message?: string;
+  cta?: { label?: string; href?: string } | null;
+  /** Whether the client may offer a dismiss control. */
+  dismissible?: boolean;
+  /**
+   * Opaque, stable fingerprint of this bar's own content. Persist a dismissal
+   * against it and treat it as opaque — never parse it. Edited copy yields a
+   * different key, which is what brings the bar back for someone who dismissed
+   * the previous notice.
+   */
+  dismiss_key?: string;
+}
+
+/** Normalised, render-ready bar. Its existence means "show this". */
+export interface FloatingBar {
+  /** Entity-decoded plain text. Rendered as a text node, never as HTML. */
+  message: string;
+  /** Present only when the backend served BOTH a label and a safe href. */
+  cta?: { href: string; label: string };
+  /**
+   * Present only when this bar may be dismissed AND the backend supplied a key
+   * to remember the dismissal by. The backend's `dismissible` and `dismiss_key`
+   * are collapsed into this one field because either alone is meaningless: a
+   * dismissible bar with no key returns on the next page load, and a key on a
+   * non-dismissible bar is never read. Its presence IS "show a dismiss control".
+   */
+  dismissKey?: string;
+}
+
 export interface SiteSettings {
   site_name: string;
   tagline?: string;
@@ -119,7 +165,18 @@ export interface SiteSettings {
   features: SiteFeatures;
   membership_upsell?: MembershipUpsell | null;
   promo_banner?: PromoBanner | null;
+  floating_bar?: FloatingBar;
 }
 
 /** Merged effective settings: API response overridden by env vars. */
 export type EffectiveSettings = SiteSettings;
+
+/**
+ * The `/settings` payload as it arrives from WordPress.
+ *
+ * Identical to `Partial<SiteSettings>` except for `floating_bar`, which the
+ * backend sends in its raw shape and `mergeSettings()` narrows on the way in.
+ */
+export type ApiSiteSettings = Omit<Partial<SiteSettings>, "floating_bar"> & {
+  floating_bar?: RawFloatingBar | null;
+};

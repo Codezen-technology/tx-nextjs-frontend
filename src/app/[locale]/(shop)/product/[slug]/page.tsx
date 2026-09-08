@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { serverApi } from "@/lib/api/server";
@@ -117,15 +116,6 @@ export default async function ProductPage({ params }: PageProps) {
       ))}
 
       <div className="mx-auto max-w-3xl px-4 py-12">
-        {/* Breadcrumb */}
-        <nav className="mb-8 text-sm text-neutral-500">
-          <Link href="/" className="hover:text-secondary-600">
-            Home
-          </Link>
-          <span className="px-2">/</span>
-          <span className="text-neutral-700">{product.name}</span>
-        </nav>
-
         {/* Image */}
         {product.image?.src && (
           <div className="mb-8 overflow-hidden rounded-lg border border-neutral-200">

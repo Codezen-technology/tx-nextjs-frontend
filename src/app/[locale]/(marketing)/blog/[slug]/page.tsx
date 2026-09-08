@@ -128,7 +128,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const rawContent = post.content?.rendered ?? "";
   const { toc, content: contentWithToc } = parseToc(rawContent);
-  const { faq, heading: faqHeading, content: contentWithIds } = parseFaq(contentWithToc);
+  const {
+    faq,
+    heading: faqHeading,
+    headingId: faqHeadingId,
+    content: contentWithIds,
+  } = parseFaq(contentWithToc);
 
   const hasSidebar = toc.length > 0;
 
@@ -163,33 +168,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         }}
       >
         <div className="relative container">
-          <nav
-            aria-label="Breadcrumb"
-            className="font-open-sans flex items-center gap-1 text-sm text-white/60"
-          >
-            <Link href="/" className="transition-colors hover:text-white">
-              Home
-            </Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/blog" className="transition-colors hover:text-white">
-              Blog
-            </Link>
-            {postCategory && (
-              <>
-                <ChevronRight className="h-3.5 w-3.5" />
-                <Link
-                  href={`/blog/category/${postCategory.slug}`}
-                  className="transition-colors hover:text-white"
-                >
-                  {postCategoryName}
-                </Link>
-              </>
-            )}
-            <ChevronRight className="h-3.5 w-3.5" />
-            <span className="line-clamp-1 text-white/90">{title}</span>
-          </nav>
-
-          <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
             <div className="lg:max-w-xl">
               <h1 className="font-suse text-3xl leading-tight font-bold text-white sm:text-4xl lg:text-[40px]">
                 {title}
@@ -252,12 +231,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   opens with text. Images inside the post body are unaffected. */}
               <ParsedHtml
                 as="div"
-                className="prose-wp prose-wp-article font-open-sans text-neutral-500"
+                className="prose-wp prose-wp-article prose-wp-light font-open-sans text-neutral-500"
                 content={contentWithIds}
               />
               {faq.length > 0 && (
                 <div className="mt-12">
-                  <CourseFaq heading={faqHeading} items={faq} />
+                  <CourseFaq heading={faqHeading} headingId={faqHeadingId} items={faq} />
                 </div>
               )}
             </article>
