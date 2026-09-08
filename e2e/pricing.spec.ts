@@ -119,3 +119,138 @@ test.describe("QA-PRICE-* — pricing page", () => {
     }
   });
 });
+
+/**
+ * The pricing section is mounted on both `/` and `/pricing` from one payload, so the two
+ * cannot drift. Before this, two editor-managed field groups fed it and only the homepage's
+ * was maintained: `/pricing` quoted a retired price and returned `product: null`, which left
+ * its CTAs navigating instead of adding to the cart — on the very page the homepage's
+ * "View more details" link leads to.
+ *
+ * Spec: `pricing-page-layout` — "The pricing section is identical on the homepage and the
+ * pricing page". The scrape covers every field that requirement enumerates; anything left
+ * out is a drift vector the parity assertion would wave through.
+ *
+ * Selectors are `data-testid` / `data-plan-*` throughout. An earlier draft matched Tailwind
+ * utilities (`grid-cols`, `font-suse`, `line-through`), which bound the assertion to styling
+ * — swapping the grid for flex would have broken it with no behaviour change.
+ */
+/**
+ * One walk over the section, shared by every row below — Playwright serialises this into
+ * the page, so it has to be self-contained rather than call a module-level helper.
+ */
+const scrapeSection = () => {
+  const section = [...document.querySelectorAll("section")].find((s) =>
+    /enjoy unlimited training/i.test(s.querySelector("h2")?.textContent ?? ""),
+  );
+  if (!section) return null;
+
+  const text = (el: Element | null | undefined) =>
+    (el?.textContent ?? "").replace(/\s+/g, " ").trim();
+  const textOrNull = (el: Element | null | undefined) => (el ? text(el) : null);
+
+  const headerLink = section.querySelector("a[href='/pricing'], a[href$='/pricing']");
+
+  return {
+    heading: text(section.querySelector("h2")),
+    description: text(section.querySelector("h2")?.parentElement?.querySelector("p")),
+    headerCta: textOrNull(headerLink),
+    plans: [...section.querySelectorAll("[data-testid='plan-card']")].map((card) => ({
+      name: text(card.querySelector("[data-testid='plan-name']")),
+      subtitle: textOrNull(card.querySelector("[data-testid='plan-subtitle']")),
+      badge: card.getAttribute("data-plan-badge"),
+      variant: card.getAttribute("data-plan-variant"),
+      price: text(card.querySelector("[data-testid='plan-price']")),
+      priceUnit: textOrNull(card.querySelector("[data-testid='plan-price-unit']")),
+      originalPrice: textOrNull(card.querySelector("[data-testid='plan-original-price']")),
+      cta: text(card.querySelector("[data-testid='plan-cta']")),
+      // The spec calls this the load-bearing clause: a plan buyable on one page and merely
+      // navigational on the other quotes a price the reader cannot act on.
+      purchasable: card
+        .querySelector("[data-testid='plan-cta']")
+        ?.getAttribute("data-plan-purchasable"),
+      features: [...card.querySelectorAll("ul li")].map((li) => ({
+        label: text(li.querySelector("span")),
+        // Both variants ship their own icon pair, but the filenames agree on tick/close.
+        included: (li.querySelector("img")?.getAttribute("src") ?? "").includes("tick"),
+      })),
+    })),
+  };
+};
+
+test.describe("QA-PRICE-* — pricing section parity with the homepage", () => {
+  test("QA-PRICE-B1: both pages render the same pricing section", async ({ page }, testInfo) => {
+    test.slow();
+
+    await page.goto("/");
+    const home = await page.evaluate(scrapeSection);
+    await page.goto("/pricing");
+    const pricing = await page.evaluate(scrapeSection);
+
+    expect(home, "homepage: expected a pricing section").not.toBeNull();
+    expect(pricing, "pricing: expected a pricing section").not.toBeNull();
+    // Without this the comparison passes vacuously if the payload ever comes back empty.
+    expect(home!.plans.length, "homepage: expected at least one plan to compare").toBeGreaterThan(
+      0,
+    );
+
+    // `headerCta` is the one field that is *meant* to differ — QA-PRICE-B2 owns it.
+    const { headerCta: _homeCta, ...homeSection } = home!;
+    const { headerCta: _pricingCta, ...pricingSection } = pricing!;
+
+    expect(
+      pricingSection,
+      `pricing @${testInfo.project.name}: /pricing must render the same section as the homepage — same heading and description, and the same plans in the same order with the same names, subtitles, prices, price units, was-prices, badges, variants, CTA labels, purchasability and features. Observed:\n  /        ${JSON.stringify(homeSection)}\n  /pricing ${JSON.stringify(pricingSection)}`,
+    ).toEqual(homeSection);
+  });
+
+  test("QA-PRICE-B2: the header link is on the homepage only", async ({ page }, testInfo) => {
+    await page.goto("/");
+    expect(
+      (await page.evaluate(scrapeSection))?.headerCta,
+      `homepage @${testInfo.project.name}: expected the pricing section to keep its "View more details" link to /pricing`,
+    ).toMatch(/view more details/i);
+
+    await page.goto("/pricing");
+    expect(
+      (await page.evaluate(scrapeSection))?.headerCta,
+      `pricing @${testInfo.project.name}: the header link targets /pricing, so on /pricing it points at the page the reader is already on — expected no link`,
+    ).toBeNull();
+  });
+
+  /**
+   * The spec's purchasability scenario, end to end. QA-PRICE-B1 compares the
+   * `data-plan-purchasable` flag across the pages, but a flag both pages agree on could
+   * still be wrong on both — this pins that the CTA on `/pricing` really reaches the cart.
+   * It is the behaviour that did not exist before: those plans carried `product: null`, so
+   * the button navigated to `/register` instead.
+   */
+  test("QA-PRICE-B3: a plan CTA on /pricing adds to the cart", async ({ page }, testInfo) => {
+    test.slow();
+
+    const cartCalls: string[] = [];
+    page.on("request", (r) => {
+      if (/\/api\/cart/.test(r.url())) cartCalls.push(`${r.method()} ${new URL(r.url()).pathname}`);
+    });
+
+    await page.goto("/pricing");
+    const cta = page
+      .locator("[data-testid='plan-card']")
+      .filter({ has: page.locator("[data-plan-purchasable='true']") })
+      .first()
+      .locator("[data-testid='plan-cta']");
+
+    expect(
+      await cta.count(),
+      `pricing @${testInfo.project.name}: expected at least one purchasable plan on /pricing — with none, the page quotes prices the reader cannot buy`,
+    ).toBeGreaterThan(0);
+
+    await cta.click();
+
+    await page.waitForURL(/\/checkout/, { timeout: 30000 });
+    expect(
+      cartCalls.length,
+      `pricing @${testInfo.project.name}: expected the CTA to reach the cart API, saw ${JSON.stringify(cartCalls)}`,
+    ).toBeGreaterThan(0);
+  });
+});

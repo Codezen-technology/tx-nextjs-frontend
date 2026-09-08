@@ -6,9 +6,16 @@ import { QuantitySelector } from "./quantity-selector";
 
 interface PricingSectionProps {
   data?: HomePricingSection;
+  /**
+   * The header link points at `/pricing`, so on that page it offers the reader the page
+   * they are already on — `/pricing` passes `false`. Defaults to showing it, which is what
+   * keeps the homepage's call site unchanged. Same shape as `CategoriesGrid`'s
+   * `showViewAll`, used on this same page for the same reason.
+   */
+  showHeaderCta?: boolean;
 }
 
-export function PricingSection({ data }: PricingSectionProps) {
+export function PricingSection({ data, showHeaderCta = true }: PricingSectionProps) {
   if (!data?.plans?.length) return null;
 
   const { header, plans } = data;
@@ -23,7 +30,7 @@ export function PricingSection({ data }: PricingSectionProps) {
             </h2>
             <p className="font-open-sans text-base text-neutral-500">{header.description}</p>
           </div>
-          {header.ctaHref && header.ctaLabel && (
+          {showHeaderCta && header.ctaHref && header.ctaLabel && (
             <Link
               href={header.ctaHref}
               className="font-open-sans text-secondary-500 hover:text-secondary-600 inline-flex shrink-0 items-center gap-2 text-base font-medium transition-colors"
@@ -34,9 +41,22 @@ export function PricingSection({ data }: PricingSectionProps) {
           )}
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div
+          className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+          data-testid="plan-grid"
+        >
           {plans.map((plan) => (
-            <div key={plan.name} className="relative">
+            <div
+              key={plan.name}
+              className="relative"
+              data-testid="plan-card"
+              // The variant drives the card's whole treatment (navy/beige/default) but is
+              // expressed only as colour, so parity tests have nothing to compare without
+              // it. Same for the badge, whose text would otherwise have to be sniffed out
+              // of the card's prose.
+              data-plan-variant={plan.variant}
+              data-plan-badge={plan.badge ?? "none"}
+            >
               {plan.badge === "most-popular" && (
                 <div className="absolute -top-4 right-6 z-20 flex items-start">
                   <div className="text-secondary-500 relative rounded-b-lg bg-white p-4 text-sm font-medium shadow-md">
@@ -103,6 +123,7 @@ export function PricingSection({ data }: PricingSectionProps) {
                     {/* Plan Name & Subtitle */}
                     <div className="flex flex-col gap-2">
                       <p
+                        data-testid="plan-name"
                         className={cn(
                           "font-suse text-xl font-bold",
                           plan.variant === "default" && "text-neutral-900",
@@ -114,6 +135,7 @@ export function PricingSection({ data }: PricingSectionProps) {
                       </p>
                       {plan.subtitle && (
                         <p
+                          data-testid="plan-subtitle"
                           className={cn(
                             "font-open-sans text-base",
                             plan.variant === "navy" && "text-white",
