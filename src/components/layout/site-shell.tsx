@@ -3,6 +3,7 @@ import { coursesService } from "@/lib/services/courses";
 import { SiteHeader } from "./header";
 import { SiteFooter } from "./footer";
 import { ImpersonationBanner } from "./impersonation-banner";
+import { SiteFloatingBar } from "./site-floating-bar";
 import type { CourseCategory } from "@/types/course";
 
 const getNavCategories = cache(async (): Promise<CourseCategory[]> => {
@@ -17,6 +18,7 @@ export async function SiteShell({ children }: { children: React.ReactNode }) {
   const categories = await getNavCategories();
   return (
     <div className="flex min-h-svh flex-col">
+      <SiteFloatingBar />
       <ImpersonationBanner />
       <SiteHeader categories={categories} />
       <main className="bg-neutral-10 flex-1">{children}</main>
