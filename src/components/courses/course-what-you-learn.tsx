@@ -1,3 +1,5 @@
+import { ParsedHtml } from "@/components/ui/parsed-html";
+
 interface CourseWhatYouLearnProps {
   html: string;
 }
@@ -10,9 +12,10 @@ export function CourseWhatYouLearn({ html }: CourseWhatYouLearnProps) {
       <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">
         What you&apos;ll learn
       </h2>
-      <div
+      <ParsedHtml
+        as="div"
         className="prose-wp font-open-sans mt-6 text-base leading-normal text-neutral-500"
-        dangerouslySetInnerHTML={{ __html: html }}
+        content={html}
       />
     </section>
   );

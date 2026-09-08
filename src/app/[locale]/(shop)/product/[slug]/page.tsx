@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { serverApi } from "@/lib/api/server";
@@ -11,6 +10,7 @@ import { truncate, stripHtml } from "@/lib/utils/format";
 import { env } from "@/lib/env";
 import { ProductAddToCart } from "@/components/product/product-add-to-cart";
 import type { Product } from "@/types/product";
+import { ParsedHtml } from "@/components/ui/parsed-html";
 
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>;
@@ -116,15 +116,6 @@ export default async function ProductPage({ params }: PageProps) {
       ))}
 
       <div className="mx-auto max-w-3xl px-4 py-12">
-        {/* Breadcrumb */}
-        <nav className="mb-8 text-sm text-neutral-500">
-          <Link href="/" className="hover:text-secondary-600">
-            Home
-          </Link>
-          <span className="px-2">/</span>
-          <span className="text-neutral-700">{product.name}</span>
-        </nav>
-
         {/* Image */}
         {product.image?.src && (
           <div className="mb-8 overflow-hidden rounded-lg border border-neutral-200">
@@ -154,9 +145,10 @@ export default async function ProductPage({ params }: PageProps) {
 
         {/* Short description */}
         {product.shortDescription && (
-          <div
+          <ParsedHtml
+            as="div"
             className="[&_a]:text-secondary-600 mt-6 space-y-4 text-neutral-700 [&_a]:underline [&_ul]:list-disc [&_ul]:pl-6"
-            dangerouslySetInnerHTML={{ __html: product.shortDescription }}
+            content={product.shortDescription}
           />
         )}
 
@@ -173,9 +165,10 @@ export default async function ProductPage({ params }: PageProps) {
         {product.description && (
           <section className="mt-12 border-t border-neutral-200 pt-8">
             <h2 className="mb-4 text-xl font-semibold text-neutral-900">Description</h2>
-            <div
+            <ParsedHtml
+              as="div"
               className="[&_a]:text-secondary-600 space-y-4 text-neutral-700 [&_a]:underline [&_h2]:mt-6 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:font-semibold [&_ul]:list-disc [&_ul]:pl-6"
-              dangerouslySetInnerHTML={{ __html: product.description }}
+              content={product.description}
             />
           </section>
         )}

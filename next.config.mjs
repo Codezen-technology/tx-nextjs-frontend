@@ -60,6 +60,21 @@ const nextConfig = {
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
   },
   turbopack: { root: __dirname },
+  /**
+   * Per-page budget during `next build` (default 60s).
+   *
+   * The homepage and `/sitemap.xml` each fan out to many WordPress requests —
+   * the sitemap pages through seven route families — and 60s was not enough
+   * headroom once the backend throttled a 382-page build burst, which failed
+   * the deploy outright:
+   *
+   *   Export encountered an error on /[locale]/(marketing)/page: /en
+   *
+   * This is the ceiling, not the fix: `src/lib/api/fetch-timeout.ts` bounds each
+   * individual upstream request so a stall degrades one section instead of
+   * consuming the whole budget. Keep this comfortably above that ceiling.
+   */
+  staticPageGenerationTimeout: 180,
   async redirects() {
     // Legacy WordPress URLs retired by the headless cutover. Sourced from the live
     // sitemap_index.xml audit — see .migration/URL_MAP.md for the full inventory and
@@ -84,7 +99,10 @@ const nextConfig = {
       "/course-player": "/dashboard/my-learning",
       "/shop": "/all-courses",
       "/thank-you-for-ordering-certificate": "/certificate",
-      "/hardcopy-certificate": "/certificate",
+      // NOTE: `/hardcopy-certificate` is NOT redirected — it is its own page. The
+      // live WP site sells a separate hardcopy-led offer there (different Gravity
+      // Form, hardcopy required, digital optional), so pointing it at /certificate
+      // landed every inbound link on the wrong offer.
 
       // Elementor pages that render only global header/footer chrome — zero unique
       // body content on the live site (verified: 12-token diff between them, all title).

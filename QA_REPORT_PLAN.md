@@ -71,7 +71,7 @@ Figma node IDs increase monotonically with creation. For Homepage, All Courses, 
 
 ### 2.6 Design intent contradicts itself
 
-About Us says _"No need of breadcrumbs."_ The Certificate Verification desktop frame contains a `Breadcrumb` instance (`6239:110995`). Needs one ruling applied site-wide.
+About Us says _"No need of breadcrumbs."_ The Certificate Verification desktop frame contains a `Breadcrumb` instance (`6239:110995`). **Ruled 2026-09-08:** no page paints a breadcrumb trail — the Figma instance is not built. See `site-breadcrumb-suppression`.
 
 ---
 

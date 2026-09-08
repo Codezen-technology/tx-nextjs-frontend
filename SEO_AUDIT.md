@@ -323,7 +323,7 @@ Present: `Course` + `BreadcrumbList` (course pages, with `hasCourseInstance` cor
 Missing:
 
 - **No `Organization` schema on the site-wide layout** — it only exists on the homepage. Sitelinks and Knowledge Panel eligibility benefit from a single consistent `Organization` node with `logo`, `sameAs`, `contactPoint`.
-- **No `BreadcrumbList` on blog posts, bundles, or product pages** — breadcrumb rich results are cheap wins; those pages render visual breadcrumbs already.
+- **No `BreadcrumbList` on blog posts, bundles, or product pages** — breadcrumb rich results are cheap wins, and the structured data is independent of the visual trail those pages no longer render (`site-breadcrumb-suppression`).
 - **No `AggregateRating` on `/reviews`** despite a dedicated reviews page.
 - `Course` schema hardcodes `priceCurrency: "GBP"` (`course/[slug]/page.tsx:103`) while the codebase has a currency plan (`CURRENCY_PLAN.md`) — will emit wrong offers for non-GBP.
 

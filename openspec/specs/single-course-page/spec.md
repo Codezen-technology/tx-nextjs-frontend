@@ -8,25 +8,6 @@ of its controls must give the user a visible response before they commit to a cl
 
 ## Requirements
 
-### Requirement: The course page shows no visual breadcrumb trail
-
-The single-course page SHALL NOT render a visible breadcrumb navigation bar. The page
-SHALL continue to emit `BreadcrumbList` JSON-LD, because the structured data is consumed
-by search engines rather than displayed, and removing it would be an SEO regression
-unrelated to the visual defect.
-
-#### Scenario: No breadcrumb bar is painted
-
-- **WHEN** the single-course page is rendered at any of 1920, 1280 or 440
-- **THEN** no element with an accessible breadcrumb role or label is present in the
-  document
-
-#### Scenario: Structured data survives the removal
-
-- **WHEN** the page's JSON-LD blocks are parsed
-- **THEN** one of them is a `BreadcrumbList` describing Home → Courses → category →
-  course
-
 ### Requirement: The curriculum lists lectures without durations
 
 The course-curriculum section SHALL present sections and lectures without any duration

@@ -1167,6 +1167,68 @@ Status codes: `1` = start_course, `2` = continue_course, `3` = under_evaluation,
 
 ---
 
+### GET `/settings`
+
+**Public.** White-label site settings — name, tagline, currency, locale, feature
+flags, the branding block (logo, dark logo, favicon, OG image, description, brand
+colours), and the sitewide floating bar. The frontend normalises this payload into
+`SiteSettings` (`src/types/settings.ts`) via `mergeSettings()`, where env vars
+override matching fields. A failed request falls back to env defaults.
+
+> **Binding contract lives in the backend repo:** `docs/SETTINGS_API.md` in
+> `wp-lms-backend-rest-api`. Check it before changing the shape consumed here.
+
+#### `floating_bar`
+
+Sitewide notice strip rendered as page chrome — an intake deadline, a promotion, a
+service notice, or (currently) the WP → Next.js migration notice. Rendered above
+the header on public pages, cart/checkout, and the auth screens; never on the
+student dashboard, business dashboard, or learn player.
+
+> **Not live yet.** The backend work is written but unshipped, so the running
+> plugin returns no `floating_bar` at all today. The frontend renders nothing
+> until it lands. Treat the shape below as the agreed contract, not as what the
+> endpoint currently serves.
+
+Once shipped the key is present on every response, with a value of `null` when the
+site has no bar configured, has switched it off, or stored an empty message — so
+branch on the value, never on the key existing. Until then, code defensively for
+the key being absent entirely.
+
+```json
+{
+  "floating_bar": {
+    "message": "We're upgrading this site. Some pages may look different while we finish.",
+    "cta": { "label": "Tell us if something's broken", "href": "/contact" },
+    "dismissible": false,
+    "dismiss_key": "3f9c1a2b7e04"
+  }
+}
+```
+
+| Field         | Type           | Notes                                                                                     |
+| ------------- | -------------- | ----------------------------------------------------------------------------------------- |
+| `message`     | string         | Plain text; markup is **stripped, not escaped**. Never empty when present.                |
+| `cta`         | object \| null | `{ label, href }`. `null` when unset or when the stored one was unusable.                 |
+| `cta.href`    | string         | Site-relative path (`/courses`) to route internally, or an absolute http(s) URL.          |
+| `dismissible` | bool           | Whether the client may offer a dismiss control.                                           |
+| `dismiss_key` | string         | Opaque fingerprint of this bar's content. Persist a dismissal against it; never parse it. |
+
+An unusable CTA drops the CTA, not the bar — losing a link is no reason to
+withhold the notice.
+
+**`dismiss_key` semantics.** Derived from the served message + CTA, so edited copy
+yields a new key and the bar returns for someone who dismissed the previous
+notice. Stable across requests, and it never varies by user, route, or time, so
+the response stays publicly cacheable.
+
+**Authoring** is a backend concern and documented there — the storage option, the
+per-brand seed file, and the deploy step all live in `docs/SETTINGS_API.md`. There
+is no wp-admin screen. Note that the stored `enabled` flag never reaches this
+frontend: the backend resolves it and serves `null`.
+
+---
+
 ## Not Yet Implemented
 
 These endpoints are documented in `LMS_API_PLAN.md` but not yet built:
@@ -1189,6 +1251,28 @@ These endpoints are documented in `LMS_API_PLAN.md` but not yet built:
 ---
 
 ## Certificates
+
+### Certificate ordering — product-scoped routes
+
+Certificate ordering is scoped to a **product slug**: `default` → Gravity Form 23
+(`/certificate`), `hardcopy` → Gravity Form 22 (`/hardcopy-certificate`).
+
+```
+GET  /certificate/{product}/config
+POST /certificate/{product}/quote
+POST /certificate/{product}/record
+```
+
+The unscoped `/certificate/config|quote|record` routes remain aliases for `default`, so
+`/certificate` is unchanged. An unknown slug is a **404** — never a fallback to another
+product's prices. The frontend stamps the resolved slug into the Stripe PaymentIntent as
+`cert_product`, which the plugin treats as authoritative over the request path.
+
+Implemented in the plugin's `add-hardcopy-certificate-api` change (**not yet deployed**),
+and verified against it on `tx-local-site.test`. Four remaining gaps — a
+`{product}`-scoped `page` route, `shipping.appliesTo`, the `hardcopy` record form, and
+stripping form 22's field 63 — are tracked in
+[`docs/HARDCOPY_CERTIFICATE_API.md`](docs/HARDCOPY_CERTIFICATE_API.md).
 
 ### POST `/certificates/verify` (also GET)
 

@@ -14,14 +14,6 @@ export default function CourseCategoryLoading() {
         <div className="absolute inset-0 bg-black/55" />
         <div className="relative z-10 flex h-full flex-col justify-center">
           <div className="container">
-            {/* Breadcrumb */}
-            <div className="mb-6 flex items-center gap-2">
-              <div className="h-3.5 w-12 rounded bg-white/20" />
-              <div className="h-3.5 w-3.5 rounded bg-white/20" />
-              <div className="h-3.5 w-16 rounded bg-white/20" />
-              <div className="h-3.5 w-3.5 rounded bg-white/20" />
-              <div className="h-3.5 w-24 rounded bg-white/20" />
-            </div>
             {/* Title */}
             <div className="max-w-[775px] space-y-4">
               <div className="h-12 w-72 rounded bg-white/20" />

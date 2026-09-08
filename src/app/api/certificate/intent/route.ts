@@ -1,23 +1,35 @@
 import { NextResponse } from "next/server";
 import { getServerWpJsonBase, env } from "@/lib/env";
+import { DEFAULT_CERT_PRODUCT, isCertProductSlug, type CertProductSlug } from "@/types/certificate";
 
 /**
  * Certificate Stripe-direct payment intent (Option C — no WooCommerce).
  *
  * Server-authoritative: the amount comes from the plugin's `/certificate/quote`
- * (which re-prices every choice against Gravity Form 4) — the client-sent price
- * is never trusted. Order fields are stashed in the PaymentIntent metadata so the
- * webhook can record the GF entry + email on `payment_intent.succeeded`.
+ * (which re-prices every choice against the product's Gravity Form) — the
+ * client-sent price is never trusted. Order fields are stashed in the
+ * PaymentIntent metadata so the webhook can record the GF entry + email on
+ * `payment_intent.succeeded`.
+ *
+ * The resolved product slug goes into that same metadata envelope as `cert_product`
+ * — the key the plugin's `/certificate/{product}/record` reads and treats as
+ * authoritative over the request path. It is part of what determined the amount
+ * charged, so recording must read it back from Stripe rather than from a later
+ * browser request; otherwise an order paid for at one offer's prices could be
+ * recorded against the other offer's form.
  *
  * @see docs/CERTIFICATE_PAGE_PLAN.md
  */
 
 interface CertSelection {
+  product?: CertProductSlug;
   products?: Record<string, { choice: string; qty: number }>;
   shipping?: string | null;
 }
 
-interface CertIntentBody extends CertSelection {
+interface CertIntentBody extends Omit<CertSelection, "product"> {
+  /** Requested offer. Re-validated here; never taken on trust from the browser. */
+  product?: unknown;
   /** Dynamic GF field values keyed by input name (input_6, input_78_1, …). */
   fields?: Record<string, string>;
   /** Derived contact for the email requirement + confirmation email. */
@@ -31,9 +43,16 @@ interface Quote {
   total_minor: number;
 }
 
-/** Authoritative quote from the plugin (prices sourced from GF form 4). */
+/** Authoritative quote from the plugin (prices sourced from the product's GF form). */
 async function fetchQuote(selection: CertSelection): Promise<Quote | null> {
-  const res = await fetch(`${getServerWpJsonBase()}/lms-backend/v1/certificate/quote`, {
+  const product = selection.product ?? DEFAULT_CERT_PRODUCT;
+  // Product is a path segment upstream, not a body field.
+  const path =
+    product === DEFAULT_CERT_PRODUCT
+      ? "certificate/quote"
+      : `certificate/${encodeURIComponent(product)}/quote`;
+
+  const res = await fetch(`${getServerWpJsonBase()}/lms-backend/v1/${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -92,12 +111,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
+  if (body.product !== undefined && body.product !== null && !isCertProductSlug(body.product)) {
+    return NextResponse.json({ error: "Unknown certificate product" }, { status: 400 });
+  }
+  const product = isCertProductSlug(body.product) ? body.product : DEFAULT_CERT_PRODUCT;
+
   const email = body.contact?.email?.trim();
   if (!email) {
     return NextResponse.json({ error: "Email is required" }, { status: 400 });
   }
 
-  const quote = await fetchQuote({ products: body.products, shipping: body.shipping });
+  const quote = await fetchQuote({ product, products: body.products, shipping: body.shipping });
   if (!quote?.available) {
     return NextResponse.json({ error: "Certificate ordering is unavailable" }, { status: 503 });
   }
@@ -109,6 +133,7 @@ export async function POST(req: Request) {
   // Dynamic GF field values go in as `f_<inputname>` — one key each, so no single
   // value is truncated (Stripe caps each metadata value at 500 chars).
   const metadata: Record<string, string> = {
+    cert_product: product,
     cert_email: email,
     cert_name: body.contact?.name ?? "",
     cert_total_minor: String(quote.total_minor),
