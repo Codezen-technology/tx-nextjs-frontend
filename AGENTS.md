@@ -52,6 +52,7 @@ Optional overrides (all defined in `src/lib/env.ts`):
 
 - `NEXT_PUBLIC_LMS_NAMESPACE` — defaults to `lms-backend/v1`
 - `WP_API_URL` — server-only override for `NEXT_PUBLIC_WP_API_URL` (skips browser-public value in BFF)
+- `WP_FETCH_TIMEOUT_MS` — server-only per-request ceiling on every WordPress fetch (default `15000`). Bounds `next build`: an unbounded upstream stall burns a page's whole `staticPageGenerationTimeout` budget and fails the deploy
 - `NEXT_PUBLIC_FEATURE_*` — boolean feature flags; default `true` except `FEATURE_BADGES` (false)
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SENTRY_DSN`, `WP_REVALIDATE_SECRET`
 
