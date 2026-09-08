@@ -32,6 +32,11 @@ report item once instead of one page at a time.
 - `blog-single-article`: the "rendered category names the post's own category"
   requirement is stated in terms of the hero _and the breadcrumb_; with the breadcrumb
   gone the requirement narrows to the hero only.
+- `single-course-page`: its per-page "no visual breadcrumb trail" requirement is removed,
+  now that the same rule is stated once site-wide.
+- `about-us-page-content`: its section-structure requirement restates the no-breadcrumb
+  rule in prose; the prose now defers to the site-wide capability, while the page keeps
+  its own verification scenario.
 
 ## Impact
 
@@ -44,6 +49,12 @@ Affected code:
 - `src/app/[locale]/(shop)/checkout/page.tsx`
 - `src/components/home/pricing-hero.tsx`
 - `src/components/courses/course-hero.tsx`
+
+Affected docs — each documents the removed UI as current:
+
+- `MIGRATION.md` (blog-single hero composition, `fetchCategories()` consumer list)
+- `SEO_AUDIT.md` (C1 justifies breadcrumb JSON-LD by the visual trail's presence)
+- `QA_REPORT_PLAN.md` (§2.6 records the site-wide ruling as still outstanding)
 
 Unaffected: SEO metadata, JSON-LD builders (`buildBreadcrumbSchema` in the course and
 course-category pages), `CourseBreadcrumb` type, `src/lib/services/courses.ts`

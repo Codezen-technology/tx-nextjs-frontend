@@ -139,12 +139,12 @@
 
 ### Blog Single (`/blog/[slug]`) — node `4040:11134`
 
-- Hero: dark navy `#00204A` + dot-grid, breadcrumb (Home → Blog → Category → Title), category pill, author + date
+- Hero: dark navy `#00204A` + dot-grid, category pill, author + date — no breadcrumb trail (see `site-breadcrumb-suppression`)
 - Layout: 2-col flex on desktop — sticky `lg:w-72` sidebar (left) + article (right)
 - **ToC**: `parseToc()` in `src/lib/utils/toc.ts` — h2 only, injects IDs, `IntersectionObserver` highlights active
 - **Contributors**: author avatar + name + description from `_embedded.author`
 - Related posts on `#F5F3EE` background
-- `fetchCategories()` used for category name lookup in breadcrumb + related cards
+- `fetchCategories()` used for category name lookup in the hero pill + related cards
 
 ---
 
