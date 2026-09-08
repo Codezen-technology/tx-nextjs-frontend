@@ -41,7 +41,7 @@ export function LegalPage({
           {bodyHtml ? (
             <ParsedHtml
               as="div"
-              className="prose-wp prose-wp-legal font-open-sans text-neutral-700"
+              className="prose-wp prose-wp-light font-open-sans text-neutral-700"
               content={bodyHtml ?? ""}
             />
           ) : (
