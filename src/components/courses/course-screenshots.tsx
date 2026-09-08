@@ -28,7 +28,7 @@ function Thumbnail({ src, index, isActive, sizes, className, onSelect }: Thumbna
       aria-label={`Show screenshot ${index + 1}`}
       aria-current={isActive}
       className={cn(
-        "relative overflow-hidden rounded border-2 transition-colors",
+        "bg-neutral-20 relative shrink-0 overflow-hidden rounded border-2 transition-colors",
         isActive ? "border-secondary-500" : "border-transparent",
         className,
       )}
@@ -53,36 +53,43 @@ export function CourseScreenshots({ screenshots, caption }: CourseScreenshotsPro
       <h2 className="font-suse text-[32px] leading-[1.2] font-bold text-neutral-900">Sneak Peek</h2>
 
       <div className="flex gap-6">
+        {/* The rail's own content is absolutely positioned so it contributes no height:
+            the row is sized by the stage, and the rail stretches to match it and scrolls.
+            Without this, N thumbnails would either stretch the row or squash themselves. */}
         {hasMultiple && (
-          <div className="hidden h-132 w-49 shrink-0 flex-col gap-2 lg:flex">
-            {allSources.map((src, i) => (
-              <Thumbnail
-                key={i}
-                src={src}
-                index={i}
-                isActive={i === index}
-                sizes="196px"
-                className="min-h-px w-full flex-1"
-                onSelect={setIndex}
-              />
-            ))}
+          <div className="relative hidden w-49 shrink-0 lg:block">
+            <div className="absolute inset-0 flex flex-col gap-2 overflow-y-auto">
+              {allSources.map((src, i) => (
+                <Thumbnail
+                  key={i}
+                  src={src}
+                  index={i}
+                  isActive={i === index}
+                  sizes="196px"
+                  className="aspect-video w-full"
+                  onSelect={setIndex}
+                />
+              ))}
+            </div>
           </div>
         )}
 
-        <div className="relative aspect-video w-full overflow-hidden rounded lg:h-132 lg:flex-1">
-          {caption && index === 0 ? (
-            <div className="absolute inset-x-0 bottom-48 z-10 px-6">
-              <p className="font-suse text-xl font-bold text-neutral-900">{caption}</p>
-            </div>
-          ) : null}
+        {/* Screenshots are 16:9 course slides. The stage keeps that ratio at every breakpoint
+            and uses object-contain, so a slide is never cropped mid-sentence. */}
+        <div className="bg-neutral-20 relative aspect-video w-full overflow-hidden rounded lg:flex-1">
           {isRenderableImageSrc(allSources[index]) ? (
             <SafeImage
               src={allSources[index]}
               alt={`Screenshot ${index + 1}`}
               fill
-              sizes="(max-width: 1024px) 100vw, 746px"
-              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 713px"
+              className="object-contain"
             />
+          ) : null}
+          {caption && index === 0 ? (
+            <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/70 to-transparent px-6 pt-10 pb-4">
+              <p className="font-suse text-xl font-bold text-white">{caption}</p>
+            </div>
           ) : null}
         </div>
       </div>
@@ -98,7 +105,7 @@ export function CourseScreenshots({ screenshots, caption }: CourseScreenshotsPro
               index={i}
               isActive={i === index}
               sizes="112px"
-              className="h-16 w-28 shrink-0"
+              className="h-16 w-28"
               onSelect={setIndex}
             />
           ))}
