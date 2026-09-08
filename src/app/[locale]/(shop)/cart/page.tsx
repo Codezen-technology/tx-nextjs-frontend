@@ -2,8 +2,15 @@
 
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { Elements } from "@stripe/react-stripe-js";
+import { stripePromise } from "@/lib/stripe";
 import { useCart } from "@/lib/hooks/useCart";
 import { useAuthStore, selectUser } from "@/lib/stores/auth.store";
+import { useCartStore } from "@/lib/stores/cart.store";
+import { cartService } from "@/lib/services/cart";
+import { queryKeys } from "@/lib/utils/query-keys";
 import { CartItemRow } from "@/components/cart/CartItemRow";
 import { CartSummary } from "@/components/cart/CartSummary";
 import { CouponInput } from "@/components/cart/CouponInput";
@@ -11,9 +18,27 @@ import { UpsellBanner } from "@/components/cart/UpsellBanner";
 import { RelatedCourses } from "@/components/cart/RelatedCourses";
 
 export default function CartPage() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const clearCart = useCartStore((s) => s.clearCart);
   const { items, itemCount, isLoading, errors } = useCart();
   const user = useAuthStore(selectUser);
   const browseCoursesHref = user ? "/dashboard/all-courses" : "/all-courses";
+
+  const handleExpressSuccess = async (orderId: number, orderKey: string) => {
+    cartService
+      .emptyCart()
+      .catch(() => {})
+      .finally(() => {
+        clearCart();
+        queryClient.invalidateQueries({ queryKey: queryKeys.cart.detail });
+      });
+
+    const params = new URLSearchParams();
+    if (orderKey) params.set("key", orderKey);
+    const qs = params.toString();
+    router.push(`/order-confirmation/${orderId}${qs ? `?${qs}` : ""}`);
+  };
 
   return (
     <div className="bg-neutral-10 min-h-screen">
@@ -75,7 +100,9 @@ export default function CartPage() {
 
             {/* Right: summary */}
             <div className="lg:sticky lg:top-24 lg:self-start">
-              <CartSummary />
+              <Elements stripe={stripePromise}>
+                <CartSummary onSuccess={handleExpressSuccess} />
+              </Elements>
             </div>
           </div>
         )}

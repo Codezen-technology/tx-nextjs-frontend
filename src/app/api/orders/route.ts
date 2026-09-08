@@ -40,7 +40,6 @@ async function createStripePaymentIntent(
     body: new URLSearchParams({
       amount: String(amountPence),
       currency: currency.toLowerCase(),
-      "payment_method_types[]": "card",
       "metadata[wc_order_id]": String(wcOrderId),
     }).toString(),
     cache: "no-store",
