@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { proxyToWCStore } from "@/lib/api/bff";
+import { withStoreApiAttribution } from "@/lib/analytics/order-attribution";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -21,6 +22,10 @@ export async function POST(req: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Invalid order id" }, { status: 400 });
   }
 
-  const body = await req.json().catch(() => ({}));
-  return proxyToWCStore(`/checkout/${orderId}`, { method: "POST", body, request: req });
+  const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+  return proxyToWCStore(`/checkout/${orderId}`, {
+    method: "POST",
+    body: withStoreApiAttribution(body, req),
+    request: req,
+  });
 }
