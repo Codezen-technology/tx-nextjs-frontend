@@ -72,6 +72,7 @@ const MOCK_CART: Cart = {
   total: 14.99,
   coupon_code: null,
   currency: "£",
+  currency_code: "GBP",
   errors: [],
 };
 

@@ -233,6 +233,55 @@ export function stripeCardPaymentData(paymentMethodId: string): PaymentDataEntry
   ];
 }
 
+/**
+ * Billing details as a wallet (Apple Pay / Google Pay) returns them, in the shape
+ * the Express Checkout Element's `confirm` event uses. Every field is optional
+ * here because what a wallet actually returns depends on the buyer's saved card
+ * and on which fields the element was configured to request.
+ */
+export interface WalletBillingDetails {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: {
+    line1?: string | null;
+    line2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postal_code?: string | null;
+    country?: string | null;
+  };
+}
+
+/**
+ * Maps wallet billing details onto the WC Store API address shape.
+ *
+ * The wallet is the only place an express-checkout buyer enters an address, so
+ * dropping it means WC receives blank required fields and rejects the checkout.
+ * Wallets give one `name` string; WC wants it split. A single-token name yields
+ * an empty `last_name`, which is what WC does with the same input itself.
+ */
+export function walletBillingAddress(
+  details: WalletBillingDetails | undefined,
+  fallbackCountry = "GB",
+): BillingAddress {
+  const parts = (details?.name ?? "").trim().split(/\s+/).filter(Boolean);
+  const address = details?.address;
+
+  return {
+    first_name: parts[0] ?? "",
+    last_name: parts.slice(1).join(" "),
+    email: details?.email ?? "",
+    ...(details?.phone ? { phone: details.phone } : {}),
+    address_1: address?.line1 ?? "",
+    ...(address?.line2 ? { address_2: address.line2 } : {}),
+    city: address?.city ?? "",
+    state: address?.state ?? "",
+    postcode: address?.postal_code ?? "",
+    country: address?.country || fallbackCountry,
+  };
+}
+
 /** Read the PaymentIntent client secret from a `requires_action` checkout response. */
 export function findClientSecret(
   details: Array<{ key: string; value: string }>,
