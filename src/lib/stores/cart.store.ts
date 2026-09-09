@@ -36,7 +36,10 @@ export interface CartTotals {
   total: number;
   coupon_code: string | null;
   item_count: number;
+  /** Display symbol, e.g. "£". Not a valid ISO code — never pass this to Stripe. */
   currency: string;
+  /** ISO 4217 code, e.g. "GBP". Use this for any payment API. */
+  currency_code: string;
 }
 
 /** Customer billing/shipping returned by the WC Store API (logged-in customers). */
@@ -191,6 +194,7 @@ export function normalizeWCCart(wc: WCStoreCart): Cart {
     coupon_code: wc.coupons?.[0]?.code ?? null,
     item_count: wc.items_count,
     currency: decodeEntities(wc.totals.currency_symbol),
+    currency_code: wc.totals.currency_code || "GBP",
     billingAddress: wc.billing_address,
     errors: (wc.errors ?? [])
       .filter((e) => e?.message)

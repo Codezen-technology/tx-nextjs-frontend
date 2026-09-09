@@ -4,8 +4,6 @@ import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { Elements } from "@stripe/react-stripe-js";
-import { stripePromise } from "@/lib/stripe";
 import { useCart } from "@/lib/hooks/useCart";
 import { useAuthStore, selectUser } from "@/lib/stores/auth.store";
 import { useCartStore } from "@/lib/stores/cart.store";
@@ -100,9 +98,7 @@ export default function CartPage() {
 
             {/* Right: summary */}
             <div className="lg:sticky lg:top-24 lg:self-start">
-              <Elements stripe={stripePromise}>
-                <CartSummary onSuccess={handleExpressSuccess} />
-              </Elements>
+              <CartSummary onSuccess={handleExpressSuccess} />
             </div>
           </div>
         )}

@@ -61,6 +61,7 @@ export function useCart() {
     totals: cart, // domain Cart extends CartTotals, so `cart` carries the totals
     itemCount: cart?.item_count ?? 0,
     currency: cart?.currency ?? "£",
+    currencyCode: cart?.currency_code ?? "GBP",
     errors: standingCartErrors(cart?.errors ?? []),
     isLoading: query.isLoading,
   };

@@ -16,9 +16,7 @@ import { cn } from "@/lib/utils/cn";
  */
 export const CARD_BRANDS = [
   { name: "American Express", src: "/icons/payment/amex.svg", inChip: false },
-  { name: "Apple Pay", src: "/icons/payment/apple-pay.svg", inChip: false },
   { name: "Discover", src: "/icons/payment/discover.svg", inChip: false },
-  { name: "Google Pay", src: "/icons/payment/google-pay.svg", inChip: false },
   { name: "Mastercard", src: "/icons/payment/mastercard.svg", inChip: false },
   // Visa exports as the bare wordmark; the frame draws it on a white chip.
   { name: "Visa", src: "/icons/payment/visa.svg", inChip: true },
