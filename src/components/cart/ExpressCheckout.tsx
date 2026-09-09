@@ -146,17 +146,25 @@ function ExpressCheckoutForm({ onSuccess }: ExpressCheckoutProps) {
     }
   };
 
+  // The element is never wrapped in anything hidden. Stripe has to lay the
+  // element out to work out which wallets the device can offer, and a
+  // `display: none` ancestor would deny it that — leaving the element reporting
+  // no wallets, which would keep the wrapper hidden forever. It draws nothing
+  // and takes almost no height when there is nothing to offer, so only the
+  // divider is conditional. The attribute is how the e2e suite reads the state.
   return (
-    <div className={available ? "" : "hidden"}>
-      {/* "or" divider — matches the white summary card it sits in. */}
-      <div className="relative my-4">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200" />
+    <div data-express-checkout={available ? "available" : "unavailable"}>
+      {available && (
+        // "or" divider — matches the white summary card it sits in.
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white px-3 text-gray-500">or</span>
+          </div>
         </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="bg-white px-3 text-gray-500">or</span>
-        </div>
-      </div>
+      )}
 
       <ExpressCheckoutElement
         options={{ ...ELEMENT_OPTIONS, business: { name: site_name } }}
