@@ -319,10 +319,22 @@ export async function proxyToWP(wpPath: string, options: ProxyOptions = {}): Pro
   } else if (envelope.success === false) {
     const msg = envelope.message ?? envelope.error?.message ?? "Request failed";
     const code = envelope.code ?? envelope.error?.code ?? "error";
-    nextRes = NextResponse.json({ error: msg, code }, { status: res.status });
+    // Both spellings, because the two client helpers read different keys:
+    // `bffJson` looks at `error` first, `toApiError` (the Axios path) only ever
+    // reads `message`. Emitting one of them alone silently degrades the other
+    // caller's error text to a generic "Request failed".
+    nextRes = NextResponse.json({ error: msg, message: msg, code }, { status: res.status });
   } else {
     nextRes = NextResponse.json(json, { status: res.status });
   }
+
+  // Forward WP pagination headers. `paginate()` reads these off the response to
+  // compute totals, and a list endpoint that reports them in headers rather than
+  // in an envelope would otherwise fall back to `items.length` once proxied.
+  const total = res.headers.get("x-wp-total");
+  const totalPages = res.headers.get("x-wp-totalpages");
+  if (total) nextRes.headers.set("x-wp-total", total);
+  if (totalPages) nextRes.headers.set("x-wp-totalpages", totalPages);
 
   // Echo the WooCommerce session cookie back to the browser (guest cart persistence).
   if (wcSession) {
