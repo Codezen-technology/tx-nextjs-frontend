@@ -131,13 +131,7 @@ test.describe("home hero carousel", () => {
       // Below xl the hero stacks; `xl:flex-row` must not have leaked down.
       await expect(page.getByTestId("hero-row")).toHaveCSS("flex-direction", "column");
 
-      // 1024 is excluded, and not because the hero misbehaves there. The footer's
-      // newsletter block (`lg:w-[360px] lg:shrink-0` inside a `lg:flex-row` row) runs to
-      // x=1208 at exactly this width, which predates this change and is unreachable from
-      // the hero. Measured unclipped drivers at 1279 and 1280: none. Asserting the whole
-      // document here would fail this suite for someone else's bug; the footer needs its
-      // own fix and its own test.
-      if (width !== 1024) await expectNoHorizontalOverflow(page, width);
+      await expectNoHorizontalOverflow(page, width);
     });
   }
 
