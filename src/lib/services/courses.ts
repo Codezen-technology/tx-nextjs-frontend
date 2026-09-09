@@ -16,6 +16,7 @@ import type {
   CourseSections,
   CourseFlatCurriculumItem,
   CourseReviews,
+  CourseReviewItem,
   CourseRichData,
 } from "@/types/course";
 import type { UnitSummary } from "@/types/unit";
@@ -325,6 +326,82 @@ export function normalizeRichCourse(raw: Record<string, unknown>): CourseRichDat
   };
 }
 
+/**
+ * WP shape for a single review. `author` is an object (`{ id, name, avatar }`)
+ * and the timestamp arrives as `created_at`, so the raw item cannot be handed
+ * to the UI as a `CourseReviewItem` — see `normalizeCourseReview`.
+ */
+interface RawCourseReview {
+  id?: number | string;
+  course_id?: number | string;
+  user_id?: number | string;
+  author?: string | { id?: number | string; name?: string; avatar?: string } | null;
+  avatar?: string | null;
+  title?: string | null;
+  content?: string | null;
+  rating?: number | string | null;
+  created_at?: string | null;
+  date?: string | null;
+  status?: string | number;
+}
+
+interface RawCourseReviews {
+  course_id?: number | string;
+  reviews?: RawCourseReview[] | null;
+  total_reviews?: number | string;
+  average_rating?: number | string;
+  rating_breakdown?: Partial<Record<"1" | "2" | "3" | "4" | "5", number | string>> | null;
+}
+
+const EMPTY_RATING_BREAKDOWN: CourseReviews["rating_breakdown"] = {
+  "1": 0,
+  "2": 0,
+  "3": 0,
+  "4": 0,
+  "5": 0,
+};
+
+function normalizeCourseReview(raw: RawCourseReview): CourseReviewItem {
+  const author = raw.author;
+  const authorName = typeof author === "string" ? author : (author?.name ?? "");
+  const avatar =
+    (typeof author === "object" && author ? author.avatar : undefined) ?? raw.avatar ?? undefined;
+
+  return {
+    id: Number(raw.id ?? 0),
+    author: decodeEntities(authorName) || "Anonymous",
+    avatar: avatar ?? undefined,
+    rating: Number(raw.rating ?? 0),
+    // `comment_date` arrives as "YYYY-MM-DD HH:MM:SS" (site-local). Safari
+    // rejects the space form, so hand `Date` an ISO-shaped local timestamp.
+    date: (raw.created_at ?? raw.date ?? "").replace(
+      /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})$/,
+      "$1T$2",
+    ),
+    content: decodeEntities(raw.content ?? ""),
+    title: raw.title ? decodeEntities(raw.title) : undefined,
+  };
+}
+
+export function normalizeCourseReviews(
+  courseId: number,
+  raw: RawCourseReviews | null,
+): CourseReviews {
+  const reviews = Array.isArray(raw?.reviews) ? raw.reviews.map(normalizeCourseReview) : [];
+  const breakdown = { ...EMPTY_RATING_BREAKDOWN };
+  for (const star of ["1", "2", "3", "4", "5"] as const) {
+    breakdown[star] = Number(raw?.rating_breakdown?.[star] ?? 0);
+  }
+
+  return {
+    course_id: Number(raw?.course_id ?? courseId),
+    average_rating: Number(raw?.average_rating ?? 0),
+    total_reviews: Number(raw?.total_reviews ?? reviews.length),
+    rating_breakdown: breakdown,
+    reviews,
+  };
+}
+
 export const coursesService = {
   async list(filters: CourseListFilters = {}): Promise<PaginatedResponse<Course>> {
     const page = filters.page ?? 1;
@@ -469,10 +546,10 @@ export const coursesService = {
   },
 
   async reviews(idOrSlug: string | number): Promise<CourseReviews> {
-    const { data } = await api.get<CourseReviews>(
+    const { data } = await api.get<RawCourseReviews>(
       endpoints.reviews.courseReviews(Number(idOrSlug)),
     );
-    return data;
+    return normalizeCourseReviews(Number(idOrSlug), data);
   },
 
   async related(idOrSlug: string | number, perPage = 6): Promise<PaginatedResponse<Course>> {

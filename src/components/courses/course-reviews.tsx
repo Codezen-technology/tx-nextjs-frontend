@@ -43,12 +43,14 @@ function RatingBar({ star, count, total }: { star: number; count: number; total:
 
 function ReviewCard({ review }: { review: CourseReviewItem }) {
   const [expanded, setExpanded] = useState(false);
-  const words = review.content.split(/\s+/);
+  // Defensive: a review that reaches here with a non-string author or content
+  // must not take down the whole course page.
+  const author = typeof review.author === "string" && review.author ? review.author : "Anonymous";
+  const content = typeof review.content === "string" ? review.content : "";
+  const words = content.split(/\s+/);
   const isLong = words.length > 16;
   const displayText =
-    !isLong || expanded
-      ? review.content
-      : truncate(review.content.split(" ").slice(0, 16).join(" "), 120);
+    !isLong || expanded ? content : truncate(content.split(" ").slice(0, 16).join(" "), 120);
 
   return (
     <div className="border-neutral-30 rounded-lg border bg-white p-4 shadow-xs">
@@ -57,20 +59,20 @@ function ReviewCard({ review }: { review: CourseReviewItem }) {
           {isRenderableImageSrc(review.avatar) ? (
             <SafeImage
               src={review.avatar}
-              alt={review.author}
+              alt={author}
               fill
               sizes="40px"
               className="object-cover"
             />
           ) : (
             <span className="flex h-full w-full items-center justify-center text-sm font-bold text-neutral-500">
-              {review.author.charAt(0).toUpperCase()}
+              {author.charAt(0).toUpperCase()}
             </span>
           )}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-1">
-            <span className="text-sm font-semibold text-neutral-900">{review.author}</span>
+            <span className="text-sm font-semibold text-neutral-900">{author}</span>
             <span className="text-xs text-neutral-400">{formatDate(review.date)}</span>
           </div>
           <StarRating rating={review.rating} />
