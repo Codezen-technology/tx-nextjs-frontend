@@ -176,6 +176,33 @@ Always use constants from `src/lib/utils/query-keys.ts`. Never inline strings in
 
 Site name, logo, feature flags are fetched server-side from `GET /lms-backend/v1/settings` and injected via `SiteSettingsProvider`. In client components use `useSiteSettings()` / `useFeatureFlag()`. Env vars (`NEXT_PUBLIC_FEATURE_*`) take precedence over the settings endpoint.
 
+### Order attribution
+
+WooCommerce and PixelYourSite both capture traffic source with a script
+enqueued on WordPress-rendered pages. Headless, no visitor ever loads one and
+orders arrive server-to-server, so every order used to record its source as
+`Unknown` in the Origin column and `REST API` in the PixelYourSite metabox.
+
+`src/proxy.ts` parses UTMs, paid click identifiers and the referrer on every
+page navigation and writes two httpOnly cookies, `tx_attr_first` (180 days) and
+`tx_attr_session` (30 minutes). BFF routes are same-origin, so those cookies
+ride along with every `/api/*` call and the order routes read them off the
+incoming `Request` — nothing user-controlled from a request body ever reaches
+order meta.
+
+`src/lib/analytics/order-attribution.ts` has two builders because WooCommerce
+has two write shapes. WC REST v3 takes 17 prefixed `_wc_order_attribution_*`
+entries as `meta_data`. The two Store API paths take 16 unprefixed fields
+through WooCommerce's own `woocommerce/order-attribution` extension namespace,
+every field present and every value a string. `device_type` is in the first and
+not the second, because WooCommerce derives it there from `user_agent`.
+
+All three writes are in-band, so nothing can fail after a shopper has paid.
+Attribution is always best-effort and never fails an order. Requires the
+`order_attribution` feature toggle to be on in WooCommerce. Full spec in
+`docs/ORDER_ATTRIBUTION.md`, WooCommerce internals sourced in
+`docs/research/2026-09-09-woocommerce-order-attribution.md`.
+
 ### Error handling
 
 All Axios errors are converted to `ApiError` (`src/lib/api/error.ts`) by the response interceptor. Catch as `ApiError`; check `.code` for WP error codes (e.g. `lms_auth_failed`) and `.status` for HTTP status.

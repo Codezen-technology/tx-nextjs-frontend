@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { proxyToWCStore } from "@/lib/api/bff";
+import { withStoreApiAttribution } from "@/lib/analytics/order-attribution";
+import { pixelYourSiteQueryFromRequest } from "@/lib/analytics/pixelyoursite";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -21,6 +23,14 @@ export async function POST(req: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Invalid order id" }, { status: 400 });
   }
 
-  const body = await req.json().catch(() => ({}));
-  return proxyToWCStore(`/checkout/${orderId}`, { method: "POST", body, request: req });
+  const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+
+  // PixelYourSite rewrites its order data on this hook with no double-execution
+  // guard, rebuilding it from `$_REQUEST`. Sending the parameters here too stops
+  // a retry-pay clobbering a record that was already populated at create time.
+  return proxyToWCStore(`/checkout/${orderId}${pixelYourSiteQueryFromRequest(req)}`, {
+    method: "POST",
+    body: withStoreApiAttribution(body, req),
+    request: req,
+  });
 }
