@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
+import { applyAttributionCookies } from "@/lib/analytics/attribution-cookies";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
@@ -46,7 +47,7 @@ function rewriteWithDefaultLocale(req: NextRequest): NextResponse | null {
   return response;
 }
 
-export function proxy(req: NextRequest) {
+function route(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const strippedPathname = stripLocale(pathname);
   const loggedIn = req.cookies.get("user_logged_in")?.value === "1";
@@ -78,6 +79,18 @@ export function proxy(req: NextRequest) {
   }
 
   return intlMiddleware(req);
+}
+
+/**
+ * Capture visit attribution on every page navigation, whatever the routing
+ * decision was — including redirects and rewrites.
+ *
+ * This is the only place a real browser context still exists. Orders reach
+ * WooCommerce server-to-server, with no referrer and no query string, which is
+ * why they otherwise record their source as `REST API`.
+ */
+export function proxy(req: NextRequest) {
+  return applyAttributionCookies(req, route(req));
 }
 
 export const config = {
