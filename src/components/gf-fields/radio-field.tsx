@@ -17,7 +17,7 @@ export function RadioField({ field, values, onChange }: GfFieldProps) {
               type="radio"
               name={field.name}
               value={c.value}
-              className="h-4 w-4"
+              className="h-4 w-4 [color-scheme:light]"
               checked={value === c.value}
               onChange={() => onChange(field.name, c.value)}
             />
