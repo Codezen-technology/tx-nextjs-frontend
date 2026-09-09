@@ -42,3 +42,19 @@
 - [x] 6.1 Update the "Data flow (client-side reads)" section in `AGENTS.md` and `CLAUDE.md`. The current text describes public reads going direct with the curriculum route as "one exception, and it is growing" — replace that with the rule that all browser reads go through the proxy, and note that Server Components still read direct.
 - [x] 6.2 Record the infrastructure follow-up somewhere durable: `/wp-json/*` should be excluded from SiteGround's Anti-Bot System, or the deployment's egress IPs allowlisted. Note that without it, a challenge against the server IP breaks SSR and the proxy together.
 - [x] 6.3 Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` clean before opening the PR.
+
+## 7. Review follow-ups
+
+Raised by review after the first pass. Each was reproduced before being fixed.
+
+- [x] 7.1 **Live regression: browser POSTs hit the GET-only read proxy.** `forms.ts` posts to validate and submit Gravity Forms from a client component, so the base URL flip turned both into 405s. Reproduced against the dev server. Added `POST /api/forms/[id]/[action]` and repointed the two calls at it.
+- [x] 7.2 Relay the form route's upstream body verbatim rather than through an enveloping proxy — a 422 carries `data.validation_messages`, which reshaping would drop, turning per-field errors into a generic failure.
+- [x] 7.3 **Security: the namespace allowlist was escapable by path traversal.** `encodeURIComponent` leaves `..` intact and `fetch` resolves dot segments, so an allowlisted prefix reached the excluded WooCommerce namespace. Confirmed by driving the handler directly: 200, traversal resolved. Reject empty, `.` and `..` segments before building the URL.
+- [x] 7.4 **Upstream errors were publicly cacheable.** Cache-Control keyed on the cookie alone, so a 502 challenge page or any upstream 5xx got `s-maxage=300` and could be replayed to every visitor for five minutes. Gate on `res.ok` as well.
+- [x] 7.5 **Standards: namespace strings lived outside `endpoints.ts`.** Export `REST_NAMESPACES` and build both the route allowlist and the endpoint prefixes from it.
+- [x] 7.6 **The task 4.4 guard test was inverted** — it checked the allowlist against `endpoints.ts` rather than the reverse, so a new unclassified namespace still passed. Rewritten to assert every registry namespace is either proxied or has a dedicated route, and verified by adding one and watching CI fail.
+- [x] 7.7 Add the double-unwrap test the design claimed existed but did not.
+- [x] 7.8 Extract `forwardPaginationHeaders()` — the block was byte-identical to the one in `proxyToWCRest`.
+- [x] 7.9 Drop the duplicated `message` key. `toApiError()` now reads a string `error` as a fallback, so the BFF emits one error shape instead of two spellings of the same string.
+- [x] 7.10 Extract the shared BFF test harness (cookie jar, `next/headers` mock, response builders), which had been copied into three test files.
+- [x] 7.11 Re-run the full gate: lint, typecheck, tests, build.

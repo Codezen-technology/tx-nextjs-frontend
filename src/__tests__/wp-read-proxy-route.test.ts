@@ -1,42 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { botChallenge, cookieJar, cookieStore, json, resetBffMocks } from "./helpers/bff-harness";
 
 /**
  * The same-origin read proxy that every browser WordPress read goes through.
  * See `src/app/api/wp/[...path]/route.ts` for why it exists.
  */
 
-const cookieJar = new Map<string, string>();
+vi.mock("next/headers", () => ({ cookies: async () => cookieStore() }));
 
-vi.mock("next/headers", () => ({
-  cookies: async () => ({
-    get: (name: string) => {
-      const value = cookieJar.get(name);
-      return value === undefined ? undefined : { name, value };
-    },
-    set: (name: string, value: string) => {
-      cookieJar.set(name, value);
-    },
-    delete: (name: string) => {
-      cookieJar.delete(name);
-    },
-  }),
-}));
-
-const { GET } = await import("@/app/api/wp/[...path]/route");
-const { endpoints } = await import("@/lib/api/endpoints");
-const { env } = await import("@/lib/env");
-
-function json(body: unknown, status = 200, headers: Record<string, string> = {}): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json", ...headers },
-  });
-}
+const { GET, READ_NAMESPACES } = await import("@/app/api/wp/[...path]/route");
+const { endpoints, REST_NAMESPACES } = await import("@/lib/api/endpoints");
 
 /** Drive the route the way Next does: decoded path segments plus the raw URL. */
-function call(path: string[], query = "", method = "GET") {
+function call(path: string[], query = "") {
   const url = `https://front.test/api/wp/${path.join("/")}${query}`;
-  return GET(new Request(url, { method }), { params: Promise.resolve({ path }) });
+  return GET(new Request(url), { params: Promise.resolve({ path }) });
 }
 
 /** The upstream URL the route asked `proxyToWP` to fetch. */
@@ -47,9 +25,7 @@ function fetchedUrl(mock: ReturnType<typeof vi.fn>, callIndex = 0): string {
 let fetchMock: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
-  cookieJar.clear();
-  fetchMock = vi.fn();
-  vi.stubGlobal("fetch", fetchMock);
+  fetchMock = resetBffMocks();
 });
 
 describe("GET /api/wp — refusals happen before any upstream call", () => {
@@ -85,6 +61,49 @@ describe("GET /api/wp — refusals happen before any upstream call", () => {
     expect(route).not.toHaveProperty("PUT");
     expect(route).not.toHaveProperty("PATCH");
     expect(route).not.toHaveProperty("DELETE");
+  });
+});
+
+describe("GET /api/wp — the allowlist cannot be escaped by path traversal", () => {
+  // `encodeURIComponent` leaves `..` untouched and the upstream URL is built by
+  // concatenation, so without an explicit check `fetch`'s URL parsing resolves
+  // the dot segments and lands on a namespace the allowlist excluded.
+  it("refuses a traversal that would reach the WooCommerce namespace", async () => {
+    const res = await call(["lms-backend", "v1", "..", "..", "wc", "v3", "orders"]);
+
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({ code: "invalid_path" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses a single traversal segment anywhere in the path", async () => {
+    const res = await call(["lms-backend", "v1", "courses", "..", "settings"]);
+
+    expect(res.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses a single-dot segment", async () => {
+    const res = await call(["lms-backend", "v1", ".", "settings"]);
+
+    expect(res.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses an empty segment, which collapses on the way upstream", async () => {
+    const res = await call(["lms-backend", "v1", "", "settings"]);
+
+    expect(res.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("never lets an upstream URL resolve outside its own namespace", async () => {
+    // Belt and braces on the rule above: whatever the route does build must
+    // still address the namespace it approved once a URL parser has had it.
+    fetchMock.mockResolvedValueOnce(json({ success: true, data: {} }));
+    await call(["lms-backend", "v1", "courses", "popular"]);
+
+    expect(new URL(fetchedUrl(fetchMock)).pathname).toContain("/lms-backend/v1/");
   });
 });
 
@@ -124,6 +143,17 @@ describe("GET /api/wp — forwarding", () => {
 
     expect(res.status).toBe(200);
     expect(fetchedUrl(fetchMock)).toContain("/swca/v1/get-certificate?id=123");
+  });
+
+  it("unwraps the success envelope exactly once", async () => {
+    // `proxyToWP` strips `{ success, data }`; the Axios interceptor then sees no
+    // `success` key and passes the body through. A payload that itself carries a
+    // top-level `success` field must survive that second pass unchanged.
+    fetchMock.mockResolvedValueOnce(json({ success: true, data: { success: "yes", id: 7 } }));
+
+    const res = await call(["lms-backend", "v1", "settings"]);
+
+    await expect(res.json()).resolves.toEqual({ success: "yes", id: 7 });
   });
 });
 
@@ -180,14 +210,14 @@ describe("GET /api/wp — credentials", () => {
 });
 
 describe("GET /api/wp — caching", () => {
-  it("lets a credential-free read be shared, keyed on cookie", async () => {
+  const SHAREABLE = "public, s-maxage=300, stale-while-revalidate=600";
+
+  it("lets a successful credential-free read be shared, keyed on cookie", async () => {
     fetchMock.mockResolvedValueOnce(json({ success: true, data: [] }));
 
     const res = await call(["lms-backend", "v1", "courses", "popular"]);
 
-    expect(res.headers.get("Cache-Control")).toBe(
-      "public, s-maxage=300, stale-while-revalidate=600",
-    );
+    expect(res.headers.get("Cache-Control")).toBe(SHAREABLE);
     expect(res.headers.get("Vary")).toBe("Cookie");
   });
 
@@ -200,40 +230,96 @@ describe("GET /api/wp — caching", () => {
     expect(res.headers.get("Cache-Control")).toBe("private, no-store");
     expect(res.headers.get("Vary")).toBe("Cookie");
   });
+
+  it("never shares a bot-protection challenge", async () => {
+    // The challenge surfaces as a 502. Caching it publicly would serve one bad
+    // moment at the CMS to every visitor for the next five minutes.
+    fetchMock.mockResolvedValueOnce(botChallenge());
+
+    const res = await call(["lms-backend", "v1", "settings"]);
+
+    expect(res.status).toBe(502);
+    expect(res.headers.get("Cache-Control")).toBe("private, no-store");
+  });
+
+  it("never shares an upstream client error", async () => {
+    fetchMock.mockResolvedValueOnce(json({ success: false, message: "Gone" }, 404));
+
+    const res = await call(["lms-backend", "v1", "courses", "999999"]);
+
+    expect(res.status).toBe(404);
+    expect(res.headers.get("Cache-Control")).toBe("private, no-store");
+  });
+
+  it("never shares an upstream server error", async () => {
+    fetchMock.mockResolvedValueOnce(json({ success: false, message: "Boom" }, 503));
+
+    const res = await call(["lms-backend", "v1", "settings"]);
+
+    expect(res.headers.get("Cache-Control")).toBe("private, no-store");
+  });
 });
 
 describe("namespace allowlist tracks endpoints.ts", () => {
-  /** Namespace prefix of every endpoint string the Axios client can be handed. */
-  function namespacesIn(node: unknown, found = new Set<string>()): Set<string> {
+  /** Every literal path string in the registry. */
+  function pathsIn(node: unknown, found = new Set<string>()): Set<string> {
     if (typeof node === "string") {
-      const match = /^\/([^/]+)\/([^/]+)\//.exec(node);
-      if (match) found.add(`${match[1]}/${match[2]}`);
+      if (node.startsWith("/")) found.add(node);
       return found;
     }
     if (typeof node === "function") return found;
     if (node && typeof node === "object") {
-      for (const value of Object.values(node)) namespacesIn(value, found);
+      for (const value of Object.values(node)) pathsIn(value, found);
     }
     return found;
   }
 
-  it("allows every content namespace the endpoint registry emits", async () => {
-    const emitted = [...namespacesIn(endpoints)];
+  /**
+   * Namespaces deliberately kept off the read proxy because they have their own
+   * BFF routes carrying Cart-Token and Basic auth. Hardcoded on purpose: this
+   * list plus the allowlist must account for every namespace in the registry,
+   * so a new one fails here until somebody classifies it.
+   */
+  const HAS_DEDICATED_ROUTE = ["wc/store/v1", "wc/v3"];
 
-    // Content namespaces the browser reads through the proxy.
-    for (const ns of [env.LMS_NAMESPACE, "wp/v2", "swca/v1"]) {
-      expect(emitted).toContain(ns);
+  it("classifies every namespace the endpoint registry declares", () => {
+    const classified = [...READ_NAMESPACES, ...HAS_DEDICATED_ROUTE];
+
+    for (const ns of Object.values(REST_NAMESPACES)) {
+      expect(classified, `${ns} is in REST_NAMESPACES but neither proxied nor routed`).toContain(
+        ns,
+      );
+    }
+  });
+
+  it("classifies the namespace of every endpoint path in the registry", () => {
+    // Catches a namespace hardcoded into an endpoint string rather than taken
+    // from REST_NAMESPACES, which the check above would miss.
+    const classified = [...READ_NAMESPACES, ...HAS_DEDICATED_ROUTE];
+
+    // `endpoints.business` is namespace-relative by design — `proxyToB2B`
+    // prepends the namespace — so those paths carry none to classify.
+    const { business: _b2b, ...namespaced } = endpoints;
+
+    for (const path of pathsIn(namespaced)) {
+      const namespace = classified.find((ns) => path.startsWith(`/${ns}/`));
+      expect(
+        namespace,
+        `endpoints.ts emits ${path}, whose namespace nothing handles`,
+      ).toBeDefined();
+    }
+  });
+
+  it("allows each read namespace through the route", async () => {
+    for (const ns of READ_NAMESPACES) {
       fetchMock.mockResolvedValueOnce(json({ success: true, data: {} }));
       const res = await call([...ns.split("/"), "probe"]);
       expect(res.status, `${ns} should be allowed`).toBe(200);
     }
   });
 
-  it("refuses the commerce namespaces, which have their own routes", async () => {
-    // These carry Cart-Token and Basic auth this route does not implement.
-    // If one is ever needed in the browser it gets a dedicated route, not an
-    // allowlist entry.
-    for (const ns of ["wc/store/v1", "wc/v3"]) {
+  it("refuses the namespaces that have their own routes", async () => {
+    for (const ns of HAS_DEDICATED_ROUTE) {
       const res = await call([...ns.split("/"), "probe"]);
       expect(res.status, `${ns} should be refused`).toBe(400);
     }

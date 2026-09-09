@@ -60,6 +60,17 @@ The proxy SHALL serve retrieval requests only, and only for the WordPress REST n
 - **WHEN** a request names no path beneath a namespace
 - **THEN** the proxy refuses it with a client error without contacting the CMS
 
+#### Scenario: Relative path segments that would change the namespace
+
+- **WHEN** a request names an allowed namespace but its resource path contains a segment that walks upwards, such as `..`
+- **THEN** the proxy refuses it with a client error without contacting the CMS
+- **AND** the upstream request it would otherwise have made cannot resolve to a namespace outside the allowlist
+
+#### Scenario: The allowlist does not depend on the web framework
+
+- **WHEN** a path containing upward or empty segments reaches the proxy by any route, including one the framework did not normalise
+- **THEN** the proxy still refuses it, because the check happens where the namespace decision is made
+
 ### Requirement: Proxied reads work signed-out and signed-in
 
 A read that the CMS serves publicly SHALL remain readable by a signed-out visitor. When the visitor is signed in, the proxy SHALL present their credential so personalised fields are returned, and SHALL NOT let a stale credential turn a public read into a failure.
@@ -114,9 +125,9 @@ A read that passes through the proxy SHALL be indistinguishable to calling code 
 - **WHEN** the CMS wraps a payload in its success envelope
 - **THEN** the calling code receives the payload in the same shape it receives today when reading the CMS directly
 
-### Requirement: Cached proxy responses never leak between visitors
+### Requirement: Only successful, impersonal responses are cacheable
 
-If proxied responses are cached, the cache SHALL be keyed so that no visitor can be served a response produced for a different visitor's session.
+If proxied responses are cached, the cache SHALL be keyed so that no visitor can be served a response produced for a different visitor's session, and a failed read SHALL never be shared.
 
 #### Scenario: Personalised read is not shared
 
@@ -125,5 +136,36 @@ If proxied responses are cached, the cache SHALL be keyed so that no visitor can
 
 #### Scenario: Public read is shareable
 
-- **WHEN** a read carries no credential and returns identical content for everyone
+- **WHEN** a read carries no credential and succeeds, returning identical content for everyone
 - **THEN** the response may be cached and reused across visitors
+
+#### Scenario: Upstream failure is never cached
+
+- **WHEN** a read fails — the CMS returns a client error, a server error, or a body the proxy could not parse
+- **THEN** the response is marked uncacheable
+- **AND** a single failing moment at the CMS cannot be replayed to other visitors after it has passed
+
+### Requirement: Browser form submissions reach the CMS
+
+A form a visitor submits in the browser SHALL reach WordPress, signed-out as well as signed-in, and SHALL NOT be blocked by the read path's restriction to retrieval requests.
+
+#### Scenario: Signed-out visitor submits a form
+
+- **WHEN** a visitor with no session submits a public form such as a contact or cancellation request
+- **THEN** the submission reaches WordPress and the visitor sees its result
+
+#### Scenario: Submission is rejected with per-field errors
+
+- **WHEN** WordPress rejects a submission and names which fields are invalid and why
+- **THEN** the per-field messages reach the browser intact
+- **AND** the visitor is shown which fields to fix rather than a generic failure
+
+#### Scenario: Submission carries file uploads
+
+- **WHEN** a submission includes uploaded files
+- **THEN** the files reach WordPress intact
+
+#### Scenario: Submissions are not cached
+
+- **WHEN** any form submission passes through
+- **THEN** the response is never stored or shared

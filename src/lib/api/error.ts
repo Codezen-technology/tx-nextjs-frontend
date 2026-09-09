@@ -38,9 +38,13 @@ export function toApiError(err: unknown): ApiError {
 
   if (err instanceof AxiosError) {
     const status = err.response?.status ?? 0;
-    const data = err.response?.data as Partial<WpError> | undefined;
+    const data = err.response?.data as (Partial<WpError> & { error?: unknown }) | undefined;
     const code = data?.code ?? err.code ?? "request_failed";
-    const message = data?.message ?? err.message ?? "Something went wrong";
+    // WordPress spells the human-readable text `message`; the BFF routes spell
+    // it `error`. Read both so an error surfaced through `/api/*` keeps its text
+    // instead of degrading to Axios's generic "Request failed".
+    const bffMessage = typeof data?.error === "string" ? data.error : undefined;
+    const message = data?.message ?? bffMessage ?? err.message ?? "Something went wrong";
     return new ApiError({ status, code, message, raw: err.response?.data });
   }
 

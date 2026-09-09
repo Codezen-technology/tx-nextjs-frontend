@@ -134,11 +134,7 @@ export async function proxyToWCRest(
 
   const nextRes = NextResponse.json(json, { status: res.status });
 
-  // Forward WP pagination headers.
-  const total = res.headers.get("x-wp-total");
-  const totalPages = res.headers.get("x-wp-totalpages");
-  if (total) nextRes.headers.set("x-wp-total", total);
-  if (totalPages) nextRes.headers.set("x-wp-totalpages", totalPages);
+  forwardPaginationHeaders(res, nextRes);
 
   return nextRes;
 }
@@ -154,6 +150,20 @@ type ProxyOptions = {
   /** Override the WP REST namespace (defaults to env.LMS_NAMESPACE, e.g. lms-backend/v1). */
   namespace?: string;
 };
+
+/**
+ * Copy WordPress's pagination headers onto the response we hand back.
+ *
+ * `paginate()` reads these to compute totals. A list endpoint that reports them
+ * in headers rather than in an envelope falls back to `items.length` — a wrong,
+ * silent answer — if a proxy drops them on the way through.
+ */
+function forwardPaginationHeaders(upstream: Response, out: NextResponse): void {
+  const total = upstream.headers.get("x-wp-total");
+  const totalPages = upstream.headers.get("x-wp-totalpages");
+  if (total) out.headers.set("x-wp-total", total);
+  if (totalPages) out.headers.set("x-wp-totalpages", totalPages);
+}
 
 function wpJsonUrl(path: string, namespace: string = env.LMS_NAMESPACE): string {
   const base = getServerWpJsonBase();
@@ -319,22 +329,12 @@ export async function proxyToWP(wpPath: string, options: ProxyOptions = {}): Pro
   } else if (envelope.success === false) {
     const msg = envelope.message ?? envelope.error?.message ?? "Request failed";
     const code = envelope.code ?? envelope.error?.code ?? "error";
-    // Both spellings, because the two client helpers read different keys:
-    // `bffJson` looks at `error` first, `toApiError` (the Axios path) only ever
-    // reads `message`. Emitting one of them alone silently degrades the other
-    // caller's error text to a generic "Request failed".
-    nextRes = NextResponse.json({ error: msg, message: msg, code }, { status: res.status });
+    nextRes = NextResponse.json({ error: msg, code }, { status: res.status });
   } else {
     nextRes = NextResponse.json(json, { status: res.status });
   }
 
-  // Forward WP pagination headers. `paginate()` reads these off the response to
-  // compute totals, and a list endpoint that reports them in headers rather than
-  // in an envelope would otherwise fall back to `items.length` once proxied.
-  const total = res.headers.get("x-wp-total");
-  const totalPages = res.headers.get("x-wp-totalpages");
-  if (total) nextRes.headers.set("x-wp-total", total);
-  if (totalPages) nextRes.headers.set("x-wp-totalpages", totalPages);
+  forwardPaginationHeaders(res, nextRes);
 
   // Echo the WooCommerce session cookie back to the browser (guest cart persistence).
   if (wcSession) {

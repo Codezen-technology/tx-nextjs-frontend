@@ -127,6 +127,19 @@ with `Vary: Cookie`; credentialed ones are `no-store`.
 absolute base URL (`pages.ts`, `products.ts`, `bundles.ts`) or `serverApi` /
 `serverFetch`. Nothing about SSR changed.
 
+The allowlist is built from `REST_NAMESPACES` in `endpoints.ts` rather than
+written out, so a namespace cannot be added to the registry without a test
+forcing somebody to classify it. Upward path segments (`..`) are refused: they
+would otherwise let an allowlisted prefix resolve into an excluded namespace.
+Only a **successful** credential-free response is cacheable — caching a
+challenge page or an upstream 5xx would replay one bad moment to every visitor.
+
+**Browser writes go through their own routes.** The read proxy is `GET`-only, so
+a POST through it is a 405. Gravity Forms validate and submit use
+`POST /api/forms/[id]/[action]`, which relays the upstream body verbatim so a
+422's per-field `validation_messages` survive. Any future browser write needs
+its own route rather than widening the read proxy.
+
 Authenticated mutations, cart traffic and the WooCommerce namespaces
 (`wc/store/v1`, `wc/v3`) keep their own dedicated `/api/*` BFF routes — they
 carry Cart-Token and Basic-auth handling the read proxy does not implement, and
@@ -169,20 +182,21 @@ All Axios errors are converted to `ApiError` (`src/lib/api/error.ts`) by the res
 
 ## Key files
 
-| File                                | Purpose                                                                                                 |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `src/lib/api/endpoints.ts`          | All WP endpoint URLs                                                                                    |
-| `src/lib/api/cache-tags.ts`         | Cache-tag registry — the tags `serverFetch` uses and `POST /api/revalidate` (WP purge endpoint) accepts |
-| `src/app/api/wp/[...path]/route.ts` | Same-origin read proxy — every browser WordPress read goes through it                                   |
-| `src/lib/api/bff.ts`                | `proxyToWP()` — server-side proxy with token refresh                                                    |
-| `src/lib/api/bff-client.ts`         | `bffJson()` — client helper for BFF route calls                                                         |
-| `src/lib/api/client.ts`             | Axios singleton (direct-to-WP, public reads)                                                            |
-| `src/lib/api/parsers.ts`            | `paginate()` + `decodeEntities()`                                                                       |
-| `src/lib/api/server.ts`             | Server Component fetch utilities                                                                        |
-| `src/lib/env.ts`                    | All env var definitions and `getServerWpJsonBase()`                                                     |
-| `src/lib/utils/query-keys.ts`       | Centralized TanStack Query keys                                                                         |
-| `src/lib/stores/auth.store.ts`      | Zustand auth store (user display data only)                                                             |
-| `src/proxy.ts`                      | Route guards + next-intl integration (Next 16 proxy)                                                    |
+| File                                       | Purpose                                                                                                 |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `src/lib/api/endpoints.ts`                 | All WP endpoint URLs                                                                                    |
+| `src/lib/api/cache-tags.ts`                | Cache-tag registry — the tags `serverFetch` uses and `POST /api/revalidate` (WP purge endpoint) accepts |
+| `src/app/api/wp/[...path]/route.ts`        | Same-origin read proxy — every browser WordPress read goes through it                                   |
+| `src/app/api/forms/[id]/[action]/route.ts` | Gravity Forms writes — the read proxy is GET-only                                                       |
+| `src/lib/api/bff.ts`                       | `proxyToWP()` — server-side proxy with token refresh                                                    |
+| `src/lib/api/bff-client.ts`                | `bffJson()` — client helper for BFF route calls                                                         |
+| `src/lib/api/client.ts`                    | Axios singleton (direct-to-WP, public reads)                                                            |
+| `src/lib/api/parsers.ts`                   | `paginate()` + `decodeEntities()`                                                                       |
+| `src/lib/api/server.ts`                    | Server Component fetch utilities                                                                        |
+| `src/lib/env.ts`                           | All env var definitions and `getServerWpJsonBase()`                                                     |
+| `src/lib/utils/query-keys.ts`              | Centralized TanStack Query keys                                                                         |
+| `src/lib/stores/auth.store.ts`             | Zustand auth store (user display data only)                                                             |
+| `src/proxy.ts`                             | Route guards + next-intl integration (Next 16 proxy)                                                    |
 
 ## Conventions
 

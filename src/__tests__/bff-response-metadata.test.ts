@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { botChallenge, cookieStore, json, resetBffMocks } from "./helpers/bff-harness";
 
 /**
  * `proxyToWP` must be transparent in the two respects calling code depends on:
@@ -7,38 +8,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * keys). Both were dropped before browser reads started going through the proxy.
  */
 
-const cookieJar = new Map<string, string>();
-
-vi.mock("next/headers", () => ({
-  cookies: async () => ({
-    get: (name: string) => {
-      const value = cookieJar.get(name);
-      return value === undefined ? undefined : { name, value };
-    },
-    set: (name: string, value: string) => {
-      cookieJar.set(name, value);
-    },
-    delete: (name: string) => {
-      cookieJar.delete(name);
-    },
-  }),
-}));
+vi.mock("next/headers", () => ({ cookies: async () => cookieStore() }));
 
 const { proxyToWP } = await import("@/lib/api/bff");
-
-function json(body: unknown, status = 200, headers: Record<string, string> = {}): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json", ...headers },
-  });
-}
 
 let fetchMock: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
-  cookieJar.clear();
-  fetchMock = vi.fn();
-  vi.stubGlobal("fetch", fetchMock);
+  fetchMock = resetBffMocks();
 });
 
 describe("proxyToWP — pagination headers", () => {
@@ -75,7 +52,7 @@ describe("proxyToWP — pagination headers", () => {
 });
 
 describe("proxyToWP — error body shape", () => {
-  it("emits error, message and code so both client helpers find the text", async () => {
+  it("emits one error key, with the upstream status", async () => {
     fetchMock.mockResolvedValueOnce(
       json({ success: false, message: "Course not found", code: "lms_not_found" }, 404),
     );
@@ -83,10 +60,8 @@ describe("proxyToWP — error body shape", () => {
     const res = await proxyToWP("/courses/999", { requiresAuth: false });
 
     expect(res.status).toBe(404);
-    // `bffJson` reads `error`; `toApiError` (the Axios path) reads `message`.
     await expect(res.json()).resolves.toEqual({
       error: "Course not found",
-      message: "Course not found",
       code: "lms_not_found",
     });
   });
@@ -98,29 +73,51 @@ describe("proxyToWP — error body shape", () => {
 
     const res = await proxyToWP("/courses/1", { requiresAuth: false });
 
-    await expect(res.json()).resolves.toEqual({
-      error: "Nope",
-      message: "Nope",
-      code: "lms_denied",
-    });
+    await expect(res.json()).resolves.toEqual({ error: "Nope", code: "lms_denied" });
   });
 
   it("returns a gateway error rather than passing an unparseable body through", async () => {
-    // This is the challenge interstitial the CMS bot protection serves: a 202
-    // carrying HTML. It must never reach the browser as a content response.
-    fetchMock.mockResolvedValueOnce(
-      new Response(
-        '<html><head><meta http-equiv="refresh" content="0;/sgcaptcha/"></head></html>',
-        {
-          status: 202,
-          headers: { "Content-Type": "text/html" },
-        },
-      ),
-    );
+    // The challenge interstitial the CMS bot protection serves. It must never
+    // reach the browser as a content response.
+    fetchMock.mockResolvedValueOnce(botChallenge());
 
     const res = await proxyToWP("/settings", { requiresAuth: false });
 
     expect(res.status).toBe(502);
     await expect(res.json()).resolves.toEqual({ error: "Invalid response from WordPress" });
+  });
+});
+
+describe("toApiError reads the BFF error key", () => {
+  it("keeps the BFF's error text instead of Axios's generic message", async () => {
+    const { toApiError } = await import("@/lib/api/error");
+    const { AxiosError } = await import("axios");
+
+    // What `proxyToWP` emits: `error`, not `message`. Reading only `message`
+    // here is what silently degraded every BFF error to "Request failed".
+    const err = new AxiosError("Request failed with status code 404");
+    err.response = {
+      status: 404,
+      data: { error: "Course not found", code: "lms_not_found" },
+    } as never;
+
+    const apiErr = toApiError(err);
+
+    expect(apiErr.message).toBe("Course not found");
+    expect(apiErr.code).toBe("lms_not_found");
+    expect(apiErr.status).toBe(404);
+  });
+
+  it("still prefers WordPress's own message key when present", async () => {
+    const { toApiError } = await import("@/lib/api/error");
+    const { AxiosError } = await import("axios");
+
+    const err = new AxiosError("boom");
+    err.response = {
+      status: 403,
+      data: { message: "Sorry, you are not allowed to do that.", code: "rest_forbidden" },
+    } as never;
+
+    expect(toApiError(err).message).toBe("Sorry, you are not allowed to do that.");
   });
 });

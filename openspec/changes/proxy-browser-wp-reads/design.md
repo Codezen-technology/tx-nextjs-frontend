@@ -5,22 +5,22 @@ See `proposal.md` — Why, for the incident and root cause. What matters for the
 - `src/lib/api/client.ts` exports one axios singleton, `api`, with `baseURL: WP_REST_BASE` — the public CMS origin plus `/wp-json`. It is used from **both** browser and server: ten services under `src/lib/services/` call it, and some of those services are consumed by Server Components (`pages.ts` from the marketing `[slug]` page, `products.ts`, `bundles.ts`). Any change to `baseURL` must distinguish the two. The file already computes `isBrowser`.
 - The endpoint strings in `src/lib/api/endpoints.ts` are namespace-prefixed (`/lms-backend/v1/…`, `/wp/v2/…`, `/swca/v1/…`) and are appended to `baseURL`. `proxyToWP()` takes the opposite shape: a namespace-less path, because it prepends `env.LMS_NAMESPACE` itself. `courseSubpath()` exists solely to serve that second shape, and its docblock says so.
 - `proxyToWP()` already implements the hard parts of the hop: token attach, 401 refresh-and-retry, and the "refresh failed on a public route, so drop the credential and serve the anonymous response" fallback. It also unwraps the `{ success, data }` envelope, which the browser interceptor `unwrapLmsEnvelope` would otherwise do.
-- Two gaps in `proxyToWP()` block reuse. It never forwards `x-wp-total` / `x-wp-totalpages`, which `paginate()` reads from `res.headers`; and it emits failures as `{ error, code }` while `toApiError()` reads `data.message`.
+- Two gaps block reuse. `proxyToWP()` never forwards `x-wp-total` / `x-wp-totalpages`, which `paginate()` reads from `res.headers`; and it emits failures as `{ error, code }` while `toApiError()` reads only `data.message`, so BFF error text never reaches an Axios caller.
 - `src/proxy.ts` excludes `/api` from its matcher, so next-intl will not rewrite or locale-prefix anything under it.
-- The commerce namespaces (`wc/store/v1`, `wc/v3`) are **not** reachable through the axios singleton. They have dedicated proxies with Cart-Token and Basic-auth handling. They are out of scope by construction.
+- The commerce namespaces (`wc/store/v1`, `wc/v3`) have dedicated proxies with Cart-Token and Basic-auth handling, and are out of scope. One loose end: `productService` in `products.ts` reads `wc/store/v1` through the axios singleton. It has no call sites at all, and its only live consumer imports `normalizeProduct` instead — but it is reachable code, so the allowlist must fail it loudly rather than forward it.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
 - One change fixes all twenty-four client-side reads, not the four that happen to be broken today.
-- Zero edits to `src/lib/services/**`, `src/lib/hooks/**`, and components. A service that works today keeps working with no diff.
+- No edits to `src/lib/services/**`, `src/lib/hooks/**` or components _for reads_. This held: every read still composes the same path. It did **not** hold for writes — `forms.ts` posts, and a GET-only read proxy cannot carry a POST, so its two write calls are repointed at a write route.
 - Signed-in personalisation and signed-out access both keep working, with the same expired-token behaviour the curriculum route already ships.
 - Server-rendered reads are byte-identical to today. This change must not alter SSR, ISR, or build-time fetching.
 
 **Non-Goals:**
 
-- Not a general egress proxy. It will not forward to arbitrary hosts, arbitrary namespaces, or non-read methods.
+- Not a general egress proxy. It will not forward to arbitrary hosts, arbitrary namespaces, arbitrary paths within an allowed namespace, or non-read methods.
 - Not a replacement for the dedicated BFF routes. Authenticated mutations, cart traffic, and `GET /api/courses/[id]/curriculum` are untouched.
 - Not a cache-tag design. Per-path tag mapping for a catch-all is a larger problem; this change uses a time-bounded cache and leaves tag-driven purging to the existing tagged `serverFetch` paths.
 - Does not fix the CMS bot protection. That is an infrastructure follow-up recorded in the proposal's Impact.
@@ -48,7 +48,7 @@ The route sits at `src/app/api/wp/[...path]/route.ts` and splits the caught path
 
 It then calls `proxyToWP(wpPath + query, { namespace, requiresAuth: false })`. This is why the split is two segments: `proxyToWP` already takes `namespace` as an option, and every WordPress REST namespace this client uses is `vendor/version`. No new proxy function, no duplicated refresh logic.
 
-The allowlist is the three namespaces `endpoints.ts` actually emits for the axios client — `lms-backend/v1` (via `env.LMS_NAMESPACE`, so it must be read from env rather than hardcoded), `wp/v2`, `swca/v1`. Anything else is refused before a socket is opened. The commerce namespaces are excluded deliberately: they need Cart-Token and Basic auth that this route does not and should not implement, and routing them here would silently strip that.
+The allowlist is built from `REST_NAMESPACES`, exported by `endpoints.ts` — `lms-backend/v1`, `wp/v2`, `swca/v1`. `endpoints.ts` is the single source for URL strings, and a namespace written out a second time in the route is how the two drift apart; deriving it means a new namespace cannot be added to the registry without a test forcing somebody to classify it. Anything else is refused before a socket is opened. The commerce namespaces are excluded deliberately: they need Cart-Token and Basic auth that this route does not and should not implement, and routing them here would silently strip that.
 
 Alternative considered: a single flat allowlist of full path prefixes (`/lms-backend/v1/courses`, …). Rejected — it needs updating every time an endpoint is added, which is precisely the maintenance tax this change exists to remove.
 
@@ -64,34 +64,56 @@ The server branch is unchanged, so Server Components using the axios singleton k
 
 Alternative considered: migrating the four broken services to `bffJson()` with hand-written routes, as `courses.curriculum()` does. Rejected — it is four files of near-identical code, it leaves twenty reads exposed, and it makes each service carry knowledge of its own transport.
 
-### Decision 4: `proxyToWP()` gains header passthrough and a `message` field
+### Decision 4: `proxyToWP()` gains header passthrough, and the error key is read rather than duplicated
 
-Both are additive and benefit every existing caller.
+Two gaps, both benefiting every existing caller.
 
-- Forward `x-wp-total` and `x-wp-totalpages` onto the response, copying what `proxyToWCRest()` already does. Without this, `paginate()` falls back to `items.length` and every proxied list read reports a wrong total the moment its upstream uses header pagination rather than an envelope.
-- Emit `{ error, message, code }` instead of `{ error, code }` on an upstream failure, with `message` carrying the same text as `error`. `toApiError()` reads `message`; `bffJson()` reads `error` first and falls back to `message`. Adding the field satisfies both and breaks neither.
+- Forward `x-wp-total` and `x-wp-totalpages` onto the response. Without this, `paginate()` falls back to `items.length` and every proxied list read reports a wrong total the moment its upstream uses header pagination rather than an envelope. The logic is shared with `proxyToWCRest()` as `forwardPaginationHeaders()` rather than copied a second time.
+- The BFF emits failures as `{ error, code }` while `toApiError()` read only `message`, so every BFF error reaching an Axios caller degraded to a generic string. The fix is on the reading side: `toApiError()` now falls back to a string `error` after `message`. Emitting both keys from the proxy was the first attempt and is worse — it makes the wire format carry a duplicate field forever to paper over a reader that could simply be taught the shape.
 
-Alternative considered: normalising in the new route only. Rejected — the bugs are in the shared proxy, and every other BFF route has them too.
+Alternative considered: normalising in the new route only. Rejected — the gaps are in the shared proxy, and every other BFF route has them too.
 
-### Decision 5: Cache public reads only, by keying on the presence of a credential
+### Decision 5: Cache only successful, credential-free reads
 
-The route runs on the Node runtime and is dynamic. A read that arrives with no `access_token` cookie is identical for every visitor and gets a short revalidation window; a read that arrives with one is personalised and is not cached at all. This is the simplest rule that satisfies the spec's "cached proxy responses never leak between visitors" requirement without inventing a per-user cache key.
+The route runs on the Node runtime and is dynamic. A response is shareable only when both hold: the request carried no `access_token` cookie, and the upstream answered successfully. Shareable responses get `public, s-maxage=300, stale-while-revalidate=600`; everything else gets `private, no-store`. `Vary: Cookie` keys the two apart.
 
-The consequence is that signed-in visitors pay the full round trip on every read. That is acceptable: signed-in traffic is a fraction of total traffic, and the alternative — a vary-by-user cache — is a correctness risk far out of proportion to the saving.
+Status has to be in that condition, not just the cookie. A bot-protection challenge surfaces here as a 502 and an upstream wobble as a 5xx, and caching either publicly would serve one bad moment at the CMS to every visitor for the next five minutes — turning a transient upstream blip into a sustained outage. This is the single most dangerous thing a caching proxy can get wrong, so it is asserted by tests for the 502, 4xx and 5xx cases.
+
+`stale-while-revalidate=600` extends past the 300s freshness window on purpose: it lets one visitor absorb the revalidation while everyone else is served the slightly stale copy, which is exactly the thundering-herd protection a public content read wants.
+
+The consequence of the cookie rule is that signed-in visitors pay the full round trip on every read. Acceptable: signed-in traffic is a fraction of the total, and a vary-by-user cache is a correctness risk out of proportion to the saving. `Vary: Cookie` also caps the hit rate for everyone, since any per-visitor cookie splits the entry — the way to unlock real reuse is to keep session cookies off the read path, not to widen this rule.
+
+### Decision 6: The namespace allowlist is enforced against dot segments, not trusted to the framework
+
+`encodeURIComponent` leaves `.` and `..` untouched, and the upstream URL is assembled by string concatenation before `fetch` parses it — and URL parsing resolves dot segments. So `…/lms-backend/v1/../../wc/v3/orders` passes an allowlist check on `lms-backend/v1` and then addresses the WooCommerce namespace. Confirmed against the handler: it returned 200 with the traversal resolved.
+
+Next strips dot segments during routing, so this is not reachable over HTTP today. That is not a reason to leave it: the allowlist is a security boundary, and a boundary that holds only because an undocumented framework behaviour happens to shield it is not a boundary. Empty, `.` and `..` segments are rejected where the decision is made.
+
+### Decision 7: Browser writes get their own route, because the read proxy must stay GET-only
+
+Gravity Forms validate and submit are the only browser-initiated writes that went straight to the CMS, and they are subject to the same challenge. Widening the read proxy to accept POST would trade a narrow, cacheable, body-less read surface for a general forwarder — so they get `POST /api/forms/[id]/[action]` instead, restricted to the two Gravity Forms actions.
+
+That route relays the upstream body **verbatim** rather than reusing the enveloping proxies. A 422 carries per-field messages under `data.validation_messages`, and `formsService` reads them off the raw body; the enveloping path collapses a failure to `{ error, code }` and would turn "fix these three fields" into a generic error. Verbatim relay also means behaviour is identical to the direct call it replaces, which is the cheapest thing to be confident about. Multipart is passed through as `FormData` so file uploads keep their boundary.
 
 ## Risks / Trade-offs
 
-**A same-origin GET proxy is callable by anything on the frontend origin** → Bounded to three read namespaces, `GET` only, no request body forwarded. The worst case is reading public WordPress content that was already public. It grants no writes and cannot reach another host, because the destination origin comes from server config, never from the request.
+**A same-origin GET proxy is callable by anything on the frontend origin** → Bounded to three read namespaces, `GET` only, no request body forwarded, and dot segments refused so an allowed namespace cannot be used as a springboard into a disallowed one. The worst case is reading public WordPress content that was already public. It grants no writes and cannot reach another host, because the destination origin comes from server config, never from the request.
 
-**All CMS egress concentrates on the deployment's server IPs** → If SiteGround ever challenges that IP, every browser read fails simultaneously instead of degrading per-visitor. This is strictly worse than today's failure mode in blast radius and strictly better in likelihood. It is why the infrastructure follow-up (exclude `/wp-json/*` from the Anti-Bot System, or allowlist egress IPs) is the real fix and this is the mitigation.
+**All CMS egress concentrates on the deployment's server IPs** → If SiteGround ever challenges that IP, every browser read fails simultaneously instead of degrading per-visitor. Strictly worse than today's failure mode in blast radius and strictly better in likelihood. It is why the infrastructure follow-up is the real fix and this is the mitigation.
 
-**One extra network hop per browser read** → Same-datacentre, and public reads are cached with a short revalidation window, so the steady state is a CDN hit. Cold reads cost one intra-datacentre round trip.
+**A caching proxy can amplify an upstream blip into an outage** → Only a `res.ok`, credential-free response is shareable; a 502 from a challenge page and any upstream 4xx/5xx are `no-store`. Tested for all three.
 
-**A namespace added to `endpoints.ts` without adding it to the allowlist fails at runtime, not at build time** → Mitigated by keeping the allowlist derived from the same `env.LMS_NAMESPACE` the endpoints use, and by a unit test that asserts every namespace `endpoints.ts` emits for the axios client is allowed. The failure is loud (a client error with an explicit message) rather than silent.
+**One extra network hop per browser read** → Same-datacentre, and public reads are CDN-cacheable, so the steady state is a cache hit. `Vary: Cookie` caps that hit rate in practice.
 
-**The 401/403 redirect interceptor now sees proxy responses** → `proxyToWP` returns the upstream status unchanged, so a genuine WordPress 401 still triggers the existing login bounce. The one new case is the proxy's own 400-class refusals for a bad namespace or method, which are not 401/403 and therefore do not bounce.
+**`productService` would 400 if it were ever revived client-side** → It reads `wc/store/v1` through the axios singleton and has no call sites. The failure is loud and explicit (`unsupported_namespace`), not silent, and the guard test documents `wc/store/v1` as belonging to a dedicated route. Left in place rather than deleted, which is out of scope here.
 
-**Envelope handling now happens twice** → `proxyToWP` strips `{ success, data }`, then `unwrapLmsEnvelope` inspects the already-unwrapped body, finds no `success` key, and passes it through. Harmless, but it means a payload that legitimately contains a top-level `success` field would be double-unwrapped. No current endpoint does; a test pins the behaviour.
+**A namespace added to `endpoints.ts` without classification** → Fails CI. One test asserts every entry in `REST_NAMESPACES` is either proxied or has a dedicated route, and a second scans the endpoint path strings so a namespace hardcoded into one rather than taken from the registry is caught too. Verified by adding a namespace and watching it fail.
+
+**Writes are now split across two routes** → Reads go through `/api/wp`, Gravity Forms writes through `/api/forms`. A third write surface appearing in the browser will need its own route rather than falling through. That is deliberate: the read proxy staying GET-only is what keeps its blast radius small.
+
+**The 401/403 redirect interceptor now sees proxy responses** → `proxyToWP` returns the upstream status unchanged, so a genuine WordPress 401 still triggers the existing login bounce. The proxy's own 400-class refusals are not 401/403 and therefore do not bounce.
+
+**Envelope handling now happens twice** → `proxyToWP` strips `{ success, data }`, then `unwrapLmsEnvelope` inspects the already-unwrapped body, finds no `success` key, and passes it through. Harmless, but it means a payload legitimately containing a top-level `success` field would be double-unwrapped. A test pins that it is not.
 
 ## Migration Plan
 
@@ -106,5 +128,6 @@ The consequence is that signed-in visitors pay the full round trip on every read
 
 ## Open Questions
 
-- What revalidation window suits the public reads? Anything from 60s to 300s is defensible and the choice does not affect the specs, the approach, or the tasks. Start at 300s to match the `/settings` TTL set by `add-settings-cache-revalidation`, and tune once there is cache-hit data.
 - Whether `swca/v1` still needs browser reachability at all. It serves legacy certificate verification only. Keeping it in the allowlist is the conservative choice; removing it later is a one-line change once its call sites are confirmed unused.
+
+**Resolved during implementation:** the revalidation window is 300s, matching the `/settings` TTL, with `stale-while-revalidate=600` so one visitor absorbs each refresh instead of all of them.
