@@ -28,6 +28,23 @@ export class FormValidationError extends Error {
   }
 }
 
+/**
+ * Gravity Forms writes go through a dedicated BFF route, not the read proxy.
+ *
+ * The Axios base URL is the same-origin read proxy in the browser, and that
+ * route is `GET`-only — a submission posted through it would 405. These two
+ * paths are already app-absolute, so they override the base URL rather than
+ * being appended to it.
+ */
+function bffFormPath(id: number | string, action: "validate" | "submissions"): string {
+  return `/api/forms/${encodeURIComponent(String(id))}/${action}`;
+}
+
+/** Send cookies (Gravity Forms maps an entry to a signed-in user) and skip the base URL. */
+function asBffRequest(config?: AxiosRequestConfig): AxiosRequestConfig {
+  return { ...config, baseURL: "", withCredentials: true };
+}
+
 /** Pull `data.validation_messages` out of a WP_Error body, if present. */
 function extractValidationMessages(raw: unknown): FormFieldErrors | null {
   const body = raw as WpError | undefined;
@@ -49,7 +66,7 @@ export const formsService = {
   async validateForm(id: number | string, values: SubmitPayload, pages?: PageArgs): Promise<true> {
     const { body, config } = withPages(values, pages);
     try {
-      await api.post(endpoints.forms.validate(id), body, config);
+      await api.post(bffFormPath(id, "validate"), body, asBffRequest(config));
       return true;
     } catch (err) {
       throw mapSubmitError(err);
@@ -65,9 +82,9 @@ export const formsService = {
     const { body, config } = withPages(values, pages);
     try {
       const { data } = await api.post<FormSubmissionSuccess>(
-        endpoints.forms.submit(id),
+        bffFormPath(id, "submissions"),
         body,
-        config,
+        asBffRequest(config),
       );
       return data;
     } catch (err) {

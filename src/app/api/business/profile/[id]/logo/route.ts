@@ -1,4 +1,5 @@
-import { proxyFormDataToWP, proxyToB2B } from "@/lib/api/bff";
+import { NextResponse } from "next/server";
+import { proxyFormDataToWP, proxyToB2B, readFormData } from "@/lib/api/bff";
 import { endpoints } from "@/lib/api/endpoints";
 import { env } from "@/lib/env";
 
@@ -8,7 +9,13 @@ import { env } from "@/lib/env";
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const formData = await req.formData();
+  const formData = await readFormData(req);
+  if (!formData) {
+    return NextResponse.json(
+      { error: "Expected multipart form data", code: "invalid_body" },
+      { status: 400 },
+    );
+  }
   return proxyFormDataToWP(endpoints.business.businessLogo(id), formData, {
     namespace: env.B2B_NAMESPACE,
   });
