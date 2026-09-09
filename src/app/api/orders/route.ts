@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { proxyToWCRest } from "@/lib/api/bff";
+import { orderAttributionMetaFromRequest } from "@/lib/analytics/order-attribution";
 import {
   createWCOrder,
   getAuthenticatedUserId,
@@ -119,6 +120,14 @@ export async function POST(req: Request) {
 
   if (userId) {
     wcPayload.customer_id = userId;
+  }
+
+  // Visit attribution captured by the proxy, read from the httpOnly cookie
+  // rather than the request body — nothing client-controlled reaches order
+  // meta. Best-effort: an order with no cookies is created exactly as before.
+  const attributionMeta = orderAttributionMetaFromRequest(req);
+  if (attributionMeta.length) {
+    wcPayload.meta_data = attributionMeta;
   }
 
   const wcResult = await createWCOrder(wcPayload);
