@@ -108,6 +108,14 @@ UI component
 
 Public reads (course list, blog, etc.) go directly from the Axios client to WordPress — no BFF proxy needed. Only authenticated mutations and sensitive reads go through `/api/*` BFF routes.
 
+One exception, and it is growing: the CMS is on a separate origin and its bot
+protection answers browser XHR with a challenge page that carries no
+`Access-Control-Allow-Origin`, so those direct reads fail with a CORS error.
+A public read moved behind a BFF route for that reason passes
+`requiresAuth: false`, which keeps it readable signed-out while still
+forwarding a signed-in user's token. `GET /api/courses/[id]/curriculum` is the
+worked example.
+
 ### Endpoint namespaces
 
 `src/lib/api/endpoints.ts` is the single source for all URL strings:

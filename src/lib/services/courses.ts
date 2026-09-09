@@ -1,4 +1,5 @@
 import { api } from "@/lib/api/client";
+import { bffJson } from "@/lib/api/bff-client";
 import { endpoints } from "@/lib/api/endpoints";
 import { paginate, decodeEntities } from "@/lib/api/parsers";
 import { formatDuration } from "@/lib/utils/format";
@@ -357,15 +358,24 @@ export const coursesService = {
       course_id?: number;
     };
 
+    // Read through the BFF rather than straight to WordPress — see the route's
+    // docblock for why. `bffJson` yields `null` for a literal `null` body and
+    // `{}` for an empty or unparseable one, so neither branch below can assume
+    // a well-formed payload.
+    //
     // The lms-backend `/courses/{id}/curriculum` endpoint returns a FLAT array:
     // section markers ({ id: null, type: "section" }) interleaved with unit/quiz
     // items ({ id: number, type: "unit" | "quiz", ... }). Older/alternate shapes
     // nest units under `sections[].units`, so we tolerate both.
-    const { data } = await api.get<Array<Record<string, unknown>> | NestedShape>(
-      endpoints.courses.curriculum(idOrSlug),
+    const data = await bffJson<Array<Record<string, unknown>> | NestedShape | null>(
+      `/api/courses/${encodeURIComponent(String(idOrSlug))}/curriculum`,
     );
 
     const sections: CourseSection[] = [];
+
+    if (!data) {
+      return { courseId: Number(idOrSlug) || 0, sections, totalUnits: 0 };
+    }
 
     if (Array.isArray(data)) {
       let current: CourseSection | null = null;
