@@ -3,6 +3,7 @@ import {
   normalizeCourse,
   normalizeRichCourse,
   normalizeFlatCurriculum,
+  normalizeCourseReviews,
 } from "@/lib/services/courses";
 
 describe("normalizeCourse", () => {
@@ -228,5 +229,67 @@ describe("normalizeFlatCurriculum", () => {
 
   it("returns an empty array for a missing payload", () => {
     expect(normalizeFlatCurriculum(null)).toEqual([]);
+  });
+});
+
+describe("normalizeCourseReviews", () => {
+  const raw = {
+    course_id: 123,
+    total_reviews: 1,
+    average_rating: 5,
+    rating_breakdown: { "5": 1, "4": 0, "3": 0, "2": 0, "1": 0 },
+    reviews: [
+      {
+        id: "456",
+        course_id: 123,
+        user_id: 7,
+        author: { id: 7, name: "Ann &amp; Bob", avatar: "https://cdn.test/a.png" },
+        title: "Great course!",
+        content: "Very helpful &mdash; thanks",
+        rating: 5,
+        created_at: "2024-01-15 10:30:00",
+        status: "1",
+      },
+    ],
+  };
+
+  it("flattens the author object into a display name and avatar", () => {
+    const { reviews } = normalizeCourseReviews(123, raw as never);
+    expect(reviews[0].author).toBe("Ann & Bob");
+    expect(reviews[0].avatar).toBe("https://cdn.test/a.png");
+  });
+
+  it("maps created_at onto date in a form Date can parse", () => {
+    const { reviews } = normalizeCourseReviews(123, raw as never);
+    expect(reviews[0].date).toBe("2024-01-15T10:30:00");
+    expect(Number.isNaN(new Date(reviews[0].date).getTime())).toBe(false);
+  });
+
+  it("coerces a string id and decodes the content", () => {
+    const { reviews } = normalizeCourseReviews(123, raw as never);
+    expect(reviews[0].id).toBe(456);
+    expect(reviews[0].content).toBe("Very helpful — thanks");
+  });
+
+  it("falls back to 'Anonymous' when the author has no name", () => {
+    const { reviews } = normalizeCourseReviews(123, {
+      reviews: [{ id: 1, author: null, content: "x" }],
+    } as never);
+    expect(reviews[0].author).toBe("Anonymous");
+  });
+
+  it("accepts a legacy string author", () => {
+    const { reviews } = normalizeCourseReviews(123, {
+      reviews: [{ id: 1, author: "Plain Name", content: "x" }],
+    } as never);
+    expect(reviews[0].author).toBe("Plain Name");
+  });
+
+  it("returns a zeroed breakdown and empty list for a missing payload", () => {
+    const res = normalizeCourseReviews(123, null);
+    expect(res.course_id).toBe(123);
+    expect(res.reviews).toEqual([]);
+    expect(res.total_reviews).toBe(0);
+    expect(res.rating_breakdown).toEqual({ "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 });
   });
 });
