@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { proxyToWCStore } from "@/lib/api/bff";
 import { withStoreApiAttribution } from "@/lib/analytics/order-attribution";
-import { readAttributionState } from "@/lib/analytics/attribution-cookies";
-import { pixelYourSiteQuery } from "@/lib/analytics/pixelyoursite";
+import { pixelYourSiteQueryFromRequest } from "@/lib/analytics/pixelyoursite";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -29,9 +28,7 @@ export async function POST(req: Request, { params }: RouteContext) {
   // PixelYourSite rewrites its order data on this hook with no double-execution
   // guard, rebuilding it from `$_REQUEST`. Sending the parameters here too stops
   // a retry-pay clobbering a record that was already populated at create time.
-  const pys = pixelYourSiteQuery(readAttributionState(req.headers.get("cookie")));
-
-  return proxyToWCStore(`/checkout/${orderId}${pys}`, {
+  return proxyToWCStore(`/checkout/${orderId}${pixelYourSiteQueryFromRequest(req)}`, {
     method: "POST",
     body: withStoreApiAttribution(body, req),
     request: req,

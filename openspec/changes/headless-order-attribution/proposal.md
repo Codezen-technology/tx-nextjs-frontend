@@ -35,7 +35,8 @@ client, service or hook is modified.
 - `order-attribution`: How a visit's traffic source is captured on the frontend,
   carried to WooCommerce with the order that visit produced, and rendered in the
   WooCommerce admin. Covers the classification rules, the cookie contract, the
-  two WooCommerce write shapes, and the best-effort guarantee.
+  two WooCommerce write shapes, the severable third-party plugin copy, and the
+  best-effort guarantee.
 
 ### Modified Capabilities
 

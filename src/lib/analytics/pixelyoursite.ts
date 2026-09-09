@@ -1,5 +1,5 @@
 import type { Attribution } from "./attribution";
-import type { AttributionState } from "./attribution-cookies";
+import { readAttributionState, type AttributionState } from "./attribution-cookies";
 
 /**
  * PixelYourSite reads every attribution field from `$_REQUEST` before falling
@@ -62,4 +62,13 @@ export function pixelYourSiteQuery(state: AttributionState): string {
   });
 
   return `?${query.toString()}`;
+}
+
+/**
+ * Convenience for BFF route handlers, mirroring
+ * `storeApiAttributionFromRequest`. Returns a `?`-prefixed string ready to
+ * append to an upstream path, or an empty string.
+ */
+export function pixelYourSiteQueryFromRequest(req: Request): string {
+  return pixelYourSiteQuery(readAttributionState(req.headers.get("cookie")));
 }

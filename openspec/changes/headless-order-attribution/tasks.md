@@ -81,6 +81,6 @@ is not a supported interface.
 - [x] 8.2 Place one throwaway order with the `pys_*` parameters appended by hand and record which prefix lands in FIRST VISIT and which in LAST VISIT. If the box still reads `REST API`, delete this group
 - [x] 8.3 Write `src/__tests__/pixelyoursite-params.test.ts` covering the pipe-delimited UTM string, the `undefined` placeholder, and the empty-state return
 - [x] 8.4 Run it and confirm it fails, then implement `src/lib/analytics/pixelyoursite.ts`
-- [x] 8.5 Give `createWCOrder` an optional query string and append the parameters on both order-creating routes
+- [x] 8.5 Give `createWCOrder` an optional query string and append the parameters on the two order-creating routes, and on `store-pay` as well: the plugin rewrites its record on that hook with no double-execution guard, so a retry-pay would otherwise clobber a record populated at create time
 - [x] 8.6 Run `pnpm test pixelyoursite-params`, then `pnpm test` in full
 - [ ] 8.7 Place a real order, confirm the metabox shows a landing page and traffic source rather than `REST API`, and commit `feat(analytics): populate the PixelYourSite order metabox from captured attribution`

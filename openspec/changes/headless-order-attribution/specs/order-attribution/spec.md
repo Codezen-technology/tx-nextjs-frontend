@@ -36,7 +36,8 @@ The frontend SHALL classify each arrival into exactly one source type. Explicit 
 #### Scenario: Explicit campaign
 
 - **WHEN** any `utm_*` parameter is present
-- **THEN** the source type is `utm` and the supplied parameter values are recorded unchanged
+- **THEN** the source type is `utm` and every supplied parameter value is recorded unchanged
+- **AND** a `utm_source` or `utm_medium` the arrival omitted takes the direct-arrival default, matching the convention WooCommerce itself uses
 
 #### Scenario: Paid click identifier without campaign parameters
 
@@ -138,6 +139,30 @@ Stored attribution SHALL be readable through WooCommerce's existing order Origin
 
 - **WHEN** an administrator filters WooCommerce Analytics by attribution
 - **THEN** orders placed through the headless frontend appear under their recorded source
+
+### Requirement: Third-party analytics plugin receives the same attribution
+
+Where the store runs an analytics plugin that records its own copy of visit
+attribution on the order, and that plugin can be supplied the values without
+modifying it, the frontend SHALL send them alongside its own. This SHALL be
+severable: removing it MUST leave every other requirement in this capability
+satisfied.
+
+#### Scenario: Plugin metabox populated
+
+- **WHEN** an order is placed by a visitor with recorded attribution
+- **THEN** the plugin's own order record holds the real landing page, traffic source and campaign
+- **AND** not the placeholder it substitutes when a request carries no browser context
+
+#### Scenario: Payment of an existing order does not erase it
+
+- **WHEN** an order that already carries plugin attribution is paid in a later request
+- **THEN** the values are still present afterwards
+
+#### Scenario: Visitor with no recorded attribution
+
+- **WHEN** an order is placed by a visitor whose attribution record is absent
+- **THEN** no plugin parameters are sent and the order is placed exactly as it would have been
 
 ### Requirement: Attribution never blocks a purchase
 

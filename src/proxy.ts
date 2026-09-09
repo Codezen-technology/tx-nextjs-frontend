@@ -47,7 +47,7 @@ function rewriteWithDefaultLocale(req: NextRequest): NextResponse | null {
   return response;
 }
 
-function route(req: NextRequest) {
+function resolveRouting(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const strippedPathname = stripLocale(pathname);
   const loggedIn = req.cookies.get("user_logged_in")?.value === "1";
@@ -90,7 +90,7 @@ function route(req: NextRequest) {
  * why they otherwise record their source as `REST API`.
  */
 export function proxy(req: NextRequest) {
-  return applyAttributionCookies(req, route(req));
+  return applyAttributionCookies(req, resolveRouting(req));
 }
 
 export const config = {

@@ -26,6 +26,41 @@ export interface OrderMetaEntry {
 }
 
 /**
+ * The 16 values both write shapes carry, keyed by WooCommerce's own field
+ * names. The two builders differ in how they *shape* these, not in what they
+ * hold, so the extraction lives here once.
+ *
+ * `session_count` is the one field taken from first-touch rather than the
+ * session: it counts the visitor's lifetime sessions, not this one.
+ */
+function attributionValues(
+  state: AttributionState,
+  userAgent: string,
+): Record<string, string | number> | null {
+  const session = state.session;
+  if (!session) return null;
+
+  return {
+    source_type: session.source_type,
+    referrer: session.referrer,
+    utm_campaign: session.utm_campaign,
+    utm_source: session.utm_source,
+    utm_medium: session.utm_medium,
+    utm_content: session.utm_content,
+    utm_id: session.utm_id,
+    utm_term: session.utm_term,
+    utm_source_platform: session.utm_source_platform,
+    utm_creative_format: session.utm_creative_format,
+    utm_marketing_tactic: session.utm_marketing_tactic,
+    session_entry: session.session_entry,
+    session_start_time: session.session_start_time,
+    session_pages: session.session_pages,
+    session_count: state.first?.session_count ?? 1,
+    user_agent: userAgent,
+  };
+}
+
+/**
  * The WC REST v3 shape: 17 prefixed keys, empty values dropped.
  *
  * `device_type` is written explicitly here because nothing on the REST v3 path
@@ -36,26 +71,11 @@ export function buildOrderAttributionMeta(
   state: AttributionState,
   userAgent: string,
 ): OrderMetaEntry[] {
-  const session = state.session;
-  if (!session) return [];
+  const values = attributionValues(state, userAgent);
+  if (!values) return [];
 
   const fields: Record<string, string | number> = {
-    source_type: session.source_type,
-    referrer: session.referrer,
-    utm_source: session.utm_source,
-    utm_medium: session.utm_medium,
-    utm_campaign: session.utm_campaign,
-    utm_content: session.utm_content,
-    utm_term: session.utm_term,
-    utm_id: session.utm_id,
-    utm_source_platform: session.utm_source_platform,
-    utm_creative_format: session.utm_creative_format,
-    utm_marketing_tactic: session.utm_marketing_tactic,
-    session_entry: session.session_entry,
-    session_start_time: session.session_start_time,
-    session_pages: session.session_pages,
-    session_count: state.first?.session_count ?? 1,
-    user_agent: userAgent,
+    ...values,
     device_type: deviceType(userAgent),
   };
 
@@ -106,31 +126,12 @@ export function buildStoreApiAttributionExtension(
   state: AttributionState,
   userAgent: string,
 ): Record<string, string> | null {
-  const session = state.session;
-  if (!session) return null;
-
-  const source: Record<string, string | number> = {
-    source_type: session.source_type,
-    referrer: session.referrer,
-    utm_campaign: session.utm_campaign,
-    utm_source: session.utm_source,
-    utm_medium: session.utm_medium,
-    utm_content: session.utm_content,
-    utm_id: session.utm_id,
-    utm_term: session.utm_term,
-    utm_source_platform: session.utm_source_platform,
-    utm_creative_format: session.utm_creative_format,
-    utm_marketing_tactic: session.utm_marketing_tactic,
-    session_entry: session.session_entry,
-    session_start_time: session.session_start_time,
-    session_pages: session.session_pages,
-    session_count: state.first?.session_count ?? 1,
-    user_agent: userAgent,
-  };
+  const values = attributionValues(state, userAgent);
+  if (!values) return null;
 
   const out: Record<string, string> = {};
   for (const field of STORE_API_FIELDS) {
-    const value = source[field];
+    const value = values[field];
     out[field] = value === "" || value === undefined || value === null ? "(none)" : String(value);
   }
   return out;
@@ -144,20 +145,29 @@ export function storeApiAttributionFromRequest(req: Request): Record<string, str
 }
 
 /**
- * Merge the WooCommerce attribution extension into a Store API request body,
- * leaving any extension the caller already set in place. Returns the body
- * unchanged when the visitor carries no attribution cookies.
+ * Set the WooCommerce attribution extension on a Store API request body from
+ * the visitor's cookies, leaving any *other* extension the caller set in place.
+ *
+ * The attribution namespace itself is always stripped from the incoming body
+ * first, including when there are no cookies to replace it with. Attribution is
+ * never accepted from a request body: without that strip, a cookieless caller
+ * could hand WooCommerce whatever campaign it liked and poison the reports.
  */
 export function withStoreApiAttribution(
   body: Record<string, unknown>,
   req: Request,
 ): Record<string, unknown> {
   const attribution = storeApiAttributionFromRequest(req);
-  if (!attribution) return body;
+  const incoming = body.extensions as Record<string, unknown> | undefined;
+  const bodySuppliedAttribution = incoming !== undefined && WC_ATTRIBUTION_EXTENSION in incoming;
 
-  const existing = (body.extensions ?? {}) as Record<string, unknown>;
-  return {
-    ...body,
-    extensions: { ...existing, [WC_ATTRIBUTION_EXTENSION]: attribution },
-  };
+  if (!attribution && !bodySuppliedAttribution) return body;
+
+  const extensions = { ...incoming };
+  delete extensions[WC_ATTRIBUTION_EXTENSION];
+  if (attribution) {
+    extensions[WC_ATTRIBUTION_EXTENSION] = attribution;
+  }
+
+  return { ...body, extensions };
 }

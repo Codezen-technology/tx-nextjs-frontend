@@ -101,6 +101,38 @@ describe("POST /api/cart/checkout", () => {
     expect(sentBody().extensions).toBeUndefined();
   });
 
+  it("strips attribution the caller put in the body, overwriting it with the cookie's", async () => {
+    await checkoutPOST(
+      withCookies("https://tx.test/api/cart/checkout", {
+        extensions: {
+          [WC_ATTRIBUTION_EXTENSION]: { source_type: "utm", utm_source: "spoofed" },
+        },
+      }),
+    );
+
+    const extensions = sentBody().extensions as Record<string, Record<string, string>>;
+    expect(extensions[WC_ATTRIBUTION_EXTENSION].utm_source).toBe("google");
+  });
+
+  it("strips attribution the caller put in the body even with no cookies to replace it", async () => {
+    await checkoutPOST(
+      new Request("https://tx.test/api/cart/checkout", {
+        method: "POST",
+        body: JSON.stringify({
+          payment_method: "stripe",
+          extensions: {
+            "acme/gift-note": { message: "hi" },
+            [WC_ATTRIBUTION_EXTENSION]: { source_type: "utm", utm_source: "spoofed" },
+          },
+        }),
+      }),
+    );
+
+    const extensions = sentBody().extensions as Record<string, unknown>;
+    expect(extensions[WC_ATTRIBUTION_EXTENSION]).toBeUndefined();
+    expect(extensions["acme/gift-note"]).toEqual({ message: "hi" });
+  });
+
   it("returns the upstream response unchanged", async () => {
     const res = await checkoutPOST(withCookies("https://tx.test/api/cart/checkout", {}));
     expect(res.status).toBe(200);
