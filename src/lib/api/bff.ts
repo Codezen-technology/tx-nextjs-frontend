@@ -370,6 +370,23 @@ export async function proxyToB2BQuery(
 }
 
 /**
+ * Read a multipart body, or `null` if the request does not carry one.
+ *
+ * `Request.formData()` throws on a body it cannot parse, and an uncaught throw
+ * in a route handler is a 500 with an empty body. An upload route is reachable
+ * before its auth check, so without this guard anyone can turn a wrong
+ * Content-Type into a server error and a stack trace in the logs. A caller that
+ * gets `null` should answer 400.
+ */
+export async function readFormData(request: Request): Promise<FormData | null> {
+  try {
+    return await request.formData();
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Proxy a multipart/form-data request (e.g. assignment file uploads) to the LMS
  * backend. Mirrors proxyToWP's auth (httpOnly access_token → Bearer, refresh on
  * 401) but streams the raw FormData instead of JSON. Content-Type is left unset
