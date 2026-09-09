@@ -278,10 +278,20 @@ export async function proxyToWP(wpPath: string, options: ProxyOptions = {}): Pro
 
   let res = await fetch(url, { method, headers, body: fetchBody });
 
-  if (res.status === 401 && requiresAuth) {
+  // Retry whenever we actually sent a token, not just on auth-required routes.
+  // A public route still forwards a signed-in user's access token, so an expired
+  // one would otherwise turn a 200-for-everyone endpoint into a 401 for exactly
+  // the users who are logged in.
+  if (res.status === 401 && accessFromCookie) {
     const refreshed = await tryRefresh();
     if (refreshed) {
       headers.Authorization = `Bearer ${refreshed}`;
+      res = await fetch(url, { method, headers, body: fetchBody });
+    } else if (!requiresAuth) {
+      // Refresh failed and the session is now cleared. The endpoint is public,
+      // so drop the dead credential and serve the anonymous response rather
+      // than failing the request.
+      delete headers.Authorization;
       res = await fetch(url, { method, headers, body: fetchBody });
     }
   }

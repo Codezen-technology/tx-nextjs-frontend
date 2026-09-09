@@ -18,14 +18,25 @@ type B2BId = string | number;
 
 const seg = (value: B2BId) => `/${encodeURIComponent(String(value))}`;
 
-/** REST path segment for a course by numeric ID or post slug. */
-export function coursePath(idOrSlug: string | number, subpath?: string): string {
+/**
+ * Namespace-less REST path for a course by numeric ID or post slug.
+ *
+ * BFF routes need this shape: `proxyToWP` prepends the namespace itself, so it
+ * takes the path without the `lms-backend/v1` prefix that `coursePath` adds.
+ * Both spellings share this one numeric-vs-slug rule.
+ */
+export function courseSubpath(idOrSlug: string | number, subpath?: string): string {
   const segment = encodeURIComponent(String(idOrSlug));
   const base =
     typeof idOrSlug === "number" || /^\d+$/.test(String(idOrSlug))
-      ? `${lms}/courses/${segment}`
-      : `${lms}/courses/slug/${segment}`;
+      ? `/courses/${segment}`
+      : `/courses/slug/${segment}`;
   return subpath ? `${base}/${subpath.replace(/^\//, "")}` : base;
+}
+
+/** REST path segment for a course by numeric ID or post slug. */
+export function coursePath(idOrSlug: string | number, subpath?: string): string {
+  return `${lms}${courseSubpath(idOrSlug, subpath)}`;
 }
 
 /**
@@ -96,7 +107,6 @@ export const endpoints = {
     featured: `${lms}/courses/featured`,
     popular: `${lms}/courses/popular`,
     free: `${lms}/courses/free`,
-    curriculum: (idOrSlug: string | number) => coursePath(idOrSlug, "curriculum"),
     sections: (idOrSlug: string | number) => coursePath(idOrSlug, "sections"),
     related: (idOrSlug: string | number) => coursePath(idOrSlug, "related"),
     instructors: (id: number) => `${lms}/courses/${id}/instructors`,
