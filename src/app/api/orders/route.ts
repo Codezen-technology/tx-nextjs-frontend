@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { proxyToWCRest } from "@/lib/api/bff";
 import { orderAttributionMetaFromRequest } from "@/lib/analytics/order-attribution";
+import { readAttributionState } from "@/lib/analytics/attribution-cookies";
+import { pixelYourSiteQuery } from "@/lib/analytics/pixelyoursite";
 import {
   createWCOrder,
   getAuthenticatedUserId,
@@ -130,7 +132,10 @@ export async function POST(req: Request) {
     wcPayload.meta_data = attributionMeta;
   }
 
-  const wcResult = await createWCOrder(wcPayload);
+  const wcResult = await createWCOrder(
+    wcPayload,
+    pixelYourSiteQuery(readAttributionState(req.headers.get("cookie"))),
+  );
   if (!wcResult.ok) {
     return NextResponse.json({ error: wcResult.error }, { status: 502 });
   }

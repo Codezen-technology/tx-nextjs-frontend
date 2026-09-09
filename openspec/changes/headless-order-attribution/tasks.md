@@ -77,10 +77,10 @@ before committing.
 Skip freely. Nothing else depends on it, and it relies on plugin behaviour that
 is not a supported interface.
 
-- [ ] 8.1 Confirm PixelYourSite is configured to store data on orders at all; if not, delete this group
-- [ ] 8.2 Place one throwaway order with the `pys_*` parameters appended by hand and record which prefix lands in FIRST VISIT and which in LAST VISIT. If the box still reads `REST API`, delete this group
-- [ ] 8.3 Write `src/__tests__/pixelyoursite-params.test.ts` covering the pipe-delimited UTM string, the `undefined` placeholder, and the empty-state return
-- [ ] 8.4 Run it and confirm it fails, then implement `src/lib/analytics/pixelyoursite.ts`
-- [ ] 8.5 Give `createWCOrder` an optional query string and append the parameters on both order-creating routes
-- [ ] 8.6 Run `pnpm test pixelyoursite-params`, then `pnpm test` in full
+- [x] 8.1 Confirm PixelYourSite is configured to store data on orders at all; if not, delete this group
+- [x] 8.2 Place one throwaway order with the `pys_*` parameters appended by hand and record which prefix lands in FIRST VISIT and which in LAST VISIT. If the box still reads `REST API`, delete this group
+- [x] 8.3 Write `src/__tests__/pixelyoursite-params.test.ts` covering the pipe-delimited UTM string, the `undefined` placeholder, and the empty-state return
+- [x] 8.4 Run it and confirm it fails, then implement `src/lib/analytics/pixelyoursite.ts`
+- [x] 8.5 Give `createWCOrder` an optional query string and append the parameters on both order-creating routes
+- [x] 8.6 Run `pnpm test pixelyoursite-params`, then `pnpm test` in full
 - [ ] 8.7 Place a real order, confirm the metabox shows a landing page and traffic source rather than `REST API`, and commit `feat(analytics): populate the PixelYourSite order metabox from captured attribution`

@@ -125,8 +125,13 @@ export async function validateCouponCode(code: string): Promise<string | null> {
 
 export type CreateWCOrderResult = { ok: true; order: WCOrderRecord } | { ok: false; error: string };
 
-export async function createWCOrder(payload: unknown): Promise<CreateWCOrderResult> {
-  const res = await fetch(wcRestUrl("/orders"), {
+/**
+ * `query` is an optional `?…`-prefixed string appended to the endpoint. It
+ * exists so callers can pass PixelYourSite's `pys_*` parameters, which the
+ * plugin reads from `$_REQUEST` — a JSON body never reaches `$_POST`.
+ */
+export async function createWCOrder(payload: unknown, query = ""): Promise<CreateWCOrderResult> {
+  const res = await fetch(wcRestUrl(`/orders${query}`), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -116,7 +116,18 @@ describe("POST /api/orders/[id]/store-pay", () => {
 
     const extensions = sentBody().extensions as Record<string, Record<string, string>>;
     expect(extensions[WC_ATTRIBUTION_EXTENSION].utm_source).toBe("google");
-    expect(proxyToWCStore.mock.calls[0][0]).toBe("/checkout/900");
+    expect(proxyToWCStore.mock.calls[0][0]).toMatch(/^\/checkout\/900(\?|$)/);
+  });
+
+  it("carries the PixelYourSite parameters on the query string", async () => {
+    await storePayPOST(withCookies("https://tx.test/api/orders/900/store-pay", { key: "wc_x" }), {
+      params: Promise.resolve({ id: "900" }),
+    });
+
+    const path = proxyToWCStore.mock.calls[0][0] as string;
+    const query = new URLSearchParams(path.slice(path.indexOf("?")));
+    expect(query.get("pys_source")).toBe("google");
+    expect(query.get("last_pys_landing")).toBe("https://tx.test/");
   });
 
   it("rejects an invalid order id before reaching WooCommerce", async () => {
