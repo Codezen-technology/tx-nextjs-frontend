@@ -144,9 +144,17 @@ export async function SiteFooter() {
 
       {/* Main body */}
       <div className="mx-auto max-w-[1296px] px-4 py-16">
-        <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
+        {/* Switches to a row at xl, not lg. The three columns below are fixed-width and
+            `shrink-0`, so the row needs 400 + 320 + 360 plus 32px of padding either side and
+            two 40px gaps = 1224px. The container offers `min(viewport, 1296) - 32`, so at
+            1024 it was 232px short and the block ran to x=1208 with no way to shrink. 1280
+            is the first width that fits. */}
+        <div
+          data-testid="footer-body"
+          className="flex flex-col gap-10 xl:flex-row xl:items-start xl:justify-between"
+        >
           {/* Logo + description + social */}
-          <div className="flex flex-col gap-8 lg:w-[400px] lg:shrink-0 lg:pr-8">
+          <div className="flex flex-col gap-8 xl:w-[400px] xl:shrink-0 xl:pr-8">
             <Link href="/" aria-label="Training Excellence — home">
               {logoUrl ? (
                 <Image
@@ -225,9 +233,9 @@ export async function SiteFooter() {
           </div>
 
           {/* Links + Certificate validator */}
-          <div className="flex flex-1 flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:pl-8">
+          <div className="flex flex-1 flex-col gap-10 xl:flex-row xl:items-start xl:justify-between xl:pl-8">
             {/* Nav columns */}
-            <div className="flex gap-8 lg:w-[320px] lg:shrink-0">
+            <div className="flex gap-8 xl:w-[320px] xl:shrink-0">
               {navCols.map((col, i) => (
                 <div key={i} className="flex flex-1 flex-col gap-3">
                   {col.header && (
@@ -268,7 +276,7 @@ export async function SiteFooter() {
             </div>
 
             {/* Certificate validator */}
-            <div className="flex flex-col gap-4 lg:w-[360px] lg:shrink-0">
+            <div className="flex flex-col gap-4 xl:w-[360px] xl:shrink-0">
               <p className="font-open-sans text-[12px] leading-normal text-white">
                 Certificate Validator
               </p>
