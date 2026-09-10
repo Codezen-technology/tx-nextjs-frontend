@@ -18,7 +18,7 @@ export const FORM_INPUT_AUTH_CLASS = cn(FORM_INPUT_CLASS, "text-neutral-500");
 
 /** GF/contact light-palette override (neutral tokens, pinned light). */
 export const MARKETING_FIELD_CLASS =
-  "w-full rounded-lg border border-neutral-40 bg-white px-3 py-3 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:outline-hidden focus-visible:outline-hidden focus-visible:border-secondary-500 focus-visible:ring-2 focus-visible:ring-secondary-500/30";
+  "w-full rounded-lg border border-neutral-40 bg-white px-3 py-3 text-[14px] leading-[1.4] [color-scheme:light] text-neutral-900 placeholder:text-neutral-400 focus:outline-hidden focus-visible:outline-hidden focus-visible:border-secondary-500 focus-visible:ring-2 focus-visible:ring-secondary-500/30";
 
 export const MARKETING_LABEL_CLASS = "text-neutral-700";
 

@@ -175,6 +175,9 @@ export function useSubmitReview(courseId: number) {
       closeReview();
       void qc.invalidateQueries({ queryKey: queryKeys.player.reviews(courseId) });
       void qc.invalidateQueries({ queryKey: queryKeys.player.myReview(courseId) });
+      // The public course page reads reviews under its own key; without this the
+      // new review only appears after a hard reload.
+      void qc.invalidateQueries({ queryKey: queryKeys.courses.reviews(courseId) });
     },
     onError: (err: ApiError) => toast.error(err.message || "Could not submit review"),
   });

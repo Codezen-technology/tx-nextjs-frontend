@@ -309,7 +309,7 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
               {config.shipping.label}
             </legend>
             <select
-              className={cn("h-10 w-full rounded-md border px-3 text-sm", FIELD_CLASS)}
+              className={FIELD_CLASS}
               value={shipping}
               onChange={(e) => setShipping(e.target.value)}
             >
@@ -343,18 +343,18 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
       <div className="space-y-4">
         <h3 className={SECTION_CLASS}>Payment</h3>
         <FieldShell label="Card number" required>
-          <div className={cn("flex h-10 items-center rounded-md border px-3", FIELD_CLASS)}>
+          <div className={cn(FIELD_CLASS, "flex items-center")}>
             <CardNumberElement options={STRIPE_ELEMENT_OPTIONS} className="w-full" />
           </div>
         </FieldShell>
         <div className="grid grid-cols-2 gap-4">
           <FieldShell label="Expiry date" required>
-            <div className={cn("flex h-10 items-center rounded-md border px-3", FIELD_CLASS)}>
+            <div className={cn(FIELD_CLASS, "flex items-center")}>
               <CardExpiryElement options={STRIPE_ELEMENT_OPTIONS} className="w-full" />
             </div>
           </FieldShell>
           <FieldShell label="Security code" required>
-            <div className={cn("flex h-10 items-center rounded-md border px-3", FIELD_CLASS)}>
+            <div className={cn(FIELD_CLASS, "flex items-center")}>
               <CardCvcElement options={STRIPE_ELEMENT_OPTIONS} className="w-full" />
             </div>
           </FieldShell>
@@ -402,7 +402,7 @@ function ProductGroup({
               type="radio"
               name={product.name}
               value={c.value}
-              className="h-4 w-4"
+              className="h-4 w-4 [color-scheme:light]"
               checked={selectedChoice === c.value}
               onChange={() => onChoice(c.value)}
             />
@@ -415,9 +415,9 @@ function ProductGroup({
       </div>
       {showQty && product.quantity && (
         <div className="flex items-center gap-2 pt-1">
-          <span className="text-sm text-neutral-600">How many</span>
+          <span className="shrink-0 text-sm text-neutral-600">How many</span>
           <select
-            className={cn("h-9 w-24 rounded-md border px-2 text-sm", FIELD_CLASS)}
+            className={cn(FIELD_CLASS, "w-24 py-2")}
             value={qty}
             onChange={(e) => onQty(Number(e.target.value))}
           >

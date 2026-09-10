@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { proxyToWCRest } from "@/lib/api/bff";
+import { orderAttributionMetaFromRequest } from "@/lib/analytics/order-attribution";
+import { pixelYourSiteQueryFromRequest } from "@/lib/analytics/pixelyoursite";
 import {
   createWCOrder,
   getAuthenticatedUserId,
@@ -40,7 +42,6 @@ async function createStripePaymentIntent(
     body: new URLSearchParams({
       amount: String(amountPence),
       currency: currency.toLowerCase(),
-      "payment_method_types[]": "card",
       "metadata[wc_order_id]": String(wcOrderId),
     }).toString(),
     cache: "no-store",
@@ -122,7 +123,15 @@ export async function POST(req: Request) {
     wcPayload.customer_id = userId;
   }
 
-  const wcResult = await createWCOrder(wcPayload);
+  // Visit attribution captured by the proxy, read from the httpOnly cookie
+  // rather than the request body — nothing client-controlled reaches order
+  // meta. Best-effort: an order with no cookies is created exactly as before.
+  const attributionMeta = orderAttributionMetaFromRequest(req);
+  if (attributionMeta.length) {
+    wcPayload.meta_data = attributionMeta;
+  }
+
+  const wcResult = await createWCOrder(wcPayload, pixelYourSiteQueryFromRequest(req));
   if (!wcResult.ok) {
     return NextResponse.json({ error: wcResult.error }, { status: 502 });
   }

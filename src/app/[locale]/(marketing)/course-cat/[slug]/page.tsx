@@ -3,7 +3,7 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { serverApi } from "@/lib/api/server";
-import { normalizeCourse } from "@/lib/services/courses";
+import { normalizeCourseList } from "@/lib/services/courses";
 import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/server";
 import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
@@ -150,9 +150,7 @@ export default async function CourseCategoryPage({ params, searchParams }: PageP
   const rmSeo = seoResult.status === "fulfilled" ? seoResult.value : null;
   const home = homeResult.status === "fulfilled" ? homeResult.value : null;
 
-  const courses: Course[] = (coursesData?.items ?? []).map((raw) =>
-    normalizeCourse(raw as Parameters<typeof normalizeCourse>[0]),
-  );
+  const courses: Course[] = normalizeCourseList(coursesData?.items ?? []);
 
   const coursesPageData: PaginatedResponse<Course> = {
     items: courses,

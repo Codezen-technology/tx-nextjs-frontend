@@ -107,18 +107,54 @@ WordPress REST API  /wp-json/lms-backend/v1/*
 UI component
   → hooks/ (TanStack Query useQuery/useMutation)
     → services/ (src/lib/services/)
-      → api/client.ts (Axios singleton — direct to WP for public reads)
+      → api/client.ts (Axios singleton)
+        → /api/wp/[...path] in the browser  ·  direct to WP on the server
 ```
 
-Public reads (course list, blog, etc.) go directly from the Axios client to WordPress — no BFF proxy needed. Only authenticated mutations and sensitive reads go through `/api/*` BFF routes.
+**The browser never calls the CMS directly.** The CMS is on a separate origin
+behind bot protection that answers an unrecognised caller with a challenge page
+— HTTP 202, `text/html`, no `Access-Control-Allow-Origin` — which kills any
+cross-origin XHR as a CORS error whatever the endpoint would have returned, and
+can hit any path at any time. So `api/client.ts` sets its base URL to `/api/wp`
+in the browser, and `src/app/api/wp/[...path]/route.ts` makes the read
+server-side where CORS does not apply. Services and hooks are unchanged by this:
+the namespace lives in the `endpoints.ts` string, so both branches compose the
+same path.
 
-One exception, and it is growing: the CMS is on a separate origin and its bot
-protection answers browser XHR with a challenge page that carries no
-`Access-Control-Allow-Origin`, so those direct reads fail with a CORS error.
-A public read moved behind a BFF route for that reason passes
-`requiresAuth: false`, which keeps it readable signed-out while still
-forwarding a signed-in user's token. `GET /api/courses/[id]/curriculum` is the
-worked example.
+That route is `GET` only and allowlists three read namespaces —
+`lms-backend/v1`, `wp/v2`, `swca/v1`. It passes `requiresAuth: false`, so a
+signed-out visitor gets public content while a signed-in user's token is still
+forwarded and refreshed. Credential-free responses are CDN-cacheable for 300s
+with `Vary: Cookie`; credentialed ones are `no-store`.
+
+**Server Components still read direct**, using the same Axios singleton with the
+absolute base URL (`pages.ts`, `products.ts`, `bundles.ts`) or `serverApi` /
+`serverFetch`. Nothing about SSR changed.
+
+The allowlist is built from `REST_NAMESPACES` in `endpoints.ts` rather than
+written out, so a namespace cannot be added to the registry without a test
+forcing somebody to classify it. Upward path segments (`..`) are refused: they
+would otherwise let an allowlisted prefix resolve into an excluded namespace.
+Only a **successful** credential-free response is cacheable — caching a
+challenge page or an upstream 5xx would replay one bad moment to every visitor.
+
+**Browser writes go through their own routes.** The read proxy is `GET`-only, so
+a POST through it is a 405. Gravity Forms validate and submit use
+`POST /api/forms/[id]/[action]`, which relays the upstream body verbatim so a
+422's per-field `validation_messages` survive. Any future browser write needs
+its own route rather than widening the read proxy.
+
+Authenticated mutations, cart traffic and the WooCommerce namespaces
+(`wc/store/v1`, `wc/v3`) keep their own dedicated `/api/*` BFF routes — they
+carry Cart-Token and Basic-auth handling the read proxy does not implement, and
+are deliberately excluded from its allowlist.
+`GET /api/courses/[id]/curriculum` also stays: it is cache-tagged and auth-aware.
+
+> **Infrastructure follow-up, not fixed in this repo.** `/wp-json/*` should be
+> excluded from the CMS host's SiteGround Anti-Bot System, or the deployment's
+> egress IPs allowlisted. The read proxy only moves the challenge off the
+> browser and onto the server; if that server IP is ever challenged, SSR and the
+> proxy fail together and no amount of proxying helps.
 
 ### Endpoint namespaces
 
@@ -144,25 +180,54 @@ Always use constants from `src/lib/utils/query-keys.ts`. Never inline strings in
 
 Site name, logo, feature flags are fetched server-side from `GET /lms-backend/v1/settings` and injected via `SiteSettingsProvider`. In client components use `useSiteSettings()` / `useFeatureFlag()`. Env vars (`NEXT_PUBLIC_FEATURE_*`) take precedence over the settings endpoint.
 
+### Order attribution
+
+WooCommerce and PixelYourSite both capture traffic source with a script
+enqueued on WordPress-rendered pages. Headless, no visitor ever loads one and
+orders arrive server-to-server, so every order used to record its source as
+`Unknown` in the Origin column and `REST API` in the PixelYourSite metabox.
+
+`src/proxy.ts` parses UTMs, paid click identifiers and the referrer on every
+page navigation and writes two httpOnly cookies, `tx_attr_first` (180 days) and
+`tx_attr_session` (30 minutes). BFF routes are same-origin, so those cookies
+ride along with every `/api/*` call and the order routes read them off the
+incoming `Request` — nothing user-controlled from a request body ever reaches
+order meta.
+
+`src/lib/analytics/order-attribution.ts` has two builders because WooCommerce
+has two write shapes. WC REST v3 takes 17 prefixed `_wc_order_attribution_*`
+entries as `meta_data`. The two Store API paths take 16 unprefixed fields
+through WooCommerce's own `woocommerce/order-attribution` extension namespace,
+every field present and every value a string. `device_type` is in the first and
+not the second, because WooCommerce derives it there from `user_agent`.
+
+All three writes are in-band, so nothing can fail after a shopper has paid.
+Attribution is always best-effort and never fails an order. Requires the
+`order_attribution` feature toggle to be on in WooCommerce. Full spec in
+`docs/ORDER_ATTRIBUTION.md`, WooCommerce internals sourced in
+`docs/research/2026-09-09-woocommerce-order-attribution.md`.
+
 ### Error handling
 
 All Axios errors are converted to `ApiError` (`src/lib/api/error.ts`) by the response interceptor. Catch as `ApiError`; check `.code` for WP error codes (e.g. `lms_auth_failed`) and `.status` for HTTP status.
 
 ## Key files
 
-| File                           | Purpose                                                                                                 |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| `src/lib/api/endpoints.ts`     | All WP endpoint URLs                                                                                    |
-| `src/lib/api/cache-tags.ts`    | Cache-tag registry — the tags `serverFetch` uses and `POST /api/revalidate` (WP purge endpoint) accepts |
-| `src/lib/api/bff.ts`           | `proxyToWP()` — server-side proxy with token refresh                                                    |
-| `src/lib/api/bff-client.ts`    | `bffJson()` — client helper for BFF route calls                                                         |
-| `src/lib/api/client.ts`        | Axios singleton (direct-to-WP, public reads)                                                            |
-| `src/lib/api/parsers.ts`       | `paginate()` + `decodeEntities()`                                                                       |
-| `src/lib/api/server.ts`        | Server Component fetch utilities                                                                        |
-| `src/lib/env.ts`               | All env var definitions and `getServerWpJsonBase()`                                                     |
-| `src/lib/utils/query-keys.ts`  | Centralized TanStack Query keys                                                                         |
-| `src/lib/stores/auth.store.ts` | Zustand auth store (user display data only)                                                             |
-| `src/proxy.ts`                 | Route guards + next-intl integration (Next 16 proxy)                                                    |
+| File                                       | Purpose                                                                                                 |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `src/lib/api/endpoints.ts`                 | All WP endpoint URLs                                                                                    |
+| `src/lib/api/cache-tags.ts`                | Cache-tag registry — the tags `serverFetch` uses and `POST /api/revalidate` (WP purge endpoint) accepts |
+| `src/app/api/wp/[...path]/route.ts`        | Same-origin read proxy — every browser WordPress read goes through it                                   |
+| `src/app/api/forms/[id]/[action]/route.ts` | Gravity Forms writes — the read proxy is GET-only                                                       |
+| `src/lib/api/bff.ts`                       | `proxyToWP()` — server-side proxy with token refresh                                                    |
+| `src/lib/api/bff-client.ts`                | `bffJson()` — client helper for BFF route calls                                                         |
+| `src/lib/api/client.ts`                    | Axios singleton (direct-to-WP, public reads)                                                            |
+| `src/lib/api/parsers.ts`                   | `paginate()` + `decodeEntities()`                                                                       |
+| `src/lib/api/server.ts`                    | Server Component fetch utilities                                                                        |
+| `src/lib/env.ts`                           | All env var definitions and `getServerWpJsonBase()`                                                     |
+| `src/lib/utils/query-keys.ts`              | Centralized TanStack Query keys                                                                         |
+| `src/lib/stores/auth.store.ts`             | Zustand auth store (user display data only)                                                             |
+| `src/proxy.ts`                             | Route guards + next-intl integration (Next 16 proxy)                                                    |
 
 ## Conventions
 

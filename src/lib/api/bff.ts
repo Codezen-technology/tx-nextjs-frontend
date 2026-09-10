@@ -134,11 +134,7 @@ export async function proxyToWCRest(
 
   const nextRes = NextResponse.json(json, { status: res.status });
 
-  // Forward WP pagination headers.
-  const total = res.headers.get("x-wp-total");
-  const totalPages = res.headers.get("x-wp-totalpages");
-  if (total) nextRes.headers.set("x-wp-total", total);
-  if (totalPages) nextRes.headers.set("x-wp-totalpages", totalPages);
+  forwardPaginationHeaders(res, nextRes);
 
   return nextRes;
 }
@@ -154,6 +150,20 @@ type ProxyOptions = {
   /** Override the WP REST namespace (defaults to env.LMS_NAMESPACE, e.g. lms-backend/v1). */
   namespace?: string;
 };
+
+/**
+ * Copy WordPress's pagination headers onto the response we hand back.
+ *
+ * `paginate()` reads these to compute totals. A list endpoint that reports them
+ * in headers rather than in an envelope falls back to `items.length` — a wrong,
+ * silent answer — if a proxy drops them on the way through.
+ */
+function forwardPaginationHeaders(upstream: Response, out: NextResponse): void {
+  const total = upstream.headers.get("x-wp-total");
+  const totalPages = upstream.headers.get("x-wp-totalpages");
+  if (total) out.headers.set("x-wp-total", total);
+  if (totalPages) out.headers.set("x-wp-totalpages", totalPages);
+}
 
 function wpJsonUrl(path: string, namespace: string = env.LMS_NAMESPACE): string {
   const base = getServerWpJsonBase();
@@ -324,6 +334,8 @@ export async function proxyToWP(wpPath: string, options: ProxyOptions = {}): Pro
     nextRes = NextResponse.json(json, { status: res.status });
   }
 
+  forwardPaginationHeaders(res, nextRes);
+
   // Echo the WooCommerce session cookie back to the browser (guest cart persistence).
   if (wcSession) {
     const setCookie = res.headers.get("set-cookie");
@@ -355,6 +367,23 @@ export async function proxyToB2BQuery(
 ): Promise<NextResponse> {
   const qs = new URL(req.url).searchParams.toString();
   return proxyToB2B(qs ? `${base}?${qs}` : base, options);
+}
+
+/**
+ * Read a multipart body, or `null` if the request does not carry one.
+ *
+ * `Request.formData()` throws on a body it cannot parse, and an uncaught throw
+ * in a route handler is a 500 with an empty body. An upload route is reachable
+ * before its auth check, so without this guard anyone can turn a wrong
+ * Content-Type into a server error and a stack trace in the logs. A caller that
+ * gets `null` should answer 400.
+ */
+export async function readFormData(request: Request): Promise<FormData | null> {
+  try {
+    return await request.formData();
+  } catch {
+    return null;
+  }
 }
 
 /**

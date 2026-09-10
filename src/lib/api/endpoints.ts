@@ -1,11 +1,27 @@
 import { env } from "@/lib/env";
 import { DEFAULT_CERT_PRODUCT, type CertProductSlug } from "@/types/certificate";
 
-const lms = `/${env.LMS_NAMESPACE}`;
-const wp = `/wp/v2`;
-const swca = `/swca/v1`;
-const wcStore = `/wc/store/v1`;
-const wcRest = `/wc/v3`;
+/**
+ * Every WordPress REST namespace this app talks to, without a leading slash.
+ *
+ * Exported because the namespace is a routing decision, not just a string
+ * prefix: `src/app/api/wp/[...path]/route.ts` allowlists which of these the
+ * browser may read through it. Declaring the list twice is how the allowlist
+ * and the endpoints it guards drift apart, so both read from here.
+ */
+export const REST_NAMESPACES = {
+  lms: env.LMS_NAMESPACE,
+  wp: "wp/v2",
+  swca: "swca/v1",
+  wcStore: "wc/store/v1",
+  wcRest: "wc/v3",
+} as const;
+
+const lms = `/${REST_NAMESPACES.lms}`;
+const wp = `/${REST_NAMESPACES.wp}`;
+const swca = `/${REST_NAMESPACES.swca}`;
+const wcStore = `/${REST_NAMESPACES.wcStore}`;
+const wcRest = `/${REST_NAMESPACES.wcRest}`;
 
 /**
  * REST namespace for the B2B business dashboard facade plugin.

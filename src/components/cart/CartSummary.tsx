@@ -3,15 +3,17 @@
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/hooks/useCart";
 //import { SecureCheckoutBand } from "@/components/commerce/SecureCheckoutBand";
+import { ExpressCheckout } from "./ExpressCheckout";
 import { cn } from "@/lib/utils/cn";
 import parse from "html-react-parser";
 import Image from "next/image";
 
 interface CartSummaryProps {
   currency?: string;
+  onSuccess?: (orderId: number, orderKey: string) => void;
 }
 
-export function CartSummary({ currency = "£" }: CartSummaryProps) {
+export function CartSummary({ currency = "£", onSuccess }: CartSummaryProps) {
   const router = useRouter();
   const { totals: t, currency: cartCurrency } = useCart();
   const displayCurrency = parse(cartCurrency ?? currency);
@@ -79,6 +81,8 @@ export function CartSummary({ currency = "£" }: CartSummaryProps) {
         >
           Proceed to Checkout
         </button>
+
+        {onSuccess && <ExpressCheckout onSuccess={onSuccess} />}
       </div>
 
       {/* The design puts its trust band here too (6239:113976), beneath the
