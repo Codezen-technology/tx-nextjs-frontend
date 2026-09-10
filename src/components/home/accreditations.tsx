@@ -32,19 +32,19 @@ export function Accreditations({ items = DEFAULT_ITEMS }: AccreditationsProps) {
   if (!items.length) return null;
 
   return (
-    <section className="py-section bg-white lg:py-16">
+    <section className="py-section bg-white lg:pb-20">
       <div className="container mx-auto">
-        <h2 className="font-suse mb-8 text-2xl font-bold text-neutral-900 md:text-[32px]">
+        <h2 className="font-suse mb-8 text-center text-2xl font-bold text-neutral-900 md:text-[32px]">
           Accreditations
         </h2>
 
-        <div className="border-neutral-30 overflow-hidden rounded-xl border">
+        <div className="bg-secondary-50 space-y-4 rounded-lg p-6">
           {items.map((item, i) => (
             <div
               key={i}
-              className="border-neutral-30 flex flex-col items-center gap-6 border-b p-6 last:border-b-0 sm:flex-row sm:items-start"
+              className="border-neutral-30 flex flex-col gap-4 border-b pb-4 last:border-b-0 last:pb-0 sm:flex-row sm:items-start"
             >
-              <div className="flex h-27 w-38 shrink-0 items-center justify-center">
+              <div className="flex h-27 w-full shrink-0 items-center justify-center rounded-lg bg-white sm:w-38">
                 <Image
                   src={item.src}
                   alt={item.alt}
@@ -55,12 +55,12 @@ export function Accreditations({ items = DEFAULT_ITEMS }: AccreditationsProps) {
                   // to decode, collapsing the logo to a 0x0 box. Capping both
                   // axes keeps varied logo aspect ratios undistorted while
                   // guaranteeing a non-zero box.
-                  className="max-h-20 w-20 object-contain"
+                  className="font-open-sans px-2 text-center text-xs font-semibold text-neutral-600"
                 />
               </div>
-              <div className="flex flex-col gap-2 text-center sm:text-left">
-                <h3 className="font-suse text-lg font-bold text-neutral-900">{item.title}</h3>
-                <p className="font-open-sans text-base leading-[1.6] text-neutral-600">
+              <div className="border-secondary-500 min-w-0 flex-1 border-l py-4 pr-4 pl-4">
+                <h3 className="font-open-sans text-base font-bold text-black">{item.title}</h3>
+                <p className="font-open-sans mt-2 text-sm leading-relaxed font-normal text-black">
                   {item.description}
                 </p>
               </div>

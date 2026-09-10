@@ -26,6 +26,8 @@ import { CourseRequirements } from "@/components/courses/course-requirements";
 import { CourseAssessment } from "@/components/courses/course-assessment";
 import { CourseJobOpportunities } from "@/components/courses/course-job-opportunities";
 import { CourseRelated } from "@/components/courses/course-related";
+import { TrustedOrgs } from "@/components/home/trusted-orgs";
+import { SafeImage } from "@/components/ui/safe-image";
 import type { CourseRichData } from "@/types/course";
 
 interface PageProps {
@@ -146,12 +148,14 @@ export default async function CourseDetailPage({ params }: PageProps) {
   const { slug } = await params;
   setRequestLocale(await getLocale());
 
-  const [courseResult, sectionsResult, curriculumResult, seoResult] = await Promise.allSettled([
-    serverApi.courses.richDetail(slug),
-    serverApi.courses.sections(slug),
-    serverApi.courses.curriculum(slug),
-    fetchRankMathSeo(wpPath.course(slug)),
-  ]);
+  const [courseResult, sectionsResult, curriculumResult, seoResult, homeResult] =
+    await Promise.allSettled([
+      serverApi.courses.richDetail(slug),
+      serverApi.courses.sections(slug),
+      serverApi.courses.curriculum(slug),
+      fetchRankMathSeo(wpPath.course(slug)),
+      serverApi.home.get(),
+    ]);
 
   if (courseResult.status === "rejected") notFound();
   const course = normalizeRichCourse(courseResult.value);
@@ -160,6 +164,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
     curriculumResult.status === "fulfilled" ? curriculumResult.value : [],
   );
   const rmSeo = seoResult.status === "fulfilled" ? seoResult.value : null;
+  const home = homeResult.status === "fulfilled" ? homeResult.value : null;
 
   const accreditations = course.accreditations ?? [];
   const experts = course.experts ?? [];
@@ -199,12 +204,30 @@ export default async function CourseDetailPage({ params }: PageProps) {
           while staying sticky over the full page height. The hero itself spans both columns. */}
       <div className="mx-auto max-w-[1296px] px-4 pb-20 lg:grid lg:grid-cols-[minmax(0,1fr)_307px] lg:gap-x-6">
         <div className="lg:col-span-2 lg:col-start-1 lg:row-start-1">
-          <CourseBanner src={course.featuredImage} alt={course.title} course={course} />
+          <CourseBanner alt={course.title} course={course} />
         </div>
 
         {/* ── Desktop sticky purchase card — hero top-right, overlapping the hero row ── */}
         <aside className="hidden lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:block lg:pt-14">
           <div className="sticky top-24 z-20">
+            {/* Feature Image */}
+            <div className="mb-2 overflow-hidden rounded-lg border border-white/20 bg-white p-2">
+              {course.featuredImage ? (
+                <div className="relative aspect-290/188 w-full overflow-hidden bg-neutral-900">
+                  <SafeImage
+                    src={course.featuredImage}
+                    alt=""
+                    fill
+                    sizes="306px"
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="flex aspect-290/188 items-center justify-center rounded-md bg-neutral-800 text-sm text-white/60">
+                  Course preview
+                </div>
+              )}
+            </div>
             <CoursePurchaseCard course={course} />
           </div>
         </aside>
@@ -238,11 +261,9 @@ export default async function CourseDetailPage({ params }: PageProps) {
           />
 
           {/* ── Accreditations ── */}
-          {accreditations.length > 0 ? (
-            <section id="accreditations" className="mt-12 scroll-mt-28">
-              <CourseAccreditations accreditations={accreditations} />
-            </section>
-          ) : null}
+          <section id="accreditations" className="mt-12 scroll-mt-28">
+            <CourseAccreditations accreditations={accreditations} />
+          </section>
 
           {/* ── Sneak Peek (screenshots) ── */}
           {screenshots.length > 0 ? (
@@ -326,6 +347,9 @@ export default async function CourseDetailPage({ params }: PageProps) {
           </div>
         </div>
       </div>
+
+      {/* ── Trusted Organizations ── */}
+      <TrustedOrgs data={home?.trusted_orgs} />
     </div>
   );
 }

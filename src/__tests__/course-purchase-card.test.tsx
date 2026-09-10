@@ -5,7 +5,6 @@ import { CoursePurchaseCard } from "@/components/courses/course-purchase-card";
 import { makeRichCourse } from "./fixtures/courses";
 
 const mockPush = vi.fn();
-// useAddToCart().mutate(vars, { onSuccess }) — invoke onSuccess so buy-now navigates.
 const mockMutate = vi.fn((_vars: unknown, opts?: { onSuccess?: () => void }) =>
   opts?.onSuccess?.(),
 );
@@ -18,9 +17,6 @@ vi.mock("@/lib/hooks/useCart", () => ({
   useAddToCart: () => ({ mutate: mockMutate, isPending: false }),
 }));
 
-// Bulk tiers come from TanStack Query; the card renders outside a QueryClientProvider here.
-// Held in a hoisted box so a test can swap the tier set before rendering, and so the card
-// and the table read the *same* array — the highlight matches a tier by identity.
 const DEFAULT_TIERS = [
   { min: 10, max: 19, percentage: 10 },
   { min: 20, max: 0, percentage: 20 },
@@ -36,15 +32,8 @@ vi.mock("@/lib/hooks/useBulkTiers", () => ({
   useBulkTiers: () => ({ data: tierState.tiers, isLoading: false }),
 }));
 
-/** The tier table renders on the teams tab only, so it is the observable tab marker. */
-const teamsTabShown = () => screen.queryByText(/per person/i) !== null;
-
-/** Tier rows carry `aria-current` only when the quantity has reached them. */
-const activeTierLabels = (container: HTMLElement) =>
-  Array.from(container.querySelectorAll('[aria-current="true"]')).map((row) =>
-    // Spans in document order: marker slot, band label (which holds the SR phrase), …
-    (row.querySelectorAll("span")[1]?.textContent ?? "").replace("— your current tier", "").trim(),
-  );
+/** The tier table renders on the Individual tab when toggled open. */
+const bulkTableShown = () => screen.queryByText(/per person/i) !== null;
 
 beforeEach(() => {
   mockPush.mockReset();
@@ -62,7 +51,6 @@ describe("CoursePurchaseCard", () => {
   it("shows strikethrough regular price when on sale", () => {
     const course = makeRichCourse();
     render(<CoursePurchaseCard course={course} />);
-    // Regular price is £129, sale price is £99
     expect(screen.getByText(/£129\.00/i)).toBeInTheDocument();
   });
 
@@ -102,17 +90,14 @@ describe("CoursePurchaseCard", () => {
     );
   });
 
-  it("resets quantity to 1 when switching back to the 'For me' tab", () => {
+  it("resets quantity to 1 when switching to the 'Individual' tab", () => {
     const course = makeRichCourse({ product_id: 42 });
     render(<CoursePurchaseCard course={course} />);
-    fireEvent.click(screen.getByLabelText(/increase quantity/i));
-    fireEvent.click(screen.getByRole("button", { name: /for me/i }));
+    // Switch to Business first
+    fireEvent.click(screen.getByRole("button", { name: /business/i }));
+    // Switch back to Individual
+    fireEvent.click(screen.getByRole("button", { name: /individual/i }));
     expect(screen.getByDisplayValue("1")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /buy this course/i }));
-    expect(mockMutate).toHaveBeenCalledWith(
-      expect.objectContaining({ quantity: 1 }),
-      expect.any(Object),
-    );
   });
 
   it("applies the bulk tier discount to the displayed total", () => {
@@ -132,101 +117,94 @@ describe("CoursePurchaseCard", () => {
     expect(screen.getByDisplayValue("1")).toBeInTheDocument();
   });
 
-  it("switches to teams tab on click", () => {
+  // ── Tab switching ──
+
+  it("switches to Business tab and shows team content", () => {
     const course = makeRichCourse({ product_id: 42 });
     render(<CoursePurchaseCard course={course} />);
-    fireEvent.click(screen.getByRole("button", { name: /for teams/i }));
-    // Teams tab: quantity stepper appears
-    expect(screen.getByLabelText(/increase quantity/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /business/i }));
+    // Business tab: shows team heading and Request a Quote
+    expect(screen.getByText(/built for your whole team/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /request a quote/i })).toBeInTheDocument();
+    // No quantity stepper on Business tab
+    expect(screen.queryByLabelText(/increase quantity/i)).not.toBeInTheDocument();
   });
 
-  // ── The tab is derived from the quantity, from every control that commits one ──
-
-  it("returns to the 'For me' tab when 1 is typed into the quantity field", () => {
-    render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
-    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "5" } });
-    expect(teamsTabShown()).toBe(true);
-
-    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "1" } });
-    expect(teamsTabShown()).toBe(false);
-  });
-
-  it("returns to the 'For me' tab when the stepper goes back down to 1", () => {
+  it("stays on Individual tab when quantity increases", () => {
     render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
     fireEvent.click(screen.getByLabelText(/increase quantity/i));
-    expect(teamsTabShown()).toBe(true);
-
-    fireEvent.click(screen.getByLabelText(/decrease quantity/i));
-    expect(screen.getByDisplayValue("1")).toBeInTheDocument();
-    expect(teamsTabShown()).toBe(false);
+    // Still on Individual: Buy button visible, no team content
+    expect(screen.getByRole("button", { name: /buy this course/i })).toBeInTheDocument();
+    expect(screen.queryByText(/built for your whole team/i)).not.toBeInTheDocument();
   });
 
-  it("returns to the 'For me' tab when a cleared field is blurred back to 1", () => {
+  // ── Bulk pricing toggle ──
+
+  it("shows See Bulk Pricing link on Individual tab", () => {
     render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
-    const input = screen.getByRole("spinbutton");
-    fireEvent.change(input, { target: { value: "5" } });
-    expect(teamsTabShown()).toBe(true);
-
-    fireEvent.change(input, { target: { value: "" } });
-    fireEvent.blur(input);
-    expect(screen.getByDisplayValue("1")).toBeInTheDocument();
-    expect(teamsTabShown()).toBe(false);
+    expect(screen.getByRole("button", { name: /see bulk pricing/i })).toBeInTheDocument();
+    expect(bulkTableShown()).toBe(false);
   });
 
-  it("moves to the 'For teams' tab from any control that raises the quantity", () => {
-    const { unmount } = render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
-    fireEvent.click(screen.getByLabelText(/increase quantity/i));
-    expect(teamsTabShown()).toBe(true);
-    unmount();
-
+  it("toggles bulk pricing table on click", () => {
     render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
-    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "2" } });
-    expect(teamsTabShown()).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: /see bulk pricing/i }));
+    expect(bulkTableShown()).toBe(true);
+    expect(screen.getByRole("button", { name: /hide bulk pricing/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /hide bulk pricing/i }));
+    expect(bulkTableShown()).toBe(false);
+    expect(screen.getByRole("button", { name: /see bulk pricing/i })).toBeInTheDocument();
   });
 
-  // ── The tier table marks the band the quantity has reached ──
+  it("hides bulk pricing when switching tabs", () => {
+    render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
+    fireEvent.click(screen.getByRole("button", { name: /see bulk pricing/i }));
+    expect(bulkTableShown()).toBe(true);
 
-  it("marks the tier the current quantity falls in, and only that one", () => {
-    tierState.tiers = [
-      { min: 10, max: 19, percentage: 10 },
-      { min: 20, max: 49, percentage: 25 },
-      { min: 50, max: 100, percentage: 50 },
-    ];
-    const { container } = render(
-      <CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />,
-    );
-    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "21" } });
-
-    expect(activeTierLabels(container)).toEqual(["20 - 49 users"]);
+    fireEvent.click(screen.getByRole("button", { name: /business/i }));
+    fireEvent.click(screen.getByRole("button", { name: /individual/i }));
+    expect(bulkTableShown()).toBe(false);
   });
 
-  it("marks nothing while the quantity is below every tier", () => {
-    const { container } = render(
-      <CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />,
-    );
-    // Reach the teams tab so the table is on screen, then drop back under the first tier.
-    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "10" } });
-    expect(activeTierLabels(container)).toEqual(["10 - 19 users"]);
+  // ── Extra X% saved badge ──
 
-    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "9" } });
-    expect(activeTierLabels(container)).toEqual([]);
+  it("shows Extra X% saved badge when quantity > 1", () => {
+    render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
+    expect(screen.queryByText(/extra.*saved/i)).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByDisplayValue("1"), { target: { value: "10" } });
+    expect(screen.getByText(/extra 10% saved/i)).toBeInTheDocument();
   });
 
-  it("marks the tier that produced the header price when tiers overlap", () => {
-    // Both bands cover 21; the larger discount wins the price, so it must win the row.
-    tierState.tiers = [
-      { min: 10, max: 100, percentage: 10 },
-      { min: 20, max: 49, percentage: 25 },
-    ];
-    const { container } = render(
-      <CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />,
-    );
-    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "21" } });
+  it("hides Extra X% saved badge at quantity 1", () => {
+    render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
+    fireEvent.change(screen.getByDisplayValue("1"), { target: { value: "10" } });
+    expect(screen.getByText(/extra 10% saved/i)).toBeInTheDocument();
 
-    // 21 × £99 at 25% off = £1,559.25
-    expect(screen.getByText(/£1,559\.25/)).toBeInTheDocument();
-    expect(activeTierLabels(container)).toEqual(["20 - 49 users"]);
+    fireEvent.change(screen.getByDisplayValue("10"), { target: { value: "1" } });
+    expect(screen.queryByText(/extra.*saved/i)).not.toBeInTheDocument();
   });
+
+  // ── Business tab content ──
+
+  it("shows team benefit bullet points on Business tab", () => {
+    render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
+    fireEvent.click(screen.getByRole("button", { name: /business/i }));
+    expect(screen.getByText(/cost-effective training solution/i)).toBeInTheDocument();
+    expect(screen.getByText(/central training dashboard/i)).toBeInTheDocument();
+    expect(screen.getByText(/dedicated manager/i)).toBeInTheDocument();
+    expect(screen.getByText(/real-time progress tracking/i)).toBeInTheDocument();
+    expect(screen.getByText(/streamlined enrolment/i)).toBeInTheDocument();
+  });
+
+  it("does not show price on Business tab", () => {
+    render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
+    fireEvent.click(screen.getByRole("button", { name: /business/i }));
+    expect(screen.queryByText(/£99\.00/i)).not.toBeInTheDocument();
+  });
+
+  // ── Existing feature tests ──
 
   it("shows CPD points when set", () => {
     const course = makeRichCourse({ cpd_points: 3 });

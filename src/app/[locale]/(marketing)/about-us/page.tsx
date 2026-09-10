@@ -46,7 +46,9 @@ export default async function AboutPage() {
       <AboutHero data={about.hero} />
       <AboutCommitmentSection data={about.commitment_section} />
       <AboutValuesGrid data={about.values} />
-      <AboutTeamSection data={about.team} />
+
+      {/* Initially Hide this section  */}
+      {/* <AboutTeamSection data={about.team} /> */}
     </>
   );
 }

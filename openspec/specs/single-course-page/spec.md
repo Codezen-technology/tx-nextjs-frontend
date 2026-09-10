@@ -41,7 +41,7 @@ control that cannot respond to the pointer reads as disabled.
 
 #### Scenario: Both purchase tabs respond to hover
 
-- **WHEN** the pointer moves over the "For me" tab and then the "For teams" tab, in
+- **WHEN** the pointer moves over the "Individual" tab and then the "Business" tab, in
   either selection state
 - **THEN** each tab's computed background or colour differs from its resting value
 

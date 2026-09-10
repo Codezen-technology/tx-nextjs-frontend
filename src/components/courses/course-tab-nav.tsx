@@ -22,7 +22,7 @@ interface CourseTabNavProps {
 }
 
 export function CourseTabNav({
-  accreditations,
+  accreditations: _accreditations,
   curriculum,
   hasCourseContent,
   hasScreenshots,
@@ -33,7 +33,7 @@ export function CourseTabNav({
   const [active, setActive] = useState<string>("");
 
   const items: NavItem[] = [
-    ...(accreditations.length ? [{ id: "accreditations", label: "Accreditations" }] : []),
+    { id: "accreditations", label: "Accreditations" },
     ...(hasCourseContent ? [{ id: "course-content", label: "Course Content" }] : []),
     ...(hasScreenshots ? [{ id: "sneak-peek", label: "Sneak Peek" }] : []),
     ...(curriculum.length ? [{ id: "curriculum", label: "Course Curriculum" }] : []),

@@ -87,17 +87,15 @@ export default async function HomePage() {
 
       <TrustedOrgs data={home?.trusted_orgs} />
 
-      <section className="py-section flex flex-col gap-20 lg:py-20">
-        <CategoriesGrid categories={categoriesRes?.items} />
+      <CategoriesGrid categories={categoriesRes?.items} />
 
-        <PopularCourses limit={8} header={home?.popular_courses_header} />
-      </section>
+      <WhyChooseGrid features={home?.why?.items} image={home?.why?.image} />
 
-      <ReviewsSection testimonials={home?.testimonials} />
+      <PopularCourses limit={8} header={home?.popular_courses_header} />
 
       <PricingSection data={home?.pricing} />
 
-      <WhyChooseGrid features={home?.why} />
+      <ReviewsSection testimonials={home?.testimonials} />
 
       <TransformTeam data={home?.team} />
 

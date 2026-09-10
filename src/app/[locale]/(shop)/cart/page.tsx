@@ -71,21 +71,20 @@ export default function CartPage() {
               <p className="mt-3 text-sm text-neutral-500">
                 {itemCount} {itemCount === 1 ? "item" : "items"} in your cart
               </p>
-            </div>
 
+              {/* Upsell banner — always shown. "Learners Also Purchased" follows it,
+                as the frame orders them (6239:113930 then 6239:113955). */}
+              {!isLoading && (
+                <div className="mt-12 space-y-10">
+                  <UpsellBanner />
+                  <RelatedCourses />
+                </div>
+              )}
+            </div>
             {/* Right: summary */}
             <div className="lg:sticky lg:top-24 lg:self-start">
               <CartSummary />
             </div>
-          </div>
-        )}
-
-        {/* Upsell banner — always shown. "Customers Also Purchased" follows it,
-            as the frame orders them (6239:113930 then 6239:113955). */}
-        {!isLoading && (
-          <div className="mt-12 space-y-10">
-            <UpsellBanner variant="cart" />
-            <RelatedCourses />
           </div>
         )}
       </div>

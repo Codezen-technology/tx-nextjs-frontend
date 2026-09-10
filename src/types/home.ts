@@ -144,7 +144,10 @@ export interface HomePageData {
   pricing: HomePricingSection;
   trusted_orgs: HomeTrustedOrgsSection;
   popular_courses_header: HomePopularCoursesHeader;
-  why: HomeWhyFeature[];
+  why: {
+    items: HomeWhyFeature[];
+    image: string;
+  };
   team: HomeTeamSection;
   certificate: HomeCertificateSection;
   testimonials: HomeTestimonial[];
