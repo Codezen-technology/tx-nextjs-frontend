@@ -6,6 +6,7 @@ interface CategoryItem {
   id: number;
   name: string;
   slug: string;
+  count: number;
   image?: string | null;
 }
 
@@ -31,6 +32,7 @@ function mapApiCategory(cat: ApiCategory): CategoryItem {
     id: cat.id,
     name: cat.name,
     slug: cat.slug,
+    count: cat.count,
     image: cat.image,
   };
 }
@@ -56,7 +58,7 @@ export async function CategoriesGrid({
 
   if (!categories.length) return null;
 
-  const displayed = categories.slice(0, 12);
+  const displayed = categories.filter((c) => c.count > 0).slice(0, 12);
 
   return (
     // One grid, three children. The CTA keeps its place in the DOM — heading,
