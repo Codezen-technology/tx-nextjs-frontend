@@ -96,7 +96,7 @@ export default function CheckoutPage() {
           </div>
 
           {/* Upsell banner */}
-          <UpsellBanner variant="checkout" />
+          <UpsellBanner />
 
           {/* Payment */}
           <div className="rounded-lg bg-[rgba(245,241,233,0.5)] p-8">

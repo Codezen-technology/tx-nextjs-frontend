@@ -2,10 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/hooks/useCart";
-import { SecureCheckoutBand } from "@/components/commerce/SecureCheckoutBand";
+//import { SecureCheckoutBand } from "@/components/commerce/SecureCheckoutBand";
 import { ExpressCheckout } from "./ExpressCheckout";
 import { cn } from "@/lib/utils/cn";
 import parse from "html-react-parser";
+import Image from "next/image";
 
 interface CartSummaryProps {
   currency?: string;
@@ -19,7 +20,7 @@ export function CartSummary({ currency = "£", onSuccess }: CartSummaryProps) {
   if (!t) return null;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-xs">
+    <div className="border-secondary-100 bg-secondary-50 rounded-lg border shadow-xs">
       <div className="p-6">
         <div className="space-y-3">
           <div className="flex items-center justify-between text-sm text-neutral-500">
@@ -63,7 +64,7 @@ export function CartSummary({ currency = "£", onSuccess }: CartSummaryProps) {
               </span>
             </div>
           )}
-          <div className="border-t border-gray-200 pt-3">
+          <div className="border-secondary-100 border-t pt-3">
             <div className="flex items-center justify-between font-semibold text-neutral-900">
               <span className="text-base tracking-wide uppercase">Total:</span>
               <span className="text-lg">
@@ -90,7 +91,8 @@ export function CartSummary({ currency = "£", onSuccess }: CartSummaryProps) {
           band reads the shared brand list, so the cart cannot disagree with the
           checkout page about what is accepted. */}
       <div className="px-6 pb-6">
-        <SecureCheckoutBand />
+        {/* <SecureCheckoutBand /> */}
+        <Image src="/images/payment-div.png" alt="Secure payment" width={400} height={86} />
       </div>
     </div>
   );

@@ -22,7 +22,7 @@ export function RelatedCourses() {
   return (
     <section>
       <h2 className="font-suse mb-6 text-2xl font-medium text-neutral-900">
-        Customers Also Purchased
+        Learners Also Purchased
       </h2>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading

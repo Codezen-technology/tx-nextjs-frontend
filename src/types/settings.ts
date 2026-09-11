@@ -82,6 +82,7 @@ export interface MembershipUpsell {
   regular_price: number;
   currency: string;
   badge: string | null;
+  cta_label: string;
   features: string[];
   permalink: string | null;
 }

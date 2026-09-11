@@ -1,6 +1,5 @@
 import { SafeImage } from "@/components/ui/safe-image";
 import { HeroWave } from "@/components/courses/hero-wave";
-import { isRenderableImageSrc } from "@/lib/utils/image";
 import { publicImageExists } from "@/lib/utils/public-image.server";
 import { cn } from "@/lib/utils/cn";
 import { Star, Wifi } from "lucide-react";
@@ -13,33 +12,23 @@ const TRUST_BADGES = [
   { src: "/images/aoht.png", label: "AOHT" },
 ] as const;
 
-const FEATURES_LEFT = [
-  "100% Online Training",
-  "Instant Digital Certificate",
-  "Printed Certificate Shipped",
-  "Full Audio Voiceover",
-  "Unlimited Assessment Retakes",
-];
+const FEATURES_LEFT = ["100% Online Training", "Hardcopy Certificates Available", "CPD Accredited"];
 
 const FEATURES_RIGHT = [
-  "Written in compliance with UK legislation and guidance",
-  "Developed by health and safety professionals",
-  "City & Guilds Assured",
-  "CPD Accredited & RoSPA Assured",
+  "Instant Digital Certificate",
+  "Unlimited Assessment Retakes",
+  "Curated by Experts",
 ];
 
 /** Figma node 256:11794 — Rectangle 9 overlay on course banner */
 const BANNER_OVERLAY_GRADIENT = "linear-gradient(88deg, #00204A 0%, #004F65 100.15%)";
 
 interface CourseBannerProps {
-  src?: string | null;
   alt: string;
   course?: CourseRichData;
 }
 
-export function CourseBanner({ src, alt, course }: CourseBannerProps) {
-  const hasImage = isRenderableImageSrc(src);
-
+export function CourseBanner({ alt, course }: CourseBannerProps) {
   const updatedLabel = (() => {
     if (!course?.updatedAt) return null;
     try {
@@ -87,60 +76,18 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
           overlays on top of this row (Figma 6239:163263 sits at the hero's top-right). */}
       {course && (
         <div className="relative z-10 pt-10 pb-20 lg:pt-14 lg:pr-[331px] lg:pb-24">
-          <div className="flex flex-col gap-6 lg:flex-row lg:gap-6">
-            {/* Left col: thumbnail + trust — desktop only */}
-            <div className="hidden w-76.5 shrink-0 space-y-4 lg:block">
-              <div className="overflow-hidden border border-white/20 bg-white p-2">
-                {hasImage ? (
-                  <div className="relative aspect-290/188 w-full overflow-hidden bg-neutral-900">
-                    <SafeImage src={src!} alt="" fill sizes="306px" className="object-cover" />
-                  </div>
-                ) : (
-                  <div className="flex aspect-290/188 items-center justify-center rounded-md bg-neutral-800 text-sm text-white/60">
-                    Course preview
-                  </div>
-                )}
-              </div>
-
-              {updatedLabel ? (
-                <p className="font-open-sans text-xs text-white/80">
-                  Last updated: <span className="font-semibold text-white">{updatedLabel}</span>
-                </p>
-              ) : (
-                <p className="font-open-sans text-xs leading-snug font-semibold text-white">
-                  A Trusted Assessed, Audited and Endorsed Training Provider
-                </p>
-              )}
-
-              <div className="flex gap-2">
-                {TRUST_BADGES.map((badge) => (
-                  <div
-                    key={badge.src}
-                    className="flex h-14 w-17.5 items-center justify-center rounded border border-white/20 bg-white"
-                  >
-                    {publicImageExists(badge.src) ? (
-                      <SafeImage
-                        src={badge.src}
-                        alt={badge.label}
-                        width={44}
-                        height={44}
-                        className="object-contain"
-                      />
-                    ) : (
-                      <span className="text-center text-[10px] font-semibold text-neutral-700">
-                        {badge.label}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right col: title + rating + features */}
+          <div className="flex flex-col gap-6">
+            {/* title + rating + features */}
             <div className="min-w-0 flex-1">
               <h1 className="font-suse text-2xl leading-tight font-bold text-white sm:text-[29px]">
                 {course.title}
               </h1>
+
+              {course.excerpt ? (
+                <p className="mt-3 max-w-xl text-base leading-relaxed text-neutral-50">
+                  {course.excerpt}
+                </p>
+              ) : null}
 
               {course.rating || course.studentsCount ? (
                 <div className="font-open-sans mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-base">
@@ -176,7 +123,7 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
               ) : null}
 
               {/* Features grid — desktop only */}
-              <div className="mt-6 hidden lg:grid lg:grid-cols-2 lg:gap-x-8 lg:gap-y-3">
+              <div className="mt-6 hidden w-fit rounded-lg bg-[#ffffff0a] p-6 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:gap-y-3">
                 <ul className="space-y-3">
                   {FEATURES_LEFT.map((feat) => (
                     <li
@@ -199,6 +146,42 @@ export function CourseBanner({ src, alt, course }: CourseBannerProps) {
                     </li>
                   ))}
                 </ul>
+              </div>
+
+              {/* thumbnail + trust — desktop only */}
+              <div className="mt-6 w-76.5 shrink-0 space-y-2">
+                {updatedLabel ? (
+                  <p className="font-open-sans text-xs text-white/80">
+                    Last updated: <span className="font-semibold text-white">{updatedLabel}</span>
+                  </p>
+                ) : (
+                  <p className="font-open-sans text-xs leading-snug font-semibold text-white">
+                    A Trusted Assessed, Audited and Endorsed Training Provider
+                  </p>
+                )}
+
+                <div className="flex gap-2">
+                  {TRUST_BADGES.map((badge) => (
+                    <div
+                      key={badge.src}
+                      className="flex h-14 w-17.5 items-center justify-center rounded border border-white/20 bg-white"
+                    >
+                      {publicImageExists(badge.src) ? (
+                        <SafeImage
+                          src={badge.src}
+                          alt={badge.label}
+                          width={44}
+                          height={44}
+                          className="object-contain"
+                        />
+                      ) : (
+                        <span className="text-center text-[10px] font-semibold text-neutral-700">
+                          {badge.label}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

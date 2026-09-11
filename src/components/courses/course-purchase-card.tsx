@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Minus, Plus } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useAddToCart } from "@/lib/hooks/useCart";
 import { useBulkTiers } from "@/lib/hooks/useBulkTiers";
@@ -21,7 +21,7 @@ export function formatCoursePrice(amount: number, currency: string): string {
   }
 }
 
-type PurchaseTab = "me" | "teams";
+type PurchaseTab = "Individual" | "Business";
 
 /** Licences per order — matches the WooCommerce line-item cap. */
 const MAX_QUANTITY = 999;
@@ -37,19 +37,22 @@ interface CoursePurchaseCardProps {
 }
 
 export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProps) {
-  const [tab, setTab] = useState<PurchaseTab>("me");
+  const [tab, setTab] = useState<PurchaseTab>("Individual");
   const [qty, setQty] = useState(1);
   const [qtyText, setQtyText] = useState("1");
+  const [showBulkPricing, setShowBulkPricing] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const router = useRouter();
   const { mutate: addToCartAndGo, isPending: isBuyingNow } = useAddToCart();
   const { pricing } = course;
   const { data: tiers } = useBulkTiers();
 
+  const activeTier = resolveBulkTier(tiers, qty);
+
   // Indicative only — checkout re-prices server-side (see CART.md, bulk discount is a cart fee).
   const effectiveUnitPrice =
-    tab === "teams" && pricing
-      ? bulkTierUnitPrice(pricing.price, resolveBulkTier(tiers, qty))
+    tab === "Individual" && activeTier && pricing
+      ? bulkTierUnitPrice(pricing.price, activeTier)
       : (pricing?.price ?? 0);
 
   const durationLabel = course.durationLabel ? `Duration: ${course.durationLabel}` : null;
@@ -57,18 +60,9 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
   const wcProductId = resolveCourseProductId(course);
   const canPurchase = wcProductId != null;
 
-  /**
-   * Single rule: the priced quantity is clamped, and the tab follows it in both
-   * directions — more than one licence means "For teams", exactly one means "For me".
-   *
-   * Every quantity control funnels through here (steppers, typing, blur) so the tab can
-   * never claim a team purchase of a single licence. Only a quantity *commit* moves the
-   * tab; clicking a tab stays the buyer's own choice, handled in `selectTab`.
-   */
   const commitQuantity = (value: number) => {
     const next = clampQuantity(value);
     setQty(next);
-    setTab(next > 1 ? "teams" : "me");
     return next;
   };
 
@@ -79,8 +73,8 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
 
   const selectTab = (next: PurchaseTab) => {
     setTab(next);
-    // "For me" is a single licence — otherwise the header total and the cart disagree.
-    if (next === "me") {
+    setShowBulkPricing(false);
+    if (next === "Individual") {
       setQty(1);
       setQtyText("1");
     }
@@ -111,7 +105,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
     <div className={cn("w-full lg:w-76.75", className)}>
       <div className="border-neutral-30 overflow-hidden rounded-lg border bg-white shadow-xs">
         <div className="border-neutral-30 flex border-b">
-          {(["me", "teams"] as PurchaseTab[]).map((t) => (
+          {(["Individual", "Business"] as PurchaseTab[]).map((t) => (
             <button
               key={t}
               type="button"
@@ -125,150 +119,220 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                   : "hover:bg-neutral-10 text-neutral-500 hover:text-neutral-700",
               )}
             >
-              {t === "me" ? "For me" : "For teams"}
+              {t === "Individual" ? "Individual" : "Business"}
             </button>
           ))}
         </div>
 
         <div className="p-6">
-          {/* Price row — shared by both tabs */}
-          {pricing ? (
-            <div className="flex items-center gap-4">
-              <span className="font-suse text-[32px] leading-none font-bold text-neutral-900">
-                {formatCoursePrice(effectiveUnitPrice * qty, pricing.currency)}
-              </span>
-              {pricing.is_on_sale && pricing.regular_price > pricing.price ? (
-                <>
-                  <span className="bg-neutral-30 h-10 w-px" aria-hidden />
-                  <div className="font-open-sans text-sm">
-                    <p className="text-neutral-500">Regular price</p>
-                    <p className="font-medium text-red-500 line-through">
-                      {formatCoursePrice(pricing.regular_price * qty, pricing.currency)}
-                    </p>
+          {/* Individual tab: price, qty, bulk toggle, CTA, features */}
+          {tab === "Individual" ? (
+            <>
+              {/* Price row */}
+              {pricing ? (
+                <div className="flex items-center gap-4">
+                  <span className="font-suse text-[32px] leading-none font-bold text-neutral-900">
+                    {formatCoursePrice(effectiveUnitPrice * qty, pricing.currency)}
+                  </span>
+                  {pricing.is_on_sale && pricing.regular_price > pricing.price ? (
+                    <>
+                      <span className="bg-neutral-30 h-10 w-px" aria-hidden />
+                      <div className="font-open-sans text-sm">
+                        <p className="text-neutral-500">Regular price</p>
+                        <p className="font-medium text-red-500 line-through">
+                          {formatCoursePrice(pricing.regular_price * qty, pricing.currency)}
+                        </p>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="font-open-sans text-sm text-neutral-600">Contact us for pricing.</p>
+              )}
+
+              {/* Qty stepper */}
+              {pricing && (
+                <div className="mt-2 flex items-center gap-2">
+                  <div className="flex w-fit items-center rounded-lg border border-neutral-50">
+                    <button
+                      type="button"
+                      onClick={() => applyQuantity(qty - 1)}
+                      aria-label="Decrease quantity"
+                      disabled={qty <= 1}
+                      className="hover:bg-neutral-10 flex h-10 w-10 items-center justify-center rounded-lg p-1 text-neutral-700 transition-colors disabled:opacity-40"
+                    >
+                      <Minus className="h-5 w-5" />
+                    </button>
+                    <input
+                      type="number"
+                      min={1}
+                      max={MAX_QUANTITY}
+                      value={qtyText}
+                      onChange={(e) => {
+                        setQtyText(e.target.value);
+                        const val = parseInt(e.target.value, 10);
+                        if (!isNaN(val)) commitQuantity(val);
+                      }}
+                      onBlur={() => applyQuantity(parseInt(qtyText, 10))}
+                      className="font-open-sans h-10 w-12 border-x border-neutral-50 bg-white px-1 text-center text-[18px] leading-6 font-semibold text-neutral-900 outline-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => applyQuantity(qty + 1)}
+                      aria-label="Increase quantity"
+                      disabled={qty >= MAX_QUANTITY}
+                      className="hover:bg-neutral-10 flex h-10 w-10 items-center justify-center rounded-lg p-1 text-neutral-700 transition-colors disabled:opacity-40"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </button>
                   </div>
-                </>
+                  {qty > 1 && activeTier ? (
+                    <span className="rounded bg-[#eaf2ec] px-2 py-0.5 text-xs font-semibold text-[#198754]">
+                      Extra {activeTier.percentage}% saved
+                    </span>
+                  ) : null}
+                </div>
+              )}
+
+              {/* See/Hide Bulk Pricing toggle */}
+              {pricing && tiers && tiers.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setShowBulkPricing(!showBulkPricing)}
+                  className="font-open-sans text-secondary-500 mt-2 flex items-center gap-1 text-sm font-semibold underline"
+                >
+                  {showBulkPricing ? "Hide Bulk Pricing" : "See Bulk Pricing"}
+                  {showBulkPricing ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </button>
               ) : null}
-            </div>
-          ) : (
-            <p className="font-open-sans text-sm text-neutral-600">Contact us for pricing.</p>
-          )}
 
-          {/* Qty stepper */}
-          {pricing && (
-            <div className="mt-2 flex w-fit items-center rounded-lg border border-neutral-50">
-              <button
-                type="button"
-                onClick={() => applyQuantity(qty - 1)}
-                aria-label="Decrease quantity"
-                disabled={qty <= 1}
-                className="hover:bg-neutral-10 flex h-10 w-10 items-center justify-center rounded-lg p-1 text-neutral-700 transition-colors disabled:opacity-40"
-              >
-                <Minus className="h-5 w-5" />
-              </button>
-              <input
-                type="number"
-                min={1}
-                max={MAX_QUANTITY}
-                value={qtyText}
-                onChange={(e) => {
-                  // Free text while typing, but commit every parsable value so the
-                  // displayed total never leads the quantity sent to the cart.
-                  setQtyText(e.target.value);
-                  const val = parseInt(e.target.value, 10);
-                  if (!isNaN(val)) commitQuantity(val);
-                }}
-                onBlur={() => applyQuantity(parseInt(qtyText, 10))}
-                className="font-open-sans h-10 w-12 border-x border-neutral-50 bg-white px-1 text-center text-[18px] leading-6 font-semibold text-neutral-900 outline-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-              />
-              <button
-                type="button"
-                onClick={() => applyQuantity(qty + 1)}
-                aria-label="Increase quantity"
-                disabled={qty >= MAX_QUANTITY}
-                className="hover:bg-neutral-10 flex h-10 w-10 items-center justify-center rounded-lg p-1 text-neutral-700 transition-colors disabled:opacity-40"
-              >
-                <Plus className="h-5 w-5" />
-              </button>
-            </div>
-          )}
+              {/* Bulk discount tiers */}
+              {showBulkPricing && pricing && (
+                <BulkDiscountTable
+                  unitPrice={pricing.price}
+                  quantity={qty}
+                  currency={pricing.currency}
+                />
+              )}
 
-          {/* Bulk discount tiers — teams tab only */}
-          {tab === "teams" && pricing && (
-            <BulkDiscountTable
-              unitPrice={pricing.price}
-              quantity={qty}
-              currency={pricing.currency}
-            />
-          )}
+              {/* CTA */}
+              <div className="my-4">
+                {pricing && canPurchase ? (
+                  <button
+                    type="button"
+                    onClick={handleBuyNow}
+                    disabled={isBuyingNow}
+                    className="bg-secondary-600 font-open-sans hover:bg-secondary-700 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isBuyingNow ? "Adding…" : "Buy this course"}
+                  </button>
+                ) : (
+                  <Link
+                    href="/contact-us"
+                    className="bg-secondary-600 font-open-sans hover:bg-secondary-700 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors"
+                  >
+                    Get in Touch
+                  </Link>
+                )}
 
-          {/* CTA buttons */}
-          <div className="my-4">
-            {pricing && canPurchase ? (
-              <button
-                type="button"
-                onClick={handleBuyNow}
-                disabled={isBuyingNow}
-                className="bg-secondary-600 font-open-sans hover:bg-secondary-700 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isBuyingNow ? "Adding…" : "Buy this course"}
-              </button>
-            ) : (
-              <Link
-                href="/contact-us"
-                className="bg-secondary-600 font-open-sans hover:bg-secondary-700 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors"
-              >
-                Get in Touch
-              </Link>
-            )}
+                <p className="font-open-sans flex items-center justify-center gap-2 rounded-b-xs bg-[#1987541A] px-4 py-1 text-xs text-green-700">
+                  <Check className="h-4 w-4 text-green-600" aria-hidden />
+                  14 Days Money-Back Guarantee
+                </p>
 
-            <p className="font-open-sans flex items-center justify-center gap-2 rounded-b-xs bg-[#1987541A] px-4 py-1 text-xs text-green-700">
-              <Check className="h-4 w-4 text-green-600" aria-hidden />
-              14 Days Money-Back Guarantee
-            </p>
+                {addError && (
+                  <p className="rounded bg-red-50 px-3 py-2 text-xs text-red-600">{addError}</p>
+                )}
+              </div>
 
-            {addError && (
-              <p className="rounded bg-red-50 px-3 py-2 text-xs text-red-600">{addError}</p>
-            )}
-          </div>
+              {/* Feature list */}
+              <ul className="font-open-sans space-y-2 pt-1 text-sm text-neutral-700">
+                {[durationLabel, " Life Time Access", " Unlimited Free Retake Exam"]
+                  .filter(Boolean)
+                  .map((item) => (
+                    <li key={item} className="flex items-start gap-2">
+                      <Image
+                        src="/icons/check-secondary.svg"
+                        alt=""
+                        width={16}
+                        height={16}
+                        aria-hidden="true"
+                        className="mt-0.5 h-4 w-4 shrink-0"
+                      />
+                      {item}
+                    </li>
+                  ))}
+              </ul>
 
-          {/* Feature list — same for both tabs */}
-          <ul className="font-open-sans space-y-2 pt-1 text-sm text-neutral-700">
-            {[durationLabel, " Life Time Access", " Unlimited Free Retake Exam"]
-              .filter(Boolean)
-              .map((item) => (
-                <li key={item} className="flex items-start gap-2">
+              {/* CPD Points */}
+              {course.cpd_points ? (
+                <div className="mt-2 flex items-center gap-2">
                   <Image
                     src="/icons/check-secondary.svg"
                     alt=""
                     width={16}
                     height={16}
                     aria-hidden="true"
-                    className="mt-0.5 h-4 w-4 shrink-0"
+                    className="h-4 w-4 shrink-0"
                   />
-                  {item}
-                </li>
-              ))}
-          </ul>
+                  <p className="bg-secondary-50/50 font-open-sans px-2 py-1 text-base leading-6 font-bold text-neutral-500">
+                    CPD Points: {course.cpd_points}
+                  </p>
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <>
+              {/* Business tab: Team value proposition */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-suse text-lg font-bold text-neutral-900">
+                    Built for Your Whole Team
+                  </h3>
+                  <p className="font-open-sans mt-2 text-sm text-neutral-500">
+                    Flexible, CPD-certified online courses to help your team gain new skills, meet
+                    workplace requirements, and stay compliant.
+                  </p>
+                </div>
 
-          {/* CPD Points */}
-          {course.cpd_points ? (
-            <div className="mt-2 flex items-center gap-2">
-              <Image
-                src="/icons/check-secondary.svg"
-                alt=""
-                width={16}
-                height={16}
-                aria-hidden="true"
-                className="h-4 w-4 shrink-0"
-              />
-              <p className="bg-secondary-50/50 font-open-sans px-2 py-1 text-base leading-6 font-bold text-neutral-500">
-                CPD Points: {course.cpd_points}
-              </p>
-            </div>
-          ) : null}
+                <hr className="border-neutral-30" />
+
+                <div>
+                  <h4 className="font-suse text-sm font-bold text-neutral-900">
+                    Why Choose Training Excellence for Teams?
+                  </h4>
+                  <ul className="font-open-sans mt-2 space-y-2 text-sm text-neutral-500">
+                    {[
+                      "Cost-effective training solution",
+                      "Central training dashboard for seamless management",
+                      "Dedicated Manager for ongoing support",
+                      "Real-time progress tracking and reporting",
+                      "Streamlined enrolment and course assignment",
+                    ].map((item) => (
+                      <li key={item} className="flex items-start gap-2">
+                        <Check className="text-primary-500 mt-0.5 h-4 w-4 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <Link
+                  href="/contact-us"
+                  className="bg-secondary-600 font-open-sans hover:bg-secondary-700 block w-full rounded py-2.5 text-center text-sm font-semibold text-white transition-colors"
+                >
+                  Request a Quote
+                </Link>
+              </div>
+            </>
+          )}
 
           {/* Share Section */}
-          <div className="border-neutral-30 mt-4 flex items-center gap-4 border-t pt-4">
+          {/* <div className="border-neutral-30 mt-4 flex items-center gap-4 border-t pt-4">
             <span className="font-open-sans text-sm text-neutral-500">Share on:</span>
             <div className="flex gap-2">
               {[
@@ -293,7 +357,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                 </button>
               ))}
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
