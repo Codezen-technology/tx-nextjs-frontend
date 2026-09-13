@@ -31,7 +31,8 @@ export default async function PricingPage() {
   const [pricing, home, categoriesRes] = await Promise.all([
     serverApi.pricing.get().catch(() => null),
     serverApi.home.get().catch(() => null),
-    serverApi.taxonomy.categories({ per_page: 12 }).catch(() => null),
+    // Over-fetch: `CategoriesGrid` drops zero-course terms before it takes 12.
+    serverApi.taxonomy.categories({ per_page: 30 }).catch(() => null),
   ]);
 
   return (

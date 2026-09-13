@@ -24,11 +24,10 @@ const FEATURES_RIGHT = [
 const BANNER_OVERLAY_GRADIENT = "linear-gradient(88deg, #00204A 0%, #004F65 100.15%)";
 
 interface CourseBannerProps {
-  alt: string;
   course?: CourseRichData;
 }
 
-export function CourseBanner({ alt, course }: CourseBannerProps) {
+export function CourseBanner({ course }: CourseBannerProps) {
   const updatedLabel = (() => {
     if (!course?.updatedAt) return null;
     try {
@@ -123,7 +122,7 @@ export function CourseBanner({ alt, course }: CourseBannerProps) {
               ) : null}
 
               {/* Features grid — desktop only */}
-              <div className="mt-6 hidden w-fit rounded-lg bg-[#ffffff0a] p-6 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:gap-y-3">
+              <div className="mt-6 hidden w-fit rounded-lg bg-white/4 p-6 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:gap-y-3">
                 <ul className="space-y-3">
                   {FEATURES_LEFT.map((feat) => (
                     <li

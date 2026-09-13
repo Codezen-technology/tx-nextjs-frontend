@@ -89,3 +89,22 @@ export function planLineTotal(
 
   return scaleDisplayPrice(display, quantity);
 }
+
+/**
+ * Currency-formats a numeric amount, tolerating a non-ISO `currency`.
+ *
+ * The backend is not consistent about this field: some payloads carry `"GBP"`,
+ * others the symbol `"£"`. `Intl.NumberFormat` throws `RangeError` on the
+ * latter, and a throw inside a client component takes the whole card down, so
+ * the symbol case falls back to a plain `£` render rather than propagating.
+ */
+export function formatCurrencyAmount(amount: number, currency: string | undefined): string {
+  try {
+    return new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: currency || "GBP",
+    }).format(amount);
+  } catch {
+    return `£${amount.toFixed(2)}`;
+  }
+}

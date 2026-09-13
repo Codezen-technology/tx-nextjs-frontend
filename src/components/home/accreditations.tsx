@@ -55,7 +55,7 @@ export function Accreditations({ items = DEFAULT_ITEMS }: AccreditationsProps) {
                   // to decode, collapsing the logo to a 0x0 box. Capping both
                   // axes keeps varied logo aspect ratios undistorted while
                   // guaranteeing a non-zero box.
-                  className="font-open-sans px-2 text-center text-xs font-semibold text-neutral-600"
+                  className="max-h-20 w-20 object-contain"
                 />
               </div>
               <div className="border-secondary-500 min-w-0 flex-1 border-l py-4 pr-4 pl-4">

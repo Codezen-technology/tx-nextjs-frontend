@@ -80,14 +80,16 @@ The About page's "Trusted" strip section SHALL render using the existing `Topbar
 
 ### Requirement: About page section structure matches Figma
 
-The rendered `/about` page SHALL present sections in this order: Trusted strip, Hero, three alternating commitment blocks, values grid, Team section — matching the Figma "About US" design (node `649:22654`). The previous implementation's closing stats section (learner counts, guarantee callouts) SHALL be removed, as it has no counterpart in the Figma design.
+The rendered `/about` page SHALL present sections in this order: Trusted strip, Hero, three alternating commitment blocks, values grid — matching the Figma "About US" design (node `649:22654`). The previous implementation's closing stats section (learner counts, guarantee callouts) SHALL be removed, as it has no counterpart in the Figma design.
+
+The Team section designed at `649:22654` SHALL NOT be rendered until the client supplies real team photography and bios; the backend `about.team` payload stays wired so restoring it is one JSX line. Shipping the section against placeholder people is worse than omitting it.
 
 The page renders no breadcrumb bar and publishes no breadcrumb structured data. That rule is normative in `site-breadcrumb-suppression`, which states it for every page; the scenario below is retained as this page's own check, not as a second statement of the rule.
 
 #### Scenario: Page render order
 
 - **WHEN** `/about` is rendered
-- **THEN** the sections appear in the order Trusted, Hero, commitment blocks, values grid, Team — and no stats/"Our journey" section is present
+- **THEN** the sections appear in the order Trusted, Hero, commitment blocks, values grid — and no stats/"Our journey" section and no Team section are present
 
 #### Scenario: No breadcrumb bar
 

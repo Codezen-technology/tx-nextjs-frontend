@@ -204,7 +204,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           while staying sticky over the full page height. The hero itself spans both columns. */}
       <div className="mx-auto max-w-[1296px] px-4 pb-20 lg:grid lg:grid-cols-[minmax(0,1fr)_307px] lg:gap-x-6">
         <div className="lg:col-span-2 lg:col-start-1 lg:row-start-1">
-          <CourseBanner alt={course.title} course={course} />
+          <CourseBanner course={course} />
         </div>
 
         {/* ── Desktop sticky purchase card — hero top-right, overlapping the hero row ── */}
@@ -251,7 +251,6 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
           {/* ── Sticky anchor tabs ── */}
           <CourseTabNav
-            accreditations={accreditations}
             curriculum={curriculum}
             hasCourseContent={Boolean(whatYouLearn || sections?.at_a_glance)}
             hasScreenshots={screenshots.length > 0}

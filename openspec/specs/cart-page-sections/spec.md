@@ -32,12 +32,12 @@ arc rather than at the edge where destructive controls are expected.
 ### Requirement: The cart suggests further courses
 
 The Cart page SHALL present a section of suggested courses below its line items, headed
-"Customers Also Purchased", showing at most three courses.
+"Learners Also Purchased", showing at most three courses.
 
 #### Scenario: A cart holding items
 
 - **WHEN** the Cart page is rendered with at least one line item
-- **THEN** a "Customers Also Purchased" section appears below the cart contents with up to
+- **THEN** a "Learners Also Purchased" section appears below the cart contents with up to
   three course cards
 
 #### Scenario: Suggestions are still loading

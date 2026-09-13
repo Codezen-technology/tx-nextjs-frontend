@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/hooks/useCart";
-//import { SecureCheckoutBand } from "@/components/commerce/SecureCheckoutBand";
 import { ExpressCheckout } from "./ExpressCheckout";
 import { cn } from "@/lib/utils/cn";
 import parse from "html-react-parser";
@@ -85,14 +84,22 @@ export function CartSummary({ currency = "£", onSuccess }: CartSummaryProps) {
         {onSuccess && <ExpressCheckout onSuccess={onSuccess} />}
       </div>
 
-      {/* The design puts its trust band here too (6239:113976), beneath the
-          checkout button. This replaced a hand-rolled "Secure checkout" line with
-          its own shield and its own idea of which brands the site takes — the
-          band reads the shared brand list, so the cart cannot disagree with the
-          checkout page about what is accepted. */}
+      {/* The design puts its trust band here (6239:113976), beneath the checkout
+          button.
+
+          ⚠️ Divergence from `openspec/specs/purchase-trust-signals`: this renders
+          the flat artwork rather than `<SecureCheckoutBand />`, which checkout
+          still uses. The band derives its card marks from `CARD_BRANDS`; a raster
+          cannot, so the two surfaces can now claim different accepted brands and
+          only the checkout one stays true when `CARD_BRANDS` changes. Swap back to
+          the band, or re-cut the artwork, once the design owner has ruled. */}
       <div className="px-6 pb-6">
-        {/* <SecureCheckoutBand /> */}
-        <Image src="/images/payment-div.png" alt="Secure payment" width={400} height={86} />
+        <Image
+          src="/images/payment-div.png"
+          alt="Guaranteed safe and secure checkout, powered by Stripe"
+          width={400}
+          height={86}
+        />
       </div>
     </div>
   );

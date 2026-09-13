@@ -57,7 +57,6 @@ export function CourseCard({ course, className, priority = false }: CourseCardPr
 
         {featureImgRibbon && (
           <div className="absolute top-3 right-4 flex w-fit justify-center gap-0.5 rounded bg-[#008000] px-2 py-1 text-xs text-white">
-            {/* <Star className="absolute top-1 h-4 w-4 shrink-0 rotate-90 fill-amber-300 stroke-amber-300 transform-fill" /> */}
             {featureImgRibbon}
           </div>
         )}

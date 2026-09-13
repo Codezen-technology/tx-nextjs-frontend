@@ -9,7 +9,6 @@ import { Topbar } from "@/components/home/topbar";
 import { AboutHero } from "@/components/about/about-hero";
 import { AboutCommitmentSection } from "@/components/about/about-commitment-section";
 import { AboutValuesGrid } from "@/components/about/about-values-grid";
-import { AboutTeamSection } from "@/components/about/about-team-section";
 
 export const revalidate = 300;
 
@@ -46,9 +45,7 @@ export default async function AboutPage() {
       <AboutHero data={about.hero} />
       <AboutCommitmentSection data={about.commitment_section} />
       <AboutValuesGrid data={about.values} />
-
-      {/* Initially Hide this section  */}
-      {/* <AboutTeamSection data={about.team} /> */}
+      {/* No Team section: `about-us-page-content` records why it is withheld. */}
     </>
   );
 }

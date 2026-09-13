@@ -2,7 +2,6 @@ import Link from "next/link";
 import { serverApi } from "@/lib/api/server";
 import { normalizeCourseList } from "@/lib/services/courses";
 import { CourseCard } from "@/components/courses/course-card";
-import { ChevronRight } from "lucide-react";
 import type { HomePopularCoursesHeader } from "@/types/home";
 
 interface PopularCoursesProps {
@@ -49,7 +48,6 @@ export async function PopularCourses({ limit = 8, header }: PopularCoursesProps)
         className="font-open-sans text-secondary-500 border-secondary-500 hover:bg-secondary-500 flex items-center justify-self-center rounded-full border bg-transparent px-6 py-3 text-base font-normal transition-colors hover:text-white"
       >
         {header.ctaLabel}
-        {/* <ChevronRight className="h-4 w-4" /> */}
       </Link>
     </section>
   );

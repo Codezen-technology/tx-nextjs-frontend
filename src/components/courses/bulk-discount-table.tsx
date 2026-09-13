@@ -2,7 +2,9 @@
 
 import { useBulkTiers } from "@/lib/hooks/useBulkTiers";
 import { resolveBulkTier } from "@/lib/utils/bulk-tiers";
+import { formatCurrencyAmount } from "@/lib/utils/price";
 import { cn } from "@/lib/utils/cn";
+import { SavingsPill } from "@/components/courses/savings-pill";
 import type { BulkTier } from "@/types/cart-rules";
 
 interface BulkDiscountTableProps {
@@ -25,11 +27,14 @@ function tierLabel(tier: BulkTier): string {
 export function BulkDiscountTable({
   unitPrice,
   quantity,
-  currency = "£",
+  currency,
   className,
 }: BulkDiscountTableProps) {
   const { data: tiers, isLoading } = useBulkTiers();
 
+  // Same resolver the card uses for the header price. Tiers may overlap or arrive
+  // unsorted and the largest discount wins, so re-deriving the match here would
+  // disagree with the headline total on exactly the inputs that rule exists for.
   const activeTier = resolveBulkTier(tiers, quantity);
 
   if (isLoading) {
@@ -46,7 +51,7 @@ export function BulkDiscountTable({
 
   return (
     <div className={cn("mt-4 flex flex-col", className)}>
-      <div className="font-open-sans flex items-center justify-between rounded-t bg-[#f5f6f8] px-2 py-1.5 text-[14px] font-semibold text-neutral-900">
+      <div className="bg-neutral-20 font-open-sans flex items-center justify-between rounded-t px-2 py-1.5 text-[14px] font-semibold text-neutral-900">
         <span className="w-25.25">Quantity</span>
         <span className="text-center">Save</span>
         <div className="w-14.5 text-center leading-tight">
@@ -54,16 +59,19 @@ export function BulkDiscountTable({
           <span className="block text-[10px] font-normal">(per person)</span>
         </div>
       </div>
-      <div className="flex flex-col rounded-b border border-[#f5f6f8]">
+      <div className="border-neutral-20 flex flex-col rounded-b border">
         {tiers.map((tier, i) => {
           const price = unitPrice * (1 - tier.percentage / 100);
+          // Identity, not a min/max re-match: two configured tiers can share a band
+          // with different percentages, and only one of them priced this order.
           const isActive = tier === activeTier;
           return (
             <div
               key={i}
+              aria-current={isActive ? "true" : undefined}
               className={cn(
                 "flex items-center justify-between px-2 py-2",
-                i < tiers.length - 1 && "border-b border-[#f5f6f8]",
+                i < tiers.length - 1 && "border-neutral-20 border-b",
               )}
             >
               <span
@@ -73,12 +81,13 @@ export function BulkDiscountTable({
                 )}
               >
                 {tierLabel(tier)}
+                {/* Non-colour cue — the active row must still be identifiable in
+                    greyscale and to a screen reader, which weight alone does not do. */}
+                {isActive ? <span className="sr-only"> — your current tier</span> : null}
               </span>
-              <span className="rounded-full bg-[#eaf2ec] px-2 py-0.5 text-[12px] leading-4 font-bold text-[#4f9254]">
-                {tier.percentage}%
-              </span>
+              <SavingsPill>{tier.percentage}%</SavingsPill>
               <span className="font-open-sans w-14.5 text-right text-[14px] font-bold text-neutral-900">
-                {new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(price)}
+                {formatCurrencyAmount(price, currency)}
               </span>
             </div>
           );

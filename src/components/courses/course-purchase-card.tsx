@@ -10,16 +10,10 @@ import { useAddToCart } from "@/lib/hooks/useCart";
 import { useBulkTiers } from "@/lib/hooks/useBulkTiers";
 import { resolveBulkTier, bulkTierUnitPrice } from "@/lib/utils/bulk-tiers";
 import { resolveCourseProductId } from "@/lib/services/courses";
+import { formatCurrencyAmount } from "@/lib/utils/price";
 import { BulkDiscountTable } from "@/components/courses/bulk-discount-table";
+import { SavingsPill } from "@/components/courses/savings-pill";
 import type { CourseRichData } from "@/types/course";
-
-export function formatCoursePrice(amount: number, currency: string): string {
-  try {
-    return new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(amount);
-  } catch {
-    return `£${amount.toFixed(2)}`;
-  }
-}
 
 type PurchaseTab = "Individual" | "Business";
 
@@ -119,7 +113,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                   : "hover:bg-neutral-10 text-neutral-500 hover:text-neutral-700",
               )}
             >
-              {t === "Individual" ? "Individual" : "Business"}
+              {t}
             </button>
           ))}
         </div>
@@ -132,7 +126,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
               {pricing ? (
                 <div className="flex items-center gap-4">
                   <span className="font-suse text-[32px] leading-none font-bold text-neutral-900">
-                    {formatCoursePrice(effectiveUnitPrice * qty, pricing.currency)}
+                    {formatCurrencyAmount(effectiveUnitPrice * qty, pricing.currency)}
                   </span>
                   {pricing.is_on_sale && pricing.regular_price > pricing.price ? (
                     <>
@@ -140,7 +134,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                       <div className="font-open-sans text-sm">
                         <p className="text-neutral-500">Regular price</p>
                         <p className="font-medium text-red-500 line-through">
-                          {formatCoursePrice(pricing.regular_price * qty, pricing.currency)}
+                          {formatCurrencyAmount(pricing.regular_price * qty, pricing.currency)}
                         </p>
                       </div>
                     </>
@@ -187,9 +181,7 @@ export function CoursePurchaseCard({ course, className }: CoursePurchaseCardProp
                     </button>
                   </div>
                   {qty > 1 && activeTier ? (
-                    <span className="rounded bg-[#eaf2ec] px-2 py-0.5 text-xs font-semibold text-[#198754]">
-                      Extra {activeTier.percentage}% saved
-                    </span>
+                    <SavingsPill>Extra {activeTier.percentage}% saved</SavingsPill>
                   ) : null}
                 </div>
               )}

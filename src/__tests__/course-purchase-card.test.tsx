@@ -35,6 +35,17 @@ vi.mock("@/lib/hooks/useBulkTiers", () => ({
 /** The tier table renders on the Individual tab when toggled open. */
 const bulkTableShown = () => screen.queryByText(/per person/i) !== null;
 
+/** Tier rows carry `aria-current` only when the quantity has reached them. */
+const activeTierLabels = (container: HTMLElement) =>
+  Array.from(container.querySelectorAll('[aria-current="true"]')).map((row) =>
+    // Spans in document order: band label (which holds the SR phrase), pill, price.
+    (row.querySelectorAll("span")[0]?.textContent ?? "").replace("— your current tier", "").trim(),
+  );
+
+/** Reveals the tier table — it is behind the "See Bulk Pricing" toggle. */
+const openBulkPricing = () =>
+  fireEvent.click(screen.getByRole("button", { name: /see bulk pricing/i }));
+
 beforeEach(() => {
   mockPush.mockReset();
   mockMutate.mockClear();
@@ -202,6 +213,60 @@ describe("CoursePurchaseCard", () => {
     render(<CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />);
     fireEvent.click(screen.getByRole("button", { name: /business/i }));
     expect(screen.queryByText(/£99\.00/i)).not.toBeInTheDocument();
+  });
+
+  // ── The tier table marks the band the quantity has reached ──
+
+  it("marks the tier the current quantity falls in, and only that one", () => {
+    tierState.tiers = [
+      { min: 10, max: 19, percentage: 10 },
+      { min: 20, max: 49, percentage: 25 },
+      { min: 50, max: 100, percentage: 50 },
+    ];
+    const { container } = render(
+      <CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />,
+    );
+    openBulkPricing();
+    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "21" } });
+
+    expect(activeTierLabels(container)).toEqual(["20 - 49 users"]);
+  });
+
+  it("marks nothing while the quantity is below every tier", () => {
+    const { container } = render(
+      <CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />,
+    );
+    openBulkPricing();
+    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "10" } });
+    expect(activeTierLabels(container)).toEqual(["10 - 19 users"]);
+
+    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "9" } });
+    expect(activeTierLabels(container)).toEqual([]);
+  });
+
+  it("marks the tier that produced the header price when tiers overlap", () => {
+    // Both bands cover 21; the larger discount wins the price, so it must win the row.
+    tierState.tiers = [
+      { min: 10, max: 100, percentage: 10 },
+      { min: 20, max: 49, percentage: 25 },
+    ];
+    const { container } = render(
+      <CoursePurchaseCard course={makeRichCourse({ product_id: 42 })} />,
+    );
+    openBulkPricing();
+    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "21" } });
+
+    expect(activeTierLabels(container)).toEqual(["20 - 49 users"]);
+  });
+
+  it("prices the tier table without throwing on a symbol currency", () => {
+    // The backend sends "GBP" on some builds and "£" on others; `Intl.NumberFormat`
+    // throws `RangeError` on the second, which would unmount the whole card.
+    const course = makeRichCourse({ product_id: 42 });
+    if (course.pricing) course.pricing.currency = "£";
+    render(<CoursePurchaseCard course={course} />);
+    openBulkPricing();
+    expect(bulkTableShown()).toBe(true);
   });
 
   // ── Existing feature tests ──

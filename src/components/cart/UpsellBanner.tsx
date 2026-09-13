@@ -45,15 +45,17 @@ export function UpsellBanner() {
         {/* Title + price */}
         <div className="flex flex-col gap-2">
           <p className="font-suse text-secondary-500 text-xl font-bold">{upsell.name}</p>
-          <p className="text-2xl font-bold text-neutral-900">
+          <p className="flex items-baseline gap-2 text-2xl font-bold text-neutral-900">
             {upsell.regular_price > upsell.price && (
               <span className="text-[#dc3545] line-through">
                 {upsell.currency}
                 {upsell.regular_price}
               </span>
             )}
-            {upsell.currency}
-            {upsell.price}
+            <span>
+              {upsell.currency}
+              {upsell.price}
+            </span>
           </p>
         </div>
 
@@ -82,7 +84,11 @@ export function UpsellBanner() {
             disabled={alreadyInCart || addToCart.isPending}
             className="bg-secondary-500 w-full cursor-pointer rounded-full px-6 py-2 text-base font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {alreadyInCart ? "Added" : addToCart.isPending ? "Adding…" : upsell.cta_label}
+            {alreadyInCart
+              ? "Added"
+              : addToCart.isPending
+                ? "Adding…"
+                : (upsell.cta_label ?? "Add to Cart")}
           </button>
         </div>
       </div>

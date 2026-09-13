@@ -1,7 +1,5 @@
-import { cn } from "@/lib/utils/cn";
 import { HomeIcon } from "./home-icon";
 import type { HomeWhyFeature } from "@/types/home";
-import Image from "next/image";
 
 interface WhyChooseGridProps {
   features?: HomeWhyFeature[];
@@ -18,13 +16,10 @@ export function WhyChooseGrid({ features, image }: WhyChooseGridProps) {
           <h2 className="font-suse text-2xl leading-[1.2] font-bold text-neutral-900 md:text-[32px]">
             Why Choose Us
           </h2>
-          {/* <p className="font-open-sans text-base leading-normal text-neutral-500">
-            Explore our wide range of online courses covering areas like Health & Safety,ace.
-          </p> */}
           <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2">
             {features.map((feature, i) => {
               return (
-                <div key={`${feature.title}-${i}`} className={cn("flex items-start gap-6")}>
+                <div key={`${feature.title}-${i}`} className="flex items-start gap-6">
                   <div className="bg-secondary-100 flex shrink-0 items-start rounded-[28px] p-2">
                     <div className="bg-secondary-500 flex shrink-0 items-start rounded-[20px] p-2">
                       <HomeIcon name={feature.icon} className="h-6 w-6 text-white" />
@@ -44,13 +39,22 @@ export function WhyChooseGrid({ features, image }: WhyChooseGridProps) {
           </div>
         </div>
 
-        {/* Right side image */}
+        {/* Right side image.
+
+            Plain `<img>`, not `next/image`: the backend hands back a full CDN URL
+            and the optimizer 400s on any host missing from
+            `next.config.mjs` → `images.remotePatterns`. The static fallback is
+            local, but keeping one tag for both paths avoids a host allowlist that
+            has to be updated every time marketing moves the asset. */}
         <div className="flex w-full justify-center lg:w-2/5">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={image || "/images/why-choose-us.webp"}
             alt="Why Choose Us"
             width={480}
             height={360}
+            loading="lazy"
+            decoding="async"
           />
         </div>
       </div>
