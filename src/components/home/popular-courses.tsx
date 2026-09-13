@@ -2,7 +2,6 @@ import Link from "next/link";
 import { serverApi } from "@/lib/api/server";
 import { normalizeCourseList } from "@/lib/services/courses";
 import { CourseCard } from "@/components/courses/course-card";
-import { ChevronRight } from "lucide-react";
 import type { HomePopularCoursesHeader } from "@/types/home";
 
 interface PopularCoursesProps {
@@ -25,9 +24,9 @@ export async function PopularCourses({ limit = 8, header }: PopularCoursesProps)
 
   const courses = normalizeCourseList(data.items);
   return (
-    <section>
-      <div className="container">
-        <div className="mb-8 flex flex-col items-start justify-between md:flex-row md:items-center">
+    <section className="py-section container flex flex-col items-center justify-center gap-8 lg:py-14">
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-col items-start justify-between md:flex-row md:items-center">
           <div>
             <h2 className="font-suse text-2xl font-bold text-neutral-900 md:text-[32px]">
               {header.title}
@@ -36,14 +35,6 @@ export async function PopularCourses({ limit = 8, header }: PopularCoursesProps)
               {header.description}
             </p>
           </div>
-
-          <Link
-            href={header.ctaHref}
-            className="font-open-sans text-secondary-500 hover:text-secondary-600 mt-2 flex items-center gap-1 justify-self-start text-base font-normal transition-colors md:mt-0 md:justify-self-end"
-          >
-            {header.ctaLabel}
-            <ChevronRight className="h-4 w-4" />
-          </Link>
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -52,6 +43,12 @@ export async function PopularCourses({ limit = 8, header }: PopularCoursesProps)
           ))}
         </div>
       </div>
+      <Link
+        href={header.ctaHref}
+        className="font-open-sans text-secondary-500 border-secondary-500 hover:bg-secondary-500 flex items-center justify-self-center rounded-full border bg-transparent px-6 py-3 text-base font-normal transition-colors hover:text-white"
+      >
+        {header.ctaLabel}
+      </Link>
     </section>
   );
 }

@@ -346,3 +346,50 @@ test.describe("QA-COURSE-* — single course page fidelity", () => {
     }
   });
 });
+
+/**
+ * The sticky sidebar's feature image belongs to the hero composition, so it
+ * collapses once the column pins. Without it the image rides the whole page and
+ * pushes the purchase CTA below the fold on shorter viewports.
+ */
+test.describe("Course detail — sticky sidebar feature image", () => {
+  test("the feature image collapses once the purchase card sticks, and returns at the top", async ({
+    page,
+  }, testInfo) => {
+    test.skip(!courseSlug, "No courses available on WP backend");
+    // The sidebar is `lg:` only — at 440 there is no aside to stick.
+    test.skip(testInfo.project.name === "mobile-440", "Sidebar is desktop-only");
+    await page.goto(`/course/${courseSlug}`);
+
+    const image = page.locator('[data-testid="course-feature-image"]');
+    if ((await image.count()) === 0) test.skip(true, "Course page has no desktop sidebar.");
+
+    const height = () => image.evaluate((el) => Math.round(el.getBoundingClientRect().height));
+
+    expect(
+      await height(),
+      "single course @desktop: feature image at scroll top — expected visible",
+    ).toBeGreaterThan(0);
+
+    await page.evaluate(() => window.scrollTo(0, 1200));
+    await expect
+      .poll(height, {
+        message: "single course @desktop: feature image once stuck — expected collapsed to 0",
+      })
+      .toBe(0);
+
+    // The card it shares the column with must still be on screen and usable.
+    const buy = page
+      .getByRole("button", { name: /buy this course/i })
+      .locator("visible=true")
+      .first();
+    if ((await buy.count()) > 0) await expect(buy).toBeInViewport();
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect
+      .poll(height, {
+        message: "single course @desktop: feature image back at top — expected restored",
+      })
+      .toBeGreaterThan(0);
+  });
+});

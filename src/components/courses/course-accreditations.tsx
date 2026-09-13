@@ -2,18 +2,29 @@ import { SafeImage } from "@/components/ui/safe-image";
 import { isRenderableImageSrc } from "@/lib/utils/image";
 import type { CourseAccreditation } from "@/types/course";
 
+const DEFAULT_ACCREDITATIONS: CourseAccreditation[] = [
+  {
+    slug: "cpd",
+    label: "CPD Service Accredited",
+    logo: "/images/cpd-logo.png",
+    description:
+      "Our courses are fully accredited by the CPD Certification Service, ensuring they meet recognised standards for Continuing Professional Development and align with UK professional learning guidelines.",
+  },
+  {
+    slug: "ukrlp",
+    label: "UKRLP Registered Provider",
+    logo: "/images/ukrlp-logo.png",
+    description:
+      "We are registered with the UK Register of Learning Providers (UKRLP), confirming our status as a recognised training provider and reinforcing the credibility and transparency of our courses.",
+  },
+];
+
 interface CourseAccreditationsProps {
   accreditations: CourseAccreditation[];
 }
 
 export function CourseAccreditations({ accreditations }: CourseAccreditationsProps) {
-  if (!accreditations.length) {
-    return (
-      <p className="font-open-sans text-sm text-neutral-500">
-        No accreditation information available.
-      </p>
-    );
-  }
+  const items = accreditations.length ? accreditations : DEFAULT_ACCREDITATIONS;
 
   return (
     <div className="space-y-6">
@@ -21,7 +32,7 @@ export function CourseAccreditations({ accreditations }: CourseAccreditationsPro
         Training you can trust
       </h2>
       <div className="bg-secondary-50 space-y-4 rounded-lg p-6">
-        {accreditations.map((acc) => (
+        {items.map((acc) => (
           <div
             key={acc.slug}
             className="border-neutral-30 flex flex-col gap-4 border-b pb-4 last:border-b-0 last:pb-0 sm:flex-row sm:items-start"

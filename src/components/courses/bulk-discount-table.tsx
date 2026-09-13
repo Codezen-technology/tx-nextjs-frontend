@@ -1,9 +1,10 @@
 "use client";
 
-import { Check } from "lucide-react";
 import { useBulkTiers } from "@/lib/hooks/useBulkTiers";
 import { resolveBulkTier } from "@/lib/utils/bulk-tiers";
+import { formatCurrencyAmount } from "@/lib/utils/price";
 import { cn } from "@/lib/utils/cn";
+import { SavingsPill } from "@/components/courses/savings-pill";
 import type { BulkTier } from "@/types/cart-rules";
 
 interface BulkDiscountTableProps {
@@ -26,7 +27,7 @@ function tierLabel(tier: BulkTier): string {
 export function BulkDiscountTable({
   unitPrice,
   quantity,
-  currency = "£",
+  currency,
   className,
 }: BulkDiscountTableProps) {
   const { data: tiers, isLoading } = useBulkTiers();
@@ -50,17 +51,15 @@ export function BulkDiscountTable({
 
   return (
     <div className={cn("mt-4 flex flex-col", className)}>
-      <div className="bg-neutral-40 font-open-sans flex items-center justify-between px-2 py-1.5 text-[14px] font-semibold text-neutral-900">
-        {/* Matches the rows' marker slot so the header sits over the band labels. */}
-        <span className="w-5 shrink-0" aria-hidden />
+      <div className="bg-neutral-20 font-open-sans flex items-center justify-between rounded-t px-2 py-1.5 text-[14px] font-semibold text-neutral-900">
         <span className="w-25.25">Quantity</span>
-        <span>Save</span>
+        <span className="text-center">Save</span>
         <div className="w-14.5 text-center leading-tight">
           <span className="block">Price</span>
           <span className="block text-[10px] font-normal">(per person)</span>
         </div>
       </div>
-      <div className="bg-neutral-20 flex flex-col gap-4 px-2.5 py-3">
+      <div className="border-neutral-20 flex flex-col rounded-b border">
         {tiers.map((tier, i) => {
           const price = unitPrice * (1 - tier.percentage / 100);
           // Identity, not a min/max re-match: two configured tiers can share a band
@@ -69,22 +68,12 @@ export function BulkDiscountTable({
           return (
             <div
               key={i}
-              // `-mx-1 px-1` gives the active tint some breathing room without moving any
-              // column: every row keeps the same content box, highlighted or not.
-              className={cn(
-                "-mx-1 flex items-center justify-between rounded px-1 py-0.5",
-                isActive && "bg-secondary-50",
-              )}
               aria-current={isActive ? "true" : undefined}
+              className={cn(
+                "flex items-center justify-between px-2 py-2",
+                i < tiers.length - 1 && "border-neutral-20 border-b",
+              )}
             >
-              {/* Non-colour cue — the highlight must survive greyscale. The slot is
-                  reserved on every row (and in the header) so nothing shifts. */}
-              <span className="w-5 shrink-0">
-                <Check
-                  className={cn("h-3.5 w-3.5", isActive ? "text-secondary-600" : "invisible")}
-                  aria-hidden
-                />
-              </span>
               <span
                 className={cn(
                   "font-open-sans w-25.25 text-[14px]",
@@ -92,14 +81,13 @@ export function BulkDiscountTable({
                 )}
               >
                 {tierLabel(tier)}
+                {/* Non-colour cue — the active row must still be identifiable in
+                    greyscale and to a screen reader, which weight alone does not do. */}
                 {isActive ? <span className="sr-only"> — your current tier</span> : null}
               </span>
-              <span className="rounded-[20px] bg-neutral-700 px-2 py-0.5 text-[12px] leading-4 font-bold text-white">
-                {tier.percentage}%
-              </span>
+              <SavingsPill>{tier.percentage}%</SavingsPill>
               <span className="font-open-sans w-14.5 text-right text-[14px] font-bold text-neutral-900">
-                {currency}
-                {price.toFixed(2)}
+                {formatCurrencyAmount(price, currency)}
               </span>
             </div>
           );

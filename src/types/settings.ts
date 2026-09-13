@@ -82,6 +82,11 @@ export interface MembershipUpsell {
   regular_price: number;
   currency: string;
   badge: string | null;
+  /**
+   * Not in `API_REFERENCE.md` and absent on older plugin builds, so optional —
+   * `UpsellBanner` falls back rather than rendering a blank button.
+   */
+  cta_label?: string;
   features: string[];
   permalink: string | null;
 }

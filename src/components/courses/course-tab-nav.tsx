@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils/cn";
-import type { CourseAccreditation, CourseSections, CourseFlatCurriculumItem } from "@/types/course";
+import type { CourseSections, CourseFlatCurriculumItem } from "@/types/course";
 
 interface NavItem {
   id: string;
@@ -10,7 +10,6 @@ interface NavItem {
 }
 
 interface CourseTabNavProps {
-  accreditations: CourseAccreditation[];
   curriculum: CourseFlatCurriculumItem[];
   /** Whether the `#course-content` block (what you'll learn / at a glance) is rendered. */
   hasCourseContent: boolean;
@@ -22,7 +21,6 @@ interface CourseTabNavProps {
 }
 
 export function CourseTabNav({
-  accreditations,
   curriculum,
   hasCourseContent,
   hasScreenshots,
@@ -33,7 +31,9 @@ export function CourseTabNav({
   const [active, setActive] = useState<string>("");
 
   const items: NavItem[] = [
-    ...(accreditations.length ? [{ id: "accreditations", label: "Accreditations" }] : []),
+    // Unconditional: `CourseAccreditations` substitutes a default pair when the
+    // course carries none, so the section is always on the page to anchor to.
+    { id: "accreditations", label: "Accreditations" },
     ...(hasCourseContent ? [{ id: "course-content", label: "Course Content" }] : []),
     ...(hasScreenshots ? [{ id: "sneak-peek", label: "Sneak Peek" }] : []),
     ...(curriculum.length ? [{ id: "curriculum", label: "Course Curriculum" }] : []),

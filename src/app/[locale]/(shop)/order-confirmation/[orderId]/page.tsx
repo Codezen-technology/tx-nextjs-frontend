@@ -222,7 +222,7 @@ export default function OrderConfirmationPage() {
 
         {/* Membership upsell banner */}
         <div className="mx-auto mt-10 w-full max-w-[636px]">
-          <UpsellBanner variant="checkout" />
+          <UpsellBanner />
         </div>
       </div>
     </div>

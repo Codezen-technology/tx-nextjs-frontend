@@ -6,6 +6,7 @@ interface CategoryItem {
   id: number;
   name: string;
   slug: string;
+  count: number;
   image?: string | null;
 }
 
@@ -31,6 +32,7 @@ function mapApiCategory(cat: ApiCategory): CategoryItem {
     id: cat.id,
     name: cat.name,
     slug: cat.slug,
+    count: cat.count,
     image: cat.image,
   };
 }
@@ -39,7 +41,9 @@ async function getCategories(provided?: CategoryItem[]): Promise<CategoryItem[]>
   if (provided?.length) return provided;
 
   try {
-    const res = await serverApi.taxonomy.categories({ per_page: 12 });
+    // 30, not 12: zero-course terms are filtered out below, so a page of exactly
+    // 12 can leave the grid short a row.
+    const res = await serverApi.taxonomy.categories({ per_page: 30 });
     if (res.items?.length) return res.items.map(mapApiCategory);
   } catch {
     return [];
@@ -54,9 +58,12 @@ export async function CategoriesGrid({
 }: CategoriesGridProps) {
   const categories = await getCategories(provided);
 
-  if (!categories.length) return null;
+  // Empty categories are dropped before the emptiness guard, not after: filtering
+  // afterwards left the heading and "View all courses" link stranded over a grid
+  // with nothing in it whenever every term had a zero course count.
+  const displayed = categories.filter((c) => c.count > 0).slice(0, 12);
 
-  const displayed = categories.slice(0, 12);
+  if (!displayed.length) return null;
 
   return (
     // One grid, three children. The CTA keeps its place in the DOM — heading,
@@ -64,7 +71,7 @@ export async function CategoriesGrid({
     // `order-last` (QA-HOME-A7). Rendering it twice behind `hidden`/`md:block`
     // would give it two accessible names; moving it in the DOM instead would put
     // desktop focus order behind all twelve category links.
-    <div className="container grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto] md:items-center">
+    <div className="py-section container grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto] md:items-center lg:py-14">
       <h3 className="font-suse text-2xl leading-normal font-bold text-neutral-900 md:text-[32px]">
         Explore courses by category
       </h3>

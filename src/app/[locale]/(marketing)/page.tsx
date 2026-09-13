@@ -4,6 +4,7 @@ import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/
 import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { serverApi } from "@/lib/api/server";
+import { normalizeWhySection } from "@/lib/services/home";
 import { HeroSection } from "@/components/home/hero-section";
 import { PricingSection } from "@/components/home/pricing-section";
 import { TrustedOrgs } from "@/components/home/trusted-orgs";
@@ -70,8 +71,12 @@ const HOME_SCHEMA = [
 export default async function HomePage() {
   const [home, categoriesRes] = await Promise.all([
     serverApi.home.get().catch(() => null),
-    serverApi.taxonomy.categories({ per_page: 12 }).catch(() => null),
+    // Over-fetch: `CategoriesGrid` drops zero-course terms before it takes 12.
+    serverApi.taxonomy.categories({ per_page: 30 }).catch(() => null),
   ]);
+
+  const why = normalizeWhySection(home?.why);
+
   return (
     <>
       {HOME_SCHEMA.map((schema, i) => (
@@ -87,17 +92,15 @@ export default async function HomePage() {
 
       <TrustedOrgs data={home?.trusted_orgs} />
 
-      <section className="py-section flex flex-col gap-20 lg:py-20">
-        <CategoriesGrid categories={categoriesRes?.items} />
+      <CategoriesGrid categories={categoriesRes?.items} />
 
-        <PopularCourses limit={8} header={home?.popular_courses_header} />
-      </section>
+      <WhyChooseGrid features={why.items} image={why.image} />
 
-      <ReviewsSection testimonials={home?.testimonials} />
+      <PopularCourses limit={8} header={home?.popular_courses_header} />
 
       <PricingSection data={home?.pricing} />
 
-      <WhyChooseGrid features={home?.why} />
+      <ReviewsSection testimonials={home?.testimonials} />
 
       <TransformTeam data={home?.team} />
 
