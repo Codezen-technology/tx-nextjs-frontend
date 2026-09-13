@@ -4,6 +4,7 @@ import { fetchRankMathSeo, buildPageMetadata, stringifyJsonLd } from "@/lib/seo/
 import { wpPath } from "@/lib/seo/wp-paths";
 import { env } from "@/lib/env";
 import { serverApi } from "@/lib/api/server";
+import { normalizeWhySection } from "@/lib/services/home";
 import { HeroSection } from "@/components/home/hero-section";
 import { PricingSection } from "@/components/home/pricing-section";
 import { TrustedOrgs } from "@/components/home/trusted-orgs";
@@ -73,6 +74,9 @@ export default async function HomePage() {
     // Over-fetch: `CategoriesGrid` drops zero-course terms before it takes 12.
     serverApi.taxonomy.categories({ per_page: 30 }).catch(() => null),
   ]);
+
+  const why = normalizeWhySection(home?.why);
+
   return (
     <>
       {HOME_SCHEMA.map((schema, i) => (
@@ -90,7 +94,7 @@ export default async function HomePage() {
 
       <CategoriesGrid categories={categoriesRes?.items} />
 
-      <WhyChooseGrid features={home?.why?.items} image={home?.why?.image} />
+      <WhyChooseGrid features={why.items} image={why.image} />
 
       <PopularCourses limit={8} header={home?.popular_courses_header} />
 

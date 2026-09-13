@@ -136,6 +136,12 @@ export interface HomeTestimonial {
   photo: string | null;
 }
 
+/** The `why` block as newer plugin builds return it. */
+export interface HomeWhySection {
+  items: HomeWhyFeature[];
+  image: string;
+}
+
 export interface HomePageData {
   topbar: HomeTopbarItem[];
   /** Legacy alternating slide format — unused by the redesigned homepage, kept for other consumers. */
@@ -144,10 +150,14 @@ export interface HomePageData {
   pricing: HomePricingSection;
   trusted_orgs: HomeTrustedOrgsSection;
   popular_courses_header: HomePopularCoursesHeader;
-  why: {
-    items: HomeWhyFeature[];
-    image: string;
-  };
+  /**
+   * Two shapes in the wild. Newer plugin builds return
+   * `{ items, image }`; older ones — including what production is serving
+   * today — return the bare feature array. Read it through
+   * `normalizeWhySection` rather than reaching for `.items`, which is
+   * `undefined` on the array shape and silently blanks the whole section.
+   */
+  why: HomeWhySection | HomeWhyFeature[];
   team: HomeTeamSection;
   certificate: HomeCertificateSection;
   testimonials: HomeTestimonial[];
