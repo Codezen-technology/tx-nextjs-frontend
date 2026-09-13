@@ -11,6 +11,7 @@ import { CourseAnnouncement } from "@/components/courses/course-announcement";
 import { CourseTrustedStrip } from "@/components/courses/course-trusted-strip";
 import { CourseBanner } from "@/components/courses/course-banner";
 import { CoursePurchaseCard } from "@/components/courses/course-purchase-card";
+import { CourseStickyAside } from "@/components/courses/course-sticky-aside";
 import { CourseWhatYouLearn } from "@/components/courses/course-what-you-learn";
 import { CourseAbout } from "@/components/courses/course-about";
 import { CourseTabNav } from "@/components/courses/course-tab-nav";
@@ -209,27 +210,30 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
         {/* ── Desktop sticky purchase card — hero top-right, overlapping the hero row ── */}
         <aside className="hidden lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:block lg:pt-14">
-          <div className="sticky top-24 z-20">
-            {/* Feature Image */}
-            <div className="mb-2 overflow-hidden rounded-lg border border-white/20 bg-white p-2">
-              {course.featuredImage ? (
-                <div className="relative aspect-290/188 w-full overflow-hidden bg-neutral-900">
-                  <SafeImage
-                    src={course.featuredImage}
-                    alt=""
-                    fill
-                    sizes="306px"
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="flex aspect-290/188 items-center justify-center rounded-md bg-neutral-800 text-sm text-white/60">
-                  Course preview
-                </div>
-              )}
-            </div>
+          <CourseStickyAside
+            image={
+              /* Feature Image — hidden once the column sticks (see CourseStickyAside) */
+              <div className="mb-2 overflow-hidden rounded-lg border border-white/20 bg-white p-2">
+                {course.featuredImage ? (
+                  <div className="relative aspect-290/188 w-full overflow-hidden bg-neutral-900">
+                    <SafeImage
+                      src={course.featuredImage}
+                      alt=""
+                      fill
+                      sizes="306px"
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex aspect-290/188 items-center justify-center rounded-md bg-neutral-800 text-sm text-white/60">
+                    Course preview
+                  </div>
+                )}
+              </div>
+            }
+          >
             <CoursePurchaseCard course={course} />
-          </div>
+          </CourseStickyAside>
         </aside>
 
         {/* ── Main column ── */}
