@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
+import { MARKETING_FIELD_CLASS } from "@/components/ui/form-field";
 import { useSubmitReview } from "@/lib/hooks/usePlayer";
 import { usePlayerStore } from "@/lib/stores/player.store";
 
@@ -19,7 +20,7 @@ export function ReviewModal({ courseId }: { courseId: number }) {
   const close = usePlayerStore((s) => s.closeReviewModal);
   const submit = useSubmitReview(courseId);
 
-  const [rating, setRating] = useState(0);
+  const [rating, setRating] = useState(5);
   const [hover, setHover] = useState(0);
   const [review, setReview] = useState("");
   const [title, setTitle] = useState("");
@@ -31,7 +32,7 @@ export function ReviewModal({ courseId }: { courseId: number }) {
           <DialogTitle>Rate this course</DialogTitle>
         </DialogHeader>
 
-        <div className="flex justify-center gap-1">
+        <div className="flex justify-center gap-1 py-4">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
               key={n}
@@ -57,14 +58,14 @@ export function ReviewModal({ courseId }: { courseId: number }) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Review title"
-          className="w-full rounded-md border px-3 py-2 text-sm"
+          className={MARKETING_FIELD_CLASS}
         />
         <textarea
           value={review}
           onChange={(e) => setReview(e.target.value)}
           rows={4}
           placeholder="Share your experience…"
-          className="w-full rounded-md border px-3 py-2 text-sm"
+          className={MARKETING_FIELD_CLASS}
         />
 
         <DialogFooter>
@@ -72,7 +73,7 @@ export function ReviewModal({ courseId }: { courseId: number }) {
             Cancel
           </Button>
           <Button
-            disabled={rating === 0 || submit.isPending}
+            disabled={submit.isPending}
             onClick={() => submit.mutate({ rating, review, title: title || "Course Review" })}
           >
             {submit.isPending ? <Loader2 className="animate-spin" /> : null}
