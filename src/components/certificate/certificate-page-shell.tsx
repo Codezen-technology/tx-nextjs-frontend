@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
+import { CmsLink } from "@/components/ui/cms-link";
 import { CertificateForm } from "@/components/certificate/certificate-form";
 import { HeroWave, HERO_GRADIENT } from "@/components/courses/hero-wave";
 import type { CertPageContent, CertProductSlug } from "@/types/certificate";
@@ -154,25 +155,37 @@ function PromoBanner({
   promoBanner: CertPageContent["promoBanner"] | undefined;
   fallbackLabel: string;
 }) {
-  if (promoBanner?.image) {
-    return (
-      <div className="relative h-[453px] w-full overflow-hidden rounded-2xl">
-        <Image
-          src={promoBanner.image.url}
-          alt={promoBanner.image.alt}
-          fill
-          sizes="320px"
-          className="object-cover"
-        />
-      </div>
-    );
-  }
+  const heading = promoBanner?.heading || fallbackLabel;
 
-  return (
-    <div className="flex h-[453px] items-center justify-center rounded-2xl bg-linear-to-b from-neutral-800 to-neutral-700 p-6 text-center">
-      <span className="font-suse text-lg font-semibold text-white/90">
-        {promoBanner?.heading || fallbackLabel}
-      </span>
+  const banner = promoBanner?.image ? (
+    <div className="relative h-[453px] w-full overflow-hidden rounded-2xl">
+      <Image
+        src={promoBanner.image.url}
+        // The CMS field is usually left blank; the banner's own heading is a
+        // better accessible name than nothing, and an image that links somewhere
+        // needs one.
+        alt={promoBanner.image.alt || heading}
+        fill
+        sizes="320px"
+        className="object-cover"
+      />
     </div>
+  ) : (
+    <div className="flex h-[453px] items-center justify-center rounded-2xl bg-linear-to-b from-neutral-800 to-neutral-700 p-6 text-center">
+      <span className="font-suse text-lg font-semibold text-white/90">{heading}</span>
+    </div>
+  );
+
+  // An editor filling in "Link URL" expects the banner to be clickable — it is an
+  // advert. Without this the whole promo is a dead picture.
+  return promoBanner?.link ? (
+    <CmsLink
+      href={promoBanner.link}
+      className="focus-visible:ring-primary-400 block rounded-2xl focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+    >
+      {banner}
+    </CmsLink>
+  ) : (
+    banner
   );
 }

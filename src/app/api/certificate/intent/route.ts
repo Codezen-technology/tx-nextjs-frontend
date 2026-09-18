@@ -25,6 +25,8 @@ interface CertSelection {
   product?: CertProductSlug;
   products?: Record<string, { choice: string; qty: number }>;
   shipping?: string | null;
+  /** Coupon codes the plugin already accepted for this form. */
+  coupons?: string[];
 }
 
 interface CertIntentBody extends Omit<CertSelection, "product"> {
@@ -58,6 +60,7 @@ async function fetchQuote(selection: CertSelection): Promise<Quote | null> {
     body: JSON.stringify({
       products: selection.products ?? {},
       shipping: selection.shipping ?? null,
+      coupons: selection.coupons ?? [],
     }),
     cache: "no-store",
   });
@@ -121,7 +124,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Email is required" }, { status: 400 });
   }
 
-  const quote = await fetchQuote({ product, products: body.products, shipping: body.shipping });
+  const coupons = Array.isArray(body.coupons)
+    ? body.coupons.filter((c): c is string => typeof c === "string" && c.trim() !== "")
+    : [];
+
+  const quote = await fetchQuote({
+    product,
+    products: body.products,
+    shipping: body.shipping,
+    coupons,
+  });
   if (!quote?.available) {
     return NextResponse.json({ error: "Certificate ordering is unavailable" }, { status: 503 });
   }
@@ -137,9 +149,14 @@ export async function POST(req: Request) {
     cert_email: email,
     cert_name: body.contact?.name ?? "",
     cert_total_minor: String(quote.total_minor),
+    // The codes must be in here, not only in the quote above: the order is recorded
+    // from this metadata (the webhook may fire with no browser around), and a record
+    // step that re-prices without them gets a different total, fails the amount
+    // check, and holds a paid order for review.
     cert_selection: JSON.stringify({
       products: body.products ?? {},
       shipping: body.shipping ?? null,
+      coupons,
     }),
   };
   for (const [name, value] of Object.entries(body.fields ?? {})) {

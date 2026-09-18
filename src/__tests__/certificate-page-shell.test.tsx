@@ -152,6 +152,70 @@ describe("certificate page shell — content fallback", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Hardcopy CMS Heading");
   });
 
+  it("links the promo banner where the CMS points it", () => {
+    // "Link URL (optional)" in the page's meta box. An editor who fills it in
+    // expects a clickable advert, not a dead picture.
+    renderShell({
+      product: "hardcopy",
+      hero: { heading: "", text: "", benefits: [], images: [] },
+      orderSection: { heading: "" },
+      promoBanner: {
+        image: { url: "https://cdn.test/promo.jpg", alt: "" },
+        heading: "Premium Access",
+        link: "/pricing",
+      },
+    });
+
+    const link = screen.getByRole("link", { name: "Premium Access" });
+    expect(link).toHaveAttribute("href", "/pricing");
+    // The CMS alt is usually blank; the heading is a better accessible name than
+    // an unnamed link wrapping an unnamed image.
+    expect(screen.getByAltText("Premium Access")).toBeInTheDocument();
+  });
+
+  it("opens a third-party promo destination in a new tab", () => {
+    renderShell({
+      product: "hardcopy",
+      hero: { heading: "", text: "", benefits: [], images: [] },
+      orderSection: { heading: "" },
+      promoBanner: {
+        image: { url: "https://cdn.test/promo.jpg", alt: "Promo" },
+        heading: "Premium Access",
+        link: "https://partner.example/offer",
+      },
+    });
+
+    const link = screen.getByRole("link", { name: "Promo" });
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("renders a plain banner when no link is configured", () => {
+    renderShell({
+      product: "hardcopy",
+      hero: { heading: "", text: "", benefits: [], images: [] },
+      orderSection: { heading: "" },
+      promoBanner: { image: { url: "https://cdn.test/promo.jpg", alt: "Promo" }, heading: "" },
+    });
+
+    expect(screen.getByAltText("Promo")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Promo" })).not.toBeInTheDocument();
+  });
+
+  it("links the fallback tile too when there is a link but no image", () => {
+    renderShell({
+      product: "hardcopy",
+      hero: { heading: "", text: "", benefits: [], images: [] },
+      orderSection: { heading: "" },
+      promoBanner: { image: null, heading: "Premium Access", link: "/pricing" },
+    });
+
+    expect(screen.getByRole("link", { name: "Premium Access" })).toHaveAttribute(
+      "href",
+      "/pricing",
+    );
+  });
+
   it("passes its product down to the order form", () => {
     renderShell(null);
     expect(screen.getByTestId("order-form")).toHaveAttribute("data-product", "hardcopy");

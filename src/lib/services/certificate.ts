@@ -13,6 +13,7 @@ import {
   type CertProductSlug,
 } from "@/types/certificate";
 import { TAGS } from "@/lib/api/cache-tags";
+import { safeCmsHref } from "@/lib/utils/url";
 
 /**
  * Cache tag for a product's page content. Scoped so revalidating one offer's
@@ -35,10 +36,22 @@ export const certificateService = {
    * promo banner) — Server Component only, uses `serverFetch` for Next.js caching.
    */
   async getPage(product: CertProductSlug = DEFAULT_CERT_PRODUCT): Promise<CertPageContent> {
-    return serverFetch<CertPageContent>(endpoints.certificate.page(product), {
+    const page = await serverFetch<CertPageContent>(endpoints.certificate.page(product), {
       revalidate: 3600,
       tags: [pageTag(product)],
     });
+
+    // The promo banner's link is CMS-authored, so it is normalised here rather
+    // than in the component: a backend-origin URL becomes a site path (the banner
+    // must not bounce a visitor back to WordPress), and anything that is not an
+    // http(s) URL or a site path is dropped. Service layer, per `lib/utils/url`.
+    // A response without a banner keeps it absent — normalising would invent a
+    // `{ link: "" }` the backend never sent, and the shell branches on presence.
+    if (!page.promoBanner) return page;
+    return {
+      ...page,
+      promoBanner: { ...page.promoBanner, link: safeCmsHref(page.promoBanner.link) },
+    };
   },
 
   /**
@@ -77,6 +90,11 @@ export const certificateService = {
         product: input.product ?? DEFAULT_CERT_PRODUCT,
         products: input.selection.products,
         shipping: input.selection.shipping,
+        // Sent explicitly, not spread: the intent route both prices the
+        // PaymentIntent with these codes and stores them in its metadata, and
+        // dropping them here would charge the pre-coupon amount for a total the
+        // buyer saw discounted.
+        coupons: input.selection.coupons ?? [],
         fields: input.fields,
         contact: input.contact,
       }),

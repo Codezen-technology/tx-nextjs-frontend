@@ -1,6 +1,6 @@
 import { env } from "@/lib/env";
 import { decodeEntities } from "@/lib/api/parsers";
-import { toFrontendPath } from "@/lib/utils/url";
+import { safeCmsHref, toFrontendPath } from "@/lib/utils/url";
 import type {
   SiteSettings,
   SiteFeatures,
@@ -49,7 +49,7 @@ export function getEnvFallbackSettings(): SiteSettings {
  * than distrust — what keeps a contract change, a stale plugin build, or a
  * filter someone added on the WP side from putting an empty strip on every
  * public page, since a bar with nothing to say still costs space above the fold
- * and reads as breakage. {@link safeBarHref} is the exception: it re-checks the
+ * and reads as breakage. {@link safeCmsHref} is the exception: it re-checks the
  * href on purpose, because that one's failure mode is script execution rather
  * than an ugly page.
  *
@@ -65,7 +65,7 @@ export function normalizeFloatingBar(
   const message = decodeEntities(raw.message).trim();
   if (!message) return undefined;
 
-  const href = safeBarHref(raw.cta?.href);
+  const href = safeCmsHref(raw.cta?.href);
   const label = decodeEntities(raw.cta?.label).trim();
 
   // A bar is dismissible only if it also carries a key to remember the
@@ -83,36 +83,6 @@ export function normalizeFloatingBar(
     ...(href && label ? { cta: { href, label } } : {}),
     ...(dismissKey ? { dismissKey } : {}),
   };
-}
-
-/**
- * A CTA destination safe to put in an `href`, or `""`.
- *
- * The backend already rejects anything but a site-relative path or an http(s)
- * URL, and this repeats that check rather than trusting it — because the cost
- * of being wrong here is not a cosmetic one. `new URL("javascript:alert(1)")`
- * parses happily with an origin of `"null"`, which reads as "not our origin"
- * to `isExternalUrl()` and would render an executable `href` on every
- * visitor-facing page. Anyone able to write the WP option, or to add a
- * `lms_backend_api_floating_bar` filter, would have script execution.
- *
- * `toFrontendPath()` runs first so a WP-origin absolute URL becomes a path and
- * the bar never bounces a visitor back to the site we replaced.
- */
-function safeBarHref(raw: string | null | undefined): string {
-  const href = toFrontendPath(raw).trim();
-  if (!href) return "";
-
-  // `//host/path` is protocol-relative — someone else's origin wearing a path's
-  // clothes — so it is not a site-relative path.
-  if (href.startsWith("/")) return href.startsWith("//") ? "" : href;
-
-  try {
-    const { protocol } = new URL(href);
-    return protocol === "http:" || protocol === "https:" ? href : "";
-  } catch {
-    return "";
-  }
 }
 
 /** Merge API settings with env overrides. Env vars win when explicitly set. */

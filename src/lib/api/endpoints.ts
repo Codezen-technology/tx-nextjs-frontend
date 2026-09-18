@@ -85,6 +85,7 @@ export const endpoints = {
     detail: (id: number | string) => `${lms}/forms/${encodeURIComponent(String(id))}`,
     validate: (id: number | string) => `${lms}/forms/${encodeURIComponent(String(id))}/validate`,
     submit: (id: number | string) => `${lms}/forms/${encodeURIComponent(String(id))}/submissions`,
+    coupons: (id: number | string) => `${lms}/forms/${encodeURIComponent(String(id))}/coupons`,
   },
   certificate: {
     page: (product?: CertProductSlug) => certPath("page", product),

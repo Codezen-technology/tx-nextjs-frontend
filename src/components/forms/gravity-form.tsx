@@ -10,7 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils/cn";
 import { isValidGravityDate, toGravityDateString } from "@/lib/utils/gravity-date";
-import { formsService, FormValidationError, type SubmitPayload } from "@/lib/services/forms";
+import {
+  CouponError,
+  formsService,
+  FormValidationError,
+  type SubmitPayload,
+} from "@/lib/services/forms";
 import type {
   ConditionalLogic,
   FormValues,
@@ -21,6 +26,8 @@ import type {
 import { MARKETING_FIELD_CLASS, MARKETING_LABEL_CLASS } from "@/components/ui/form-field";
 import { growToFit } from "@/lib/utils/auto-grow-textarea";
 import { ParsedHtml } from "@/components/ui/parsed-html";
+import { CouponBox } from "@/components/forms/coupon-box";
+import { ApiError, sanitizeWpErrorMessage } from "@/lib/api/error";
 
 const FIELD_CLASS = MARKETING_FIELD_CLASS;
 const LABEL_CLASS = MARKETING_LABEL_CLASS;
@@ -162,6 +169,7 @@ export function GravityForm({
     register,
     handleSubmit,
     setError,
+    setValue,
     trigger,
     control,
     formState: { errors, isSubmitting },
@@ -219,6 +227,8 @@ export function GravityForm({
         key={field.id}
         field={field}
         register={register}
+        setValue={setValue}
+        formId={form.id}
         errors={errors}
         maxDate={todayIso}
         fieldClass={fieldClass}
@@ -569,6 +579,10 @@ export function buildPayload(
 interface FieldRowProps {
   field: GravityField;
   register: ReturnType<typeof useForm<FormValues>>["register"];
+  /** Needed by the coupon field, which writes its value from an API response. */
+  setValue: ReturnType<typeof useForm<FormValues>>["setValue"];
+  /** The form being rendered — a coupon is validated against a specific form. */
+  formId: number;
   errors: ReturnType<typeof useForm<FormValues>>["formState"]["errors"];
   maxDate?: string;
   fieldClass?: string;
@@ -579,6 +593,8 @@ interface FieldRowProps {
 function FieldRow({
   field,
   register,
+  setValue,
+  formId,
   errors,
   maxDate,
   fieldClass = FIELD_CLASS,
@@ -604,6 +620,22 @@ function FieldRow({
 
   if (field.type === "hidden") {
     return <input type="hidden" {...register(field.name)} defaultValue={field.defaultValue} />;
+  }
+
+  // A coupon field is a code box with its own Apply round-trip, not a text input —
+  // typing a code and submitting it blind would fail the form's own validation with
+  // no explanation of why the code was refused.
+  if (field.type === "coupon") {
+    return (
+      <CouponField
+        field={field}
+        formId={formId}
+        register={register}
+        setValue={setValue}
+        fieldClass={fieldClass}
+        labelClass={labelClass}
+      />
+    );
   }
 
   const error = errors[field.name]?.message as string | undefined;
@@ -674,6 +706,91 @@ function FieldRow({
       )}
       <FieldError message={error} />
     </div>
+  );
+}
+
+/**
+ * Coupon code box for an ordinary Gravity Form.
+ *
+ * Applying a code is a server round-trip (`POST /forms/{id}/coupons`) before the
+ * form is submitted, because only Gravity Forms knows whether a code is expired,
+ * spent or non-stackable — and its refusal text is the only useful thing to show
+ * the visitor. Accepted codes are written into the form value under the field's
+ * own `input_{id}` name, so the ordinary payload builder submits them and Gravity
+ * Forms counts the redemption when the entry saves.
+ *
+ * No price is shown here: a non-payment form has no server-priced total, and the
+ * certificate flow — which does — wraps the same {@link CouponBox} with one.
+ */
+function CouponField({
+  field,
+  formId,
+  register,
+  setValue,
+  fieldClass = FIELD_CLASS,
+  labelClass = LABEL_CLASS,
+}: {
+  field: GravityField;
+  formId: number;
+  register: FieldRowProps["register"];
+  setValue: FieldRowProps["setValue"];
+  fieldClass?: string;
+  labelClass?: string;
+}) {
+  const [applied, setApplied] = useState<string[]>([]);
+
+  function commit(codes: string[]) {
+    setApplied(codes);
+    // Gravity Forms stores the codes comma-separated on the entry.
+    setValue(field.name, codes.join(","));
+  }
+
+  async function apply(code: string): Promise<string | null> {
+    try {
+      const result = await formsService.applyCoupon(formId, { code, applied });
+      // Trust the server's list over a local append: it is the one that judged
+      // stacking, and it has normalized the codes.
+      commit(result.applied);
+      return null;
+    } catch (err) {
+      const fallback = "Could not apply that code. Please try again.";
+      if (err instanceof CouponError) return err.message;
+      return err instanceof ApiError ? sanitizeWpErrorMessage(err.message, fallback) : fallback;
+    }
+  }
+
+  return (
+    <CouponBox
+      id={`gf-${field.id}`}
+      label={field.label}
+      fieldClass={fieldClass}
+      labelClass={labelClass}
+      placeholder={field.placeholder}
+      onApply={apply}
+      renderError={(message) => <FieldError message={message} />}
+      // Registered so the applied codes ride along in the submitted values.
+      beforeInput={<input type="hidden" {...register(field.name)} />}
+    >
+      {applied.length > 0 && (
+        <ul className="space-y-1">
+          {applied.map((appliedCode) => (
+            <li
+              key={appliedCode}
+              className="font-open-sans flex items-center justify-between gap-2 text-sm text-neutral-700"
+            >
+              <span className="font-semibold">{appliedCode}</span>
+              <button
+                type="button"
+                className="text-xs text-neutral-500 underline hover:text-neutral-800"
+                onClick={() => commit(applied.filter((c) => c !== appliedCode))}
+              >
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </CouponBox>
   );
 }
 

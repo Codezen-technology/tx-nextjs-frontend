@@ -92,6 +92,35 @@ export function toFrontendPath(url: string | null | undefined): string {
 }
 
 /**
+ * A CMS-authored destination that is safe to put in an `href`, or `""`.
+ *
+ * Anything an editor can type into an ACF/option field reaches this: the floating
+ * bar's CTA, the certificate promo banner, and anything added later. The check is
+ * not cosmetic — `new URL("javascript:alert(1)")` parses happily with an origin of
+ * `"null"`, which reads as "not our origin" to {@link isExternalUrl} and would
+ * render an executable `href` on a visitor-facing page. Anyone able to write the
+ * option (or add the matching filter) would have script execution.
+ *
+ * {@link toFrontendPath} runs first, so a WP-origin absolute URL becomes a path
+ * and the link never bounces a visitor back to the site we replaced.
+ */
+export function safeCmsHref(raw: string | null | undefined): string {
+  const href = toFrontendPath(raw).trim();
+  if (!href) return "";
+
+  // `//host/path` is protocol-relative — someone else's origin wearing a path's
+  // clothes — so it is not a site-relative path.
+  if (href.startsWith("/")) return href.startsWith("//") ? "" : href;
+
+  try {
+    const { protocol } = new URL(href);
+    return protocol === "http:" || protocol === "https:" ? href : "";
+  } catch {
+    return "";
+  }
+}
+
+/**
  * Bulk-swap every backend-origin occurrence with the frontend origin inside an
  * arbitrary string — used for JSON-LD blobs where URLs are embedded as values.
  */
