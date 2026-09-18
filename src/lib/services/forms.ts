@@ -11,7 +11,18 @@ import type {
   FormValues,
   GravityForm,
 } from "@/types/form";
-import type { CertSelection } from "@/types/certificate";
+
+/**
+ * The priceable half of an order, as the coupon endpoint reads it.
+ *
+ * Structural on purpose: the certificate flow passes its own `CertSelection`,
+ * which is assignable to this, and the generic forms service stays ignorant of
+ * the certificate domain — the dependency only ever points the other way.
+ */
+export interface CouponSelection {
+  products: Record<string, { choice: string; qty: number }>;
+  shipping: string | null;
+}
 
 /** Submission body: plain JSON values, or FormData when files are present. */
 export type SubmitPayload = FormValues | FormData;
@@ -113,7 +124,7 @@ export const formsService = {
    */
   async applyCoupon(
     id: number | string,
-    input: { code: string; applied?: string[]; selection?: CertSelection },
+    input: { code: string; applied?: string[]; selection?: CouponSelection },
   ): Promise<CouponApplyResult> {
     try {
       const { data } = await api.post<CouponApplyResult>(

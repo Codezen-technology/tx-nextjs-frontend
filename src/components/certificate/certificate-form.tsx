@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { certificateService } from "@/lib/services/certificate";
 import { CouponError, formsService } from "@/lib/services/forms";
+import { CouponBox as SharedCouponBox } from "@/components/forms/coupon-box";
+import { ApiError, sanitizeWpErrorMessage } from "@/lib/api/error";
 import {
   GfField,
   FieldShell,
@@ -170,8 +172,12 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
     enabled: selectionIsPriceable,
     staleTime: 0,
     // A coupon refused at quote time is an answer, not a blip: retrying would only
-    // repeat it, and the message is what the buyer needs to read.
-    retry: false,
+    // repeat it, and the message is what the buyer needs to read. A 5xx or a
+    // dropped connection is a blip, and still retries like any other read.
+    // One retry, not TanStack's three: a quote is re-fired on every selection
+    // change anyway, so a long backoff would only leave the total stale.
+    retry: (failureCount, err) =>
+      !(err instanceof ApiError && err.status >= 400 && err.status < 500) && failureCount < 1,
   });
 
   const currency = config?.currency ?? "GBP";
@@ -180,8 +186,24 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
 
   // The quote re-checks every applied code, so a code that expired mid-session
   // surfaces here rather than as a silent full-price total.
-  const quoteMessage =
-    quoteError instanceof Error && quoteError.message ? quoteError.message : null;
+  //
+  // Only a refusal (422) speaks to the buyer in the backend's own words; every
+  // other failure is ours, and its raw text ("Request failed with status code
+  // 500", a PHP notice) is neither actionable nor safe to render. `ApiError` is
+  // the only shape worth reading — `bffJson` has already decoded the entities
+  // Gravity Forms escapes into its message.
+  const quoteMessage = useMemo(() => {
+    if (!quoteError) return null;
+    const generic = "We could not price this order just now. Please try again.";
+    if (!(quoteError instanceof ApiError)) return generic;
+    if (quoteError.status !== 422) return generic;
+    return sanitizeWpErrorMessage(quoteError.message, generic);
+  }, [quoteError]);
+
+  // A price the visitor could agree to. Absent both before the first quote (an
+  // unpriceable selection is not quoted at all) and after a refused one, so the
+  // total renders as "—" rather than an inviting £0.00 in either case.
+  const priced = Boolean(quote);
 
   /** Discount the backend attributed to a code, when the quote reported one. */
   function discountFor(code: string): number | undefined {
@@ -246,16 +268,23 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
         applied: couponCodes,
         selection,
       });
-      setCoupons((prev) => [...prev.filter((c) => c.code !== result.coupon.code), result.coupon]);
+      setCoupons((prev) => {
+        const next = [...prev.filter((c) => c.code !== result.coupon.code), result.coupon];
+        // Trust the server's list over a local append: it is the one that judged
+        // stacking, and it may have superseded or normalised a code we hold.
+        // An older plugin build omits it, in which case the append stands.
+        if (!result.applied?.length) return next;
+        const kept = new Set(result.applied.map((code) => code.toUpperCase()));
+        return next.filter((c) => kept.has(c.code.toUpperCase()));
+      });
       return null;
     } catch (err) {
       // A refusal carries Gravity Forms' own reason ("expired", "can't be used in
       // conjunction with…"); anything else is a transport or service failure and
       // must not be reported as if the code were bad.
       if (err instanceof CouponError) return err.message;
-      return err instanceof Error && err.message
-        ? err.message
-        : "Could not apply that code. Please try again.";
+      const fallback = "Could not apply that code. Please try again.";
+      return err instanceof ApiError ? sanitizeWpErrorMessage(err.message, fallback) : fallback;
     }
   }
 
@@ -264,6 +293,10 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
     const missing = firstMissingRequired();
     if (missing) {
       setError(missing);
+      return;
+    }
+    if (quoteMessage) {
+      setError(quoteMessage);
       return;
     }
     if (!quote || quote.total_minor <= 0) {
@@ -408,6 +441,8 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
         />
       )}
 
+      {quoteMessage && <p className="text-sm text-red-600">{quoteMessage}</p>}
+
       {/* ── Total ───────────────────────────────────────────────────── */}
       <div className="bg-secondary-50 border-secondary-500 space-y-2 rounded-lg border px-4 py-3">
         {discount > 0 && (
@@ -425,12 +460,10 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
         <div className="flex items-center justify-between">
           <span className="font-suse text-base font-semibold text-neutral-900">Total Fee</span>
           <span className="font-suse text-primary-600 text-xl font-bold">
-            {money(currency, total)}
+            {priced ? money(currency, total) : "—"}
           </span>
         </div>
       </div>
-
-      {quoteMessage && <p className="text-sm text-red-600">{quoteMessage}</p>}
 
       {/* ── Dynamic GF fields (name / email / phone / course / address / notes) ── */}
       <div className="space-y-4">
@@ -463,9 +496,18 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <Button onClick={handlePay} disabled={submitting} className="w-full" size="lg">
+      {/* Enabled while a quote is merely missing — a selection that cannot be
+          priced yet is exactly when the visitor needs `handlePay` to name the
+          field they still have to pick. A *refused* quote is different: there is
+          no price to pay, so the button goes with the total. */}
+      <Button
+        onClick={handlePay}
+        disabled={submitting || Boolean(quoteError)}
+        className="w-full"
+        size="lg"
+      >
         {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Pay {money(currency, total)}
+        {priced ? `Pay ${money(currency, total)}` : "Pay"}
       </Button>
       <p className="font-open-sans text-center text-xs text-neutral-400">
         Secure payment by Stripe. Your card details never touch our servers.
@@ -475,12 +517,12 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
 }
 
 /**
- * Coupon code box: input + Apply, then the accepted codes with what each took off.
+ * The certificate order form's coupon box: the shared widget, plus the accepted
+ * codes with what the quote says each one took off.
  *
- * Deliberately stateless about validity — `onApply` resolves to the backend's
- * refusal text or null, and this component only decides where to put it. Any
- * client-side "looks like a code" check here would eventually disagree with
- * Gravity Forms and tell a buyer to retype something that would have worked.
+ * The prices are the only reason this wrapper exists — {@link SharedCouponBox}
+ * owns the input, the Apply round-trip and the refusal text, and a plain Gravity
+ * Form renders the same widget with a bare list of codes.
  */
 function CouponBox({
   label,
@@ -495,75 +537,19 @@ function CouponBox({
   currency: string;
   applied: AppliedCoupon[];
   discountFor: (code: string) => number | undefined;
-  /** True when the order has nothing to discount yet. */
+  /** True when the order has nothing for a code to discount. */
   disabled?: boolean;
   onApply: (code: string) => Promise<string | null>;
   onRemove: (code: string) => void;
 }) {
-  const [code, setCode] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  async function apply() {
-    if (disabled) return;
-    const trimmed = code.trim();
-    if (!trimmed) {
-      setError("Enter a coupon code.");
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    const refusal = await onApply(trimmed);
-    setBusy(false);
-    if (refusal) {
-      setError(refusal);
-      return;
-    }
-    setCode("");
-  }
-
   return (
-    <div className="space-y-2">
-      <label className={cn("block text-sm font-medium", LABEL_CLASS)} htmlFor="cert-coupon">
-        {label || "Coupon"}
-      </label>
-      <div className="flex items-start gap-2">
-        <input
-          id="cert-coupon"
-          type="text"
-          className={cn(FIELD_CLASS, "uppercase", disabled && "cursor-not-allowed opacity-60")}
-          value={code}
-          disabled={busy || disabled}
-          autoComplete="off"
-          onChange={(e) => setCode(e.target.value)}
-          // Enter inside a coupon box means "apply this code", never "submit and
-          // pay" — the surrounding form would otherwise take the keypress.
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              void apply();
-            }
-          }}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          disabled={busy || disabled}
-          onClick={() => void apply()}
-        >
-          {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Apply
-        </Button>
-      </div>
-
-      {disabled && (
-        <p className="font-open-sans text-sm text-neutral-500">
-          Select a certificate option before applying a coupon.
-        </p>
-      )}
-
-      {error && !disabled && <p className="text-sm text-red-600">{error}</p>}
-
+    <SharedCouponBox
+      id="cert-coupon"
+      label={label}
+      disabled={disabled}
+      disabledHint="Select a certificate option before applying a coupon."
+      onApply={onApply}
+    >
       {applied.length > 0 && (
         <ul className="space-y-1">
           {applied.map((coupon) => {
@@ -590,7 +576,7 @@ function CouponBox({
           })}
         </ul>
       )}
-    </div>
+    </SharedCouponBox>
   );
 }
 

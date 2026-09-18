@@ -208,6 +208,76 @@ describe("applying a code", () => {
     expect(screen.queryByText("SAVE10")).not.toBeInTheDocument();
   });
 
+  it("keeps the server's list of applied codes, not a local append", async () => {
+    // The server judged the stacking and may have normalised or superseded what
+    // we hold; a local append would price one thing and display another.
+    applyCoupon.mockResolvedValue({
+      coupon: { code: "SAVE10", name: "Ten off", type: "flat", amount: 10 },
+      applied: ["save10"],
+      field: { id: 73, name: "input_73" },
+      totals: null,
+    });
+
+    renderForm();
+    fireEvent.change(await screen.findByLabelText("Coupon"), { target: { value: "SAVE10" } });
+    fireEvent.click(screen.getByRole("button", { name: /apply/i }));
+
+    // Listed once — case is the server's business, not a second entry.
+    expect(await screen.findByText("SAVE10")).toBeInTheDocument();
+    await waitFor(() => {
+      const withCodes = getQuote.mock.calls.some(
+        ([, selection]) => selection.coupons?.length === 1,
+      );
+      expect(withCodes).toBe(true);
+    });
+  });
+
+  it("re-prices without a code once it is removed", async () => {
+    applyCoupon.mockResolvedValue({
+      coupon: { code: "SAVE10", name: "Ten off", type: "flat", amount: 10 },
+      applied: ["SAVE10"],
+      field: { id: 73, name: "input_73" },
+      totals: null,
+    });
+
+    renderForm();
+    fireEvent.change(await screen.findByLabelText("Coupon"), { target: { value: "SAVE10" } });
+    fireEvent.click(screen.getByRole("button", { name: /apply/i }));
+    await screen.findByText("SAVE10");
+
+    fireEvent.click(screen.getByRole("button", { name: /remove/i }));
+
+    expect(await screen.findByText("£32.97")).toBeInTheDocument();
+    expect(screen.queryByText("SAVE10")).not.toBeInTheDocument();
+    // The quote after the removal carries no codes at all — the total returning
+    // to its old value has to come from the backend, not from dropping a line.
+    await waitFor(() => {
+      const [, selection] = getQuote.mock.calls[getQuote.mock.calls.length - 1];
+      expect(selection.coupons ?? []).toEqual([]);
+    });
+  });
+
+  it("does not blame the code when the apply request itself fails", async () => {
+    // A 503 or a dropped connection says nothing about the code. Telling the
+    // visitor it was refused sends them off to find another perfectly good one.
+    applyCoupon.mockRejectedValue(
+      new ApiError({
+        status: 503,
+        code: "lms_coupons_unavailable",
+        message: "Fatal error: Uncaught Error in /var/www/html/wp-content/plugins/x.php on line 42",
+      }),
+    );
+
+    renderForm();
+    fireEvent.change(await screen.findByLabelText("Coupon"), { target: { value: "SAVE10" } });
+    fireEvent.click(screen.getByRole("button", { name: /apply/i }));
+
+    expect(
+      await screen.findByText("Could not apply that code. Please try again."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/wp-content/)).not.toBeInTheDocument();
+  });
+
   it("does not call the backend with an empty box", async () => {
     renderForm();
     await screen.findByLabelText("Coupon");
@@ -234,6 +304,36 @@ describe("a quote the backend refuses over a coupon", () => {
     renderForm();
 
     expect(await screen.findByText("This coupon has reached its usage limit.")).toBeInTheDocument();
+    // No total the visitor could pay at, and nothing to press: a refused quote
+    // priced nothing, and "£0.00" beside an enabled Pay button is an offer.
+    expect(await screen.findByText("—")).toBeInTheDocument();
+    expect(screen.queryByText("£0.00")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("button", { name: /^Pay$/ })).toBeDisabled());
+  });
+
+  it("does not show a server failure's own words to the buyer", async () => {
+    // Only a refusal (422) speaks to the buyer. Anything else is ours, and its
+    // raw text is neither actionable nor safe to render.
+    getQuote.mockRejectedValue(
+      new ApiError({
+        status: 500,
+        code: "internal_server_error",
+        message: "Request failed with status code 500",
+      }),
+    );
+
+    renderForm();
+
+    // Waits past the one retry a transient failure is given.
+    expect(
+      await screen.findByText(
+        "We could not price this order just now. Please try again.",
+        {},
+        { timeout: 4000 },
+      ),
+    ).toBeInTheDocument();
+    expect(getQuote.mock.calls.length).toBeGreaterThan(1);
+    expect(screen.queryByText(/status code 500/)).not.toBeInTheDocument();
   });
 });
 

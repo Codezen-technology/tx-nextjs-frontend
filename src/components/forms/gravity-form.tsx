@@ -26,6 +26,8 @@ import type {
 import { MARKETING_FIELD_CLASS, MARKETING_LABEL_CLASS } from "@/components/ui/form-field";
 import { growToFit } from "@/lib/utils/auto-grow-textarea";
 import { ParsedHtml } from "@/components/ui/parsed-html";
+import { CouponBox } from "@/components/forms/coupon-box";
+import { ApiError, sanitizeWpErrorMessage } from "@/lib/api/error";
 
 const FIELD_CLASS = MARKETING_FIELD_CLASS;
 const LABEL_CLASS = MARKETING_LABEL_CLASS;
@@ -718,7 +720,7 @@ function FieldRow({
  * Forms counts the redemption when the entry saves.
  *
  * No price is shown here: a non-payment form has no server-priced total, and the
- * certificate flow — which does — has its own coupon box wired to its quote.
+ * certificate flow — which does — wraps the same {@link CouponBox} with one.
  */
 function CouponField({
   field,
@@ -736,10 +738,6 @@ function CouponField({
   labelClass?: string;
 }) {
   const [applied, setApplied] = useState<string[]>([]);
-  const [code, setCode] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const id = `gf-${field.id}`;
 
   function commit(codes: string[]) {
     setApplied(codes);
@@ -747,78 +745,44 @@ function CouponField({
     setValue(field.name, codes.join(","));
   }
 
-  async function apply() {
-    const trimmed = code.trim();
-    if (!trimmed) {
-      setError("Enter a coupon code.");
-      return;
-    }
-    setBusy(true);
-    setError(null);
+  async function apply(code: string): Promise<string | null> {
     try {
-      const result = await formsService.applyCoupon(formId, { code: trimmed, applied });
+      const result = await formsService.applyCoupon(formId, { code, applied });
       // Trust the server's list over a local append: it is the one that judged
       // stacking, and it has normalized the codes.
       commit(result.applied);
-      setCode("");
+      return null;
     } catch (err) {
-      setError(
-        err instanceof CouponError
-          ? err.message
-          : err instanceof Error && err.message
-            ? err.message
-            : "Could not apply that code. Please try again.",
-      );
-    } finally {
-      setBusy(false);
+      const fallback = "Could not apply that code. Please try again.";
+      if (err instanceof CouponError) return err.message;
+      return err instanceof ApiError ? sanitizeWpErrorMessage(err.message, fallback) : fallback;
     }
   }
 
   return (
-    <div className="space-y-2">
-      <label className={cn("block text-sm font-medium", labelClass)} htmlFor={id}>
-        {field.label || "Coupon"}
-      </label>
-      {/* Registered so the applied codes ride along in the submitted values. */}
-      <input type="hidden" {...register(field.name)} />
-      <div className="flex items-start gap-2">
-        <input
-          id={id}
-          type="text"
-          className={cn(fieldClass, "uppercase")}
-          value={code}
-          disabled={busy}
-          autoComplete="off"
-          placeholder={field.placeholder || undefined}
-          onChange={(e) => setCode(e.target.value)}
-          // Enter applies the code; without this the surrounding form submits.
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              void apply();
-            }
-          }}
-        />
-        <Button type="button" variant="outline" disabled={busy} onClick={() => void apply()}>
-          {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Apply
-        </Button>
-      </div>
-
-      {error && <FieldError message={error} />}
-
+    <CouponBox
+      id={`gf-${field.id}`}
+      label={field.label}
+      fieldClass={fieldClass}
+      labelClass={labelClass}
+      placeholder={field.placeholder}
+      onApply={apply}
+      renderError={(message) => <FieldError message={message} />}
+      // Registered so the applied codes ride along in the submitted values.
+      beforeInput={<input type="hidden" {...register(field.name)} />}
+    >
       {applied.length > 0 && (
         <ul className="space-y-1">
-          {applied.map((applied_code) => (
+          {applied.map((appliedCode) => (
             <li
-              key={applied_code}
+              key={appliedCode}
               className="font-open-sans flex items-center justify-between gap-2 text-sm text-neutral-700"
             >
-              <span className="font-semibold">{applied_code}</span>
+              <span className="font-semibold">{appliedCode}</span>
               <button
                 type="button"
                 className="text-xs text-neutral-500 underline hover:text-neutral-800"
-                onClick={() => commit(applied.filter((c) => c !== applied_code))}
+                onClick={() => commit(applied.filter((c) => c !== appliedCode))}
               >
                 Remove
               </button>
@@ -826,7 +790,7 @@ function CouponField({
           ))}
         </ul>
       )}
-    </div>
+    </CouponBox>
   );
 }
 

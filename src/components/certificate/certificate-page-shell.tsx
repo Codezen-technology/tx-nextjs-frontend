@@ -1,7 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import { isExternalUrl } from "@/lib/utils/url";
+import { CmsLink } from "@/components/ui/cms-link";
 import { CertificateForm } from "@/components/certificate/certificate-form";
 import { HeroWave, HERO_GRADIENT } from "@/components/courses/hero-wave";
 import type { CertPageContent, CertProductSlug } from "@/types/certificate";
@@ -179,29 +178,14 @@ function PromoBanner({
 
   // An editor filling in "Link URL" expects the banner to be clickable — it is an
   // advert. Without this the whole promo is a dead picture.
-  return promoBanner?.link ? <PromoLink href={promoBanner.link}>{banner}</PromoLink> : banner;
-}
-
-/**
- * `next/link` for our own origin, a new-tab anchor for anywhere else — the split
- * the URL helpers document. The service has already turned a backend-origin URL
- * into a path, so a remaining absolute URL really is somewhere else.
- */
-function PromoLink({ href, children }: { href: string; children: React.ReactNode }) {
-  const className =
-    "focus-visible:ring-primary-400 block rounded-2xl focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden";
-
-  if (isExternalUrl(href)) {
-    return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
-        {children}
-      </a>
-    );
-  }
-
-  return (
-    <Link href={href} className={className}>
-      {children}
-    </Link>
+  return promoBanner?.link ? (
+    <CmsLink
+      href={promoBanner.link}
+      className="focus-visible:ring-primary-400 block rounded-2xl focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+    >
+      {banner}
+    </CmsLink>
+  ) : (
+    banner
   );
 }

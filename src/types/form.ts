@@ -115,11 +115,13 @@ export interface GravityForm {
  * total, and a second implementation of that would eventually disagree with the
  * amount actually charged.
  */
+/** Gravity Forms' own vocabulary for how a coupon's `amount` is read. */
+export type CouponType = "flat" | "percentage";
+
 export interface AppliedCoupon {
   code: string;
   name: string;
-  /** `flat` | `percentage` — Gravity Forms' own vocabulary. */
-  type: string;
+  type: CouponType;
   amount: number;
   can_stack?: boolean;
   /** Money this coupon took off, present only where the response carried totals. */

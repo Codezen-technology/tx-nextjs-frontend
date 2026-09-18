@@ -64,3 +64,16 @@ add-on returns `can&#039;t`, so `CouponError` now decodes before display.
 - [ ] 7.1 Apply a real code on `/certificate` against that backend and confirm the total drops by the amount the rendered WordPress form would show
 - [ ] 7.2 Complete a discounted payment and confirm the Stripe charge equals the discounted total
 - [ ] 7.3 Confirm the recorded Gravity Forms entry carries the code and the discounted total
+
+## 8. Review follow-ups (2026-09-18)
+
+- [x] 8.1 Read a failed quote as an `ApiError`: only a 422 refusal reaches the buyer in the backend's words (sanitized), every other failure gets one generic pricing line — `certificate-form.tsx`
+- [x] 8.2 Retry transient quote failures once; a 4xx (a refusal) still never retries
+- [x] 8.3 Render no payable total for a refused quote — "—" in place of "Total Fee £0.00", Pay disabled, `handlePay` reporting the refusal rather than "select at least one option" (`coupon-redemption-ui/spec.md:84`)
+- [x] 8.4 Trust the server's `applied` list on the certificate form too, instead of appending locally
+- [x] 8.5 Sanitize the non-`CouponError` branch of both Apply handlers so a PHP fatal cannot reach a buyer
+- [x] 8.6 Extract the shared coupon widget (`components/forms/coupon-box.tsx`); the certificate form wraps it with prices, a plain Gravity Form with a bare code list
+- [x] 8.7 Extract `CmsLink` (`components/ui/cms-link.tsx`) — the promo banner and the floating-bar CTA were the same internal/external link split twice
+- [x] 8.8 Inline `safeBarHref` into `safeCmsHref`; type `AppliedCoupon.type` as `CouponType`; drop `@/types/certificate` from the generic forms service in favour of a local `CouponSelection`
+- [x] 8.9 Keep `promoBanner` absent when the API omits it, rather than normalising it into `{ link: "" }`
+- [x] 8.10 Test the gaps: code removed re-prices without it, an apply request failing is not blamed on the code, a refused quote shows no payable total, a 500 does not surface its own words, and the first quote carries the `isSelected` default (4b.4)

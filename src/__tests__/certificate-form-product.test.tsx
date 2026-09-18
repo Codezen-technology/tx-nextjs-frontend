@@ -4,7 +4,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { CertificateForm } from "@/components/certificate/certificate-form";
 import { CERT_CONFIG_22, CERT_CONFIG_23 } from "./fixtures/certificate-config";
-import type { CertConfig, CertProductSlug } from "@/types/certificate";
+import type { CertConfig, CertProductSlug, CertSelection } from "@/types/certificate";
 
 /**
  * `/certificate` and `/hardcopy-certificate` share this component, so what each
@@ -13,7 +13,7 @@ import type { CertConfig, CertProductSlug } from "@/types/certificate";
  */
 
 const getConfig = vi.fn<(product: CertProductSlug) => Promise<CertConfig>>();
-const getQuote = vi.fn(async () => ({
+const getQuote = vi.fn(async (_product: CertProductSlug, _selection: CertSelection) => ({
   available: true,
   currency: "GBP",
   items: [],
@@ -26,7 +26,7 @@ const getQuote = vi.fn(async () => ({
 vi.mock("@/lib/services/certificate", () => ({
   certificateService: {
     getConfig: (product: CertProductSlug) => getConfig(product),
-    getQuote: () => getQuote(),
+    getQuote: (product: CertProductSlug, selection: CertSelection) => getQuote(product, selection),
     createIntent: vi.fn(),
     confirm: vi.fn(),
   },
@@ -233,8 +233,14 @@ describe("certificate product is unaffected", () => {
         .checked,
     ).toBe(false);
 
-    // …and the very first quote asks for that choice, so the opening total matches.
+    // …and the very first quote asks for that choice, so the opening total
+    // matches what the WordPress-rendered form shows. Asserting only that a quote
+    // happened would pass with the £0 opt-out in the payload — the actual defect.
     await waitFor(() => expect(getQuote).toHaveBeenCalled());
+    const [, selection] = getQuote.mock.calls[0];
+    const group = withGfDefault.products[0];
+    const gfDefaultValue = group.choices.find((c) => c.price === 14.99)!.value;
+    expect(selection.products[group.fieldId].choice).toBe(gfDefaultValue);
   });
 
   it("still gates shipping on its hardcopy product, which is products[1]", async () => {

@@ -1,11 +1,10 @@
 "use client";
 
 import { useCallback, useState, useSyncExternalStore } from "react";
-import Link from "next/link";
 import { X } from "lucide-react";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
 import { cn } from "@/lib/utils/cn";
-import { isExternalUrl } from "@/lib/utils/url";
+import { CmsLink } from "@/components/ui/cms-link";
 
 /**
  * The sitewide floating notice bar — page chrome carrying whatever the brand
@@ -73,7 +72,11 @@ export function SiteFloatingBar() {
         {/* Plain text, never dangerouslySetInnerHTML. The backend strips markup
             rather than escaping it precisely so no client needs an HTML sink. */}
         <p>{bar.message}</p>
-        {bar.cta ? <BarCta href={bar.cta.href} label={bar.cta.label} /> : null}
+        {bar.cta ? (
+          <CmsLink href={bar.cta.href} className={LINK_CLASS}>
+            {bar.cta.label}
+          </CmsLink>
+        ) : null}
         {dismissKey ? (
           <button
             type="button"
@@ -186,26 +189,3 @@ const LINK_CLASS = cn(
   FOCUS_RING,
   "text-primary-300 hover:text-primary-100 font-semibold underline underline-offset-2",
 );
-
-/**
- * `next/link` for anything on our own origin, a new-tab anchor for genuinely
- * third-party destinations — the split the URL helpers document. The backend
- * serves a site-relative path or an absolute http(s) URL, and a WP-origin URL
- * was already rewritten to a path, so a remaining absolute URL really is
- * somewhere else.
- */
-function BarCta({ href, label }: { href: string; label: string }) {
-  if (isExternalUrl(href)) {
-    return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={LINK_CLASS}>
-        {label}
-      </a>
-    );
-  }
-
-  return (
-    <Link href={href} className={LINK_CLASS}>
-      {label}
-    </Link>
-  );
-}

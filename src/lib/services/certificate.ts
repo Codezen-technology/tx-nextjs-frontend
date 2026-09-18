@@ -45,12 +45,12 @@ export const certificateService = {
     // than in the component: a backend-origin URL becomes a site path (the banner
     // must not bounce a visitor back to WordPress), and anything that is not an
     // http(s) URL or a site path is dropped. Service layer, per `lib/utils/url`.
+    // A response without a banner keeps it absent — normalising would invent a
+    // `{ link: "" }` the backend never sent, and the shell branches on presence.
+    if (!page.promoBanner) return page;
     return {
       ...page,
-      promoBanner: {
-        ...page.promoBanner,
-        link: safeCmsHref(page.promoBanner?.link),
-      },
+      promoBanner: { ...page.promoBanner, link: safeCmsHref(page.promoBanner.link) },
     };
   },
 
