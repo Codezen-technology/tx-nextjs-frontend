@@ -201,6 +201,42 @@ describe("certificate product is unaffected", () => {
     await waitFor(() => expect(getQuote).toHaveBeenCalled());
   });
 
+  it("opens on Gravity Forms' own default choice, not the £0 opt-out", async () => {
+    // The tick in the field's Choices editor is what admins edit against — form 4
+    // defaults its digital group to the £14.99 "Both" option. Opening on the £0
+    // opt-out instead showed a £0 order where the WordPress-rendered form shows
+    // £14.99.
+    const withGfDefault: CertConfig = {
+      ...CERT_CONFIG_23,
+      products: CERT_CONFIG_23.products.map((group, index) =>
+        index === 0
+          ? {
+              ...group,
+              choices: group.choices.map((choice) => ({
+                ...choice,
+                isSelected: choice.price === 14.99,
+              })),
+            }
+          : group,
+      ),
+    };
+    getConfig.mockResolvedValue(withGfDefault);
+
+    renderForm("default");
+    const gfDefault = await screen.findByLabelText<HTMLInputElement>(
+      "Both (CPD Accredited Certificate + Official Transcript) for £14.99",
+    );
+
+    expect(gfDefault.checked).toBe(true);
+    expect(
+      screen.getByLabelText<HTMLInputElement>("I don't need digital Certificate & Transcript")
+        .checked,
+    ).toBe(false);
+
+    // …and the very first quote asks for that choice, so the opening total matches.
+    await waitFor(() => expect(getQuote).toHaveBeenCalled());
+  });
+
   it("still gates shipping on its hardcopy product, which is products[1]", async () => {
     renderForm("default");
     await screen.findByText("Hardcopy (Officially Printed)");

@@ -1,6 +1,6 @@
 import { env } from "@/lib/env";
 import { decodeEntities } from "@/lib/api/parsers";
-import { toFrontendPath } from "@/lib/utils/url";
+import { safeCmsHref, toFrontendPath } from "@/lib/utils/url";
 import type {
   SiteSettings,
   SiteFeatures,
@@ -88,31 +88,12 @@ export function normalizeFloatingBar(
 /**
  * A CTA destination safe to put in an `href`, or `""`.
  *
- * The backend already rejects anything but a site-relative path or an http(s)
- * URL, and this repeats that check rather than trusting it — because the cost
- * of being wrong here is not a cosmetic one. `new URL("javascript:alert(1)")`
- * parses happily with an origin of `"null"`, which reads as "not our origin"
- * to `isExternalUrl()` and would render an executable `href` on every
- * visitor-facing page. Anyone able to write the WP option, or to add a
- * `lms_backend_api_floating_bar` filter, would have script execution.
- *
- * `toFrontendPath()` runs first so a WP-origin absolute URL becomes a path and
- * the bar never bounces a visitor back to the site we replaced.
+ * Thin alias over the shared CMS-href guard — the floating bar was the first
+ * surface to need it, and the certificate promo banner now needs the identical
+ * rule, so the logic lives in `lib/utils/url` with one implementation.
  */
 function safeBarHref(raw: string | null | undefined): string {
-  const href = toFrontendPath(raw).trim();
-  if (!href) return "";
-
-  // `//host/path` is protocol-relative — someone else's origin wearing a path's
-  // clothes — so it is not a site-relative path.
-  if (href.startsWith("/")) return href.startsWith("//") ? "" : href;
-
-  try {
-    const { protocol } = new URL(href);
-    return protocol === "http:" || protocol === "https:" ? href : "";
-  } catch {
-    return "";
-  }
+  return safeCmsHref(raw);
 }
 
 /** Merge API settings with env overrides. Env vars win when explicitly set. */

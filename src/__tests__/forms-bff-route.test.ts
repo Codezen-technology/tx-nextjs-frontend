@@ -31,7 +31,9 @@ beforeEach(() => {
 });
 
 describe("POST /api/forms/[id]/[action] — refusals", () => {
-  it("refuses an action outside validate and submissions", async () => {
+  it("refuses an action outside the allowlist", async () => {
+    // `entries` is a real plugin route; the allowlist is what stops our origin
+    // handing the browser the whole `/forms/{id}/` namespace.
     const res = await post("7", "entries");
 
     expect(res.status).toBe(400);
@@ -59,6 +61,37 @@ describe("POST /api/forms/[id]/[action] — forwarding", () => {
     expect(String(url)).toContain("/forms/7/submissions");
     expect(init.method).toBe("POST");
     expect(init.body).toBe(JSON.stringify({ input_1: "hi" }));
+  });
+
+  it("posts to the coupon path", async () => {
+    fetchMock.mockResolvedValueOnce(
+      json({ success: true, data: { coupon: { code: "SAVE10" }, applied: ["SAVE10"] } }),
+    );
+
+    const res = await post("7", "coupons", JSON.stringify({ code: "SAVE10", applied: [] }));
+
+    expect(res.status).toBe(200);
+    expect(String(fetchMock.mock.calls[0][0])).toContain("/forms/7/coupons");
+  });
+
+  it("relays a refused coupon with its reason and status intact", async () => {
+    // The wording is Gravity Forms' own and is the only thing that tells a buyer
+    // whether retyping the code could help — reshaping it here would lose that.
+    fetchMock.mockResolvedValueOnce(
+      json(
+        {
+          code: "lms_coupon_invalid",
+          message: "This coupon has expired.",
+          data: { status: 422, code: "SAVE10" },
+        },
+        422,
+      ),
+    );
+
+    const res = await post("7", "coupons", JSON.stringify({ code: "SAVE10" }));
+
+    expect(res.status).toBe(422);
+    await expect(res.json()).resolves.toMatchObject({ message: "This coupon has expired." });
   });
 
   it("posts to the validate path", async () => {

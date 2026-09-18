@@ -2,8 +2,16 @@ import type { AxiosRequestConfig } from "axios";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import { toApiError } from "@/lib/api/error";
+import { decodeEntities } from "@/lib/api/parsers";
 import type { WpError } from "@/types/api";
-import type { FormFieldErrors, FormSubmissionSuccess, FormValues, GravityForm } from "@/types/form";
+import type {
+  CouponApplyResult,
+  FormFieldErrors,
+  FormSubmissionSuccess,
+  FormValues,
+  GravityForm,
+} from "@/types/form";
+import type { CertSelection } from "@/types/certificate";
 
 /** Submission body: plain JSON values, or FormData when files are present. */
 export type SubmitPayload = FormValues | FormData;
@@ -29,6 +37,25 @@ export class FormValidationError extends Error {
 }
 
 /**
+ * Thrown when the backend refuses a coupon code (HTTP 422).
+ *
+ * A refusal is an answer, not a fault: Gravity Forms knows whether a code is
+ * expired, spent, or non-stackable, and `message` is its own wording for which.
+ * Surfacing that verbatim is the whole point — a paraphrase would tell a buyer to
+ * retype a code that will never work.
+ */
+export class CouponError extends Error {
+  constructor(
+    message: string,
+    /** The code that was refused, echoed back by the backend. */
+    public code?: string,
+  ) {
+    super(message);
+    this.name = "CouponError";
+  }
+}
+
+/**
  * Gravity Forms writes go through a dedicated BFF route, not the read proxy.
  *
  * The Axios base URL is the same-origin read proxy in the browser, and that
@@ -36,7 +63,7 @@ export class FormValidationError extends Error {
  * paths are already app-absolute, so they override the base URL rather than
  * being appended to it.
  */
-function bffFormPath(id: number | string, action: "validate" | "submissions"): string {
+function bffFormPath(id: number | string, action: "validate" | "submissions" | "coupons"): string {
   return `/api/forms/${encodeURIComponent(String(id))}/${action}`;
 }
 
@@ -70,6 +97,44 @@ export const formsService = {
       return true;
     } catch (err) {
       throw mapSubmitError(err);
+    }
+  },
+
+  /**
+   * Apply a coupon code to a form. Throws `CouponError` when the backend refuses
+   * it, `ApiError` for anything else (unreachable, rate-limited, form gone).
+   *
+   * `applied` carries the codes already accepted so the backend can judge stacking
+   * — it is the question "may this code join these?", not "is this code real?".
+   *
+   * `selection` is optional and only buys server-computed totals; without it the
+   * response's `totals` is null and the caller re-quotes as it normally would. No
+   * total is ever sent *up*: the backend prices from the form, never from us.
+   */
+  async applyCoupon(
+    id: number | string,
+    input: { code: string; applied?: string[]; selection?: CertSelection },
+  ): Promise<CouponApplyResult> {
+    try {
+      const { data } = await api.post<CouponApplyResult>(
+        bffFormPath(id, "coupons"),
+        {
+          code: input.code,
+          applied: input.applied ?? [],
+          ...(input.selection
+            ? {
+                selection: {
+                  products: input.selection.products,
+                  shipping: input.selection.shipping,
+                },
+              }
+            : {}),
+        },
+        asBffRequest(),
+      );
+      return data;
+    } catch (err) {
+      throw mapCouponError(err);
     }
   },
 
@@ -112,6 +177,28 @@ function withPages(
   if (pages?.sourcePage != null) body.source_page = pages.sourcePage;
   if (pages?.targetPage != null) body.target_page = pages.targetPage;
   return { body };
+}
+
+/**
+ * A 422 from the coupon endpoint is a refusal carrying the reason; everything
+ * else (429 rate limit, 503 add-on inactive, network) stays an `ApiError` so the
+ * UI does not tell a buyer their perfectly good code was rejected.
+ */
+function mapCouponError(err: unknown): Error {
+  const apiErr = toApiError(err);
+  if (apiErr.status === 422) {
+    const body = apiErr.raw as WpError | undefined;
+    const refused = body?.data as { code?: unknown } | undefined;
+    // Gravity Forms escapes its own strings, so a refusal arrives as
+    // "This coupon can&#039;t be used…". Decoding is the display layer's job:
+    // the API is right to relay the add-on's text byte for byte, and the BFF
+    // proxy already decodes on the routes that pass through it.
+    return new CouponError(
+      decodeEntities(apiErr.message),
+      typeof refused?.code === "string" ? refused.code : undefined,
+    );
+  }
+  return apiErr;
 }
 
 function mapSubmitError(err: unknown): Error {

@@ -3,7 +3,7 @@
  * Mirrors the plugin's product-scoped `/certificate/{product}/config` +
  * `/certificate/{product}/quote` and the BFF `/api/certificate/intent`.
  */
-import type { GravityField } from "./form";
+import type { AppliedCoupon, GravityField } from "./form";
 
 /**
  * Which certificate offer a request is for — the plugin's *product slug*.
@@ -35,6 +35,16 @@ export interface CertChoice {
   label: string;
   price: number;
   priceMinor: number;
+  /**
+   * Gravity Forms' own default for this choice — the tick in the field's Choices
+   * editor. The page must open on it, or it shows a different pre-selection (and a
+   * different opening total) than the same form rendered by WordPress, which is
+   * what admins edit against.
+   *
+   * Optional: plugin builds before this was exposed omit it, and the client falls
+   * back to the £0 opt-out.
+   */
+  isSelected?: boolean;
 }
 
 export interface CertQuantity {
@@ -76,12 +86,27 @@ export interface CertShipping {
   appliesTo?: number[];
 }
 
+/**
+ * The form's coupon field, when it has one and the Coupons add-on is active.
+ *
+ * The backend sends null in every other case — including "the add-on is inactive",
+ * which is why this is the only thing the UI should branch on: a box whose Apply
+ * could never succeed is worse than no box.
+ */
+export interface CertCouponField {
+  fieldId: number;
+  name: string;
+  label: string;
+}
+
 export interface CertConfig {
   form_id: number;
   record_form_id: number;
   currency: string;
   products: CertProduct[];
   shipping: CertShipping | null;
+  /** Coupon field to render, or null/absent when this form takes no coupons. */
+  coupon?: CertCouponField | null;
   /** Non-pricing GF fields (name/email/phone/course/address/notes/…) — render dynamically. */
   fields: GravityField[];
 }
@@ -90,6 +115,15 @@ export interface CertConfig {
 export interface CertSelection {
   products: Record<string, { choice: string; qty: number }>;
   shipping: string | null;
+  /**
+   * Coupon codes the backend has accepted.
+   *
+   * Part of the selection rather than a sibling argument on purpose: the selection
+   * is the quote's cache key, the quote request body and the intent payload, so a
+   * code added here re-prices everything that already reacts to a selection change.
+   * Keeping them apart is how a quote ends up discounted while the charge is not.
+   */
+  coupons?: string[];
 }
 
 export interface CertQuoteItem {
@@ -106,6 +140,11 @@ export interface CertQuote {
   items: CertQuoteItem[];
   subtotal: number;
   shipping: number;
+  /** Coupons the backend applied. Absent on plugin builds without coupon support. */
+  coupons?: AppliedCoupon[];
+  /** Money the coupons took off. Absent (treat as 0) on those same builds. */
+  discount?: number;
+  /** Already net of `discount` — display this, never a locally recomputed figure. */
   total: number;
   total_minor: number;
 }
@@ -162,5 +201,14 @@ export interface CertPageContent {
   promoBanner: {
     image: CertImage | null;
     heading: string;
+    /**
+     * Where the banner points, as authored in the CMS ("Link URL (optional)").
+     * Normalised by the service: a backend-origin URL becomes a site path, and
+     * anything that is not an http(s) URL or a site path becomes `""` — an
+     * editor can type into this field, so it is never trusted raw.
+     *
+     * Empty/absent means the banner is a picture, not a link.
+     */
+    link?: string;
   };
 }

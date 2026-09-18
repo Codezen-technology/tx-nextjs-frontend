@@ -116,6 +116,54 @@ describe("POST /api/certificate/intent", () => {
     expect(res.status).toBe(400);
     expect(calls).toHaveLength(0);
   });
+
+  /**
+   * Coupon codes have to reach two places, for two different reasons: the quote
+   * (or the buyer is charged the pre-coupon amount for a total they saw
+   * discounted) and the PaymentIntent metadata (or the record step re-prices
+   * without them, the amount check fails, and a paid order is held for review).
+   */
+  it("prices with the applied coupon codes and keeps them in the PI metadata", async () => {
+    stubFetch();
+    await intentPOST(
+      jsonReq({
+        products: { "51": { choice: "Both for £14.99", qty: 2 } },
+        shipping: "UK Delivery for £2.99",
+        coupons: ["SAVE10"],
+        contact: { email: "a@b.test" },
+        fields: {},
+      }),
+    );
+
+    expect(quoteCall()?.body.coupons).toEqual(["SAVE10"]);
+
+    const selection = JSON.parse(String(stripeCall()?.body["metadata[cert_selection]"])) as Record<
+      string,
+      unknown
+    >;
+    expect(selection.coupons).toEqual(["SAVE10"]);
+  });
+
+  it("sends an empty coupon list when none were applied", async () => {
+    stubFetch();
+    await intentPOST(jsonReq({ products: {}, contact: { email: "a@b.test" }, fields: {} }));
+
+    expect(quoteCall()?.body.coupons).toEqual([]);
+  });
+
+  it("drops blank and non-string codes rather than forwarding them", async () => {
+    stubFetch();
+    await intentPOST(
+      jsonReq({
+        products: {},
+        coupons: ["SAVE10", "", "   ", 7, null],
+        contact: { email: "a@b.test" },
+        fields: {},
+      }),
+    );
+
+    expect(quoteCall()?.body.coupons).toEqual(["SAVE10"]);
+  });
 });
 
 describe("POST /api/certificate/confirm", () => {

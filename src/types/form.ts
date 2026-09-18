@@ -91,9 +91,60 @@ export interface GravityForm {
   button: { text: string };
   /** True when the form takes payment (Stripe/product/total) — not submittable here. */
   hasPayment: boolean;
+  /**
+   * True when the form carries a Gravity Forms Coupons field.
+   *
+   * Optional: a plugin build without coupon support omits it, and the coupon box
+   * is simply not rendered — the app and the plugin deploy independently.
+   */
+  hasCoupon?: boolean;
+  /** Field id of that coupon field; codes post back as `input_{couponFieldId}`. */
+  couponFieldId?: number | null;
   isMultiPage: boolean;
   pageCount: number;
   fields: GravityField[];
+}
+
+/**
+ * A coupon the backend accepted, as `POST /forms/{id}/coupons` reports it.
+ *
+ * `amount` is the coupon's configured value (10 means £10 for a flat coupon, 10%
+ * for a percentage one) and is NOT the money taken off — that is `discount`, which
+ * only a priced quote can know. Never compute one from the other here: the backend
+ * applies flat coupons before percentage ones and discounts the shipping-inclusive
+ * total, and a second implementation of that would eventually disagree with the
+ * amount actually charged.
+ */
+export interface AppliedCoupon {
+  code: string;
+  name: string;
+  /** `flat` | `percentage` — Gravity Forms' own vocabulary. */
+  type: string;
+  amount: number;
+  can_stack?: boolean;
+  /** Money this coupon took off, present only where the response carried totals. */
+  discount?: number;
+}
+
+/** Successful response of `POST /forms/{id}/coupons`. */
+export interface CouponApplyResult {
+  coupon: AppliedCoupon;
+  /** Every code now applied, including the one just accepted. */
+  applied: string[];
+  field: { id: number; name: string };
+  /** Server-priced totals — null unless the request carried a priceable selection. */
+  totals: CouponTotals | null;
+}
+
+/** Totals a coupon response may carry; shaped by the backend's quote. */
+export interface CouponTotals {
+  currency: string;
+  subtotal: number;
+  shipping: number;
+  discount: number;
+  total: number;
+  total_minor: number;
+  coupons: AppliedCoupon[];
 }
 
 /** Validation messages keyed by field id (e.g. { "6": "This field is required." }). */

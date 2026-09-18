@@ -1,5 +1,7 @@
 import Image from "next/image";
+import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import { isExternalUrl } from "@/lib/utils/url";
 import { CertificateForm } from "@/components/certificate/certificate-form";
 import { HeroWave, HERO_GRADIENT } from "@/components/courses/hero-wave";
 import type { CertPageContent, CertProductSlug } from "@/types/certificate";
@@ -154,25 +156,52 @@ function PromoBanner({
   promoBanner: CertPageContent["promoBanner"] | undefined;
   fallbackLabel: string;
 }) {
-  if (promoBanner?.image) {
+  const heading = promoBanner?.heading || fallbackLabel;
+
+  const banner = promoBanner?.image ? (
+    <div className="relative h-[453px] w-full overflow-hidden rounded-2xl">
+      <Image
+        src={promoBanner.image.url}
+        // The CMS field is usually left blank; the banner's own heading is a
+        // better accessible name than nothing, and an image that links somewhere
+        // needs one.
+        alt={promoBanner.image.alt || heading}
+        fill
+        sizes="320px"
+        className="object-cover"
+      />
+    </div>
+  ) : (
+    <div className="flex h-[453px] items-center justify-center rounded-2xl bg-linear-to-b from-neutral-800 to-neutral-700 p-6 text-center">
+      <span className="font-suse text-lg font-semibold text-white/90">{heading}</span>
+    </div>
+  );
+
+  // An editor filling in "Link URL" expects the banner to be clickable — it is an
+  // advert. Without this the whole promo is a dead picture.
+  return promoBanner?.link ? <PromoLink href={promoBanner.link}>{banner}</PromoLink> : banner;
+}
+
+/**
+ * `next/link` for our own origin, a new-tab anchor for anywhere else — the split
+ * the URL helpers document. The service has already turned a backend-origin URL
+ * into a path, so a remaining absolute URL really is somewhere else.
+ */
+function PromoLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const className =
+    "focus-visible:ring-primary-400 block rounded-2xl focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden";
+
+  if (isExternalUrl(href)) {
     return (
-      <div className="relative h-[453px] w-full overflow-hidden rounded-2xl">
-        <Image
-          src={promoBanner.image.url}
-          alt={promoBanner.image.alt}
-          fill
-          sizes="320px"
-          className="object-cover"
-        />
-      </div>
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+        {children}
+      </a>
     );
   }
 
   return (
-    <div className="flex h-[453px] items-center justify-center rounded-2xl bg-linear-to-b from-neutral-800 to-neutral-700 p-6 text-center">
-      <span className="font-suse text-lg font-semibold text-white/90">
-        {promoBanner?.heading || fallbackLabel}
-      </span>
-    </div>
+    <Link href={href} className={className}>
+      {children}
+    </Link>
   );
 }

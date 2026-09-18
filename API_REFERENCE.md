@@ -1357,6 +1357,50 @@ and verified against it on `tx-local-site.test`. Four remaining gaps — a
 stripping form 22's field 63 — are tracked in
 [`docs/HARDCOPY_CERTIFICATE_API.md`](docs/HARDCOPY_CERTIFICATE_API.md).
 
+### Coupons on a Gravity Form
+
+```
+POST /forms/{id}/coupons
+```
+
+Applies one Gravity Forms **Coupons** add-on code to a form the plugin serves publicly.
+The add-on's own AJAX handler cannot be used headlessly — it is bound to its jQuery
+widget and reads a client-supplied total — so this endpoint asks the same question
+through the add-on's own methods, keeping eligibility, stacking and discount arithmetic
+Gravity Forms'.
+
+Body: `code` (required), `applied` (codes already accepted, for stacking), `selection`
+(optional; only buys server-computed `totals`, and never carries a price _up_).
+
+```json
+{
+  "success": true,
+  "data": {
+    "coupon": { "code": "SAVE10", "name": "Ten off", "type": "flat", "amount": 10 },
+    "applied": ["SAVE10"],
+    "field": { "id": 73, "name": "input_73" },
+    "totals": null
+  }
+}
+```
+
+A refusal is **422 `lms_coupon_invalid`** whose `message` is the add-on's own wording
+("This coupon has expired.") and whose `data.code` echoes the refused code — show it
+verbatim; it is the only thing that tells a buyer whether retyping would help. Other
+errors: `503 lms_coupons_unavailable`, `422 lms_form_no_coupon_field`,
+`429 lms_coupon_rate_limited`.
+
+The form schema advertises the field as `hasCoupon` / `couponFieldId`; accepted codes are
+submitted comma-separated under `input_{couponFieldId}`, which is what makes Gravity Forms
+discount the entry and count the redemption.
+
+Certificate ordering carries the codes as `coupons[]` on `POST /certificate/{product}/quote`
+(which answers with `coupons[]` + `discount`, the `total` already net of them) and through
+`/api/certificate/intent` into the PaymentIntent metadata, so the charged and recorded
+amounts match. `GET /certificate/{product}/config` exposes the field as `coupon` — `null`
+when the form takes no coupons or the add-on is inactive, which is the only signal the UI
+should branch on.
+
 ### POST `/certificates/verify` (also GET)
 
 Public. Verifies a certificate code in the live-site format `{PREFIX}-{course_id}-{user_id}`.

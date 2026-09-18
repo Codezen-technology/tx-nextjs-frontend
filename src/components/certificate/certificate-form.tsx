@@ -16,6 +16,7 @@ import { stripePromise } from "@/lib/stripe";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { certificateService } from "@/lib/services/certificate";
+import { CouponError, formsService } from "@/lib/services/forms";
 import {
   GfField,
   FieldShell,
@@ -31,6 +32,7 @@ import {
   type CertProductSlug,
   type CertSelection,
 } from "@/types/certificate";
+import type { AppliedCoupon } from "@/types/form";
 
 const STRIPE_ELEMENT_OPTIONS = {
   style: {
@@ -96,16 +98,24 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
   const [shipping, setShipping] = useState<string>("");
   // Dynamic GF field values, keyed by input name (input_6, input_78_1, …).
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+  // Coupons the backend accepted. Only ever written from an apply response — the
+  // app never decides a code is valid, and never computes what it is worth.
+  const [coupons, setCoupons] = useState<AppliedCoupon[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Default each product to its £0 "I don't need…" option so the GF-required
-  // product fields are satisfied at record time; the user upgrades from there.
+  // Pre-selection, in the order that matters:
   //
-  // A product with no £0 option is genuinely required and is left UNSELECTED —
-  // never defaulted to a priced choice. `/hardcopy-certificate`'s hardcopy field
-  // is exactly this: defaulting would silently pre-add £19.99 to the order.
+  //  1. the visitor's own choice, once they make one;
+  //  2. Gravity Forms' own default (`isSelected` — the tick in its Choices editor),
+  //     so this page opens on the same option, and the same total, as the form
+  //     WordPress renders. That tick is what admins edit against;
+  //  3. otherwise the £0 "I don't need…" option, which satisfies the GF-required
+  //     product field at record time and lets the visitor upgrade from there.
+  //
+  // A group with no GF default and no £0 option is genuinely required and is left
+  // UNSELECTED — never defaulted to a priced choice the visitor did not pick.
   // Derived (not stored in state) to avoid setState-in-effect — `choices` only
   // holds the user's overrides.
   const effectiveChoices = useMemo(() => {
@@ -113,20 +123,33 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
     if (!config) return out;
     // `group`, not `product` — `product` is the offer slug this form is selling.
     for (const group of config.products) {
-      const zero = group.choices.find((c) => c.price === 0);
       const override = choices[group.fieldId];
       if (override) {
         out[group.fieldId] = override;
-      } else if (!groupIsRequired(group) && zero) {
+        continue;
+      }
+
+      const gfDefault = group.choices.find((c) => c.isSelected);
+      if (gfDefault) {
+        out[group.fieldId] = { choice: gfDefault.value, qty: 1 };
+        continue;
+      }
+
+      const zero = group.choices.find((c) => c.price === 0);
+      if (!groupIsRequired(group) && zero) {
         out[group.fieldId] = { choice: zero.value, qty: 1 };
       }
     }
     return out;
   }, [config, choices]);
 
+  const couponCodes = useMemo(() => coupons.map((c) => c.code), [coupons]);
+
+  // Codes live in the selection, so applying or removing one re-keys the quote
+  // cache and re-prices the PaymentIntent exactly like changing a product does.
   const selection: CertSelection = useMemo(
-    () => ({ products: effectiveChoices, shipping: shipping || null }),
-    [effectiveChoices, shipping],
+    () => ({ products: effectiveChoices, shipping: shipping || null, coupons: couponCodes }),
+    [effectiveChoices, shipping, couponCodes],
   );
 
   // A selection missing a required group is unpriceable, and the backend says so
@@ -141,15 +164,29 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
     );
   }, [config, effectiveChoices]);
 
-  const { data: quote } = useQuery({
+  const { data: quote, error: quoteError } = useQuery({
     queryKey: queryKeys.certificate.quote(product, selection),
     queryFn: () => certificateService.getQuote(product, selection),
     enabled: selectionIsPriceable,
     staleTime: 0,
+    // A coupon refused at quote time is an answer, not a blip: retrying would only
+    // repeat it, and the message is what the buyer needs to read.
+    retry: false,
   });
 
   const currency = config?.currency ?? "GBP";
   const total = quote?.total ?? 0;
+  const discount = quote?.discount ?? 0;
+
+  // The quote re-checks every applied code, so a code that expired mid-session
+  // surfaces here rather than as a silent full-price total.
+  const quoteMessage =
+    quoteError instanceof Error && quoteError.message ? quoteError.message : null;
+
+  /** Discount the backend attributed to a code, when the quote reported one. */
+  function discountFor(code: string): number | undefined {
+    return quote?.coupons?.find((c) => c.code === code)?.discount;
+  }
 
   const setField = (name: string, value: string) =>
     setFieldValues((prev) => ({ ...prev, [name]: value }));
@@ -191,6 +228,35 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
   function isPriced(productId: number, productChoices: CertProduct["choices"]) {
     const sel = effectiveChoices[productId]?.choice;
     return productChoices.find((c) => c.value === sel && c.price > 0);
+  }
+
+  /**
+   * Ask the backend whether a code may be applied. Returns the refusal text to
+   * show, or null when it was accepted — the caller owns the input's own state.
+   *
+   * The codes already applied go up with it so Gravity Forms can judge stacking;
+   * the selection goes up only so the response can carry totals, and is never a
+   * price we assert.
+   */
+  async function applyCoupon(code: string): Promise<string | null> {
+    if (!config) return "Coupons are unavailable right now.";
+    try {
+      const result = await formsService.applyCoupon(config.form_id, {
+        code,
+        applied: couponCodes,
+        selection,
+      });
+      setCoupons((prev) => [...prev.filter((c) => c.code !== result.coupon.code), result.coupon]);
+      return null;
+    } catch (err) {
+      // A refusal carries Gravity Forms' own reason ("expired", "can't be used in
+      // conjunction with…"); anything else is a transport or service failure and
+      // must not be reported as if the code were bad.
+      if (err instanceof CouponError) return err.message;
+      return err instanceof Error && err.message
+        ? err.message
+        : "Could not apply that code. Please try again.";
+    }
   }
 
   async function handlePay() {
@@ -324,13 +390,47 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
         )}
       </div>
 
+      {/* ── Coupon ──────────────────────────────────────────────────── */}
+      {config.coupon && (
+        <CouponBox
+          label={config.coupon.label}
+          currency={currency}
+          applied={coupons}
+          discountFor={discountFor}
+          // Disabled only once a quote has actually come back at £0 — there is
+          // nothing for a code to discount, the backend would refuse it, and each
+          // attempt spends one of the visitor's rate-limited tries. While a quote
+          // is still in flight the total is unknown, so the box stays usable
+          // rather than flickering disabled on every selection change.
+          disabled={quote ? quote.total_minor <= 0 : false}
+          onApply={applyCoupon}
+          onRemove={(code) => setCoupons((prev) => prev.filter((c) => c.code !== code))}
+        />
+      )}
+
       {/* ── Total ───────────────────────────────────────────────────── */}
-      <div className="bg-secondary-50 border-secondary-500 flex items-center justify-between rounded-lg border px-4 py-3">
-        <span className="font-suse text-base font-semibold text-neutral-900">Total Fee</span>
-        <span className="font-suse text-primary-600 text-xl font-bold">
-          {money(currency, total)}
-        </span>
+      <div className="bg-secondary-50 border-secondary-500 space-y-2 rounded-lg border px-4 py-3">
+        {discount > 0 && (
+          <>
+            <div className="font-open-sans flex items-center justify-between text-sm text-neutral-600">
+              <span>Subtotal</span>
+              <span>{money(currency, (quote?.subtotal ?? 0) + (quote?.shipping ?? 0))}</span>
+            </div>
+            <div className="font-open-sans flex items-center justify-between text-sm text-green-700">
+              <span>Discount</span>
+              <span>−{money(currency, discount)}</span>
+            </div>
+          </>
+        )}
+        <div className="flex items-center justify-between">
+          <span className="font-suse text-base font-semibold text-neutral-900">Total Fee</span>
+          <span className="font-suse text-primary-600 text-xl font-bold">
+            {money(currency, total)}
+          </span>
+        </div>
       </div>
+
+      {quoteMessage && <p className="text-sm text-red-600">{quoteMessage}</p>}
 
       {/* ── Dynamic GF fields (name / email / phone / course / address / notes) ── */}
       <div className="space-y-4">
@@ -370,6 +470,126 @@ function CertificateFormInner({ product }: { product: CertProductSlug }) {
       <p className="font-open-sans text-center text-xs text-neutral-400">
         Secure payment by Stripe. Your card details never touch our servers.
       </p>
+    </div>
+  );
+}
+
+/**
+ * Coupon code box: input + Apply, then the accepted codes with what each took off.
+ *
+ * Deliberately stateless about validity — `onApply` resolves to the backend's
+ * refusal text or null, and this component only decides where to put it. Any
+ * client-side "looks like a code" check here would eventually disagree with
+ * Gravity Forms and tell a buyer to retype something that would have worked.
+ */
+function CouponBox({
+  label,
+  currency,
+  applied,
+  discountFor,
+  disabled = false,
+  onApply,
+  onRemove,
+}: {
+  label: string;
+  currency: string;
+  applied: AppliedCoupon[];
+  discountFor: (code: string) => number | undefined;
+  /** True when the order has nothing to discount yet. */
+  disabled?: boolean;
+  onApply: (code: string) => Promise<string | null>;
+  onRemove: (code: string) => void;
+}) {
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function apply() {
+    if (disabled) return;
+    const trimmed = code.trim();
+    if (!trimmed) {
+      setError("Enter a coupon code.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    const refusal = await onApply(trimmed);
+    setBusy(false);
+    if (refusal) {
+      setError(refusal);
+      return;
+    }
+    setCode("");
+  }
+
+  return (
+    <div className="space-y-2">
+      <label className={cn("block text-sm font-medium", LABEL_CLASS)} htmlFor="cert-coupon">
+        {label || "Coupon"}
+      </label>
+      <div className="flex items-start gap-2">
+        <input
+          id="cert-coupon"
+          type="text"
+          className={cn(FIELD_CLASS, "uppercase", disabled && "cursor-not-allowed opacity-60")}
+          value={code}
+          disabled={busy || disabled}
+          autoComplete="off"
+          onChange={(e) => setCode(e.target.value)}
+          // Enter inside a coupon box means "apply this code", never "submit and
+          // pay" — the surrounding form would otherwise take the keypress.
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void apply();
+            }
+          }}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          disabled={busy || disabled}
+          onClick={() => void apply()}
+        >
+          {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Apply
+        </Button>
+      </div>
+
+      {disabled && (
+        <p className="font-open-sans text-sm text-neutral-500">
+          Select a certificate option before applying a coupon.
+        </p>
+      )}
+
+      {error && !disabled && <p className="text-sm text-red-600">{error}</p>}
+
+      {applied.length > 0 && (
+        <ul className="space-y-1">
+          {applied.map((coupon) => {
+            const off = discountFor(coupon.code);
+            return (
+              <li
+                key={coupon.code}
+                className="font-open-sans flex items-center justify-between gap-2 text-sm text-neutral-700"
+              >
+                <span>
+                  <span className="font-semibold">{coupon.code}</span>
+                  {coupon.name ? ` — ${coupon.name}` : ""}
+                  {off != null ? ` (−${money(currency, off)})` : ""}
+                </span>
+                <button
+                  type="button"
+                  className="text-xs text-neutral-500 underline hover:text-neutral-800"
+                  onClick={() => onRemove(coupon.code)}
+                >
+                  Remove
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }

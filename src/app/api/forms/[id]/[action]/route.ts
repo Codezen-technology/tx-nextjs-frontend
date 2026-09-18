@@ -26,12 +26,19 @@ import { getServerWpJsonBase } from "@/lib/env";
 export const runtime = "nodejs";
 
 /**
- * Only the two Gravity Forms write actions; not a general form-namespace proxy.
- * The upstream paths come from `endpoints.ts`, which owns every URL string.
+ * Only the Gravity Forms write actions this app performs; not a general
+ * form-namespace proxy. The allowlist is the point — without it, our origin would
+ * hand the browser every plugin endpoint under `/forms/{id}/`. The upstream paths
+ * come from `endpoints.ts`, which owns every URL string.
+ *
+ * `coupons` applies a coupon code. It is a write (it is rate-limited and POST-only
+ * upstream) and needs the same verbatim relay as the others, because a refusal
+ * arrives as a 422 whose `message` is Gravity Forms' own wording for *why*.
  */
 const ACTIONS: Record<string, (id: string) => string> = {
   validate: (id) => endpoints.forms.validate(id),
   submissions: (id) => endpoints.forms.submit(id),
+  coupons: (id) => endpoints.forms.coupons(id),
 };
 
 interface RouteContext {
